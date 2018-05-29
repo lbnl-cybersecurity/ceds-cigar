@@ -1,0 +1,41 @@
+
+Elements in Active Circuit: utility 01
+
+Power Delivery Elements
+
+Element          Bus1     Bus2     Bus3     ...
+
+"Line.CONN 01"   BUS_611   LOAD_611  
+"Line.CONN 02"   BUS_634   LOAD_634  
+"Line.CONN 03"   BUS_645   LOAD_645  
+"Line.CONN 04"   BUS_646   LOAD_646  
+"Line.CONN 05"   BUS_652   LOAD_652  
+"Line.CONN 06"   BUS_671   LOAD_671  
+"Line.CONN 07"   BUS_675   LOAD_675  
+"Line.CONN 08"   BUS_692   LOAD_692  
+"Line.L_632_633" BUS_632   BUS_633   
+"Line.L_632_645" BUS_632   BUS_645   
+"Line.L_632_671" BUS_632   BUS_671   
+"Line.L_633_634" BUS_633   BUS_634   
+"Line.L_645_646" BUS_645   BUS_646   
+"Line.L_650_632" BUS_650   BUS_632   
+"Line.L_671_680" BUS_671   BUS_680   
+"Line.L_671_684" BUS_671   BUS_684   
+"Line.L_671_692" BUS_671   BUS_692   
+"Line.L_684_611" BUS_684   BUS_611   
+"Line.L_684_652" BUS_684   BUS_652   
+"Line.L_692_675" BUS_692   BUS_675   
+"Line.L_U_650"   SOURCEBUS BUS_650   
+
+Power Conversion Elements
+
+Element          Bus1     Bus2     Bus3     ...
+
+"Load.LOAD_611"  LOAD_611  
+"Load.LOAD_634"  LOAD_634  
+"Load.LOAD_645"  LOAD_645  
+"Load.LOAD_646"  LOAD_646  
+"Load.LOAD_652"  LOAD_652  
+"Load.LOAD_671"  LOAD_671  
+"Load.LOAD_675"  LOAD_675  
+"Load.LOAD_692"  LOAD_692  
