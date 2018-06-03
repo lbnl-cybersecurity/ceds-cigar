@@ -1,4 +1,4 @@
-def setLoadInfo(DSSObj,loadname,property,value,NameChecker):
+def setLoadInfo(DSSObj,loadname,property,value,NameChecker=0):
     try:
         property=property.lower()
     except:
@@ -34,7 +34,7 @@ def setLoadInfo(DSSObj,loadname,property,value,NameChecker):
             return DSSObj,False
     return DSSObj,True
 
-def setSourceInfo(DSSObj,sourcename,property,value,NameChecker):
+def setSourceInfo(DSSObj,sourcename,property,value,NameChecker=0):
     try:
         property=property.lower()
     except:

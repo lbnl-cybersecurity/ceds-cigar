@@ -31,7 +31,7 @@ NumberOfNodes=length(NodeList);
 %% Base Value Calculation
 
 Vbase = 4.16e3; %4.16 kV
-Sbase = 1; %500 kVA
+Sbase = 500; %500 kVA
 
 Zbase = Vbase^2/Sbase;
 Ibase = Sbase/Vbase;
@@ -64,8 +64,8 @@ Load = QSTS_Data(:,4,:);
 
 % The above three lines still return a 3d matrix, where the column =1, so
 % squeeze them
-Generation=squeeze(Generation)*100/Sbase; % To convert to per unit, it should not be multiplied by 100
-Load=squeeze(Load)/Sbase*100; % To convert to per unit
+Generation=squeeze(Generation)*1/Sbase; % To convert to per unit, it should not be multiplied by 100
+Load=squeeze(Load)/Sbase*1; % To convert to per unit
 MaxGenerationPossible = max(Generation); % Getting the Maximum possible Generation for each Load 
 
 %% ZIP load modeling
@@ -194,7 +194,7 @@ for ksim=1:TotalTimeSteps
          if(FilteredOutput_vqvp(ksim,knode) >= ThreshHold_vqvp)
             %we are, so re-dispatch smart inverter settings
             %comment code below to see unstable results
-%              VBP(knode,:) = [1.025,1.04,1.04,1.05];
+              VBP(knode,:) = [1.0,1.04,1.04,1.05];
         end
         
    end

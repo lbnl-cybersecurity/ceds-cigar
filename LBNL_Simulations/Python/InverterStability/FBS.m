@@ -1,18 +1,10 @@
-% Author : Shammya Saha (sssaha@lbl.gov)
-% Date : 05/22/2018
-% This code shows the comparative result of OpenDSS and the custom developed FBS power flow solution technique
-% 
-clc;
-clear;
-close all;
+function [ Voltage,Power ] = FBS(NodeVoltageToPlot,IncludeSolar)
+% This function is a version of running the FBS, suitable for running from a python code
 
-%% Constants 
-% These constants are used to create appropriate simulation scenario
 LoadScalingFactor=0.9*1.5;
 GenerationScalingFactor=2;
 SlackBusVoltage=1.0;
 power_factor=0.9;
-IncludeSolar=1; % Setting this to 1 will include the solar 
 %% Drawing Feeder
 %feeder name for instance 13 means IEEE 13 Bus Test Feeder
 IeeeFeeder=13;
@@ -116,69 +108,10 @@ end
 P0_nc = real(S_nc(1,:));
 Q0_nc = imag(S_nc(1,:));
  
+% NodeVoltageToPlot=634;
+node = NodeList==NodeVoltageToPlot;
+Voltage=abs(V_nc(node,:));
+Power=P0_nc/1000;
 
-%% OpenDSS integration
 
-[DSSObj, DSSText, gridpvpath] = DSSStartup;
-% Load the components related to OpenDSS
-DSSCircuit=DSSObj.ActiveCircuit;
-DSSSolution=DSSCircuit.Solution;
-DSSMon=DSSCircuit.Monitors;
 
-%Compile the Model, Directory of the OpenDSS file, Please find the associated Feeder 
-DSSText.command = 'Compile C:\feeders\feeder13_B_R\feeder13BR.dss';
-% If all Load Parameters are to be changed
-% DSSText.command ='batchedit load..* ZIPV= (0.2,0.05,0.75,0.2,0.05,0.75,0.8)';
-% Get the load buses, according to the model to compare the simulation
-LoadBus=NodeList(LoadList);
-LoadBusNames=cell(1,8);
-for i = 1:length(LoadBus)
-    LoadBusNames{i} = strcat('load_',num2str(LoadBus(i)));
-end
-% Node of Interest, change it to other node for see the other voltages
-NodeVoltageToPlot=634;
-VoltageOpenDSS=zeros(1,TotalTimeSteps);
-SubstationRealPowerOpenDSS=zeros(1,TotalTimeSteps);
-% Set Slack Voltage = 1
-setSourceInfo(DSSObj,{'source'},'pu',SlackBusVoltage);
-for ksim=1:TotalTimeSteps
-%     Change the real and reactive power of loads
-    setLoadInfo(DSSObj,LoadBusNames,'kw',(Load(ksim,LoadList)-IncludeSolar*SolarGeneration_NC(ksim,LoadList))/1000); % To convert to KW
-    setLoadInfo(DSSObj,LoadBusNames,'kvar',tan(acos(power_factor))*Load(ksim,LoadList)/1000);
-    DSSSolution.Solve();
-%     Getting the incoming power flow
-    LineInfo = getLineInfo(DSSObj, {'L_U_650'});
-    SubstationRealPowerOpenDSS(1,ksim)=LineInfo.bus1PowerReal;
-%     GEt the Bus 634 Voltage
-    BusInfo=getBusInfo(DSSObj,{strcat('bus_',num2str(NodeVoltageToPlot))});
-    VoltageOpenDSS(1,ksim)=BusInfo.voltagePU;
-end
-
-%% Figures - overlay
-
-t1 = datetime(2017,8,0,0,0,0);
-t_datetime = t1 + minutes(Time);
-
-node = find(NodeList==NodeVoltageToPlot);
-f1 = figure(1);
-set(f1,'Units','Inches');
-pos = get(f1,'Position');
-set(f1,'PaperPositionMode','Auto','PaperUnits','Inches','PaperSize',[ceil(pos(3)), ceil(pos(4))])
-plot(t_datetime , abs(V_nc(node,:)), 'b','LineWidth',1.5)
-hold on;
-plot(t_datetime , VoltageOpenDSS, 'r','LineWidth',1.5)
-legend('FBS','OpenDSS')
-title (strcat('Voltage at Node ', num2str(NodeVoltageToPlot) ))
-
-f2 = figure(2);
-set(f2,'Units','Inches');
-pos = get(f2,'Position');
-set(f2,'PaperPositionMode','Auto','PaperUnits','Inches','PaperSize',[ceil(pos(3)), ceil(pos(4))])
-plot(t_datetime , P0_nc/1000, 'b','LineWidth',1.5)
-hold on;
-plot(t_datetime , SubstationRealPowerOpenDSS, 'r','LineWidth',1.5) % TO convert to Watts
-legend('FBS','OpenDSS')
-title('Real Power (kW) from Substation')
-%%
-csvwrite('13busload',Load)
-csvwrite('Solar',SolarGeneration_NC)
