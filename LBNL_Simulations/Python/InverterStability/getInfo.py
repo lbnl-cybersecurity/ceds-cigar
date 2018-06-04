@@ -102,7 +102,7 @@ def getLineInfo(DSSObj,linename):
 def getBusInfo(DSSObj,busname):
     DSSCircuit = DSSObj.ActiveCircuit
     if (len(busname)==0):
-        busname=DSSCircuit.DSSCircuit.AllBusNames
+        busname=DSSCircuit.AllBusNames
     BusList=[]
     for row in range(len(busname)):
         busdict={}
