@@ -5,7 +5,7 @@ def getLoadInfo(DSSObj,loadname):
     DSSCircuit = DSSObj.ActiveCircuit
     Loads = DSSCircuit.Loads
     if (len(loadname)==0):
-        loadname= DSSCircuit.Loads.AllNames
+        loadname= Loads.AllNames
     # print(loadname)
     # This further checking makes sure the model has loads
         if (len(loadname)==0):
@@ -30,6 +30,38 @@ def getLoadInfo(DSSObj,loadname):
         # ColumnHeaders = ('kw','kvar','kva','kv','pf','model')
     # return pd.DataFrame(load,columns=ColumnHeaders,index=tuple(loadname))
     return LoadList
+
+
+def getRegInfo(DSSObj,regname):
+    # TotalLoadProperty=6
+    DSSCircuit = DSSObj.ActiveCircuit
+    regcontrols = DSSCircuit.RegControls
+    if (len(regname)==0):
+        regname= regcontrols.AllNames
+    # print(loadname)
+    # This further checking makes sure the model has loads
+        if (len(regname)==0):
+            print('The Compiled Model Does not Have any Regulators.')
+            return 0
+    # load=np.zeros(shape=(len(loadname),TotalLoadProperty))
+    # load=np.empty(shape=(len(loadname),),dtype=object)
+    # LoadList=np.empty(shape=(len(loadname),),dtype=object)
+    RegList=[]
+    for row in range(len(regname)):
+        regdict = {}
+        regcontrols.name = regname[row]
+        regdict['maxtapchange']=regcontrols.MaxTapChange
+        regdict['delay']=regcontrols.Delay
+        regdict['tapdelay'] = regcontrols.TapDelay
+        regdict['tapnumber'] = regcontrols.TapNumber
+        regdict['transformer'] = regcontrols.Transformer
+        regdict['name'] = regcontrols.name
+        RegList.append(regdict)
+        # LoadList[row]=loaddict
+        # ColumnHeaders = ('kw','kvar','kva','kv','pf','model')
+    # return pd.DataFrame(load,columns=ColumnHeaders,index=tuple(loadname))
+    return RegList
+
 
 
 def getLineInfo(DSSObj,linename):

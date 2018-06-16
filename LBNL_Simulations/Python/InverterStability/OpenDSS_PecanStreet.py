@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
 from math import tan,acos
-
+import os
 
 #  Initiating the global parameters
 SlackBusVoltage=1.0
@@ -69,8 +69,7 @@ for ksim in range(TotalTimeSteps):
     setLoadInfo(DSSObj,LoadBusNames,'kw',Load[ksim][LoadList]-IncludeSolar*Solar[ksim][LoadList])
     setLoadInfo(DSSObj, LoadBusNames, 'kvar', reactivepowercontribution*(Load[ksim][LoadList] - IncludeSolar*Solar[ksim][LoadList]))
     # Solving the OpenDSS Power FLow
-	DSSSolution.Solve()
-	#
+    DSSSolution.Solve()
     LineInfo=getLineInfo(DSSObj,['L_U_650'])
     bus1power = [d['bus1powerreal'] for d in LineInfo]
     SubstationRealPowerOpenDSS[ksim]=bus1power[0] # This is done as the variable is a list, and the first element of the list, this can be done by doing a list.append, but array is done for speed issue

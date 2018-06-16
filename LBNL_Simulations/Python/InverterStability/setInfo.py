@@ -69,3 +69,52 @@ def setSourceInfo(DSSObj,sourcename,property,value,NameChecker=0):
             print('Property Not Found')
             return DSSObj,False
     return DSSObj,True
+
+
+def setRegInfo(DSSObj,regname,property,value,NameChecker=0):
+    try:
+        property=property.lower()
+    except:
+        print('String Expected')
+        return DSSObj,False
+
+    DSSCircuit = DSSObj.ActiveCircuit
+    regcontrols = DSSCircuit.RegControls
+    DSSText = DSSObj.Text
+    if (NameChecker !=0):
+        AllRegNames = regcontrols.AllNames
+        match_values=0
+        for i in range(len(regname)):
+            if any(regname[i] in item for item in AllRegNames):
+                match_values+=1
+        if match_values != len(regname):
+            print('Regulator Not Found')
+            return DSSObj,False
+    if (len(regname) != len(value)):
+        return DSSObj,False
+    for counter in range(len(value)):
+        regcontrols.name=regname[counter]
+        if (property=='maxtapchange'):
+            regcontrols.MaxTapChange = value[counter]
+        elif (property=='delay'):
+            regcontrols.Delay = value[counter]
+        elif (property=='tapdelay'):
+            regcontrols.TapDelay = value[counter]
+        elif (property=='tapnumber'):
+            regcontrols.tapnumber=value[counter]
+        elif (property=='transformer'):
+            regcontrols.Transformer=value[counter]
+        elif (property=='debugtrace'):
+            if (value[counter]>0):
+                DSSText.command = 'RegControl.'+ regname[counter] + '.debugtrace=yes'
+            else:
+                DSSText.command = 'RegControl.' + regname[counter] + '.debugtrace=no'
+        elif (property=='eventlog'):
+            if (value[counter]>0):
+                DSSText.command = 'RegControl.'+ regname[counter] + '.eventlog=yes'
+            else:
+                DSSText.command = 'RegControl.' + regname[counter] + '.eventlog=no'
+        else:
+            print('Property Not Found')
+            return DSSObj,False
+    return DSSObj,True
