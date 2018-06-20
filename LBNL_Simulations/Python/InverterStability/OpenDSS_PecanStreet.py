@@ -14,24 +14,26 @@ from math import tan,acos
 import os
 
 #  Initiating the global parameters
-SlackBusVoltage=1.0
+
 power_factor=0.9
 reactivepowercontribution=tan(acos(power_factor)) # Q = P tan(Theta)
-IncludeSolar=1
+
 # This Following Block allows to run the matlab code from python
 import matlab.engine as matlab
 def start_matlab():
     return matlab.start_matlab()
 def quit_matlab(matlab_engine):
     matlab_engine.quit()
-def CustomFBS(matlab_engine,NodeVoltageToPlot):
-    return matlab_engine.FBS(NodeVoltageToPlot,IncludeSolar,nargout=2) # As the function will return two outputs, nargout=2
+def CustomFBS(matlab_engine,NodeVoltageToPlot,SlackBusVoltage,IncludeSolar):
+    return matlab_engine.FBS(NodeVoltageToPlot,SlackBusVoltage,IncludeSolar,nargout=2) # As the function will return two outputs, nargout=2
 
 # The values are to converted to array as the matlab function retunrs a tuple
 
 NodeVoltageToPlot=634
+IncludeSolar=1
+SlackBusVoltage=1.0
 matlab_engine=start_matlab()
-VoltageFBS,SubstationRealPowerFBS=CustomFBS(matlab_engine,NodeVoltageToPlot)
+VoltageFBS,SubstationRealPowerFBS=CustomFBS(matlab_engine,NodeVoltageToPlot,SlackBusVoltage,IncludeSolar)
 quit_matlab(matlab_engine)
 
 VoltageFBS=np.asarray(VoltageFBS)

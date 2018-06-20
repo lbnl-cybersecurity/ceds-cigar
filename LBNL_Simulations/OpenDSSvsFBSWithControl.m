@@ -172,7 +172,7 @@ end
 t1 = datetime(2017,8,0,0,0,0);
 t_datetime = t1 + minutes(Time);
 
-node = find(NodeList==NodeVoltageToPlot);
+node = NodeList==NodeVoltageToPlot;
 f1 = figure(1);
 set(f1,'Units','Inches');
 pos = get(f1,'Position');
@@ -275,7 +275,7 @@ for ksim=1:TotalTimeSteps
 %     GEt the Bus 634 Voltage
     BusInfo=getBusInfo(DSSObj,LoadBusNames);
     VoltageOpenDSS_vqvp(:,ksim)=[BusInfo.voltagePU]';
-    BusInfo=getBusInfo(DSSObj,strcat('bus_',num2str(NodeVoltageToPlot)));
+    BusInfo=getBusInfo(DSSObj,{strcat('bus_',num2str(NodeVoltageToPlot))});
     Voltage_Bus680(1,ksim)=BusInfo.voltagePU;
     if(ksim > 1 && ksim < TotalTimeSteps)
         for node_iter = 1:NumberOfLoads

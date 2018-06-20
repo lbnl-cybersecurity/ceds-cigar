@@ -1,9 +1,13 @@
-function [ Voltage,Power ] = FBS(NodeVoltageToPlot,IncludeSolar)
+function [ Voltage,Power ] = FBS(NodeVoltageToPlot,SlackBusVoltage,IncludeSolar)
 % This function is a version of running the FBS, suitable for running from a python code
 
+% Convert the variables to double as MATLAB does not support integer
+% airthmatic
+SlackBusVoltage=double(SlackBusVoltage);
+IncludeSolar = double(IncludeSolar);
 LoadScalingFactor=0.9*1.5;
 GenerationScalingFactor=2;
-SlackBusVoltage=1.0;
+% SlackBusVoltage=1.0;
 power_factor=0.9;
 %% Drawing Feeder
 %feeder name for instance 13 means IEEE 13 Bus Test Feeder
