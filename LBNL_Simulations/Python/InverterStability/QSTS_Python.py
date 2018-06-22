@@ -14,7 +14,7 @@ DSSSolution=result['dsssolution']
 DSSCircuit=result['dsscircuit']
 DSSObj=result['dssobj']
 DSSMon=DSSCircuit.Monitors
-DSSText.command = 'Compile C:/feeders/feeder13_U_R_Pecan/simulation.dss'
+DSSText.command = 'Compile C:/feeders/feeder13_U_R_Pecan/feeder13_U_R_Pecan.dss'
 DSSText.command ='Solve mode="daily" number=1440 stepsize="1s"'
 
 # regulators=DSSCircuit.RegControls

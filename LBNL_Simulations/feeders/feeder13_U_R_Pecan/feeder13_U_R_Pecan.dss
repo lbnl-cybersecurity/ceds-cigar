@@ -39,9 +39,8 @@ New "Load.load 675b" Bus1="load 675b.2.0" phases=1 Conn="wye" kV=2.4 kVA=90.6666
 New "Load.load 675c" Bus1="load 675c.3.0" phases=1 Conn="wye" kV=2.4 kVA=359.35563817 Pf=0.807 VminPU=0.95 Model=1 daily= "loadprof675"
 New "Load.load 692ac" Bus1="load 692ac.1.3.0" phases=2 Conn="wye" kV=4.16 kVA=227.57697456 Pf=0.747 VminPU=0.95 Model=5 daily= "loadprof692"
 
-// Capacitors
-New "Capacitor.cap_611" Bus1="cap_611.3" Bus2="cap_611.0" phases=1 Conn="wye" kV=2.4 kVAR=100
-New "Capacitor.cap_675" Bus1="cap_675.1.2.3" Bus2="cap_675.0.0.0" phases=3 Conn="wye" kV=4.16 kVAR=600
+
+
 
 // Wire data
 New "WireData.WD-IEEE 4/0 ACSR" Rac=0.112121 GMRac=0.00814 Diam=0.563 Normamps=340 Runits="kft" GMRunits="ft" Radunits="in"
@@ -155,9 +154,15 @@ New "Transformer.Txfmr1" phases=3 Windings=2 XHL=2.00035446 %LoadLoss=1.10030498
 ~ wdg=2 Bus="634.1.2.3.0" kV=0.48 kVA=500 Conn="wye" MinTap=0.9 MaxTap=1.1 NumTaps=32 Tap=1
 
 // Line Voltage Regulators
-New "RegControl.LVR-lvr_01" Transformer="lvr_01" winding=2 vreg=122 ptratio=20 band=2 CTprim=700 R=3 X=9 Delay=11 maxtapchange=1 eventlog=yes 
-New "RegControl.LVR-lvr_02" Transformer="lvr_02" winding=2 vreg=122 ptratio=20 band=2 CTprim=700 R=3 X=9 Delay=1 maxtapchange=1 eventlog=no
-New "RegControl.LVR-lvr_03" Transformer="lvr_03" winding=2 tapwinding=1 vreg=122 ptratio=20 band=2 CTprim=700 R=3 X=9 Delay=1 maxtapchange=1 eventlog=no
+New "RegControl.LVR-lvr_01" Transformer="lvr_01" winding=2 vreg=122 ptratio=20 band=2 CTprim=700 R=3 X=9 Delay=15 maxtapchange=16 eventlog=yes 
+New "RegControl.LVR-lvr_02" Transformer="lvr_02" winding=2 vreg=122 ptratio=20 band=2 CTprim=700 R=3 X=9 Delay=15 maxtapchange=16 eventlog=yes
+New "RegControl.LVR-lvr_03" Transformer="lvr_03" winding=2 tapwinding=1 vreg=122 ptratio=20 band=2 CTprim=700 R=3 X=9 Delay=15 maxtapchange=16 eventlog=yes
+
+// Capacitors with Cap Controls
+New "Capacitor.cap_611" Bus1="cap_611.3" Bus2="cap_611.0" phases=1 Conn="wye" kV=2.4 kVAR=300 Numsteps=4 states={1,1,0,0}
+New "Capacitor.cap_675" Bus1="cap_675.1.2.3" Bus2="cap_675.0.0.0" phases=3 Conn="wye" kV=4.16 kVAR=400 Numsteps=5 states={1,1,1,1,1} 
+New "CapControl.capc_611"  capacitor=cap_611 enabled= Yes element=Line.684_611 terminal=1  type=voltage  PTratio=2400 Vmax=1.15 Vmin=0.85 ONsetting=0.94 Offsetting=1.1 eventlog=yes delay=15 DeadTime=5
+New "CapControl.capc_675"  capacitor=cap_675 enabled= Yes element=Line.cap_675abc terminal=1  type=voltage  PTratio=4160 Vmax=1.15 Vmin=0.85 ONsetting=0.94 Offsetting=1.02 eventlog=yes delay=15 DeadTime=5 PTphase=MAX
 
 // Voltage bases
 Set VoltageBases=[115 4.16 0.48]
@@ -165,10 +170,17 @@ CalcVoltageBases
 
 New "Monitor.tapMonitor" Element="Transformer.lvr_01" terminal=2 mode=2
 New "Monitor.Meter_634" Element="Line.RG60_632" Terminal=2 mode=0 baseFreq=60 
+New "Monitor.Meter_611" Element="Line.cap_611c" Terminal=1 mode=0 baseFreq=60 
+New "Monitor.VAR_Meter_611" Element="Line.cap_611c" Terminal=1 mode=1 PPolar=False baseFreq=60
+New "Monitor.VAR_Meter_675" Element="Line.cap_675abc" Terminal=1 mode=1 PPolar=False baseFreq=60
+New "Monitor.Meter_675" Element="Line.cap_675abc" Terminal=1 mode=0 baseFreq=60 
+
 
 
 // Solve study
 // Solve timeseries study
+//Set mode="daily"
+//Solve mode= "daily" number =1440 stepsize = ''1s"
 Set CaseName="PecanStreet"
 Set Demand=True
 //Set ControlMode = Time
@@ -185,8 +197,12 @@ Export Powers kVA (powers.csv)
 // The Export Taps command requires OpenDSS version 7.6.3.31 or newer. For older version, change to "Show Taps"
 Export Taps (taps.csv)
 Export monitor tapMonitor
+Export monitor Meter_611
 
 
 
 //plot monitor object=Meter_634 channels=(5) base=[2400]
 //Show EventLog
+//plot monitor object=Meter_611 channels=(1)  base=[2400]
+//plot monitor object=VAR_Meter channels=(2)
+

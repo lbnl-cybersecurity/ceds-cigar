@@ -123,11 +123,11 @@ for ii=1:length(Capacitors)
         continue;
     end
     
-    Buses = getBusInfo(DSSCircObj,{Capacitors(ii).busName},1);
-    DSSCircuit.SetActiveElement(['capacitor.' cell2mat(capacitorNames(ii))]); %reset active element after getBusInfo changes it
-    Capacitors(ii).coordinates = Buses.coordinates;
-    Capacitors(ii).distance = Buses.distance;
-    
+%     Buses = getBusInfo(DSSCircObj,{Capacitors(ii).busName},1);
+%     DSSCircuit.SetActiveElement(['capacitor.' cell2mat(capacitorNames(ii))]); %reset active element after getBusInfo changes it
+%     Capacitors(ii).coordinates = Buses.coordinates;
+%     Capacitors(ii).distance = Buses.distance;
+%     
     % Currents
     currents = DSSCircuit.ActiveCktElement.Currents; %complex currents
     currents = reshape(currents,2,[]); %two rows for real and reactive
@@ -150,6 +150,9 @@ for ii=1:length(Capacitors)
     if isempty(DSSCircuit.ActiveBus.Name)
         error('busName:notfound',sprintf('Bus ''%s'' of Capacitor ''%s'' is not found in the circuit.  Check that this is a bus in the compiled circuit.',Transformers(ii).bus1, Transformers(ii).name))
     end
+    
+    Capacitors(ii).coordinates = [DSSCircuit.ActiveBus.y, DSSCircuit.ActiveBus.x];
+    Capacitors(ii).distance = DSSCircuit.ActiveBus.Distance;
     
     voltages = DSSCircuit.ActiveBus.Voltages; %complex voltages
     compVoltages = voltages(1:2:end) + 1j*voltages(2:2:end);
@@ -250,6 +253,8 @@ for ii=1:length(Capacitors)
     Capacitors(ii).kvar = get(DSSCircuit.Capacitors,'kvar');
     Capacitors(ii).isDelta = get(DSSCircuit.Capacitors,'isDelta');
     Capacitors(ii).kV = get(DSSCircuit.Capacitors,'kV');
+    Capacitors(ii).Numsteps= get(DSSCircuit.Capacitors,'Numsteps');
+    Capacitors(ii).states= get(DSSCircuit.Capacitors,'states');
 end
 
 % get capacitor control information
