@@ -13,12 +13,13 @@ DSSSolution=DSSCircuit.Solution;
 %Compile the Model, Directory of the OpenDSS file, Please find the associated Feeder 
 % And Make sure you have the appropriate directory
 DSSText.command = 'Compile C:\feeders\feeder13_U_R_Pecan\feeder13_U_R_Pecan.dss';
-
+% DSSText.command ='set controlmode=ON';
 %Changing the Max tap just to make sure this info can be retrieved later
 % DSSText.Command='RegControl.lvr-lvr_01.maxtapchange=16' ;
-setRegInfo(DSSObj,[{'lvr-lvr_01'}],'maxtapchange',[10]);
+setRegInfo(DSSObj,[{'lvr-lvr_01'}],'maxtapchange',[16]);
+setCapInfo(DSSObj,[{'cap_675'}],'kvar',[600]);
 %% Solving the power flow in QSTS mode
-
+% DSSSolution.ControlMode=0;
 DSSSolution.Mode=1; % 1 represents daily mode
 DSSSolution.Number=1440; % Solutions Per Solve Command
 DSSSolution.StepSize=1; % Stepsize= 1s
@@ -60,6 +61,7 @@ DSSMon.Name='VAR_Meter_675';
 fprintf('\nMonitor Name: %s\n',DSSMon.Name);
 Headers=DSSMon.Header;
 fprintf('Header Name: %s\n',Headers{:} );
+% Qvar = ExtractMonitorData(DSSMon,2,1);
 Qvar = ExtractMonitorData(DSSMon,2,1)+ExtractMonitorData(DSSMon,4,1)+ExtractMonitorData(DSSMon,6,1);
 figure
 % negative Value as generation is negative by default in OpenDSS
