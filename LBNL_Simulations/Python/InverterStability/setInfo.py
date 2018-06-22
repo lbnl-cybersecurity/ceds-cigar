@@ -34,6 +34,87 @@ def setLoadInfo(DSSObj,loadname,property,value,NameChecker=0):
             return DSSObj,False
     return DSSObj,True
 
+def setCapInfo(DSSObj,capname,property,value,NameChecker=0):
+    try:
+        property = property.lower()
+    except:
+        print('String Expected')
+        return DSSObj, False
+    DSSCircuit = DSSObj.ActiveCircuit
+    Caps=DSSCircuit.Capacitors
+
+    if (NameChecker !=0):
+        AllCapNames = Caps.AllNames
+        match_values = 0
+        for i in range(len(capname)):
+            if any(capname[i] in item for item in AllCapNames):
+                match_values+=1
+            if match_values != len(capname):
+                print('One of the Caps Not Found.')
+                return DSSObj, False
+    if (len(capname) != len(value)):
+        return DSSObj,False
+    for counter in range(len(value)):
+        Caps.name=capname[counter]
+        if (property=='kvar'):
+            Caps.kvar = value[counter]
+        elif (property=='kv'):
+            Caps.kv = value[counter]
+        elif (property=='numsteps'):
+            Caps.NumSteps=value[counter]
+        elif (property=='states'):
+            Caps.states = [int(d) for d in str(value[counter])] # This actually separate the digits
+        else:
+            print('Property Not Found')
+            return DSSObj, False
+    return DSSObj, True
+
+def setCapControlInfo(DSSObj,capcontrolname,property,value,NameChecker=0):
+    try:
+        property = property.lower()
+    except:
+        print('String Expected')
+        return DSSObj, False
+    DSSCircuit = DSSObj.ActiveCircuit
+    CapControls = DSSCircuit.CapControls
+    if (NameChecker !=0):
+        AllCapControlNames = CapControls.AllNames
+        match_values = 0
+        for i in range(len(capcontrolname)):
+            if any(capcontrolname[i] in item for item in AllCapControlNames):
+                match_values+=1
+            if match_values != len(capcontrolname):
+                print('One of the Capcontrols Not Found.')
+                return DSSObj, False
+    if (len(capcontrolname) != len(value)):
+        return DSSObj,False
+    for counter in range(len(value)):
+        CapControls.name=capcontrolname[counter]
+        if (property=='delay'):
+            CapControls.Delay = value[counter]
+        elif (property=='delayoff'):
+            CapControls.DelayOFF = value[counter]
+        elif (property == 'offsetting'):
+            CapControls.OFFsetting=value[counter]
+        elif (property=='onsetting'):
+            CapControls.ONsetting=value[counter]
+        elif (property=='element'):
+            CapControls.element=value[counter]
+        elif (property=='terminal'):
+            CapControls.terminal=value[counter]
+        elif (property=='vmax'):
+            CapControls.Vmax=value[counter]
+        elif (property == 'vmin'):
+                CapControls.Vmin = value[counter]
+        elif (property == 'ptratio'):
+            CapControls.PTratio = value[counter]
+        elif (property == 'ctratio'):
+            CapControls.CTratio = value[counter]
+        else:
+            print('Property Not Found')
+            return DSSObj, False
+    return DSSObj, True
+
 def setSourceInfo(DSSObj,sourcename,property,value,NameChecker=0):
     try:
         property=property.lower()
@@ -51,7 +132,7 @@ def setSourceInfo(DSSObj,sourcename,property,value,NameChecker=0):
             if any(sourcename[i] in item for item in AllSourceNames):
                 match_values+=1
         if match_values != len(sourcename):
-            print('Load Not Found')
+            print('Source Not Found')
             return DSSObj,False
     if (len(sourcename) != len(value)):
         return DSSObj,False
@@ -61,10 +142,7 @@ def setSourceInfo(DSSObj,sourcename,property,value,NameChecker=0):
             Sources.pu = value[counter]
         elif (property=='basekv'):
             Sources.BasekV = value[counter]
-        # elif (property=='kva'):
-        #     Sources.kva = value[counter]
-        # elif (property=='pf'):
-        #     Sources.PF=value[counter]
+            Sources.PF=value[counter]
         else:
             print('Property Not Found')
             return DSSObj,False
@@ -118,3 +196,4 @@ def setRegInfo(DSSObj,regname,property,value,NameChecker=0):
             print('Property Not Found')
             return DSSObj,False
     return DSSObj,True
+

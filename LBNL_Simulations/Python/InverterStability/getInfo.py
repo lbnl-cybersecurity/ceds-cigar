@@ -1,19 +1,14 @@
 import numpy as np
 
 def getLoadInfo(DSSObj,loadname):
-    # TotalLoadProperty=6
     DSSCircuit = DSSObj.ActiveCircuit
     Loads = DSSCircuit.Loads
     if (len(loadname)==0):
         loadname= Loads.AllNames
-    # print(loadname)
     # This further checking makes sure the model has loads
         if (len(loadname)==0):
             print('The Compiled Model Does not Have any Load.')
             return 0
-    # load=np.zeros(shape=(len(loadname),TotalLoadProperty))
-    # load=np.empty(shape=(len(loadname),),dtype=object)
-    # LoadList=np.empty(shape=(len(loadname),),dtype=object)
     LoadList=[]
     for row in range(len(loadname)):
         loaddict = {}
@@ -26,26 +21,66 @@ def getLoadInfo(DSSObj,loadname):
         loaddict['model'] = Loads.model
         loaddict['name'] = Loads.name
         LoadList.append(loaddict)
-        # LoadList[row]=loaddict
-        # ColumnHeaders = ('kw','kvar','kva','kv','pf','model')
-    # return pd.DataFrame(load,columns=ColumnHeaders,index=tuple(loadname))
     return LoadList
+
+def getCapInfo(DSSObj,capname):
+    DSSCircuit = DSSObj.ActiveCircuit
+    Capacitors=DSSCircuit.Capacitors
+    if (len(capname)==0):
+        capname=Capacitors.AllNames
+        if (len(capname)==0):
+            print('The Complied model does not have any capacitors.')
+            return 0
+    CapList=[]
+    for row in range(len(capname)):
+        capdict = {}
+        Capacitors.name=capname[row]
+        capdict['kvar']=Capacitors.kvar
+        capdict['kv'] = Capacitors.kv
+        capdict['numsteps'] = Capacitors.NumSteps
+        capdict['states']=Capacitors.States
+        capdict['name'] = Capacitors.Name
+        CapList.append(capdict)
+    return CapList
+
+
+def getCapControlInfo (DSSObj,capcontrolname):
+    DSSCircuit=DSSObj.ActiveCircuit
+    CapControls=DSSCircuit.CapControls
+    if (len(capcontrolname)==0):
+        capcontrolname=CapControls.AllNames
+        if (len(capcontrolname)==0):
+            print('The Compiled Model does not have any capacitor control objects.')
+            return 0
+    CapControlList=[]
+    for row in range(len(capcontrolname)):
+        capcontroldict={}
+        CapControls.name=capcontrolname[row]
+        capcontroldict['ptratio']=CapControls.PTratio
+        capcontroldict['ctratio'] = CapControls.CTratio
+        capcontroldict['onsetting'] = CapControls.ONSetting
+        capcontroldict['offsetting'] = CapControls.OFFSetting
+        capcontroldict['delay'] = CapControls.Delay
+        capcontroldict['delayoff'] = CapControls.DelayOff
+        capcontroldict['deadtime'] = CapControls.DeadTime
+        capcontroldict['vmax'] = CapControls.Vmax
+        capcontroldict['vmin'] = CapControls.Vmin
+        capcontroldict['capacitor'] = CapControls.Capacitor
+        capcontroldict['monitoredobj'] = CapControls.MonitoredObj
+        capcontroldict['monitoredterm'] = CapControls.MonitoredTerm
+        capcontroldict['name'] = CapControls.Name
+        CapControlList.append(capcontroldict)
+    return CapControlList
 
 
 def getRegInfo(DSSObj,regname):
-    # TotalLoadProperty=6
     DSSCircuit = DSSObj.ActiveCircuit
     regcontrols = DSSCircuit.RegControls
     if (len(regname)==0):
         regname= regcontrols.AllNames
-    # print(loadname)
-    # This further checking makes sure the model has loads
         if (len(regname)==0):
             print('The Compiled Model Does not Have any Regulators.')
             return 0
-    # load=np.zeros(shape=(len(loadname),TotalLoadProperty))
-    # load=np.empty(shape=(len(loadname),),dtype=object)
-    # LoadList=np.empty(shape=(len(loadname),),dtype=object)
     RegList=[]
     for row in range(len(regname)):
         regdict = {}
@@ -57,9 +92,6 @@ def getRegInfo(DSSObj,regname):
         regdict['transformer'] = regcontrols.Transformer
         regdict['name'] = regcontrols.name
         RegList.append(regdict)
-        # LoadList[row]=loaddict
-        # ColumnHeaders = ('kw','kvar','kva','kv','pf','model')
-    # return pd.DataFrame(load,columns=ColumnHeaders,index=tuple(loadname))
     return RegList
 
 
@@ -151,3 +183,4 @@ def getBusInfo(DSSObj,busname):
         busdict['voltagepu']=np.mean(phasevoltagespu)
         BusList.append(busdict)
     return BusList
+
