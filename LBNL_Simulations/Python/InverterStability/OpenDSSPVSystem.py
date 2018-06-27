@@ -86,4 +86,3 @@ vw_curve['xarray']=np.asarray([1,1,1,1,1])
 setXYCurveInfo(DSSObj,['vw_curve'],[vw_curve])
 
 
-

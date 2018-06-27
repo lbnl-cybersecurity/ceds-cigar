@@ -19,6 +19,7 @@ dssSolution.Solve()
 
 # Get Values for two specific loads, the getloadinfo returns a list of dictionary objects
 LoadInfo=getLoadInfo(DSSObj,['load_645','load_611'])
+
 #  Getting the real power of the loads
 LoadRealPower=[d['kw'] for d in LoadInfo]
 # List does not support arithmatic, so you can convert it to an array
