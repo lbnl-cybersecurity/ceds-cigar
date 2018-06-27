@@ -41,7 +41,7 @@ DSSMon.Name='meter_634'
 # just printing the meter headers
 print(DSSMon.header)
 # Unfortunately the channel does not have the time information (still under investigation)
-time=np.arange(1,1441,1)
+time=3600*np.asarray(list(DSSMon.dblHour)) # Multiplying by 3600 converts it to seconds
 # Reading the Voltage
 Voltage_Phasea=np.asarray(DSSMon.Channel(1))
 Voltage_Phaseb=np.asarray(DSSMon.Channel(3))

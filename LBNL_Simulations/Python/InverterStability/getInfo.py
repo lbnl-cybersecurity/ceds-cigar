@@ -69,6 +69,8 @@ def getCapControlInfo (DSSObj,capcontrolname):
         capcontroldict['monitoredobj'] = CapControls.MonitoredObj
         capcontroldict['monitoredterm'] = CapControls.MonitoredTerm
         capcontroldict['name'] = CapControls.Name
+        DSSCircuit.SetActiveElement('CapControl.'+CapControls.Name)
+        capcontroldict['enabled']=DSSCircuit.ActiveElement.Enabled
         CapControlList.append(capcontroldict)
     return CapControlList
 
@@ -91,9 +93,10 @@ def getRegInfo(DSSObj,regname):
         regdict['tapnumber'] = regcontrols.TapNumber
         regdict['transformer'] = regcontrols.Transformer
         regdict['name'] = regcontrols.name
+        DSSCircuit.SetActiveElement('RegControl.' + regcontrols.Name)
+        regdict['enabled'] =DSSCircuit.ActiveElement.Enabled
         RegList.append(regdict)
     return RegList
-
 
 
 def getLineInfo(DSSObj,linename):
@@ -184,3 +187,23 @@ def getBusInfo(DSSObj,busname):
         BusList.append(busdict)
     return BusList
 
+def getXYCurveInfo(DSSObj,xycurvename):
+    DSSCircuit = DSSObj.ActiveCircuit
+    XYCurves = DSSCircuit.XYCurves
+    XYCurveList=[]
+    if (XYCurves.Count==0):
+        return XYCurveList
+    if (len(xycurvename)==0):
+        XYCurves.First
+        for i in range(XYCurves.Count):
+            xycurvename.append(XYCurves.Name)
+            XYCurves.Next
+    for row in range (len(xycurvename)):
+        xycurvedict={}
+        XYCurves.Name=xycurvename[row]
+        xycurvedict['name']= xycurvename[row]
+        xycurvedict['npts'] =XYCurves.Npts
+        xycurvedict['xarray'] = np.asarray(XYCurves.Xarray)
+        xycurvedict['yarray'] = np.asarray(XYCurves.Yarray)
+        XYCurveList.append(xycurvedict)
+    return XYCurveList

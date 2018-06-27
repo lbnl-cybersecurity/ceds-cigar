@@ -74,7 +74,7 @@ if strcmp(regNames, 'noInput')
 end
 
 Regulators = struct('name',regNames);
-disp(regNames)
+
 % Return if there are no loads in the circuit
 if strcmp(regNames,'NONE')
     return;
@@ -98,6 +98,11 @@ for ii=1:length(Regulators)
     Regulators(ii).numPhases = DSSCircuit.ActiveCktElement.NumPhases;
     
     Regulators(ii).enabled = DSSCircuit.ActiveElement.Enabled;
+    Regulators(ii).MaxTapChange = get(DSSCircuit.RegControls,'MaxTapChange');
+    Regulators(ii).Delay = get(DSSCircuit.RegControls,'Delay');
+    Regulators(ii).TapDelay = get(DSSCircuit.RegControls,'TapDelay');
+    Regulators(ii).TapNumber = get(DSSCircuit.RegControls,'TapNumber');
+    Regulators(ii).Transformer = get(DSSCircuit.RegControls,'Transformer');
     if ~Regulators(ii).enabled % regulator is not enabled, so much of the active element properties will return errors
         continue;
     end
@@ -214,59 +219,25 @@ for ii=1:length(Regulators)
 end
 
 %% Remove loads that are not enabled if no names were input to the function
-condition = [Regulators.enabled]==0;
-if ~isempty(varargin) && any(condition) %if the user specified the load names, return warning for that load not being enabled
-    warning(sprintf('Regulator %s is not enabled\n',Regulators(condition).name));
-else
-    Regulators = Regulators(~condition);
-end
-
-%% Get load parameters
-
-for ii=1:length(Regulators)
-    DSSCircuit.RegControls.name = Regulators(ii).name;
-    Regulators(ii).MaxTapChange = get(DSSCircuit.RegControls,'MaxTapChange');
-    Regulators(ii).Delay = get(DSSCircuit.RegControls,'Delay');
-    Regulators(ii).TapDelay = get(DSSCircuit.RegControls,'TapDelay');
-    Regulators(ii).TapNumber = get(DSSCircuit.RegControls,'TapNumber');
-    Regulators(ii).Transformer = get(DSSCircuit.RegControls,'Transformer');
-   
-    
-    %Get additional miscellaneous parameters that are present but are currently unused in the toolbox
-%     Regulators(ii).Idx = get(DSSCircuit.Loads,'Idx');
-%     Regulators(ii).pctMean = get(DSSCircuit.Loads,'PctMean');
-%     Regulators(ii).pctStdDev = get(DSSCircuit.Loads,'PctStdDev');
-%     Regulators(ii).allocationFactor = get(DSSCircuit.Loads,'AllocationFactor');
-%     Regulators(ii).Cfactor = get(DSSCircuit.Loads,'Cfactor');
-%     Regulators(ii).class = get(DSSCircuit.Loads,'Class');
-%     Regulators(ii).isDelta = get(DSSCircuit.Loads,'IsDelta');
-%     Regulators(ii).CVRcurve = get(DSSCircuit.Loads,'CVRcurve');
-%     Regulators(ii).CVRwatts = get(DSSCircuit.Loads,'CVRwatts');
-%     Regulators(ii).CVRvars = get(DSSCircuit.Loads,'CVRvars');
-%     Regulators(ii).daily = get(DSSCircuit.Loads,'daily');
-%     Regulators(ii).duty = get(DSSCircuit.Loads,'duty');
-%     Regulators(ii).kwhdays = get(DSSCircuit.Loads,'kwhdays');
-%     Regulators(ii).model = get(DSSCircuit.Loads,'Model');
-%     Regulators(ii).numCust = get(DSSCircuit.Loads,'NumCust');
-%     Regulators(ii).Rneut = get(DSSCircuit.Loads,'Rneut');
-%     Regulators(ii).spectrum = get(DSSCircuit.Loads,'Spectrum');
-%     Regulators(ii).VmaxPU = get(DSSCircuit.Loads,'Vmaxpu');
-%     Regulators(ii).VminEmerg = get(DSSCircuit.Loads,'Vminemerg');
-%     Regulators(ii).VminNorm = get(DSSCircuit.Loads,'Vminnorm');
-%     Regulators(ii).VminPU = get(DSSCircuit.Loads,'Vminpu');
-%     Regulators(ii).Xneut = get(DSSCircuit.Loads,'Xneut');
-%     Regulators(ii).yearly = get(DSSCircuit.Loads,'Yearly');
-%     Regulators(ii).status = get(DSSCircuit.Loads,'Status');
-%     Regulators(ii).growth = get(DSSCircuit.Loads,'Growth');
-    
-end
-
-
-% %% As long as you are not in faultstudy mode, remove all loads that have zero volts on either side (not disabled but are isolated from the circuit)
-% if ~isempty(Regulators) && isempty(varargin) && ~strcmp(DSSCircuit.Solution.ModeID,'Faultstudy')
-%     condition = [Regulators.voltage]>100;
-%     Regulators = Regulators(condition);
+% condition = [Regulators.enabled]==0;
+% if ~isempty(varargin) && any(condition) %if the user specified the load names, return warning for that load not being enabled
+%     warning(sprintf('Regulator %s is not enabled\n',Regulators(condition).name));
+% else
+%     Regulators = Regulators(~condition);
 % end
+
+%% Get regulator parameters
+
+% for ii=1:length(Regulators)
+%     DSSCircuit.RegControls.name = Regulators(ii).name;
+%     Regulators(ii).MaxTapChange = get(DSSCircuit.RegControls,'MaxTapChange');
+%     Regulators(ii).Delay = get(DSSCircuit.RegControls,'Delay');
+%     Regulators(ii).TapDelay = get(DSSCircuit.RegControls,'TapDelay');
+%     Regulators(ii).TapNumber = get(DSSCircuit.RegControls,'TapNumber');
+%     Regulators(ii).Transformer = get(DSSCircuit.RegControls,'Transformer');
+% end
+
+
 
 catch err
     if ~strcmp(err.identifier,'regName:notfound')
@@ -278,7 +249,7 @@ catch err
         fprintf(1, 'If the problem persists, change the MATLAB debug mode by entering in the command window:\n >> dbstop if caught error\n\n')
         fprintf(1, 'Running circuitCheck.m ....................\n')
 
-        warnSt = circuitCheck(DSSCircObj, 'Warnings', 'on')
+        warnSt = circuitCheck(DSSCircObj, 'Warnings', 'on');
         assignin('base','warnSt',warnSt);
     end
     rethrow(err);

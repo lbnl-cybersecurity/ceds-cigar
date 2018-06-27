@@ -65,6 +65,9 @@ for counter= 1:length(value)
          case 'ctratio'
             CapControls.CTratio=value(counter);
             boolean=1  ;
+        case 'enabled'
+            DSSCircuit.SetActiveElement(strcat('CapControl.',capcontrolname{counter}));
+            DSSCircuit.ActiveElement.Enabled=value(counter);
         otherwise
             warning ('No Property Matched')
     end

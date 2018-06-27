@@ -34,6 +34,7 @@ def setLoadInfo(DSSObj,loadname,property,value,NameChecker=0):
             return DSSObj,False
     return DSSObj,True
 
+
 def setCapInfo(DSSObj,capname,property,value,NameChecker=0):
     try:
         property = property.lower()
@@ -110,6 +111,9 @@ def setCapControlInfo(DSSObj,capcontrolname,property,value,NameChecker=0):
             CapControls.PTratio = value[counter]
         elif (property == 'ctratio'):
             CapControls.CTratio = value[counter]
+        elif (property =='enabled'):
+            DSSCircuit.SetActiveElement('CapControl.' + CapControls.name)
+            DSSCircuit.ActiveElement.Enabled = value[counter]
         else:
             print('Property Not Found')
             return DSSObj, False
@@ -182,6 +186,9 @@ def setRegInfo(DSSObj,regname,property,value,NameChecker=0):
             regcontrols.tapnumber=value[counter]
         elif (property=='transformer'):
             regcontrols.Transformer=value[counter]
+        elif (property=='enabled'):
+            DSSCircuit.SetActiveElement('RegControl.' + regcontrols.name)
+            DSSCircuit.ActiveElement.Enabled=value[counter]
         elif (property=='debugtrace'):
             if (value[counter]>0):
                 DSSText.command = 'RegControl.'+ regname[counter] + '.debugtrace=yes'
@@ -197,3 +204,38 @@ def setRegInfo(DSSObj,regname,property,value,NameChecker=0):
             return DSSObj,False
     return DSSObj,True
 
+def setXYCurveInfo(DSSObj,xycurvename,value,NameChecker=0):
+    DSSCircuit = DSSObj.ActiveCircuit
+    XYCurves = DSSCircuit.XYCurves
+    if (XYCurves.Count==0):
+        print('No XYCurve Found in the OpenDSS Model.')
+        return DSSObj, False
+    if not(NameChecker ==0):
+        AllXYCurveNames = []
+        XYCurves.First
+        for i in range(XYCurves.Count):
+            AllXYCurveNames.append(XYCurves.Name)
+            XYCurves.Next
+        match_values=0
+        for i in range(len(xycurvename)):
+            if any(xycurvename[i] in item for item in AllXYCurveNames):
+                match_values+=1
+        if match_values != len(xycurvename):
+            print('Load Not Found')
+            return DSSObj,False
+    if not (len(value)==len(xycurvename)):
+        print('Number of XYCurvenames and Number of property do not match.')
+        return DSSObj, False
+    for counter in range(len(xycurvename)):
+        if (len(value[counter])!=4):
+            print('You Need to Set All the properties.')
+            return DSSObj, False
+        xycurve=value[counter]
+        if (value[counter]['npts'] != len(value[counter]['xarray']) or  value[counter]['npts'] != len(value[counter]['yarray'])):
+            print('Input Value Mismatch')
+            return DSSObj,False
+        XYCurves.Name=xycurvename[counter]
+        XYCurves.Npts=xycurve['npts']
+        XYCurves.Xarray=xycurve['xarray'].tolist()
+        XYCurves.Yarray=xycurve['yarray'].tolist()
+    return DSSObj, True

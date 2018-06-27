@@ -262,7 +262,7 @@ CapControlNames = DSSCircuit.CapControls.AllNames;
 if ~strcmp(CapControlNames,'NONE')
     for ii=1:length(CapControlNames)
         DSSCircuit.CapControls.Name = CapControlNames{ii};
-        if DSSCircuit.CktElements(['CapControl.',CapControlNames{ii}]).Enabled
+%         if DSSCircuit.CktElements(['CapControl.',CapControlNames{ii}]).Enabled
             CapControlsCapacitor = get(DSSCircuit.CapControls,'Capacitor');
             CapControlsMode = get(DSSCircuit.CapControls,'Mode');
             [tf, loc] = ismember({CapControlsCapacitor},{Capacitors.name});
@@ -283,8 +283,10 @@ if ~strcmp(CapControlNames,'NONE')
                 Capacitors(loc).delay = get(DSSCircuit.CapControls,'Delay');
                 Capacitors(loc).delayOff = get(DSSCircuit.CapControls,'DelayOff');
                 Capacitors(loc).deadTime = get(DSSCircuit.CapControls,'DeadTime');
+                DSSCircuit.SetActiveElement(strcat('CapControl.',CapControlNames{ii}));
+                Capacitors(loc).control_enabled=DSSCircuit.ActiveElement.Enabled;
             end
-        end
+%         end
     end
 end
 

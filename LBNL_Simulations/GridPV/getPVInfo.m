@@ -79,7 +79,7 @@ p.parse(DSSCircObj, varargin{:}); %parse inputs
 
 allFields = fieldnames(p.Results); %set all parsed inputs to workspace variables
 for ii=1:length(allFields)
-    eval([allFields{ii}, ' = ', 'p.Results.',allFields{ii},';']);
+    eval([allFields{ii}, ' = ', 'p.Results.',allFields{ii},';'])
 end
 
 try
@@ -94,7 +94,7 @@ if strcmp(pvNames, 'noInput')
         pvNames = 'NONE';
     end
 end
-
+disp(pvNames)
 PV = struct('name',pvNames);
 
 % Return if there are no PV in the circuit
@@ -266,10 +266,10 @@ else
     end
 end
 
-%% Get coordinates
-Buses = getBusInfo(DSSCircObj,{PV.busName},1);
-busCoords = num2cell(reshape([Buses.coordinates],2,[])',2);
-[PV.coordinates] = deal(busCoords{:});
+% %% Get coordinates
+% Buses = getBusInfo(DSSCircObj,{PV.busName},1);
+% busCoords = num2cell(reshape([Buses.coordinates],2,[])',2);
+% [PV.coordinates] = deal(busCoords{:});
 
 
 %% As long as you are not in faultstudy mode, remove all PV that have zero volts on either side (not disabled but are isolated from the circuit)
