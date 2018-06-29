@@ -2,7 +2,7 @@ function [FM, Z, paths, nodelist, loadlist] = ieee_feeder_mapper(feeder)
 
 % Read from csv file, input first 4 columns as strings (general case)
 % Change file path as needed
-fp = [pwd '/feeders/feeder' num2str(feeder) '/csv/'];
+fp = 'C:\feeders\feeder13\csv\';
 % fp = 'C:\Users\Michael\Desktop\ARPAE\feeder mapping\';
 fn = 'Line Data.csv';
 

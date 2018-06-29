@@ -15,14 +15,17 @@ DSSCircuit=result['dsscircuit']
 DSSObj=result['dssobj']
 
 DSSText.command = 'Compile C:/feeders/feeder13_U_R_Pecan_Solar/feeder13_U_R_Pecan_Solar.dss'
-# This is a quick way to change properties of a specific group of device
-setRegInfo(DSSObj,list(DSSCircuit.RegControls.AllNames),'enabled',[0]* len(DSSCircuit.RegControls.AllNames))
-setCapControlInfo(DSSObj,list(DSSCircuit.CapControls.AllNames),'enabled',[0]*len(DSSCircuit.CapControls.AllNames))
+# This is a quick way to change properties of a specific group of device, here the regulator and cap controls are enabled
+setRegInfo(DSSObj,list(DSSCircuit.RegControls.AllNames),'enabled',[1]* len(DSSCircuit.RegControls.AllNames))
+setCapControlInfo(DSSObj,list(DSSCircuit.CapControls.AllNames),'enabled',[1]*len(DSSCircuit.CapControls.AllNames))
 
 
 DSSSolution.Mode=1 # 1 represents daily mode, 2 represents yearly mode
 DSSSolution.Number=1440 # Solutions Per Solve Command
 DSSSolution.StepSize=1 # Stepsize= 1s
+DSSSolution.MaxControlIterations=1000 #Increase the number of maximum control iterations to make sure the system can solve the power flow
+DSSSolution.MaxIterations=100 #Increasing the number of power flow iterations to achieve convergence
+
 DSSText.Command='Set ControlMode=Time' # Refer to OpenDSS documentation
 DSSSolution.Solve()
 
@@ -81,7 +84,7 @@ xycurves=getXYCurveInfo(DSSObj,['vw_curve'])
 vw_curve=xycurves[0]
 print(vw_curve)
 
-# Error Checking
+# Error Checking, this will generate an error as npts do not match the length of the xarray
 vw_curve['xarray']=np.asarray([1,1,1,1,1])
 setXYCurveInfo(DSSObj,['vw_curve'],[vw_curve])
 
