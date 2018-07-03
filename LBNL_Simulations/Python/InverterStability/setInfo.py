@@ -227,15 +227,54 @@ def setXYCurveInfo(DSSObj,xycurvename,value,NameChecker=0):
         print('Number of XYCurvenames and Number of property do not match.')
         return DSSObj, False
     for counter in range(len(xycurvename)):
-        if (len(value[counter])!=4):
+        xycurve = value[counter]
+        if (len(xycurve)!=4):
             print('You Need to Set All the properties.')
             return DSSObj, False
-        xycurve=value[counter]
-        if (value[counter]['npts'] != len(value[counter]['xarray']) or  value[counter]['npts'] != len(value[counter]['yarray'])):
-            print('Input Value Mismatch')
+        if (xycurve['npts'] != len(xycurve['xarray']) or  xycurve['npts'] != len(xycurve['yarray'])):
+            print('Input Value Mismatch. The array length does not match with Npts.')
             return DSSObj,False
         XYCurves.Name=xycurvename[counter]
         XYCurves.Npts=xycurve['npts']
         XYCurves.Xarray=xycurve['xarray'].tolist()
         XYCurves.Yarray=xycurve['yarray'].tolist()
+    return DSSObj, True
+
+
+def setSolutionParams(DSSObj,mode,number,stepsize,ControMode,MaxControlIterations=1000,Iterations=100):
+    DSSCircuit = DSSObj.ActiveCircuit
+    DSSSolution = DSSCircuit.Solution
+    if (mode.lower()=='daily'):
+        DSSSolution.Mode = 1
+    elif (mode.lower()=='yearly'):
+        DSSSolution.Mode = 2
+    else:
+        print('Solution Mode not Supported Yet.')
+        return DSSObj, False
+
+    if number > 0:
+        DSSSolution.Number = number
+    else:
+        print('Number of Solutions has to be positive')
+        return DSSObj, False
+
+    if stepsize > 0:
+        DSSSolution.StepSize = stepsize
+    else:
+        print('Stepsize has to be in positive')
+        return DSSObj, False
+
+    if ControMode.lower() == 'off':
+        DSSSolution.ControlMode = -1
+    elif ControMode.lower() == 'static':
+        DSSSolution.ControlMode = 0
+    elif ControMode.lower() == 'event':
+        DSSSolution.ControlMode = 1
+    elif ControMode.lower() == 'time':
+        DSSSolution.ControlMode = 2
+    else:
+        print('Control Mode Not Supported by OpenDSS.')
+        return DSSObj, False
+    DSSSolution.MaxControlIterations=MaxControlIterations
+    DSSSolution.MaxIterations=Iterations
     return DSSObj, True
