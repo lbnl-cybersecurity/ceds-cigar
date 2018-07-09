@@ -263,8 +263,8 @@ for ksim=1:TotalTimeSteps
        setLoadInfo(DSSObj,LoadBusNames,'kw',(Load(ksim,LoadList)+IncludeSolar*InverterRealPower(ksim-1,:))/1000); % To convert to KW
        setLoadInfo(DSSObj,LoadBusNames,'kvar',tan(acos(power_factor))*(Load(ksim,LoadList)+IncludeSolar*InverterReactivePower(ksim-1,:))/1000); 
     else
-       setLoadInfo(DSSObj,LoadBusNames,'kw',(Load(ksim,LoadList)-IncludeSolar*SolarGeneration_NC(ksim,LoadList))/1000); % To convert to KW
-       setLoadInfo(DSSObj,LoadBusNames,'kvar',tan(acos(power_factor))*(Load(ksim,LoadList)-IncludeSolar*SolarGeneration_NC(ksim,LoadList))/1000); 
+       setLoadInfo(DSSObj,LoadBusNames,'kw',(Load(ksim,LoadList)-IncludeSolar*SolarGeneration_vqvp(ksim,LoadList))/1000); % To convert to KW
+       setLoadInfo(DSSObj,LoadBusNames,'kvar',tan(acos(power_factor))*(Load(ksim,LoadList)-IncludeSolar*SolarGeneration_vqvp(ksim,LoadList))/1000); 
     end
     
     DSSSolution.Solve();
