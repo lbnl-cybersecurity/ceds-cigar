@@ -40,7 +40,8 @@ Z = Z_in_ohm/Zbase; % Here Z represents Z in per unit. Transformer Not Included
 TimeResolutionOfData=10; % resolution in minute
 % Get the data from the Testpvnum folder
 % Provide Your Directory
-FileDirectoryBase='C:\Users\shamm\Dropbox (ASU)\ASU\Microgrid Controller\CIGAR\CEDS_CIGAR\LBNL_Simulations\testpvnum10\';
+
+FileDirectoryBase='C:\Users\Sy-Toan\ceds-cigar\LBNL_Simulations\testpvnum10\';
 Time = 0:1440; % This can be changed based on the available data
 TotalTimeSteps=length(Time);
 QSTS_Data = zeros(length(Time),4,IeeeFeeder); % 4 columns as there are four columns of data available in the .mat file
