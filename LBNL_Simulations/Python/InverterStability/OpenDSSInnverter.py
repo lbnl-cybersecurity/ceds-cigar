@@ -23,7 +23,7 @@ setCapControlInfo(DSSObj,list(DSSCircuit.CapControls.AllNames),'enabled',[1]*len
 DSSSolution.Mode=1 # 1 represents daily mode, 2 represents yearly mode
 DSSSolution.Number=1440 # Solutions Per Solve Command
 DSSSolution.StepSize=1 # Stepsize= 1s
-DSSSolution.MaxControlIterations=1000 #Increase the number of maximum control iterations to make sure the system can solve the power flow
+DSSSolution.MaxControlIterations=10000 #Increase the number of maximum control iterations to make sure the system can solve the power flow
 DSSSolution.MaxIterations=100 #Increasing the number of power flow iterations to achieve convergence
 
 DSSText.Command='Set ControlMode=Time' # Refer to OpenDSS documentation
