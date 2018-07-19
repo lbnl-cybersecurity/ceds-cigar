@@ -20,8 +20,8 @@ q_avail = [];
 
 %% Constants 
 % These constants are used to create appropriate simulation scenario
-LoadScalingFactor=5;
-GenerationScalingFactor=30;
+LoadScalingFactor=2;
+GenerationScalingFactor=5;
 SlackBusVoltage=1.02;
 power_factor=0.9;
 IncludeSolar=1; % Setting this to 1 will include the solar , set to zero if no solar required
@@ -379,10 +379,10 @@ node = 3;
 f1 = figure(1);
 subplot(2,1,1)
 plot(t_datetime , P0_vqvp, 'b','LineWidth',1.5)
-title('Real Power (kW) From Substation')
+title('Real Power (W) From Substation')
 subplot(2,1,2)
 plot(t_datetime , Q0_vqvp, 'r','LineWidth',1.5)
-title('Reactive Power (kVA) From Substation')
+title('Reactive Power (VA) From Substation')
 
 f2 = figure(2);
 plot(t_datetime , squeeze(VBP(node,1,:)), t_datetime, squeeze(VBP(node,2,:)), ...

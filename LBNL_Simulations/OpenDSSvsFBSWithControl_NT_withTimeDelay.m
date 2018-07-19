@@ -34,10 +34,6 @@ IeeeFeeder=13;
 NumberOfLoads=length(LoadList);
 NumberOfNodes=length(NodeList);
 
-% setup voltages and currents
-% Vbase = 4.16e3; %4.16 kV
-% Sbase = 500e3; %500 kVA
-
 %% Base Value Calculation
 
 Vbase = 4.16e3; %4.16 kV
@@ -123,12 +119,13 @@ VBP = [VQ_start*ones(IeeeFeeder,1,TotalTimeSteps), VQ_end*ones(IeeeFeeder,1,Tota
        VP_start*ones(IeeeFeeder,1,TotalTimeSteps), VP_end*ones(IeeeFeeder,1,TotalTimeSteps)]; 
 
 FilteredVoltage = zeros(size(Generation));
+FilteredVoltageCalc = zeros(size(Generation));
 InverterLPF = 1;
 ThreshHold_vqvp = 0.25;
 V0=SlackBusVoltage*ones(TotalTimeSteps,1);
 
 %% ALERT: ADDED SECTION - ADAPTIVE CONTROL PARAMETERS 
-upk = zeros(size(psik));
+upk = zeros(size(IntermediateOutput_vqvp));
 uqk = upk;
 kq = 100;
 kp = 100;
@@ -187,26 +184,28 @@ for ksim=1:TotalTimeSteps
         end
         
    % RUN ADAPTIVE CONTROLLER
-        if ksim > 1 && mod(ksim, Delay_VoltageSampling(knode)) == 0 
-            if( ismember(knode,loadlist) == 1)
+        if mod(ksim, Delay_VBPCurveShift(knode)) == 0 
+            if( ismember(knode,LoadList) == 1)
                 %this node is controllable (has DER)
-                idx = find(loadlist == knode);
+                idx = find(LoadList == knode);
                 %re-set VBP
                 upk(ksim,knode) = adaptive_control(Delay_VBPCurveShift(knode), ...
                     kp, IntermediateOutput_vqvp(ksim,knode), ...
-                    IntermediateOutput_vqvp(ksim-Delay_VBPCurveShift(knode),knode), ...
-                    upk(ksim-Delay_VBPCurveShift(knode),knode), ThreshHold_vqvp, ...
+                    IntermediateOutput_vqvp(ksim-Delay_VBPCurveShift(knode)+1,knode), ...
+                    upk(ksim-Delay_VBPCurveShift(knode)+1,knode), ThreshHold_vqvp, ...
                     FilteredOutput_vqvp(ksim,knode));
                 
                 uqk(ksim,knode) = adaptive_control(Delay_VBPCurveShift(knode), ...
                     kq, IntermediateOutput_vqvp(ksim,knode), ...
-                    IntermediateOutput_vqvp(ksim-Delay_VBPCurveShift(knode),knode), ....
-                    uqk(ksim-Delay_VBPCurveShift(knode),knode), ThreshHold_vqvp, ...
+                    IntermediateOutput_vqvp(ksim-Delay_VBPCurveShift(knode)+1,knode), ....
+                    uqk(ksim-Delay_VBPCurveShift(knode)+1,knode), ThreshHold_vqvp, ...
                     FilteredOutput_vqvp(ksim,knode));
         
    % CALCULATE NEW VBP
-                VBP(knode,:,ksim:TotalTimeSteps) = [VQ_start-uqk(ksim,knode),...
-                    VQ_end-uqk(ksim,knode)/2,VP_start+upk(ksim,knode)/2,VP_end+upk(ksim,knode)];
+                for i = ksim:TotalTimeSteps
+                VBP(knode,:,i) = [VQ_start-uqk(ksim,knode),...
+                    VQ_end-uqk(ksim,knode)/2, VP_start+upk(ksim,knode)/2, VP_end+upk(ksim,knode)];
+                end 
             end
         end
    end
@@ -221,6 +220,24 @@ Q0_vqvp = imag(S_vqvp(1,:));
 
 
 %% OpenDSS Modeling with Custom VQVP Control Case
+
+[DSSObj, DSSText, gridpvpath] = DSSStartup;
+% Load the components related to OpenDSS
+DSSCircuit=DSSObj.ActiveCircuit;
+DSSSolution=DSSCircuit.Solution;
+DSSMon=DSSCircuit.Monitors;
+
+%Compile the Model
+DSSText.command = 'Compile C:\feeders\feeder13_B_R\feeder13BR.dss';
+% If all Load Parameters are to be changed
+% DSSText.command ='batchedit load..* ZIPV= (0.2,0.05,0.75,0.2,0.05,0.75,0.8)';
+% Get the load buses, according to the model to compare the simulation
+LoadBus=NodeList(LoadList);
+LoadBusNames=cell(1,8);
+for i = 1:length(LoadBus)
+    LoadBusNames{i} = strcat('load_',num2str(LoadBus(i)));
+end
+NodeVoltageToPlot=680;
 
 InverterReactivePower = zeros(TotalTimeSteps,length(LoadList));
 InverterRealPower = zeros(TotalTimeSteps,length(LoadList));
@@ -259,7 +276,8 @@ for ksim=1:TotalTimeSteps
                 SolarGeneration_vqvp(ksim,knode),...
                 VoltageOpenDSS_vqvp(node_iter,ksim),VoltageOpenDSS_vqvp(node_iter,ksim-1),...
                 VBP(knode,:),TimeStep,InverterLPF,Sbar(knode),...
-                InverterReactivePower(ksim-1,node_iter),InverterRealPower(ksim-1,node_iter),InverterRateOfChangeLimit,InverterRateOfChangeActivate);
+                InverterReactivePower(ksim-1,node_iter),InverterRealPower(ksim-1,node_iter),...
+                InverterRateOfChangeLimit,InverterRateOfChangeActivate,ksim,Delay_VoltageSampling);
         end
    end
 end
