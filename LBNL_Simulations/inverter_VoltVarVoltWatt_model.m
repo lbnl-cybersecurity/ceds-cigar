@@ -1,7 +1,5 @@
 function [qk,pk,gammakused, gammakcalc, c, q_avail] = inverter_VoltVarVoltWatt_model(gammakm1,...
-            solar_irr,Vk,Vkm1,VBP,T,lpf,Sbar,...
-    pkm1,qkm1,ROC_lim,InverterRateOfChangeActivate,....
-    ksim,Delay_VoltageSampling)
+            solar_irr,Vk,Vkm1,VBP,T,lpf,Sbar,pkm1,qkm1,ROC_lim,InverterRateOfChangeActivate,ksim,Delay_VoltageSampling)
 
     %VBP = [VQ_start,VQ_end,VP_start,VP_end]
 
@@ -23,7 +21,7 @@ function [qk,pk,gammakused, gammakcalc, c, q_avail] = inverter_VoltVarVoltWatt_m
     q_avail = 0;
     %check if solar irradiance is greater than 0
     
-    if (solar_irr < 0.00025)
+    if (solar_irr < 2500)
         pk = 0;
         qk = 0;
     else
@@ -39,6 +37,9 @@ function [qk,pk,gammakused, gammakcalc, c, q_avail] = inverter_VoltVarVoltWatt_m
                 c = q_avail/(VBP(2) - VBP(1)); 
                 qk = c*(gammakused - VBP(1)); 
                 %partial VAR support
+            else
+                qk = q_avail;
+                %full VAR support
             end
         
         elseif( gammakused > VBP(3) && gammakused < VBP(4) )
@@ -49,8 +50,7 @@ function [qk,pk,gammakused, gammakcalc, c, q_avail] = inverter_VoltVarVoltWatt_m
         elseif( gammakused >= VBP(4) )
             %full curtailment for VAR support
             qk = Sbar;
-            pk = 0;
-%         else    
+            pk = 0;  
         end
     
 %         ROC limiting
