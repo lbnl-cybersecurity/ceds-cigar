@@ -20,8 +20,9 @@ q_avail = [];
 
 %% Constants 
 % These constants are used to create appropriate simulation scenario
-LoadScalingFactor=2;
-GenerationScalingFactor=5;
+
+LoadScalingFactor=2000;
+GenerationScalingFactor=50;
 SlackBusVoltage=1.02;
 power_factor=0.9;
 IncludeSolar=1; % Setting this to 1 will include the solar , set to zero if no solar required
@@ -107,7 +108,7 @@ Z = Z_in_ohm/Zbase; % Here Z represents Z in per unit. Transformer Not Included
 PV_Feeder_model=10; % resolution in minute
 % Get the data from the Testpvnum folder
 % Provide Your Directory
-FileDirectoryBase='C:\Users\nathan_tsang\Desktop\LBL\CIGAR\ceds-cigar\LBNL_Simulations\testpvnum10\';
+FileDirectoryBase='C:\CIGAR\ceds-cigar\LBNL_Simulations\testpvnum10\';
 
 Time = 0:1440; % This can be changed based on the available data
 TotalTimeSteps=length(Time);
@@ -182,7 +183,7 @@ end
 %%  Power Flow with VQVP Control Case
 
 % Setting up the maximum power capability
-Sbar =  MaxGenerationPossible * GenerationScalingFactor; % * 1.15;
+Sbar =  MaxGenerationPossible * GenerationScalingFactor;
 
 % Initialize feeder states with control case
 V_vqvp = zeros(IeeeFeeder,TotalTimeSteps);
@@ -196,6 +197,7 @@ InverterRateOfChangeLimit = 100; %rate of change limit
 InverterRateOfChangeActivate = 0; %rate of change limit
 % Droop Control Parameters
 VQ_start = 1.01; VQ_end = 1.015; VP_start = 1.015; VP_end = 1.02;
+% VQ_start = 1.01; VQ_end = 1.02; VP_start = 1.02; VP_end = 1.05;
 % VBP = [VQ_start*ones(IeeeFeeder,1,TotalTimeSteps), VQ_end*ones(IeeeFeeder,1,TotalTimeSteps), ...
 %         VP_start*ones(IeeeFeeder,1,TotalTimeSteps), VP_end*ones(IeeeFeeder,1,TotalTimeSteps)];
 VBP = [nan*ones(IeeeFeeder,1,TotalTimeSteps), nan*ones(IeeeFeeder,1,TotalTimeSteps), ...
@@ -218,8 +220,8 @@ kq = 100;
 kp = 100;
 
 % Delays                [1 2  3* 4 5  6*  7*  8*  9*  10* 11* 12* 13*
-Delay_VoltageSampling = [0 0  10 0 0  10  10  10  10  10  10  10  10]; 
-Delay_VBPCurveShift =   [0 0 120 0 0 120 120 120 120 120 120 120 120]; 
+Delay_VoltageSampling = [0 0  1 0 0  1  1  1  1  1  1  1  1]; 
+Delay_VBPCurveShift =   [0 0 2 0 0 2 2 2 2 2 2 2 2]; 
 
 %% SIMULATION
 
@@ -288,13 +290,17 @@ for ksim=1:TotalTimeSteps
      
    % CALCULATE NEW VBP
             for j = ksim:TotalTimeSteps
-                VBP(knode,:,j) = [VQ_start-uqk(ksim,knode),...
-                 VQ_end-uqk(ksim,knode)/2, VP_start+upk(ksim,knode)/2, VP_end+upk(ksim,knode)];  
+                VBP(knode,:,j) = [VQ_start - uqk(ksim,knode),...
+                 VQ_end + uqk(ksim,knode), VP_start - upk(ksim,knode), VP_end + upk(ksim,knode)];  
+             
+                upk(j,knode) = upk(ksim,knode);
+                uqk(j,knode) = uqk(ksim,knode);
+                
             end 
         else
             if ksim > 1
                 for j = ksim:TotalTimeSteps
-                    VBP(knode,:,j) = VBP(knode,:,ksim-1);
+                    VBP(knode,:,j) = VBP(knode,:,j-1);
                 end 
             end 
         end 
@@ -375,7 +381,7 @@ t1 = datetime(2017,8,0,0,0,0);
 t_datetime = t1 + minutes(Time);
 
 %
-node = 3;
+node = 8;
 f1 = figure(1);
 subplot(2,1,1)
 plot(t_datetime , P0_vqvp, 'b','LineWidth',1.5)
@@ -387,10 +393,10 @@ title('Reactive Power (VA) From Substation')
 f2 = figure(2);
 plot(t_datetime , squeeze(VBP(node,1,:)), t_datetime, squeeze(VBP(node,2,:)), ...
     t_datetime, squeeze(VBP(node,3,:)), t_datetime, squeeze(VBP(node,4,:)), ...
-    t_datetime, FilteredVoltage(:,node), 'g','LineWidth',1.5)
-ylim([1.005 1.035])
+    'LineWidth',1.5)
+% ylim([1.005 1.035])
 title('VBP for Node 3')
-legend({'V1', 'V2', 'V3', 'V4', 'Filtered Voltage output'},'FontSize',12)
+legend({'V1', 'V2', 'V3', 'V4'},'FontSize',12)
 
 f3 = figure(3);
 plot(t_datetime , abs(V_vqvp(node,:)), 'r','LineWidth',1.5)
@@ -415,7 +421,7 @@ subplot(2,1,1)
 plot(t_datetime, upk(:,node), t_datetime, uqk(:,node),'LineWidth',1.5 )
 title(['Adaptive controller output, node: 3'])
 legend({'upk','uqk'},'FontSize',12);
-ylim([0 0.1])
+% ylim([0 0.1])
 
 subplot(2,1,2)
 hold on
@@ -433,10 +439,16 @@ legend({'Intermediate output', 'filtered output', 'threshold'},'FontSize',12);
 % Voltage observer inputs and outputs
 f6 = figure(6);
 % subplot(2,1,1)
-plot(t_datetime, FilteredOutput_vqvp(:,node), t_datetime, IntermediateOutput_vqvp(:,node),...
-    t_datetime, Epsilon_vqvp(:,node), 'LineWidth',1.5 )
-legend({'filtered output', 'intermediate output', 'epsilon'},'FontSize',12);
+plot(t_datetime, FilteredOutput_vqvp(:,node), 'LineWidth',1.5 )
+legend({'filtered output'},'FontSize',12);
 title(['Observer outputs'])
+
+% f6 = figure(6);
+% % subplot(2,1,1)
+% plot(t_datetime, FilteredOutput_vqvp(:,node), t_datetime, IntermediateOutput_vqvp(:,node),...
+%     t_datetime, Epsilon_vqvp(:,node), 'LineWidth',1.5 )
+% legend({'filtered output', 'intermediate output', 'epsilon'},'FontSize',12);
+% title(['Observer outputs'])
 
 % subplot(2,1,2)
 % plot(t_datetime, abs(V_vqvp(node,:)), 'r','LineWidth',1.5 )
@@ -454,11 +466,11 @@ title(['Inverter power output and irradiation'])
 legend({'inverter reactive power', 'inverter real power', 'solar irradiation'},'FontSize',12);
 
 f8 = figure(8);
-plot(t_datetime , Load(:,node), 'r','LineWidth',1.5)
+plot(t_datetime, sum(Load'), 'r', 'LineWidth',1.5)
 datetick('x','HH:MM')
-title(['Load, node: 3'])
+title(['Sum of Loads'])
 xlabel('time (hours)')
-ylabel('KVA')
+ylabel('VA')
 
 f9 = figure(9);
 plot(t_datetime, InverterRealPower(:,3), t_datetime, InverterRealPower(:,6), ...
