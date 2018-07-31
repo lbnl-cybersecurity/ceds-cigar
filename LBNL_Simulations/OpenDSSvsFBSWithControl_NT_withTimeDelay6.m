@@ -11,6 +11,8 @@
 %               3) time delay (2-ish minutes)
 %               4) ability to change time steps from minutes to seconds
 %               5) change time and number of hacked inverters for each node
+%               6) changed Sbar for non-hacked inverters after the hack
+%               occurs
 %%
 clc;
 clear;
@@ -23,7 +25,7 @@ q_avail = [];
 % These constants are used to create appropriate simulation scenario
 
 LoadScalingFactor=2000;
-GenerationScalingFactor=50;
+GenerationScalingFactor=70;
 SlackBusVoltage=1.02;
 power_factor=0.9;
 IncludeSolar=1; % Setting this to 1 will include the solar , set to zero if no solar required
@@ -113,8 +115,8 @@ FileDirectoryBase='C:\Users\nathan_tsang\Desktop\LBL\CIGAR\ceds-cigar\LBNL_Simul
 Time = 0:1440;
 
 % Customize simulation time
-StartTime = 60*9;
-EndTime = 60*12;
+StartTime = 0;
+EndTime = 1440;
 Time = StartTime:EndTime;
 TotalTimeSteps=length(Time);
 QSTS_Data = zeros(length(Time),4,IeeeFeeder); % 4 columns as there are four columns of data available in the .mat file
@@ -126,7 +128,7 @@ for node = 1:NumberOfLoads
     FileName=strcat(FileDirectoryBase,FileDirectoryExtension);
     % Load the 
     MatFile = load(FileName,'nodedata');    
-    QSTS_Data(:,:,LoadList(node)) = MatFile.nodedata(StartTime:EndTime, :); %Putting the loads to appropriate nodes according to the loadlist
+    QSTS_Data(:,:,LoadList(node)) = MatFile.nodedata; %Putting the loads to appropriate nodes according to the loadlist
 end
 
 %% Seperate PV Generation Data
@@ -139,6 +141,8 @@ Generation=squeeze(Generation)/Sbase; % To convert to per unit, it should not be
 Load=squeeze(Load)/Sbase; % To convert to per unit
 MaxGenerationPossible = max(Generation); % Getting the Maximum possible Generation for each Load 
 
+% plot(Load(:,3))
+%%
 % %% Interpolate to change minutes to seconds and add noise
 % 
 % % Interpolate to get minutes to seconds
@@ -147,10 +151,13 @@ MaxGenerationPossible = max(Generation); % Getting the Maximum possible Generati
 %     LoadSeconds(:,i) = interp1(Load(:,i),t_seconds,'spline');
 %     GenerationSeconds(:,i)= interp1(Generation(:,i),t_seconds,'spline');
 % end 
+
 % % Reassign variable names 
-% TotalTimeSteps = 86400;
-% Load = LoadSeconds;
-% Generation = GenerationSeconds;
+% StartTime = 40000;
+% EndTime = 40500;
+% Time = StartTime:EndTime;
+% TotalTimeSteps=length(Time);
+
 % % Create noise vector
 % for node_iter = 1:NumberOfLoads
 %     knode = LoadList(node_iter);
@@ -197,9 +204,9 @@ PowerEachTimeStep_vqvp = zeros(IeeeFeeder,3);
 SolarGeneration_vqvp_TOTAL = Generation * GenerationScalingFactor;
 SolarGeneration_vqvp = SolarGeneration_vqvp_TOTAL;
 
-TimeOfHack = 50;
+TimeOfHack = 9*60+50;
 PercentHacked = [0 0 1.0 0 0 0.5 0.5 0.5 0 0.5 0.5 0.5 0.5];
-%% 
+
 for t = TimeOfHack:TotalTimeSteps
     for i= 1:length(PercentHacked)
         SolarGeneration_vqvp(t,i) = SolarGeneration_vqvp_TOTAL(t,i) .* (1- PercentHacked(i));
@@ -207,10 +214,19 @@ for t = TimeOfHack:TotalTimeSteps
     end 
 end 
 
-% Setting up the maximum power capability
-Sbar =  MaxGenerationPossible * GenerationScalingFactor;
-SbarHacked = Sbar .* PercentHacked;
+%% Setting up the maximum power capability
+Sbar_max =  MaxGenerationPossible * GenerationScalingFactor;
+Sbar = zeros(size(Generation));
+SbarHacked = Sbar_max .* PercentHacked;
 
+for t = 1:TotalTimeSteps
+    Sbar(t,:) = Sbar_max;
+end
+
+for t = TimeOfHack:TotalTimeSteps
+    Sbar(t,:) = Sbar_max.*(1-PercentHacked);
+end 
+    
 %% 
 InverterReactivePower = zeros(size(Generation));
 InverterRealPower = zeros(size(Generation));
@@ -289,7 +305,7 @@ for ksim=1:TotalTimeSteps
             inverter_model(FilteredVoltage(ksim-1,knode),...
             SolarGeneration_vqvp(ksim,knode),...
             abs(V_vqvp(knode,ksim)),abs(V_vqvp(knode,ksim-1)),...
-            VBP(knode,:,ksim),TimeStep,InverterLPF,Sbar(knode),...
+            VBP(knode,:,ksim),TimeStep,InverterLPF,Sbar(ksim,knode),...
             InverterRealPower(ksim-1,knode),InverterReactivePower(ksim-1,knode),...
             InverterRateOfChangeLimit,InverterRateOfChangeActivate,...
             ksim,Delay_VoltageSampling(knode)); 
@@ -431,7 +447,7 @@ NodeVoltageToPlot=680;
 %% Figures
 t1 = datetime(2017,8,0,0,0,0);
 t_datetime = t1 + minutes(Time);
-t_hacktime = t1 + minutes(TimeOfHack+StartTime);
+t_hacktime = t1 + minutes(TimeOfHack);
 
 %
 node = 8;
@@ -472,10 +488,8 @@ xlabel('time (hours)')
 ylabel('volts (pu)')
 
 f4 = figure(4);
-hold on
 plot(t_datetime, FilteredVoltage(:,node), 'b','LineWidth',1.5 )
 plot(t_datetime, FilteredVoltageCalc(:,node), 'r','LineWidth',1.5 )
-hold off
 datetick('x','HH:MM')
 title(['Inverter: LP Filter of voltage magnitude from inverter, node: 3'])
 xlabel('time (hours)')
@@ -493,7 +507,6 @@ hold on
 plot(t_datetime, IntermediateOutput_vqvp(:,node), 'r','LineWidth',1.5 )
 plot(t_datetime, FilteredOutput_vqvp(:,node), 'y','LineWidth',1.5 )
 plot(t_datetime, ThreshHold_vqvp*ones(1,TotalTimeSteps), 'm','LineWidth',1.5 )
-plot(t_hacktime, line([t_hacktime t_hacktime], get(gca, 'ylim')), 'LineWidth', 1.5)
 hold off 
 datetick('x','HH:MM')
 title(['Adaptive controller input, node: 3'])
@@ -508,36 +521,18 @@ plot(t_datetime, FilteredOutput_vqvp(:,node), 'LineWidth',1.5 )
 legend({'filtered output'},'FontSize',12);
 title(['Observer outputs'])
 
-% f6 = figure(6);
-% % subplot(2,1,1)
-% plot(t_datetime, FilteredOutput_vqvp(:,node), t_datetime, IntermediateOutput_vqvp(:,node),...
-%     t_datetime, Epsilon_vqvp(:,node), 'LineWidth',1.5 )
-% legend({'filtered output', 'intermediate output', 'epsilon'},'FontSize',12);
-% title(['Observer outputs'])
-
-% subplot(2,1,2)
-% plot(t_datetime, abs(V_vqvp(node,:)), 'r','LineWidth',1.5 )
-% datetick('x','HH:MM')
-% title(['Observer inputs'])
-% xlabel('time (hours)')
-% ylabel('V?')
-% % ylim([0 0.26])
-% legend({'voltage'},'FontSize',12);
-
 f7 = figure(7);
 subplot(2,1,1)
-hold on
 plot(t_datetime, InverterReactivePower(:,node), t_datetime, InverterReactivePowerHacked(:,node), 'LineWidth',1.5) 
+hold on
 plot(t_hacktime, line([t_hacktime t_hacktime], get(gca, 'ylim')), 'r', 'LineWidth', 1.5)
-hold off
 title(['Inverter reactive power - Node 3'])
 legend({'inverter reactive power- not hacked', 'inverter reactive power - hacked', 'time of hack'},'FontSize',12);
 
 subplot(2,1,2)
-hold on
 plot(t_datetime, InverterRealPower(:,node), t_datetime, InverterRealPowerHacked(:,node), 'LineWidth',1.5)
+hold on
 plot(t_hacktime, line([t_hacktime t_hacktime], get(gca, 'ylim')), 'r', 'LineWidth', 1.5)
-hold off
 title(['Inverter real power - Node 3'])
 legend({'inverter real power- not hacked', 'inverter real power - hacked', 'time of hack'},'FontSize',12);
 
