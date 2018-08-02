@@ -33,10 +33,16 @@ close all;
 % Note that there are other tunable parameters in the code, but these are
 % the main ones
 
+% Power flow parameters
+Vbase = 4.16e3; %4.16 kV
+Sbase = 1; % Set to something like '500 kVA' to use per unit
+Zbase = Vbase^2/Sbase;
+Ibase = Sbase/Vbase;
+SlackBusVoltage = 1.02; 
+
 % Set load factors and slack voltage
 LoadScalingFactor = 2000; 
 GenerationScalingFactor = 70; 
-SlackBusVoltage = 1.02; 
 
 % Set simulation analysis period
 StartTime = 40000; 
@@ -132,10 +138,7 @@ IeeeFeeder=13;
 [FeederMap, Z_in_ohm, Paths, NodeList, LoadList] = ieee_feeder_mapper(IeeeFeeder);
 
 % Base Value Calculations
-Vbase = 4.16e3; %4.16 kV
-Sbase = 1; % Set to something like '500 kVA' to use per unit
-Zbase = Vbase^2/Sbase;
-Ibase = Sbase/Vbase;
+
 Z = Z_in_ohm/Zbase; % Here Z represents Z in per unit. Transformer Not Included
 
 power_factor=0.9;
