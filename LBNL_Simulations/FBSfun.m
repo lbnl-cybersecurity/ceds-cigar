@@ -8,6 +8,7 @@ s = V;
 V(1) = V0;
 I = zeros(n,1);
 I(1) = 0;
+Vp=V;
 
 %sort nodes into terminal (T) set and junction (J) set
 %T: nodes which only have -1
@@ -32,17 +33,20 @@ Vtest = 0;
 
 while(abs(Vtest-V0) >= tol)
     V(1) = V0;
+    Vp(1) = V0;
     %sweep forward, calculate voltages at nodes
     for k=1:1:n-1
-        [abs_val,idx,val] = find(B(k,:));
+        [abs_val,idx,val] = find(B(k,:)>0);
+        V(idx)=V(k)-Z(idx).*I(idx);
+        Vp(idx)=V(k)-Z(idx).*I(idx);
         %loop through nonzero entries, look for child node
-        for t=1:1:length(val)
-            %look for a child node
-            if(val(t) == 1)
-                %we've found a child, calculate voltage at child
-                V(idx(t)) = V(k) - Z(idx(t))*I(idx(t));
-            end
-        end
+%         for t=1:1:length(val)
+%             %look for a child node
+%             if(val(t) == 1)
+%                 %we've found a child, calculate voltage at child
+%                 V(idx(t)) = V(k) - Z(idx(t))*I(idx(t));
+%             end
+%         end
     end
     
     %sweep backward
