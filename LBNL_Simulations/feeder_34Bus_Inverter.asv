@@ -4,7 +4,7 @@ close all;
 
 %% TUNING KNOBS - ADJUST (MAIN) PARAMETERS HERE 
 % Note that there are other tunable parameters in the code, but these are
-Sbase=1;
+
 LoadScalingFactor = 2000; 
 GenerationScalingFactor = 70; 
 SlackBusVoltage = 1.02; 
@@ -90,7 +90,7 @@ Time = StartTime:EndTime;
 TotalTimeSteps=length(Time);
 
 % Interpolate to get minutes to seconds
-for i = 1:TotalLoads
+for i = 1:NumberOfNodes
     t_seconds = linspace(1,numel(Load(:,i)),3600*24/1);
     LoadSeconds(:,i) = interp1(Load(:,i),t_seconds,'spline');
     GenerationSeconds(:,i)= interp1(Generation(:,i),t_seconds,'spline');
@@ -103,13 +103,14 @@ Load = LoadSeconds;
 Generation = GenerationSeconds;
 
 % Create noise vector
-for node_iter = 1:TotalLoads
-    Noise(:,node_iter) = randn(TotalTimeSteps, 1);
+for node_iter = 1:NumberOfLoads
+    knode = LoadList(node_iter);
+        Noise(:,knode) = randn(TotalTimeSteps, 1);
 end 
 
 % Add noise to loads
-for i = 1:TotalLoads
-    Load(:,i) = Load(:,i) + 2*Noise(:,i);
+for i = 1:NumberOfNodes
+    Load(:,i) = LoadSeconds(:,i) + 2*Noise(:,i);
 end 
 
 
@@ -135,6 +136,7 @@ for i = 1:Number_of_Inverters
     InverterArray(i).PercentHacked=PercentHacked(i); % percent hacked
     InverterArray(i).ROC_lim=10; % currently unused
     InverterArray(i).InverterRateOfChangeActivate=0; % currently unused 
+    
 end
 
 %% Setting up the maximum power capability
@@ -175,10 +177,6 @@ VBPHacked(:,4,1:2) = VP_endHacked;
 
 %% Voltage Observer Parameters and related variable initialization
 
-InverterReactivePower = zeros(size(Generation));
-InverterRealPower = zeros(size(Generation));
-InverterReactivePowerHacked = zeros(size(Generation));
-InverterRealPowerHacked = zeros(size(Generation));
 FilteredOutput_vqvp = zeros(TotalTimeSteps,NumberOfNodes);
 IntermediateOutput_vqvp=zeros(TotalTimeSteps,NumberOfNodes);
 Epsilon_vqvp = zeros(TotalTimeSteps,NumberOfNodes);
