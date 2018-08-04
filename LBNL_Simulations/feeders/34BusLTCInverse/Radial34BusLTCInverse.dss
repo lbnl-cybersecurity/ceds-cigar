@@ -77,16 +77,16 @@ New "Transformer.Subt_01" phases=3 Windings=2 XHL=7.99974424 %LoadLoss=0.9999680
 ~ wdg=2 Bus="bus_800.1.2.3.0" kV=24.9 kVA=2500 Conn="wye" MinTap=0.9 MaxTap=1.1 NumTaps=32 Tap=1
 New "Transformer.t 02" phases=3 Windings=2 XHL=5.63833889 %LoadLoss=1.12766778
 ~ wdg=1 Bus="bus_814.1.2.3.0" kV=24.9 kVA=10000 Conn="wye"
-~ wdg=2 Bus="bus_850.1.2.3.0" kV=24.9 kVA=10000 Conn="wye" MinTap=0.9 MaxTap=1.2 NumTaps=32 Tap=1
+~ wdg=2 Bus="bus_850.1.2.3.0" kV=24.9 kVA=10000 Conn="wye" MinTap=0.9 MaxTap=1.1 NumTaps=32 Tap=1
 
 
 // Transformer Load Tap Change (LTC) controls
-New "RegControl.LTC-t 02" Transformer="t 02" winding=2 vreg=120 ptratio=119.8002 band=2 Bus="bus_850.1.2.3" inversetime=No Eventlog= Yes delay=30 maxtapchange=16 tapdelay=0.4 enabled =Yes debugtrace = Yes
+New "RegControl.LTC-t_02" Transformer="t 02" winding=2 vreg=120 ptratio=119.8002 band=2 Bus="bus_850.1.2.3" inversetime=No  delay=30 maxtapchange=16 tapdelay=0.4 enabled = Yes 
 
 
 New "Monitor.tapMonitor" Element="Transformer.t 02" terminal=2 mode=2
-New "Monitor.tapvoltage" Element="Transformer.t 02" terminal=2 mode=0 PPolar=True baseFreq=60
-New "Monitor.loadvoltage" Element="Load.DL_82034" terminal=1 mode=0 PPolar=True baseFreq=60
+//New "Monitor.tapvoltage" Element="Transformer.t 02" terminal=2 mode=0 PPolar=True baseFreq=60
+//New "Monitor.loadvoltage" Element="Load.DL_82034" terminal=1 mode=0 PPolar=True baseFreq=60
 
 // Voltage bases
 Set VoltageBases=[24.9 69]
@@ -94,9 +94,9 @@ CalcVoltageBases
 
 // Solve snapshot study
 Solve BaseFrequency=60 MaxIter=300 MaxControlIter=10000
-Set ControlMode= Time
+Set ControlMode= OFF
 // Solve timeseries study
-Solve mode="Daily" number=1440 stepsize="1s"
+//Solve mode="Daily" number=1440 stepsize="1s"
 Set CaseName="34BusModifiedLTC"
 Set Demand=True
 Set DIVerbose=True
@@ -104,7 +104,7 @@ CloseDI
 
 
 
-plot monitor object = "tapmonitor" channels=(1) 
+//plot monitor object = "tapmonitor" channels=(1) 
 //plot monitor object = "tapvoltage" channels=(1) base=(14376)
 
 

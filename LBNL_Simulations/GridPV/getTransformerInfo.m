@@ -123,7 +123,7 @@ kVBases = [kVBases kVBases/sqrt(3)]; % kvBases are only LL, adding LN
 
 %% Get all info
 for ii=1:length(Transformers)
-    DSSCircuit.SetActiveElement(['transformer.' Transformers(ii).name]);
+    DSSCircuit.SetActiveElement(['Transformer.' Transformers(ii).name]);
     if ~strcmpi(['transformer.' transformerNames{ii}], DSSCircuit.ActiveElement.Name)
         error('xfmrName:notfound',sprintf('Transformer ''%s'' is not found in the circuit.  Check that this is a transformer in the compiled circuit.', transformerNames{ii}))
     end
@@ -402,10 +402,10 @@ for ii=1:length(Transformers)
     Transformers(ii).wdg2numTaps = get(DSSCircuit.Transformers,'NumTaps');
     Transformers(ii).wdg2IsDelta = get(DSSCircuit.Transformers,'IsDelta');
     
-    DSSText.command = sprintf('? transformer.%s.%%loadloss',Transformers(ii).name);
-    Transformers(ii).PCTloadLoss = str2double(DSSText.result);
-    DSSText.command = sprintf('? transformer.%s.%%noloadloss',Transformers(ii).name);
-    Transformers(ii).PCTnoLoadLoss = str2double(DSSText.result);
+%     DSSText.command = sprintf('? transformer.%s.%%loadloss',Transformers(ii).name);
+%     Transformers(ii).PCTloadLoss = str2double(DSSText.result);
+%     DSSText.command = sprintf('? transformer.%s.%%noloadloss',Transformers(ii).name);
+%     Transformers(ii).PCTnoLoadLoss = str2double(DSSText.result);
     
     DSSCircuit.Transformers.next;
 end
@@ -440,6 +440,7 @@ for ii=1:length(XfmControlNames)
         Transformers(loc).tapWinding = get(DSSCircuit.RegControls,'TapWinding');
         Transformers(loc).voltageLimit = get(DSSCircuit.RegControls,'VoltageLimit');
         Transformers(loc).winding = get(DSSCircuit.RegControls,'Winding');
+        Transformers(loc).TapNumber = get(DSSCircuit.RegControls,'TapNumber');
     end
     DSSCircuit.RegControls.next;
 end
