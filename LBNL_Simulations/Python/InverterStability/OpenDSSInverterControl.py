@@ -2,7 +2,7 @@
 # The code also runs the custom FBS functions to compare the results
 # Please make sure you have the necessary libraries, and the required libraries are in the same folder with the MATLAB code
 # Be advised: While Running OpenDSS, python changes the current directory, hence the matlab code is run first to avoid additional coding
-# Make sure you have the updated version of Anaconda for all libraries to run, OpenDSS installed 
+# Make sure you have the updated version of Anaconda for all libraries to run, OpenDSS installed
 # For a custom made dictionary, the key is always in lower case
 from DSSStartup import DSSStartup
 from setInfo import *
@@ -13,44 +13,33 @@ import numpy as np
 from math import tan,acos
 import os
 
-#  Initiating the global parameters
-
-power_factor=0.9
-reactivepowercontribution=tan(acos(power_factor)) # Q = P tan(Theta)
-
-# This Following Block allows to run the matlab code from python
-import matlab.engine as matlab
-def start_matlab():
-    return matlab.start_matlab()
-def quit_matlab(matlab_engine):
-    matlab_engine.quit()
-def CustomFBS(matlab_engine,NodeVoltageToPlot,SlackBusVoltage,IncludeSolar):
-    return matlab_engine.FBS(NodeVoltageToPlot,SlackBusVoltage,IncludeSolar,nargout=2) # As the function will return two outputs, nargout=2
-
-# The values are to converted to array as the matlab function returns a tuple
-
-NodeVoltageToPlot=634
-IncludeSolar=1
-SlackBusVoltage=1.0
-matlab_engine=start_matlab()
-VoltageFBS,SubstationRealPowerFBS=CustomFBS(matlab_engine,NodeVoltageToPlot,SlackBusVoltage,IncludeSolar)
-quit_matlab(matlab_engine)
-
-VoltageFBS=np.asarray(VoltageFBS)
-SubstationRealPowerFBS=np.asarray(SubstationRealPowerFBS)
-##############################################
-
-#  DSSStartup() returns a dictionary
 result= DSSStartup()
 DSSText=result['dsstext']
 DSSSolution=result['dsssolution']
 DSSCircuit=result['dsscircuit']
 DSSObj=result['dssobj']
-current_directory=os.getcwd()
-# Compile the circuit
-DSSText.Command="Compile C:/feeders/feeder13_B_R/feeder13BR.dss"
-# Run a Power Flow Solution
-DSSSolution.Solve()
+NodeVoltageToPlot=634
+IncludeSolar=1
+SlackBusVoltage=1.0
+DSSText.Command="Compile C:/feeders/feeder13_U_R_Pecan_Solar/feeder13_U_R_Pecan_Solar.dss"
+
+LoadBusNames=['load_634','load_645','load_646','load_652','load_671','load_675','load_692','load_611']
+LoadList=np.array([6,7,8,13,3,12,11,10])-1
+#get the real load from Texas day
+Load=pd.read_csv('C:/feeders/13busload.csv',header=None)
+Load=1/1000*(Load.values)
+#get the real solar from Texas day
+Solar=pd.read_csv('C:/feeders/Solar.csv',header=None)
+Solar=1/1000*(Solar.values)
+TotalTimeSteps,Nodes= Load.shape # Initialize the total time steps according to the data
+
+DSSSolution.Mode=1 # 1 represents daily mode, 2 represents yearly mode
+DSSSolution.Number=TotalTimeSteps # Solutions Per Solve Command
+DSSSolution.StepSize=1 # Stepsize= 1s
+DSSSolution.MaxControlIterations=1000 #Increase the number of maximum control iterations to make sure the system can solve the power flow
+DSSSolution.MaxIterations=100 #Increasing the number of power flow iterations to achieve convergence
+
+DSSText.Command='Set ControlMode=Time' # Refer to OpenDSS documentation
 
 #  The Load bus names and bus list are derived from MATLAB to match the plots
 LoadBusNames=['load_634','load_645','load_646','load_652','load_671','load_675','load_692','load_611']
@@ -78,18 +67,3 @@ for ksim in range(TotalTimeSteps):
     BusInfo=getBusInfo(DSSObj,[BusVoltageToPolt])
     voltagepu=[d['voltagepu'] for d in BusInfo]
     VoltageOpenDSS[ksim]=voltagepu[0]
-
-## Plot Functions
-time=np.arange(0,TotalTimeSteps,1)
-plt.plot(time,VoltageOpenDSS,time,VoltageFBS[0,:])
-plt.legend(['OpenDSS','FBS'])
-plt.ylabel('Voltage (pu)')
-plt.title('VOltage at Node ' + str(NodeVoltageToPlot))
-plt.show()
-plt.figure()
-plt.plot(time,SubstationRealPowerOpenDSS,time,SubstationRealPowerFBS[0,:])
-plt.legend(['OpenDSS','FBS'])
-plt.ylabel('Real Power (kW)')
-plt.title('Real Power From Substation')
-plt.show()
-

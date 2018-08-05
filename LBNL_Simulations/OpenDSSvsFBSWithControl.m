@@ -23,10 +23,8 @@ IeeeFeeder=13;
 % list of node names - nodelist
 % Calling the Feeder mapper function
 [FeederMap, Z_in_ohm, Paths, NodeList, LoadList] = ieee_feeder_mapper(IeeeFeeder);
-
 NumberOfLoads=length(LoadList);
 NumberOfNodes=length(NodeList);
-
 % setup voltages and currents
 % Vbase = 4.16e3; %4.16 kV
 % Sbase = 500e3; %500 kVA
@@ -40,16 +38,14 @@ Zbase = Vbase^2/Sbase;
 Ibase = Sbase/Vbase;
 
 Z = Z_in_ohm/Zbase; % Here Z represents Z in per unit. Transformer Not Included
-
 %% Load Data Pertaining to Loads to create a profile
 TimeResolutionOfData=10; % resolution in minute
 % Get the data from the Testpvnum folder
 % Provide Your Directory
-FileDirectoryBase='C:\Users\shamm\Dropbox (ASU)\ASU\Microgrid Controller\CIGAR\CEDS_CIGAR\LBNL_Simulations\testpvnum10\';
+FileDirectoryBase='C:\Users\Sy-Toan\ceds-cigar\LBNL_Simulations\testpvnum10\';
 Time = 0:1440; % This can be changed based on the available data
 TotalTimeSteps=length(Time);
 QSTS_Data = zeros(length(Time),4,IeeeFeeder); % 4 columns as there are four columns of data available in the .mat file
-
 for node = 1:NumberOfLoads
     % This is created manually according to the naming of the folder
     FileDirectoryExtension= strcat('node_',num2str(node),'_pv_',num2str(TimeResolutionOfData),'_minute.mat');
@@ -59,7 +55,6 @@ for node = 1:NumberOfLoads
     MatFile = load(FileName,'nodedata');    
     QSTS_Data(:,:,LoadList(node)) = MatFile.nodedata; %Putting the loads to appropriate nodes according to the loadlist
 end
-
 %% Seperate PV Generation Data
 Generation = QSTS_Data(:,2,:);
 Load = QSTS_Data(:,4,:);
@@ -69,7 +64,7 @@ Load = QSTS_Data(:,4,:);
 Generation=squeeze(Generation)*100/Sbase; % To convert to per unit, it should not be multiplied by 100
 Load=squeeze(Load)/Sbase*100; % To convert to per unit
 MaxGenerationPossible = max(Generation); % Getting the Maximum possible Generation for each Load 
-
+disp(size(Generation));
 
 %% Voltage Observer Parameters and related variable initialization
 LowPassFilterFrequency = 0.1; % Low pass filter

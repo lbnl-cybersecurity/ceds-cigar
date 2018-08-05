@@ -1,4 +1,5 @@
-# This code actually shows to run a QSTS analysis and do custom run illustrating the capability of the library to do regulator control and capacitor control
+# This code actually shows to run a QSTS analysis and do custom run illustrating the capability
+# of the library to do regulator control and capacitor control
 from DSSStartup import DSSStartup
 from setInfo import *
 from getInfo import *
