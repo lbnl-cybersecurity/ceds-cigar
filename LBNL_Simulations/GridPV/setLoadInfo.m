@@ -68,6 +68,9 @@ for counter= 1:length(value)
         case 'pf'
             Loads.PF=value(counter);
             boolean=1;
+        case 'model'
+            Loads.Model=value(counter);
+            boolean=1;
         otherwise
             warning ('No Property Matched')
     end

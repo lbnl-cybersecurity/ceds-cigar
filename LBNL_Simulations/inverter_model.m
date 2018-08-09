@@ -1,8 +1,9 @@
 function [qk,pk,gammakused, gammakcalc] = inverter_model(gammakm1,...
-            solar_irr,Vk,Vkm1,VBP,T,lpf,Sbar,pkm1,qkm1,ROC_lim,InverterRateOfChangeActivate,ksim,Delay_VoltageSampling,knode)
+            solar_irr,Vk,Vkm1,VBP,T,lpf,Sbar,pkm1,qkm1,ROC_lim,InverterRateOfChangeActivate,ksim,...
+            Delay_VoltageSampling,knode)
 
     %VBP = [VQ_start,VQ_end,VP_start,VP_end]
-
+    solar_range=200;
     Vmagk = abs(Vk);
     Vmagkm1 = abs(Vkm1);
     
@@ -21,11 +22,12 @@ function [qk,pk,gammakused, gammakcalc] = inverter_model(gammakm1,...
     c = 0;
     q_avail = 0;
     %check if solar irradiance is greater than 0
-    
-    if (solar_irr < 2500)
+    pk = 0;
+    qk = 0;
+    if (solar_irr < solar_range)
         pk = 0;
         qk = 0;
-    elseif (solar_irr >= 2500)
+    elseif (solar_irr >= solar_range)
         if( gammakused <= VBP(3))
             %no curtailment
             pk = -solar_irr; % We need to make sure pk <= Sbar
