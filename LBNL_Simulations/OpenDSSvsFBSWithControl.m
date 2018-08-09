@@ -128,11 +128,11 @@ Q0_nc = imag(S_nc(1,:));
 
 %% OpenDSS integration
 
-[DSSObj, DSSText, gridpvpath] = DSSStartup;
-% Load the components related to OpenDSS
-DSSCircuit=DSSObj.ActiveCircuit;
-DSSSolution=DSSCircuit.Solution;
-DSSMon=DSSCircuit.Monitors;
+% [DSSObj, DSSText, gridpvpath] = DSSStartup;
+% % Load the components related to OpenDSS
+% DSSCircuit=DSSObj.ActiveCircuit;
+% DSSSolution=DSSCircuit.Solution;
+% DSSMon=DSSCircuit.Monitors;
 
 %Compile the Model
 DSSText.command = 'Compile C:\feeders\feeder13_B_R\feeder13BR.dss';
@@ -199,7 +199,7 @@ InverterRealPower = zeros(size(Generation));
 InverterRateOfChangeLimit = 0.01; %rate of change limit
 InverterRateOfChangeActivate = 0; %rate of change limit
 % Droop Control Parameters
-VQ_start = 1.01; VQ_end = 1.02; VP_start = 1.02; VP_end = 1.03;
+VQ_start = 1.01; VQ_end = 1.0195; VP_start = 1.0195; VP_end = 1.03;
 % VQ_start = 1.5; VQ_end = 1.6; VP_start = 1.6; VP_end = 1.7;
 VBP=ones(IeeeFeeder,1)*[VQ_start,VQ_end,VP_start,VP_end];
 
@@ -248,8 +248,11 @@ InverterRealPower = zeros(TotalTimeSteps,length(LoadList));
 FilteredVoltage = zeros(TotalTimeSteps,length(LoadList));
 VoltageOpenDSS_vqvp=zeros(length(LoadList),TotalTimeSteps);
 Voltage_Bus680=zeros(1,TotalTimeSteps);
+Voltage_Bus634=zeros(1,TotalTimeSteps);
 SubstationRealPowerOpenDSS_vqvp=zeros(1,TotalTimeSteps);
 SubstationReactivePowerOpenDSS_vqvp=zeros(1,TotalTimeSteps);
+LineRealPower_vqvp=zeros(1,TotalTimeSteps);
+LineReactivePower_vqvp=zeros(1,TotalTimeSteps);
 % Set Slack Voltage = 1
 setSourceInfo(DSSObj,{'source'},'pu',SlackBusVoltage);
 for ksim=1:TotalTimeSteps
@@ -267,11 +270,18 @@ for ksim=1:TotalTimeSteps
     LineInfo = getLineInfo(DSSObj, {'L_U_650'});
     SubstationRealPowerOpenDSS_vqvp(1,ksim)=LineInfo.bus1PowerReal;
     SubstationReactivePowerOpenDSS_vqvp(1,ksim)=LineInfo.bus1PowerReactive;
+    LineInfo = getLineInfo(DSSObj, {'conn 01'});
+    LineRealPower_vqvp(1,ksim)=LineInfo.bus1PowerReal;
+    LineReactivePower_vqvp(1,ksim)=LineInfo.bus1PowerReactive;
+    
+    
 %     GEt the Bus 634 Voltage
     BusInfo=getBusInfo(DSSObj,LoadBusNames);
     VoltageOpenDSS_vqvp(:,ksim)=[BusInfo.voltagePU]';
     BusInfo=getBusInfo(DSSObj,{strcat('bus_',num2str(NodeVoltageToPlot))});
     Voltage_Bus680(1,ksim)=BusInfo.voltagePU;
+    BusInfo=getBusInfo(DSSObj,{'bus_634'});
+    Voltage_Bus634(1,ksim)=BusInfo.voltagePU;
     if(ksim > 1 && ksim < TotalTimeSteps)
         for node_iter = 1:NumberOfLoads
             knode = LoadList(node_iter);
@@ -316,3 +326,23 @@ hold on;
 plot(t_datetime , SubstationReactivePowerOpenDSS_vqvp, 'r','LineWidth',1.5) % TO convert to Watts
 legend('FBS','OpenDSS')
 title('Reactive Power (kVAR) From Substation')
+
+
+%% 
+
+f3 = figure(5);
+set(f3,'Units','Inches');
+pos = get(f3,'Position');
+set(f3,'PaperPositionMode','Auto','PaperUnits','Inches','PaperSize',[ceil(pos(3)), ceil(pos(4))])
+subplot(211)
+plot3(t_datetime,Voltage_Bus634 , LineRealPower_vqvp) % TO convert to Watts
+% plot(t_datetime , LineRealPower_vqvp, 'r','LineWidth',1.5) % TO convert to Watts
+legend('OpenDSS')
+title('Real Power (kW) For Load at Bus 611')
+
+subplot(212)
+plot3(t_datetime,Voltage_Bus634 , LineReactivePower_vqvp) % TO convert to Watts
+legend('OpenDSS')
+title('Reactive Power (kVAR) For Load at Bus 611')
+
+

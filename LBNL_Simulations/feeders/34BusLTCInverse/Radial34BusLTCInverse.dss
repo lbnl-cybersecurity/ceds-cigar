@@ -1,0 +1,110 @@
+// PROJECT: 34BusModified_LTC - https://www.xendee.com/Studio/Launch/11110c18-5608-4afb-a4ac-15a112ae0738
+// STUDY: QSTS Analysis
+// DATE GENERATED: Mon, 30 Jul 2018 18:39:37 GMT
+
+// This script was auto-created by www.xendee.com for execution on OpenDSS version 7.6.5.13.
+// Learn more about OpenDSS at http://smartgrid.epri.com/SimulationTool.aspx
+
+Clear
+Set DefaultBaseFrequency=60
+
+// Source bus
+New "Circuit.utility_01" phases=3 BasekV=69 pu=1 Angle=0 BaseMVA=100 MVAsc1=100 MVAsc3=1000 X1=0.001 R1=0 X0=0.001 R0=0
+
+// Load shapes
+New "LoadShape.LS-load_611" npts=1440 mult="File=(loadramp.csv)" sInterval=1 Action="Normalize"
+New "LoadShape.LS-load_634" npts=1440 mult="File=(load634.csv)" sInterval=1 Action="Normalize"
+
+// Loads and motors
+New "Load.DL_82034" Bus1="DL_82034.1.2.3.0" phases=3 Conn="wye" kV=24.9 kVA=414.09395973 Pf=0.894 VminPU=0.95 Model=2 Daily="LS-load_611"
+New "Load.DLoad_806m" Bus1="DLoad_806m.1.2.3.0" phases=3 Conn="wye" kV=24.9 kVA=490.60402685 Pf=0.894 VminPU=0.95 Model=1 Daily="LS-load_611"
+New "Load.DLoad_822" Bus1="DLoad_822.1.2.3.0" phases=3 Conn="wye" kV=24.9 kVA=528.29763247 Pf=0.887 VminPU=0.95 Model=1 Daily="LS-load_611"
+New "Load.DLoad_822m" Bus1="DLoad_822m.1.2.3.0" phases=3 Conn="wye" kV=24.9 kVA=528.29763247 Pf=0.887 VminPU=0.95 Model=1 Daily="LS-load_611"
+New "Load.DLoad_824" Bus1="DLoad_824.1.2.3.0" phases=3 Conn="wye" kV=24.9 kVA=416.1637931 Pf=0.928 VminPU=0.95 Model=5  Daily="LS-load_634"
+New "Load.DLoad_826" Bus1="DLoad_826.1.2.3.0" phases=3 Conn="wye" kV=24.9 kVA=367.11409396 Pf=0.894 VminPU=0.95 Model=5  Daily="LS-load_634"
+New "Load.DLoad_826m" Bus1="DLoad_826m.1.2.3.0" phases=3 Conn="wye" kV=24.9 kVA=367.11409396 Pf=0.894 VminPU=0.95 Model=5 Daily="LS-load_634"
+
+
+
+// Linecodes
+New "Linecode.LC-custom_b166a9bc-3829-4cfe-bdbf-719cc1f2305e" nphases=3 R1=0.2514 X1=0.2544 R0=0.2514 X0=0.2544 Units="kft" Normamps=260
+New "Linecode.LC-custom_6b4a29c6-be71-417a-a210-313f3df27a73" nphases=3 R1=0.2514 X1=0.2544 R0=0.2514 X0=0.2544 Units="kft" Normamps=225
+New "Linecode.LC-custom_6bf05f7d-0f7c-4ac4-99cd-3d5fd59a60b1" nphases=3 R1=0.2514 X1=0.2544 R0=0.2514 X0=0.2544 Units="kft" Normamps=150
+New "Linecode.LC-custom_f031add7-7b9a-4922-bedc-f98b959caab8" nphases=3 R1=0.2514 X1=0.2544 R0=0.2514 X0=0.2544 Units="kft" Normamps=150
+New "Linecode.LC-custom_4c1fff1d-0a4a-49ce-9041-f33ac288e7be" nphases=3 R1=0.2514 X1=0.2544 R0=0.2514 X0=0.2544 Units="kft" Normamps=150
+New "Linecode.LC-custom_51ab86b2-c53b-471d-897f-534b2430fe8d" nphases=3 R1=0.2514 X1=0.2544 R0=0.2514 X0=0.2544 Units="kft" Normamps=150
+New "Linecode.LC-custom_890acbea-508d-4b62-88cc-9364f9391deb" nphases=3 R1=0.176 X1=0.094 R0=0.1476 X0=0.094 Units="kft" Normamps=150
+New "Linecode.LC-custom_126c51b7-8d25-40c6-b29f-7ebf4ae62788" nphases=3 R1=0.363 X1=0.268 R0=0.363 X0=0.268 Units="kft" Normamps=150
+New "Linecode.LC-custom_936a443c-6c71-420b-9851-6a7b24a44a6e" nphases=3 R1=0.176 X1=0.094 R0=0.176 X0=0.094 Units="kft" Normamps=150
+New "Linecode.LC-custom_1082e65b-e751-40fd-b504-3ccd0577b148" nphases=3 R1=0.176 X1=0.094 R0=0.176 X0=0.094 Units="kft" Normamps=150
+New "Linecode.LC-custom_5f8ea8b3-8f85-4cdb-a4c8-d709a09dfcfd" nphases=3 R1=0.176 X1=0.094 R0=0.176 X0=0.094 Units="kft" Normamps=150
+New "Linecode.LC-custom_d986eb13-c10b-4798-93e7-a2cd9acc87df" nphases=3 R1=0.176 X1=0.094 R0=0.176 X0=0.094 Units="kft" Normamps=150
+New "Linecode.LC-custom_c5d9cadd-1778-42d9-b3d5-d99642099753" nphases=3 R1=0.176 X1=0.094 R0=0.176 X0=0.094 Units="kft" Normamps=150
+New "Linecode.LC-custom_52a84637-52dd-4240-a06b-e28dbed7f840" nphases=3 R1=0.363 X1=0.268 R0=0.363 X0=0.268 Units="kft" Normamps=150
+New "Linecode.LC-custom_534ee358-6554-4198-bd8f-6c083667e708" nphases=3 R1=0.176 X1=0.094 R0=0.176 X0=0.094 Units="kft" Normamps=225
+New "Linecode.LC-custom_ea9f929e-478e-4799-babd-5179f9432451" nphases=3 R1=0.363 X1=0.268 R0=0.363 X0=0.268 Units="kft" Normamps=150
+
+// Lines, Automatic Transfer Switches (ATS) and Direct Connections
+New "Line.conn 05" Bus1="bus_820m.1.2.3" Bus2="DL_82034.1.2.3" phases=3 Switch=True
+New "Line.conn 06" Bus1="bus_822.1.2.3" Bus2="DLoad_822.1.2.3" phases=3 Switch=True
+New "Line.conn 07" Bus1="bus_822m.1.2.3" Bus2="DLoad_822m.1.2.3" phases=3 Switch=True
+New "Line.conn 17" Bus1="bus_806m.1.2.3" Bus2="DLoad_806m.1.2.3" phases=3 Switch=True
+New "Line.conn 20" Bus1="bus_824m.1.2.3" Bus2="DLoad_824.1.2.3" phases=3 Switch=True
+New "Line.conn 21" Bus1="bus_826m.1.2.3" Bus2="DLoad_826m.1.2.3" phases=3 Switch=True
+New "Line.conn 22" Bus1="bus_826.1.2.3" Bus2="DLoad_826.1.2.3" phases=3 Switch=True
+New "Line.solar 01" Bus1="solar 01.1.2.3" Bus2="bus_822m.1.2.3" phases=3 Switch=True
+New "Line.solar 02" Bus1="solar 02.1.2.3" Bus2="bus_826.1.2.3" phases=3 Switch=True
+New "Line.L_800_802" Bus1="bus_800.1.2.3" Bus2="bus_802.1.2.3" LineCode="LC-custom_b166a9bc-3829-4cfe-bdbf-719cc1f2305e" Length=2580 Units="ft"
+New "Line.L_802_806m" Bus1="bus_802.1.2.3" Bus2="bus_806m.1.2.3" LineCode="LC-custom_6b4a29c6-be71-417a-a210-313f3df27a73" Length=865 Units="ft"
+New "Line.L_806_808" Bus1="bus_806.1.2.3" Bus2="bus_808.1.2.3" LineCode="LC-custom_6bf05f7d-0f7c-4ac4-99cd-3d5fd59a60b1" Length=32230 Units="ft"
+New "Line.L_806m_806" Bus1="bus_806m.1.2.3" Bus2="bus_806.1.2.3" LineCode="LC-custom_f031add7-7b9a-4922-bedc-f98b959caab8" Length=865 Units="ft"
+New "Line.L_808_812" Bus1="bus_808.1.2.3" Bus2="bus_812.1.2.3" LineCode="LC-custom_4c1fff1d-0a4a-49ce-9041-f33ac288e7be" Length=37500 Units="ft"
+New "Line.L_812_814" Bus1="bus_812.1.2.3" Bus2="bus_814.1.2.3" LineCode="LC-custom_51ab86b2-c53b-471d-897f-534b2430fe8d" Length=29730 Units="ft"
+New "Line.L_816_818" Bus1="bus_816.1.2.3" Bus2="bus_818.1.2.3" LineCode="LC-custom_890acbea-508d-4b62-88cc-9364f9391deb" Length=1710 Units="ft"
+New "Line.L_816_824m" Bus1="bus_816.1.2.3" Bus2="bus_824m.1.2.3" LineCode="LC-custom_126c51b7-8d25-40c6-b29f-7ebf4ae62788" Length=5105 Units="ft"
+New "Line.L_818_820m" Bus1="bus_818.1.2.3" Bus2="bus_820m.1.2.3" LineCode="LC-custom_936a443c-6c71-420b-9851-6a7b24a44a6e" Length=24075 Units="ft"
+New "Line.L_820_822m" Bus1="bus_820.1.2.3" Bus2="bus_822m.1.2.3" LineCode="LC-custom_1082e65b-e751-40fd-b504-3ccd0577b148" Length=6870 Units="ft"
+New "Line.L_820m_820" Bus1="bus_820m.1.2.3" Bus2="bus_820.1.2.3" LineCode="LC-custom_5f8ea8b3-8f85-4cdb-a4c8-d709a09dfcfd" Length=24075 Units="ft"
+New "Line.L_822m_822" Bus1="bus_822m.1.2.3" Bus2="bus_822.1.2.3" LineCode="LC-custom_d986eb13-c10b-4798-93e7-a2cd9acc87df" Length=6870 Units="ft"
+New "Line.L_824_826m" Bus1="bus_824.1.2.3" Bus2="bus_826m.1.2.3" LineCode="LC-custom_c5d9cadd-1778-42d9-b3d5-d99642099753" Length=1515 Units="ft"
+New "Line.L_824m_824" Bus1="bus_824m.1.2.3" Bus2="bus_824.1.2.3" LineCode="LC-custom_52a84637-52dd-4240-a06b-e28dbed7f840" Length=5105 Units="ft"
+New "Line.L_826m_826" Bus1="bus_826m.1.2.3" Bus2="bus_826.1.2.3" LineCode="LC-custom_534ee358-6554-4198-bd8f-6c083667e708" Length=1515 Units="ft"
+New "Line.L_850_816" Bus1="bus_850.1.2.3" Bus2="bus_816.1.2.3" LineCode="LC-custom_ea9f929e-478e-4799-babd-5179f9432451" Length=310 Units="ft"
+
+// Transformers
+New "Transformer.Subt_01" phases=3 Windings=2 XHL=7.99974424 %LoadLoss=0.99996803
+~ wdg=1 Bus="sourcebus.1.2.3" kV=69 kVA=2500 Conn="delta"
+~ wdg=2 Bus="bus_800.1.2.3.0" kV=24.9 kVA=2500 Conn="wye" MinTap=0.9 MaxTap=1.1 NumTaps=32 Tap=1
+New "Transformer.t 02" phases=3 Windings=2 XHL=5.63833889 %LoadLoss=1.12766778
+~ wdg=1 Bus="bus_814.1.2.3.0" kV=24.9 kVA=10000 Conn="wye"
+~ wdg=2 Bus="bus_850.1.2.3.0" kV=24.9 kVA=10000 Conn="wye" MinTap=0.9 MaxTap=1.1 NumTaps=32 Tap=1
+
+
+// Transformer Load Tap Change (LTC) controls
+New "RegControl.LTC-t_02" Transformer="t 02" winding=2 vreg=120 ptratio=119.8002 band=2 Bus="bus_850.1.2.3" inversetime=No  delay=30 maxtapchange=16 tapdelay=0.4 enabled = Yes 
+
+
+New "Monitor.tapMonitor" Element="Transformer.t 02" terminal=2 mode=2
+//New "Monitor.tapvoltage" Element="Transformer.t 02" terminal=2 mode=0 PPolar=True baseFreq=60
+//New "Monitor.loadvoltage" Element="Load.DL_82034" terminal=1 mode=0 PPolar=True baseFreq=60
+
+// Voltage bases
+Set VoltageBases=[24.9 69]
+CalcVoltageBases
+
+// Solve snapshot study
+Solve BaseFrequency=60 MaxIter=300 MaxControlIter=10000
+Set ControlMode= OFF
+// Solve timeseries study
+//Solve mode="Daily" number=1440 stepsize="1s"
+Set CaseName="34BusModifiedLTC"
+Set Demand=True
+Set DIVerbose=True
+CloseDI
+
+
+
+//plot monitor object = "tapmonitor" channels=(1) 
+//plot monitor object = "tapvoltage" channels=(1) base=(14376)
+
+
