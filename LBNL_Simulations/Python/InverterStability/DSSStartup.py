@@ -14,7 +14,8 @@ def DSSStartup():
         DSSSolution = DSSCircuit.Solution
         DSSElem = DSSCircuit.ActiveCktElement
         DSSBus = DSSCircuit.ActiveBus
-        DSSText.command = 'clear';
+        DSSText.command = 'clear'
     except Exception as inst:
         print(type(inst))
+        return {}
     return {'dssobj': DSSObj, 'dsstext': DSSText, 'dsscircuit': DSSCircuit, 'dsssolution' : DSSSolution, 'dsselem' : DSSElem, 'dssbus': DSSBus   }
