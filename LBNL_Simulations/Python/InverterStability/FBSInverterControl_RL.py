@@ -5,6 +5,11 @@ from math import tan,acos
 import os
 import matlab
 import matlab.engine
+
+import tensorflow as tf
+import tflearn
+
+print("what could go wrong?")
 def start_matlab():
     return matlab.engine.start_matlab()
 def quit_matlab(matlab_engine):
@@ -47,11 +52,11 @@ AllBusNames = ('sourcebus',
 LoadBusNames = AllBusNames[1:9]
 BusNames = AllBusNames[9:22]
 IeeeFeeder = 13
-
+print("yay")
 LoadList = np.array([6,7,8,13,3,12,11,10])-1
 NodeList = np.array([650,632,671,680,633,634,645,646,684,611,692,675,652])
 BusesWithControl = NodeList[LoadList]
-
+print("yay")
 NumberOfLoads=len(LoadBusNames)
 NumberOfNodes=len(BusNames)
 
@@ -66,7 +71,7 @@ Z = Z_in_ohm/Zbase
 
 #Load Data Pertaining to Loads to create a profile
 PV_Feeder_model = 10
-FileDirectoryBase = 'C:\\Users\\Sy-Toan\\ceds-cigar\\LBNL_Simulations\\testpvnum10\\'
+FileDirectoryBase = 'C:\\Users\\Toan Ngo\\Documents\\GitHub\\ceds-cigar\\LBNL_Simulations\\testpvnum10\\'
 Time = list(range(1441))
 TotalTimeSteps = len(Time)
 QSTS_Data = np.zeros((TotalTimeSteps,4,IeeeFeeder))
@@ -140,7 +145,7 @@ kp = 100
 #Delays                 [  1   2   3*  4   5   6*  7*  8*  9* 10* 11* 12* 13*
 Delay_VoltageSampling = [0, 0,  1, 0, 0,  1,  1,  1,  1,  1,  1,  1,  1]
 Delay_VBPCurveShift =   [0 ,0 ,2 ,0 ,0 ,2 ,2 ,2 ,2 ,2 ,2 ,2 ,2] 
-
+print("yay")
 ##########################################################################################
 VBP = np.full([IeeeFeeder, 4, TotalTimeSteps], np.nan)
 for i in range(1441):
@@ -631,12 +636,8 @@ def main(args):
 
         train(sess, simulation, args, actor, critic, actor_noise)
 
-import tensorflow as tf
-import numpy as np
-import tflearn
-
-import os
-
+###############################################
+###############################################
 args = {}
 args['actor_lr'] = 0.0001
 args['critic_lr'] = 0.001
