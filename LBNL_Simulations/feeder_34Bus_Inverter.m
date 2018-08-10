@@ -5,19 +5,19 @@ close all;
 %% TUNING KNOBS - ADJUST (MAIN) PARAMETERS HERE 
 % Note that there are other tunable parameters in the code, but these are
 Sbase=1;
-LoadScalingFactor = 7; 
-GenerationScalingFactor = 5; 
+LoadScalingFactor = 2; 
+GenerationScalingFactor = 3; 
 SlackBusVoltage = 1.05; 
 NoiseMultiplyer=0;
 
 % Set simulation analysis period
 StartTime = 40000; 
-EndTime = 40500; 
+EndTime = 40900; 
 
 % Set hack parameters
 TimeStepOfHack = 50;
-PercentHacked = [0.5 0 1.0 0 0 0.5 0 0.5 0 0 0.5 0.5 0.5 0 ...
-                 0 0 1.0 0 0 0.5 0 0.5 0 0.5 0.5 0 0.5 0 0.5 1 0];
+PercentHacked = [0.5 0 1.0 0 0 0.5 0 0.5 0 0 0 0.5 0.5 0 ...
+                 0 0 1.0 0 0 0.5 0 0 0 0 0 0 0.5 0 0.5 1 0];
 
 % Set initial VBP parameters for uncompromised inverters
 VQ_start = 1.01; VQ_end = 1.03; VP_start = 1.03; VP_end = 1.05;
@@ -32,8 +32,8 @@ kq = 1;
 kp = 1;
 
 % Set delays for each node
-Delay_VoltageSampling = [0 0  10 0 0  10  10  50  10  10  10  10  10]; 
-Delay_VBPCurveShift =   [0 0 120 0 0 120 120 120 120 120 120 120 120]; 
+Delay_VoltageSampling = [10 10  10 10 10  10  10  10  10  10  10  10  10]; 
+Delay_VBPCurveShift =   [120 120 120 120 120 120 120 120 120 120 120 120 120]; 
 
 % Set observer voltage threshold
 ThreshHold_vqvp = 0.25;
@@ -151,8 +151,8 @@ end
 InverterArray(1:Number_of_Inverters)=Inverter;
 for i = 1:Number_of_Inverters
     InverterArray(i).Name=AllLoadNames{i+5};
-    InverterArray(i).Delay_VoltageSampling=10;
-    InverterArray(i).Delay_VBPCurveShift=120;
+    InverterArray(i).Delay_VoltageSampling=Delay_VoltageSampling(i);
+    InverterArray(i).Delay_VBPCurveShift=Delay_VBPCurveShift(i);
     InverterArray(i).LPF=1;
     InverterArray(i).LowPassFilterFrequency=0.1;
     InverterArray(i).HighPassFilterFrequency=1;
@@ -342,24 +342,20 @@ legend('Real Power (kW)','Reactive Power (kVAr)')
 xlim([1 length(time)]);
 title('Power From the Substation')
 
-figure
-plot(time,V_vqvp(:,:),'linewidth',1.05)
-ylabel('Per Unit Voltage')
-xlim([1 length(time)]);
+
 %%
 % Plot the movement of VBP
 
 for node=1:Number_of_Inverters
-    plot(1:501 , squeeze(VBP(node,1,:)), 1:501, squeeze(VBP(node,2,:)), ...
-    1:501, squeeze(VBP(node,3,:)), 1:501, squeeze(VBP(node,4,:)), ...
+    plot(time , squeeze(VBP(node,1,:)), time, squeeze(VBP(node,2,:)), ...
+    time, squeeze(VBP(node,3,:)), time, squeeze(VBP(node,4,:)), ...
     'LineWidth',1.5)
     hold on
     
 end
 xlim([1  501])
 
-
-
-
-
-
+figure
+plot(time,V_vqvp(:,:),'linewidth',1.05)
+ylabel('Per Unit Voltage')
+xlim([1 length(time)]);

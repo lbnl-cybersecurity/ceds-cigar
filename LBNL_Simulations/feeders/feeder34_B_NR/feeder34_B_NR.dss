@@ -209,5 +209,9 @@ CalcVoltageBases
 
 // Solve study
 //Solve BaseFrequency=60 MaxIter=300 MaxControlIter=10000
+//Solve mode="daily" number=1440 stepsize="1m"
+
+
+//plot monitor object = "utility" channels=(1) 
 
 

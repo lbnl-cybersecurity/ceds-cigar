@@ -12,15 +12,16 @@ classdef Inverter
       TimeStep=1
       LPF
       knode=0
-      upk=0
-      uqk=0
+      upk
+      uqk
       kp=1
       kq=1
       ThreshHold_vqvp=0.25
       Hacked = 0
       HighPassFilterFrequency = 1
       LowPassFilterFrequency =0.1
-      Gain_Energy=1e5;
+      Gain_Energy=1e5
+      ksim=0
    end
    methods
 %        function obj=Inverter(val)
@@ -53,12 +54,5 @@ classdef Inverter
         [yk,psik,epsilonk] = voltage_observer(vk, vkm1, psikm1, epsilonkm1, ykm1,...
             obj.HighPassFilterFrequency, obj.LowPassFilterFrequency, obj.Gain_Energy, obj.TimeStep);
       end
-      
-  
-      
-      
-      
-
-    
    end
 end
