@@ -8,7 +8,7 @@ Sbase=1;
 LoadScalingFactor = 2; 
 GenerationScalingFactor = 3; 
 SlackBusVoltage = 1.05; 
-NoiseMultiplyer=0;
+NoiseMultiplyer=01;
 
 % Set simulation analysis period
 StartTime = 40000; 
