@@ -20,6 +20,11 @@ def getLoadInfo(DSSObj,loadname):
         loaddict['pf'] = Loads.PF
         loaddict['model'] = Loads.model
         loaddict['name'] = Loads.name
+        DSSCircuit.SetActiveElement('load.'+loadname[row])
+        voltage=np.asarray(DSSCircuit.ActiveElement.VoltagesMagAng)
+        # print(voltage[0], voltage[2],voltage[4],voltage[6], DSSCircuit.ActiveElement.NumPhases,Loads.kV)
+        # Multiplying by 1000 to convert it to Voltage, the square root 3 part can be made more robust in future but currently it is assumed to be balanced model
+        loaddict['voltagePU'] = (voltage[0]+voltage[2]+voltage[4]+voltage[6])/DSSCircuit.ActiveElement.NumPhases/(Loads.kV*1000/(3**0.5))
         LoadList.append(loaddict)
     return LoadList
 
