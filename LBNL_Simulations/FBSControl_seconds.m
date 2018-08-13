@@ -148,7 +148,7 @@ IncludeSolar=1; % Setting this to 1 will include the solar , set to zero if no s
 PV_Feeder_model=10; 
 
 % Get the data from the Testpvnum folder
-FileDirectoryBase='C:\Users\nathan_tsang\Desktop\LBL\CIGAR\ceds-cigar\LBNL_Simulations\testpvnum10\';
+FileDirectoryBase='C:\feeders\testpvnum10\';
 
 QSTS_Time = 0:1440; % Default data points in load data file (GSTS_Data) - don't change
 QSTS_Data = zeros(length(QSTS_Time),4,IeeeFeeder); % Retrieve load data

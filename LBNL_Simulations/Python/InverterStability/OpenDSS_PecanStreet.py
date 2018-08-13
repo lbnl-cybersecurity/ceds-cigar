@@ -27,7 +27,7 @@ def quit_matlab(matlab_engine):
 def CustomFBS(matlab_engine,NodeVoltageToPlot,SlackBusVoltage,IncludeSolar):
     return matlab_engine.FBS(NodeVoltageToPlot,SlackBusVoltage,IncludeSolar,nargout=2) # As the function will return two outputs, nargout=2
 
-# The values are to converted to array as the matlab function retunrs a tuple
+# The values are to converted to array as the matlab function returns a tuple
 
 NodeVoltageToPlot=634
 IncludeSolar=1
@@ -48,7 +48,7 @@ DSSCircuit=result['dsscircuit']
 DSSObj=result['dssobj']
 current_directory=os.getcwd()
 # Compile the circuit
-DSSText.Command="Compile C:/feeders/feeder13_B_R/feeder13BR.dss "
+DSSText.Command="Compile C:/feeders/feeder13_B_R/feeder13BR.dss"
 # Run a Power Flow Solution
 DSSSolution.Solve()
 
@@ -67,7 +67,7 @@ SubstationRealPowerOpenDSS=np.zeros(shape=(TotalTimeSteps,))
 setSourceInfo(DSSObj,['source'],'pu',[SlackBusVoltage]) # Setting the slack bus voltage
 BusVoltageToPolt='bus_'+ str(NodeVoltageToPlot)
 for ksim in range(TotalTimeSteps):
-	# Setting the real and reactive power of the loads
+    # Setting the real and reactive power of the loads
     setLoadInfo(DSSObj,LoadBusNames,'kw',Load[ksim][LoadList]-IncludeSolar*Solar[ksim][LoadList])
     setLoadInfo(DSSObj, LoadBusNames, 'kvar', reactivepowercontribution*(Load[ksim][LoadList] - IncludeSolar*Solar[ksim][LoadList]))
     # Solving the OpenDSS Power FLow
