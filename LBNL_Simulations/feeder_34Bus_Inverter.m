@@ -6,9 +6,9 @@ close all;
 % Note that there are other tunable parameters in the code, but we expect
 % these to be tuned most often.
 Sbase=1;
-LoadScalingFactor = 5; 
-GenerationScalingFactor = 27; 
-SlackBusVoltage = 1.02; 
+LoadScalingFactor = 3; 
+GenerationScalingFactor = 15; 
+SlackBusVoltage = 1.04; 
 NoiseMultiplyer=0;
 
 % Set simulation analysis period
@@ -17,8 +17,10 @@ EndTime = 40500;
 
 % Set hack parameters
 TimeStepOfHack = 50;
-PercentHacked = [0.5 0.5 0.5 0.5 0.5 0.5 0.5 0.5 0.5 0.5 0.5 0.5 0.5];
-% PercentHacked = [.5 .5 .5 .5 .5 0.5 1 1 1 1 1 1 1];
+PercentHacked = [0 0 0 0 0 0 0 0 0 0 0 0 0];
+% PercentHacked = [0.2 0.2 0.2 0.2 0.2 0.2 0.2 0.2 0.2 0.2 0.2 0.2 0.2];
+% PercentHacked = [.5 .5 .5 .5 .5 .5 .5 .5 .5 .5 .5 .5 .5];
+% PercentHacked = [.6 .6 .6 .6 .6 .6 .6 .6 .6 .6 .6 .6 .6];
 
 % Set initial VBP parameters for uncompromised inverters
 VQ_start = 1.01; VQ_end = 1.03; VP_start = 1.03; VP_end = 1.05;
@@ -183,7 +185,6 @@ PowerEachTimeStep_vqvp = zeros(Number_of_Inverters,3);
 % Percentage of irradiation "seen by" uncompromised and hacked inverters
 SolarGeneration_vqvp_TOTAL = Generation;
 SolarGeneration_vqvp = SolarGeneration_vqvp_TOTAL;
-% SolarGeneration_vqvp_hacked = SolarGeneration_vqvp_TOTAL;
 
 % Lets not use the advanced 
 for t = TimeStepOfHack:TotalTimeSteps
@@ -238,10 +239,10 @@ VBP(:,1,1:2) = VQ_start;
 VBP(:,2,1:2) = VQ_end;
 VBP(:,3,1:2) = VP_start;
 VBP(:,4,1:2) = VP_end;
-VBPHacked(:,1,1:2) = VQ_startHacked;
-VBPHacked(:,2,1:2) = VQ_endHacked;
-VBPHacked(:,3,1:2) = VP_startHacked;
-VBPHacked(:,4,1:2) = VP_endHacked;
+VBPHacked(:,1,:) = VQ_startHacked;
+VBPHacked(:,2,:) = VQ_endHacked;
+VBPHacked(:,3,:) = VP_startHacked;
+VBPHacked(:,4,:) = VP_endHacked;
 disp('Setting up of the solution variables are done.')
 %% OpenDSS Parameters
 setSourceInfo(DSSObj,{'source'},'pu',SlackBusVoltage);
@@ -316,7 +317,7 @@ for ksim =1:TotalTimeSteps
              
                 upk(j,knode) = upk(ksim,knode);
                 uqk(j,knode) = uqk(ksim,knode);
-            end 
+            end  
         else
             if ksim > 1
                 for j = ksim:TotalTimeSteps
@@ -324,10 +325,9 @@ for ksim =1:TotalTimeSteps
                 end 
             end 
          end
-      end
-   end
+        end 
+    end 
 end
-
 
 %% Plotting Monitors Data
 disp('Plotting...') 
@@ -409,13 +409,13 @@ xlim([3 499])
 % Inverter P/Q for hacked and uncompromised inverters (node 13)
 f8 = figure(8);
 subplot(2,1,1)
-plot(1:501, InverterRealPower(:,13), 1:501, InverterRealPowerHacked(:,13), 'LineWidth',1.5)
-title(['Inverter real power - Node 13'])
+plot(1:501, InverterRealPower(:,10), 1:501, InverterRealPowerHacked(:,13), 'LineWidth',1.5)
+title(['Inverter real power - Node 10'])
 legend({'inverter real power- not hacked', 'inverter real power - hacked'},'FontSize',12);
 xlim([3 499]) 
 subplot(2,1,2)
-plot(1:501, InverterReactivePower(:,13), 1:501, InverterReactivePowerHacked(:,13), 'LineWidth',1.5) 
-title(['Inverter reactive power - Node 13'])
+plot(1:501, InverterReactivePower(:,10), 1:501, InverterReactivePowerHacked(:,13), 'LineWidth',1.5) 
+title(['Inverter reactive power - Node 10'])
 legend({'inverter reactive power- not hacked', 'inverter reactive power - hacked'},'FontSize',12);
 xlim([3 499])
 
