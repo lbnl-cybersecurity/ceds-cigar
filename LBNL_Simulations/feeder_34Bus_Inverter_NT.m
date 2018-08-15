@@ -59,7 +59,7 @@ pf_converted=tan(acos(power_factor));
 Number_of_Inverters = 13;
 
 % The following variable allows to run the simulation without any inverters
-SimulateInverterHack=01;
+SimulateInverterHack=1;
 disp('Value Initializtion Done.')
 
 %% Error Checking of the input data
@@ -159,6 +159,7 @@ if (NoiseMultiplyer>0)
 else
     disp('Load Interpolation has been done. No Noise was added to the load profile.') 
 end
+
 MaxGenerationPossible = max(Generation); % Getting the Maximum possible Generation for each Load 
 
 %% Initializing the inverter models 

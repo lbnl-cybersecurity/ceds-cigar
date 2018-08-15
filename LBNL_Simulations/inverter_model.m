@@ -55,7 +55,8 @@ function [qk,pk,gammakused, gammakcalc] = inverter_model(gammakm1,...
             qk = Sbar;
             pk = 0; 
         end
-    
+  
+        
 %         ROC limiting
 %         pk   
 %         if (InverterRateOfChangeActivate==1)
