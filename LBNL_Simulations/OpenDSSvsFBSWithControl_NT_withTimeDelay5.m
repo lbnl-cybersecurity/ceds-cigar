@@ -139,6 +139,8 @@ Generation=squeeze(Generation)/Sbase; % To convert to per unit, it should not be
 Load=squeeze(Load)/Sbase; % To convert to per unit
 MaxGenerationPossible = max(Generation); % Getting the Maximum possible Generation for each Load 
 
+% plot(Load(:,3))
+%%
 % %% Interpolate to change minutes to seconds and add noise
 % 
 % % Interpolate to get minutes to seconds
@@ -147,10 +149,13 @@ MaxGenerationPossible = max(Generation); % Getting the Maximum possible Generati
 %     LoadSeconds(:,i) = interp1(Load(:,i),t_seconds,'spline');
 %     GenerationSeconds(:,i)= interp1(Generation(:,i),t_seconds,'spline');
 % end 
+
 % % Reassign variable names 
-% TotalTimeSteps = 86400;
-% Load = LoadSeconds;
-% Generation = GenerationSeconds;
+% StartTime = 40000;
+% EndTime = 40500;
+% Time = StartTime:EndTime;
+% TotalTimeSteps=length(Time);
+
 % % Create noise vector
 % for node_iter = 1:NumberOfLoads
 %     knode = LoadList(node_iter);
@@ -207,10 +212,10 @@ for t = TimeOfHack:TotalTimeSteps
     end 
 end 
 
-% Setting up the maximum power capability
+%% Setting up the maximum power capability
 Sbar =  MaxGenerationPossible * GenerationScalingFactor;
 SbarHacked = Sbar .* PercentHacked;
-
+    
 %% 
 InverterReactivePower = zeros(size(Generation));
 InverterRealPower = zeros(size(Generation));
