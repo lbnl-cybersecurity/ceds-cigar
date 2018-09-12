@@ -151,8 +151,8 @@ SubstationRealPowerOpenDSS=zeros(1,TotalTimeSteps);
 setSourceInfo(DSSObj,{'source'},'pu',SlackBusVoltage);
 for ksim=1:TotalTimeSteps
 %     Change the real and reactive power of loads
-    setLoadInfo(DSSObj,LoadBusNames,'kw',(Load(ksim,LoadList)-IncludeSolar*SolarGeneration_NC(ksim,LoadList))/1000); % To convert to KW
-    setLoadInfo(DSSObj,LoadBusNames,'kvar',tan(acos(power_factor))*(Load(ksim,LoadList)-IncludeSolar*SolarGeneration_NC(ksim,LoadList))/1000);
+    setLoadInfo(DSSObj,LoadBusNames______,'kw',(Load(ksim,LoadList)-IncludeSolar*SolarGeneration_NC(ksim,LoadList))/1000); % To convert to KW
+    setLoadInfo(DSSObj,LoadBusNames_______,'kvar',tan(acos(power_factor))*(Load(ksim,LoadList)-IncludeSolar*SolarGeneration_NC(ksim,LoadList))/1000);
     DSSSolution.Solve();
 %     Getting the incoming power flow
     LineInfo = getLineInfo(DSSObj, {'L_U_650'});

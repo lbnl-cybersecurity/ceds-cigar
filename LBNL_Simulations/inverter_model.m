@@ -3,7 +3,7 @@ function [qk,pk,gammakused, gammakcalc] = inverter_model(gammakm1,...
             Delay_VoltageSampling,knode)
 
     %VBP = [VQ_start,VQ_end,VP_start,VP_end]
-    solar_range=200;
+    solar_range=5;
     Vmagk = abs(Vk);
     Vmagkm1 = abs(Vkm1);
     
@@ -55,7 +55,8 @@ function [qk,pk,gammakused, gammakcalc] = inverter_model(gammakm1,...
             qk = Sbar;
             pk = 0; 
         end
-    
+  
+        
 %         ROC limiting
 %         pk   
 %         if (InverterRateOfChangeActivate==1)
