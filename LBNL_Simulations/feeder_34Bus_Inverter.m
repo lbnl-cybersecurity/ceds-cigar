@@ -3,21 +3,38 @@ clear;
 close all;
 
 %% TUNING KNOBS - ADJUST (MAIN) PARAMETERS HERE 
-% Note that there are other tunable parameters in the code, but these are
+% Note that there are other tunable parameters in the code, but we expect
+% these to be tuned most often.
 Sbase=1;
-LoadScalingFactor = 7; 
+LoadScalingFactor = 1.5; 
 GenerationScalingFactor = 5; 
-SlackBusVoltage = 1.05; 
+SlackBusVoltage = 1.04; 
 NoiseMultiplyer=0;
 
 % Set simulation analysis period
-StartTime = 40000; 
-EndTime = 40500; 
+StartTime = 42900; % 11:45am-ish
+EndTime = 44000;  % 12:10pm-ish
 
 % Set hack parameters
-TimeStepOfHack = 50;
-PercentHacked = [0.5 0 1.0 0 0 0.5 0 0.5 0 0 0.5 0.5 0.5 0 ...
-                 0 0 1.0 0 0 0.5 0 0.5 0 0.5 0.5 0 0.5 0 0.5 1 0];
+TimeStepOfHack = 300;
+
+% Adjust percent of inverters hacked at each node
+
+% --------All nodes [822 822m 824 826 826m 828 828m 830 834 836 838 838m 840]
+% PercentHacked = [0 0 0 0 0 0 0 0 0 0 0 0 0];
+% PercentHacked = [.1 .1 .1 .1 .1 .1 .1 .1 .1 .1 .1 .1 .1];
+% PercentHacked = [.25 .25 .25 .25 .25 .25 .25 .25 .25 .25 .25 .25 .25];
+% PercentHacked = [.33 .33 .33 .33 .33 .33 .33 .33 .33 .33 .33 .33 .33];
+% PercentHacked = [.5 .5 .5 .5 .5 .5 .5 .5 .5 .5 .5 .5 .5];
+% PercentHacked = [.8 .8 .8 .8 .8 .8 .8 .8 .8 .8 .8 .8 .8];
+% --------Along main lateral
+% PercentHacked = [0 0 .1 0 0 .1 .1 .1 .1 .1 0 0 .1];
+% PercentHacked = [0 0 .2 0 0 .2 .2 .2 .2 .2 0 0 .2];
+ PercentHacked = [0 0 .5 0 0 .5 .5 .5 .5 .5 0 0 .5];
+% --------At terminal nodes
+% PercentHacked = [0 0 0 0 0 0 0 0 0 1 1 1 1];
+% --------Random nodes
+% PercentHacked = [1 0 1 0 1 0 0 1 1 1 0 1 0];
 
 % Set initial VBP parameters for uncompromised inverters
 VQ_start = 1.01; VQ_end = 1.03; VP_start = 1.03; VP_end = 1.05;
@@ -28,22 +45,22 @@ VQ_startHacked = 1.01; VQ_endHacked = 1.015; VP_startHacked = 1.015; VP_endHacke
 
 % Set adaptive controller gain values (the higher the gain, the faster the
 % response time)
-kq = 1;
-kp = 1;
+kq = 100;
+kp = 100;
 
-% Set delays for each node
-Delay_VoltageSampling = [0 0  10 0 0  10  10  50  10  10  10  10  10]; 
-Delay_VBPCurveShift =   [0 0 120 0 0 120 120 120 120 120 120 120 120]; 
-
+% Set delays for each inverter
+Delay_VoltageSampling = [10 10 10 10 10 10 10 10 10 10 10 10 10];
+Delay_VBPCurveShift =   [60 60 60 60 60 60 60 60 60 60 60 60 60];
+                              
 % Set observer voltage threshold
 ThreshHold_vqvp = 0.25;
 power_factor=0.9;
 pf_converted=tan(acos(power_factor));
 Number_of_Inverters = 13;
-% The following variable allows to run the simulation without any inverter
-SimulateInverterHack=01;
-disp('Value Initializtion Done.')
 
+% The following variable allows to run the simulation without any inverters
+SimulateInverterHack=1;
+disp('Value Initializtion Done.')
 
 %% Error Checking of the input data
 if (EndTime<StartTime || EndTime<0 || StartTime <0)
@@ -102,12 +119,13 @@ for node = 1:TotalLoads
 end
 
 Generation = QSTS_Data(:,2,:)*GenerationScalingFactor; % solar generation
-Load = QSTS_Data(:,4,:)*LoadScalingFactor; % load demand
+Load = QSTS_Data(:,4,:)*LoadScalingFactor; %     load demand
 
 Generation=squeeze(Generation)/Sbase; % To convert to per unit, it should not be multiplied by 100
 Load=squeeze(Load)/Sbase; % To convert to per unit
 
 disp('Reading Data for Pecan Street is done.')
+
 %% Interpolate to change data from minutes to seconds
 disp('Starting Interpolation...')
 Time = StartTime:EndTime;
@@ -126,6 +144,9 @@ GenerationSeconds = GenerationSeconds(StartTime:EndTime,:);
 Load = LoadSeconds;
 Generation = GenerationSeconds;
 
+% change place of col for Load and Generation
+%Load(:,[1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18]) = Load(:,[6 7 8 9 10 11 12 13 14 15 16 17 18 1 2 3 4 5]);
+%Generation(:,[1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 ]) = Generation(:,[6 7 8 9 10 11 12 13 14 15 16 17 18 1 2 3 4 5]);
 % Create noise vector
 for node_iter = 1:TotalLoads
     Noise(:,node_iter) = randn(TotalTimeSteps, 1);
@@ -141,18 +162,22 @@ if (NoiseMultiplyer>0)
 else
     disp('Load Interpolation has been done. No Noise was added to the load profile.') 
 end
-MaxGenerationPossible = max(Generation); % Getting the Maximum possible Generation for each Load 
-%% Initializing the inverter models 
 
+MaxGenerationPossible = max(Generation); % Getting the Maximum possible Generation for each Load 
+
+%% Initializing the inverter models 
 if Number_of_Inverters> TotalLoads
     exit('Not Supported Right now');
 end
 % Creating an array of Inverter objects
 InverterArray(1:Number_of_Inverters)=Inverter;
+
+offset = 5
+
 for i = 1:Number_of_Inverters
-    InverterArray(i).Name=AllLoadNames{i+5};
-    InverterArray(i).Delay_VoltageSampling=10;
-    InverterArray(i).Delay_VBPCurveShift=120;
+    InverterArray(i).Name=AllLoadNames{i + offset};
+    InverterArray(i).Delay_VoltageSampling=Delay_VoltageSampling(i);
+    InverterArray(i).Delay_VBPCurveShift=Delay_VBPCurveShift(i);
     InverterArray(i).LPF=1;
     InverterArray(i).LowPassFilterFrequency=0.1;
     InverterArray(i).HighPassFilterFrequency=1;
@@ -179,9 +204,8 @@ IterationCounter_vqvp = zeros(Number_of_Inverters,TotalTimeSteps);
 PowerEachTimeStep_vqvp = zeros(Number_of_Inverters,3);
 
 % Percentage of irradiation "seen by" uncompromised and hacked inverters
-SolarGeneration_vqvp_TOTAL = Generation * GenerationScalingFactor;
+SolarGeneration_vqvp_TOTAL = Generation;
 SolarGeneration_vqvp = SolarGeneration_vqvp_TOTAL;
-SolarGeneration_vqvp_hacked = SolarGeneration_vqvp_TOTAL;
 
 % Lets not use the advanced 
 for t = TimeStepOfHack:TotalTimeSteps
@@ -192,16 +216,7 @@ for t = TimeStepOfHack:TotalTimeSteps
 end 
 
 %% Setting up the maximum power capability
-% Sbar_max =  MaxGenerationPossible * GenerationScalingFactor;
-% Sbar_max=Sbar_max(1:Number_of_Inverters);
-% 
-% % duplicating array using the matrix usage of MATLAB 
-% Sbar=ones(size(Generation)).*Sbar_max;
-% 
-% Sbar(TimeStepOfHack:TotalTimeSteps,:) =ones(length(TimeStepOfHack:TotalTimeSteps),Number_of_Inverters).*Sbar_max.*(1-[InverterArray.PercentHacked]);
-% 
-
-Sbar_max =  MaxGenerationPossible * GenerationScalingFactor;
+Sbar_max =  MaxGenerationPossible(1:Number_of_Inverters);
 Sbar = zeros(size(Generation));
 SbarHacked = Sbar_max .* PercentHacked;
 
@@ -214,7 +229,6 @@ for t = TimeStepOfHack:TotalTimeSteps
 end 
 
 %% Voltage Observer Parameters and related variable initialization
-
 InverterReactivePower = zeros(size(Generation));
 InverterRealPower = zeros(size(Generation));
 InverterReactivePowerHacked = zeros(size(Generation));
@@ -226,7 +240,7 @@ upk = zeros(TotalTimeSteps,TotalLoads);
 uqk = zeros(TotalTimeSteps,TotalLoads);
 FilteredVoltage = zeros(size(Generation));
 FilteredVoltageCalc = zeros(size(Generation));
-%%
+
 % Initialize VBP for hacked and uncompromised inverters
 VBP = [nan*ones(Number_of_Inverters,1,TotalTimeSteps), nan*ones(Number_of_Inverters,1,TotalTimeSteps), ...
        nan*ones(Number_of_Inverters,1,TotalTimeSteps), nan*ones(Number_of_Inverters,1,TotalTimeSteps)];
@@ -237,24 +251,28 @@ VBP(:,1,1:2) = VQ_start;
 VBP(:,2,1:2) = VQ_end;
 VBP(:,3,1:2) = VP_start;
 VBP(:,4,1:2) = VP_end;
-VBPHacked(:,1,1:2) = VQ_startHacked;
-VBPHacked(:,2,1:2) = VQ_endHacked;
-VBPHacked(:,3,1:2) = VP_startHacked;
-VBPHacked(:,4,1:2) = VP_endHacked;
+VBPHacked(:,1,:) = VQ_startHacked;
+VBPHacked(:,2,:) = VQ_endHacked;
+VBPHacked(:,3,:) = VP_startHacked;
+VBPHacked(:,4,:) = VP_endHacked;
 disp('Setting up of the solution variables are done.')
+
 %% OpenDSS Parameters
 setSourceInfo(DSSObj,{'source'},'pu',SlackBusVoltage);
 for ksim =1:TotalTimeSteps
     
     if (ksim>1)
-        IntermediateLoadValue=Load(ksim,1:Number_of_Inverters)+SimulateInverterHack*InverterRealPower(ksim-1,:)...
-                            + SimulateInverterHack*InverterRealPowerHacked(ksim-1,:);
 %         IntermediateLoadValue=IntermediateLoadValue; % To convert to KW
-        setLoadInfo(DSSObj,InverterBusNames,'kw',IntermediateLoadValue); % To convert to KW
-        setLoadInfo(DSSObj,InverterBusNames,'kvar',pf_converted*Load(ksim,1:Number_of_Inverters)+SimulateInverterHack*InverterReactivePower(ksim-1,:)...
+        setLoadInfo(DSSObj,InverterBusNames,'kw',Load(ksim,1+offset:Number_of_Inverters+offset)+SimulateInverterHack*InverterRealPower(ksim-1,:)...
+                            + SimulateInverterHack*InverterRealPowerHacked(ksim-1,:)); % To convert to KW
+        setLoadInfo(DSSObj,InverterBusNames,'kvar',pf_converted*Load(ksim,1+offset:Number_of_Inverters+offset)+SimulateInverterHack*InverterReactivePower(ksim-1,:)...
                                 +SimulateInverterHack*InverterReactivePowerHacked(ksim-1,:));
-        setLoadInfo(DSSObj,{AllLoadNames{Number_of_Inverters+1:end}},'kw',(Load(ksim,Number_of_Inverters+1:end))); % To convert to KW
-        setLoadInfo(DSSObj,{AllLoadNames{Number_of_Inverters+1:end}},'kvar',pf_converted*(Load(ksim,Number_of_Inverters+1:end)));
+        
+        setLoadInfo(DSSObj,{AllLoadNames{1:offset}},'kw',(Load(ksim,1:offset))); % To convert to KW
+        setLoadInfo(DSSObj,{AllLoadNames{1:offset}},'kvar',pf_converted*(Load(ksim,1:offset)));
+        
+        setLoadInfo(DSSObj,{AllLoadNames{Number_of_Inverters+offset+1:end}},'kw',(Load(ksim,Number_of_Inverters+offset+1:end))); % To convert to KW
+        setLoadInfo(DSSObj,{AllLoadNames{Number_of_Inverters+offset+1:end}},'kvar',pf_converted*(Load(ksim,Number_of_Inverters+offset+1:end)));
     else
         setLoadInfo(DSSObj,AllLoadNames,'kw',(Load(ksim,:))); % To convert to KW
         setLoadInfo(DSSObj,AllLoadNames,'kvar',pf_converted*(Load(ksim,:)));
@@ -271,29 +289,31 @@ for ksim =1:TotalTimeSteps
     
     if(ksim > 1 && ksim < TotalTimeSteps)
       for knode = 1:Number_of_Inverters
+      
+      % RUN INVERTER MODEL
         [InverterReactivePower(ksim,knode),InverterRealPower(ksim,knode),...
             FilteredVoltage(ksim:TotalTimeSteps,knode), FilteredVoltageCalc(ksim,knode)]=...
             voltvarvoltwatt(InverterArray(knode),FilteredVoltage(ksim-1,knode),...
             SolarGeneration_vqvp(ksim,knode),...
-            abs(V_vqvp(knode,ksim)),abs(V_vqvp(knode,ksim-1)),...
+            V_vqvp(knode,ksim),V_vqvp(knode,ksim-1),...
             VBP(knode,:,ksim),Sbar(ksim,knode),...
             InverterRealPower(ksim-1,knode),InverterReactivePower(ksim-1,knode),ksim);
         
         [InverterReactivePowerHacked(ksim,knode),InverterRealPowerHacked(ksim,knode),...
             FilteredVoltage(ksim:TotalTimeSteps,knode), FilteredVoltageCalc(ksim,knode)]=...
             voltvarvoltwatt(InverterArray(knode),FilteredVoltage(ksim-1,knode),...
-            SolarGeneration_vqvp(ksim,knode),...
-            abs(V_vqvp(knode,ksim)),abs(V_vqvp(knode,ksim-1)),...
-            VBP(knode,:,ksim),Sbar(ksim,knode),...
+            SolarGeneration_vqvp_hacked(ksim,knode),...
+            V_vqvp(knode,ksim),V_vqvp(knode,ksim-1),...
+            VBPHacked(knode,:,ksim),SbarHacked(knode),...
             InverterRealPowerHacked(ksim-1,knode),InverterReactivePowerHacked(ksim-1,knode),ksim);
-        
-        
+
+        % RUN OBSERVER
         [FilteredOutput_vqvp(ksim,knode),IntermediateOutput_vqvp(ksim,knode), ... 
                 Epsilon_vqvp(ksim,knode)] = voltageobserver(InverterArray(knode),V_vqvp(knode,ksim), ...
                 V_vqvp(knode,ksim-1), IntermediateOutput_vqvp(ksim-1,knode), ...
                 Epsilon_vqvp(ksim-1,knode), FilteredOutput_vqvp(ksim-1,knode));
-    
-         if mod(ksim, InverterArray(knode).Delay_VBPCurveShift) == 0 
+        
+        if mod(ksim, InverterArray(knode).Delay_VBPCurveShift) == 0 
             [upk(ksim,knode)] = adaptivecontrolreal(InverterArray(knode), ...
                 IntermediateOutput_vqvp(ksim,knode), ...
                 IntermediateOutput_vqvp(ksim-Delay_VBPCurveShift(knode)+1,knode), ...
@@ -305,9 +325,7 @@ for ksim =1:TotalTimeSteps
                 IntermediateOutput_vqvp(ksim-Delay_VBPCurveShift(knode)+1,knode), ...
                 uqk(ksim-Delay_VBPCurveShift(knode)+1,knode), ...
                 FilteredOutput_vqvp(ksim,knode));
-            
-   
-   % CALCULATE NEW VBP FOR UNCOMPROMISED INVERTERS
+        % CALCULATE NEW VBP FOR UNCOMPROMISED INVERTERS
             for j = ksim:TotalTimeSteps
                 VBP(knode,:,j) = [VQ_start - uqk(ksim,knode),...
                  VQ_end + uqk(ksim,knode), VP_start - upk(ksim,knode), ...
@@ -315,51 +333,131 @@ for ksim =1:TotalTimeSteps
              
                 upk(j,knode) = upk(ksim,knode);
                 uqk(j,knode) = uqk(ksim,knode);
-            end 
-        else
-            if ksim > 1
-                for j = ksim:TotalTimeSteps
-                    VBP(knode,:,j) = VBP(knode,:,j-1);
-                end 
-            end 
-         end
-      end
-   end
+            end   
+        end
+        end 
+    end 
 end
 
-
 %% Plotting Monitors Data
-
+disp('Plotting...') 
 DSSMon.Name='utility';
 fprintf('\nMonitor Name: %s\n',DSSMon.Name);
 time=ExtractMonitorData(DSSMon,0,DSSSolution.StepSize);
 Power= ExtractMonitorData(DSSMon,1,1);
 Qvar = ExtractMonitorData(DSSMon,2,1);
-figure
-% Getting the Power from Substation 
+
+% t1 = datetime(2017,8,0,0,0,0);
+% t_datetime = t1 + seconds(Time);
+
+f1 = figure(1);
+% Power from Substation 
 plot(time,Power,'r',time,Qvar,'b','linewidth',1.5);
 legend('Real Power (kW)','Reactive Power (kVAr)')
-xlim([1 length(time)]);
+xlim([100 TotalTimeSteps-10])
 title('Power From the Substation')
 
-figure
+% Voltage for all nodes
+f2 = figure(2);
 plot(time,V_vqvp(:,:),'linewidth',1.05)
 ylabel('Per Unit Voltage')
-xlim([1 length(time)]);
-%%
-% Plot the movement of VBP
+xlim([100 TotalTimeSteps-10])
+title('Per Unit Voltage')
 
+% Movement of VBP for all nodes
+f3 = figure(3);
 for node=1:Number_of_Inverters
-    plot(1:501 , squeeze(VBP(node,1,:)), 1:501, squeeze(VBP(node,2,:)), ...
-    1:501, squeeze(VBP(node,3,:)), 1:501, squeeze(VBP(node,4,:)), ...
+    plot(time, squeeze(VBP(node,1,:)), time, squeeze(VBP(node,2,:)), ...
+    time, squeeze(VBP(node,3,:)), time, squeeze(VBP(node,4,:)), ...
     'LineWidth',1.5)
+    title('Movement of VBP')
+    xlim([100 TotalTimeSteps-10])
     hold on
-    
 end
-xlim([1  501])
 
+% Filtered voltage seen by inverter for node 840 (note this is different filtering than
+% from what's done by the observer
+f4 = figure(4);
+hold on
+plot(time, FilteredVoltage(:,13), 'b','LineWidth',1.5 )
+plot(time, FilteredVoltageCalc(:,13), 'r','LineWidth',1.5 )
+hold off
+title(['Inverter: LP Filter of voltage magnitude from inverter, node: 840'])
+xlabel('time (hours)')
+legend({'Filtered voltage used','Filtered voltage calculated'},'FontSize',12);
+xlim([100 TotalTimeSteps-10])
 
+% Adaptive controller input and output for node 840
+f5 = figure(5);
+subplot(2,1,1)
+plot(time, upk(:,8), time, uqk(:,13),'LineWidth',1.5 )
+title(['Adaptive controller output, node: 840'])
+legend({'upk','uqk'},'FontSize',12);
+xlim([100 TotalTimeSteps-10])
+subplot(2,1,2)
+hold on
+plot(time, IntermediateOutput_vqvp(:,13), 'r','LineWidth',1.5 )
+plot(time, FilteredOutput_vqvp(:,13), 'g','LineWidth',1.5 )
+plot(time, ThreshHold_vqvp*ones(1,TotalTimeSteps), 'm','LineWidth',1.5 )
+hold off 
+title(['Adaptive controller input, node: 840'])
+xlabel('time (hours)')
+legend({'Intermediate output', 'filtered output', 'threshold'},'FontSize',12);
+xlim([100 TotalTimeSteps-10])
 
+% Voltage observer inputs and outputs for node 840
+f6 = figure(6);
+plot(time, FilteredOutput_vqvp(:,13), 'LineWidth',1.5 )
+legend({'filtered output'},'FontSize',12);
+title(['Observer outputs'])
+xlim([100 TotalTimeSteps-10])
 
+% Inverter P/Q for hacked and uncompromised inverters (node 840)
+f7 = figure(7);
+subplot(2,1,1)
+plot(time, InverterRealPower(:,10), time, InverterRealPowerHacked(:,13), 'LineWidth',1.5)
+title(['Inverter real power - Node 10'])
+legend({'inverter real power- not hacked', 'inverter real power - hacked'},'FontSize',12);
+xlim([100 TotalTimeSteps-10])
+subplot(2,1,2)
+plot(time, InverterReactivePower(:,10), time, InverterReactivePowerHacked(:,13), 'LineWidth',1.5) 
+title(['Inverter reactive power - Node 10'])
+legend({'inverter reactive power- not hacked', 'inverter reactive power - hacked'},'FontSize',12);
+xlim([100 TotalTimeSteps-10])
 
+% Inverter P for each node
+f8 = figure(8);
+subplot(2,1,1)
+plot(time, InverterRealPower(:,1) + InverterRealPowerHacked(:,1), ...
+    time, InverterRealPower(:,2) + InverterRealPowerHacked(:,2), ...
+    time, InverterRealPower(:,3) + InverterRealPowerHacked(:,3), ...
+    time, InverterRealPower(:,4) + InverterRealPowerHacked(:,4), ...
+    time, InverterRealPower(:,5) + InverterRealPowerHacked(:,5), ...
+    time,InverterRealPower(:,6) + InverterRealPowerHacked(:,6), ...
+    time,InverterRealPower(:,7) + InverterRealPowerHacked(:,7),...
+    time, InverterRealPower(:,8) + InverterRealPowerHacked(:,8), ...
+    time,InverterRealPower(:,9) + InverterRealPowerHacked(:,9),...
+    time,InverterRealPower(:,10) + InverterRealPowerHacked(:,10),...
+    time,InverterRealPower(:,11) + InverterRealPowerHacked(:,11),...
+    time,InverterRealPower(:,12) + InverterRealPowerHacked(:,12),...
+    time,InverterRealPower(:,13) + InverterRealPowerHacked(:,13), 'LineWidth',1.5)
+title(['Inverter real power output for each load - combined (hacked+not hacked)'])
+xlim([100 TotalTimeSteps-10])
 
+% Inverter Q for each node
+subplot(2,1,2)
+plot(time, InverterReactivePower(:,1) + InverterReactivePowerHacked(:,1), ...
+    time, InverterReactivePower(:,2) + InverterReactivePowerHacked(:,2), ...
+    time, InverterReactivePower(:,3) + InverterReactivePowerHacked(:,3), ...
+    time, InverterReactivePower(:,4) + InverterReactivePowerHacked(:,4), ...
+    time, InverterReactivePower(:,5) + InverterReactivePowerHacked(:,5), ...
+    time,InverterReactivePower(:,6) + InverterReactivePowerHacked(:,6), ...
+    time,InverterReactivePower(:,7) + InverterReactivePowerHacked(:,7),...
+    time, InverterReactivePower(:,8) + InverterReactivePowerHacked(:,8), ...
+    time,InverterReactivePower(:,9) + InverterReactivePowerHacked(:,9),...
+    time,InverterReactivePower(:,10) + InverterReactivePowerHacked(:,10),...
+    time,InverterReactivePower(:,11) + InverterReactivePowerHacked(:,11),...
+    time,InverterReactivePower(:,12) + InverterReactivePowerHacked(:,12),...
+    time,InverterReactivePower(:,13) + InverterReactivePowerHacked(:,13), 'LineWidth',1.5)
+title(['Inverter reactive power output for each load - combined (hacked+not hacked)'])
+xlim([100 TotalTimeSteps-10])
