@@ -144,6 +144,8 @@ GenerationSeconds = GenerationSeconds(StartTime:EndTime,:);
 Load = LoadSeconds;
 Generation = GenerationSeconds;
 
+%csvwrite('C:\Users\Toan Ngo\Documents\gen.csv',Generation);
+%csvwrite('C:\Users\Toan Ngo\Documents\load.csv',Load);
 % change place of col for Load and Generation
 %Load(:,[1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18]) = Load(:,[6 7 8 9 10 11 12 13 14 15 16 17 18 1 2 3 4 5]);
 %Generation(:,[1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 ]) = Generation(:,[6 7 8 9 10 11 12 13 14 15 16 17 18 1 2 3 4 5]);
@@ -166,16 +168,16 @@ end
 MaxGenerationPossible = max(Generation); % Getting the Maximum possible Generation for each Load 
 
 %% Initializing the inverter models 
-if Number_of_Inverters> TotalLoads
+if Number_of_Inverters > TotalLoads
     exit('Not Supported Right now');
 end
 % Creating an array of Inverter objects
 InverterArray(1:Number_of_Inverters)=Inverter;
 
-offset = 5
-
+InverterOffset=5;
 for i = 1:Number_of_Inverters
-    InverterArray(i).Name=AllLoadNames{i + offset};
+    InverterArray(i).Name=AllLoadNames{i+InverterOffset};
+    SimulateInverterHack(i+InverterOffset)=1;
     InverterArray(i).Delay_VoltageSampling=Delay_VoltageSampling(i);
     InverterArray(i).Delay_VBPCurveShift=Delay_VBPCurveShift(i);
     InverterArray(i).LPF=1;
@@ -192,7 +194,7 @@ for i = 1:Number_of_Inverters
 end
 % Getting Bus Names for Inverters 
 InverterBusNames= {InverterArray.Name};
-Generation=Generation(:,1:Number_of_Inverters);
+Generation=Generation(:,1+InverterOffset:Number_of_Inverters+InverterOffset);
 disp('Array of Inverter objects has been created.')
 
 
@@ -216,7 +218,7 @@ for t = TimeStepOfHack:TotalTimeSteps
 end 
 
 %% Setting up the maximum power capability
-Sbar_max =  MaxGenerationPossible(1:Number_of_Inverters);
+Sbar_max =  MaxGenerationPossible(1+InverterOffset:Number_of_Inverters+InverterOffset);
 Sbar = zeros(size(Generation));
 SbarHacked = Sbar_max .* PercentHacked;
 
@@ -262,20 +264,18 @@ setSourceInfo(DSSObj,{'source'},'pu',SlackBusVoltage);
 for ksim =1:TotalTimeSteps
     
     if (ksim>1)
-%         IntermediateLoadValue=IntermediateLoadValue; % To convert to KW
-        setLoadInfo(DSSObj,InverterBusNames,'kw',Load(ksim,1+offset:Number_of_Inverters+offset)+SimulateInverterHack*InverterRealPower(ksim-1,:)...
-                            + SimulateInverterHack*InverterRealPowerHacked(ksim-1,:)); % To convert to KW
-        setLoadInfo(DSSObj,InverterBusNames,'kvar',pf_converted*Load(ksim,1+offset:Number_of_Inverters+offset)+SimulateInverterHack*InverterReactivePower(ksim-1,:)...
-                                +SimulateInverterHack*InverterReactivePowerHacked(ksim-1,:));
-        
-        setLoadInfo(DSSObj,{AllLoadNames{1:offset}},'kw',(Load(ksim,1:offset))); % To convert to KW
-        setLoadInfo(DSSObj,{AllLoadNames{1:offset}},'kvar',pf_converted*(Load(ksim,1:offset)));
-        
-        setLoadInfo(DSSObj,{AllLoadNames{Number_of_Inverters+offset+1:end}},'kw',(Load(ksim,Number_of_Inverters+offset+1:end))); % To convert to KW
-        setLoadInfo(DSSObj,{AllLoadNames{Number_of_Inverters+offset+1:end}},'kvar',pf_converted*(Load(ksim,Number_of_Inverters+offset+1:end)));
+%         NewLoad (ksim,1+InverterOffset:Number_of_Inverters+InverterOffset)=Load(ksim,1+InverterOffset:Number_of_Inverters+InverterOffset)
+        setLoadInfo(DSSObj,InverterBusNames,'kw',Load(ksim,InverterOffset+1:InverterOffset+Number_of_Inverters)+1*InverterRealPower(ksim-1,:)...
+                            + 1*InverterRealPowerHacked(ksim-1,:)); 
+        setLoadInfo(DSSObj,InverterBusNames,'kvar',pf_converted*Load(ksim,InverterOffset+1:InverterOffset+Number_of_Inverters)+1*InverterReactivePower(ksim-1,:)...
+                                +1*InverterReactivePowerHacked(ksim-1,:));
+        setLoadInfo(DSSObj,AllLoadNames([1:InverterOffset InverterOffset+Number_of_Inverters+1:end]),'kw',...
+            (Load(ksim,[1:InverterOffset InverterOffset+Number_of_Inverters+1:end]))); 
+        setLoadInfo(DSSObj,AllLoadNames([1:InverterOffset InverterOffset+Number_of_Inverters+1:end]),'kvar',...
+                    pf_converted*(Load(ksim,[1:InverterOffset InverterOffset+Number_of_Inverters+1:end]))');
     else
         setLoadInfo(DSSObj,AllLoadNames,'kw',(Load(ksim,:))); % To convert to KW
-        setLoadInfo(DSSObj,AllLoadNames,'kvar',pf_converted*(Load(ksim,:)));
+        setLoadInfo(DSSObj,AllLoadNames,'kvar',pf_converted*(Load(ksim,:)))
   
     end
    % Solving the Power Flow
@@ -317,7 +317,7 @@ for ksim =1:TotalTimeSteps
             [upk(ksim,knode)] = adaptivecontrolreal(InverterArray(knode), ...
                 IntermediateOutput_vqvp(ksim,knode), ...
                 IntermediateOutput_vqvp(ksim-Delay_VBPCurveShift(knode)+1,knode), ...
-                upk(ksim-Delay_VBPCurveShift(knode)+1,knode), ...
+               upk(ksim-Delay_VBPCurveShift(knode)+1,knode), ...
                 FilteredOutput_vqvp(ksim,knode));
             
             [uqk(ksim,knode)] = adaptivecontrolreactive(InverterArray(knode), ...
@@ -327,9 +327,10 @@ for ksim =1:TotalTimeSteps
                 FilteredOutput_vqvp(ksim,knode));
         % CALCULATE NEW VBP FOR UNCOMPROMISED INVERTERS
             for j = ksim:TotalTimeSteps
-                VBP(knode,:,j) = [VQ_start - uqk(ksim,knode),...
-                 VQ_end + uqk(ksim,knode), VP_start - upk(ksim,knode), ...
-                 VP_end + upk(ksim,knode)];  
+                VBP(knode,:,j) = [VQ_start- uqk(ksim,knode),...
+                                  VQ_end + uqk(ksim,knode),... 
+                                  VP_start - upk(ksim,knode),...
+                                  VP_end + upk(ksim,knode)];  
              
                 upk(j,knode) = upk(ksim,knode);
                 uqk(j,knode) = uqk(ksim,knode);
