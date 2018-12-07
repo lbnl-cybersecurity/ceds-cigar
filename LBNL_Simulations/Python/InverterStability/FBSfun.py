@@ -40,10 +40,12 @@ def FBSfun(V0,loads,Z,B):
         for k in range(0, n - 1):
             idx = np.where(B[k, :] > 0)
             V[idx,0]=V[k,0]-np.multiply(Z[idx,0],I[idx,0])
-        # print(V)
+        print(V)
 
         for t in range(len(T)-1,-1,-1):
-            t=T[t]
+            print(T)
+			  t=T[t]
+			
             v=np.array([1, abs(V[t,0]),abs(V[t,0])**2])
             s[t,0]=np.dot(loads[t,:],np.transpose(v))
             I[t,0]=np.conj(s[t,0]/v[t,0])

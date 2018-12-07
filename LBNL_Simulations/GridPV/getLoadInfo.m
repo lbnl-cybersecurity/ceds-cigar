@@ -113,7 +113,14 @@ for ii=1:length(Loads)
     end
     
     buses = DSSCircuit.ActiveElement.BusNames;
-    Loads(ii).busName = buses{1};
+    buses=buses{1};
+    if ~(contains(buses,'.'))
+        Loads(ii).busName = buses;
+    else
+        buses=buses(1:regexp(buses,'\.','once')-1);
+    end
+    
+    Loads(ii).busName = buses;
     
     Loads(ii).numPhases = DSSCircuit.ActiveCktElement.NumPhases;
     

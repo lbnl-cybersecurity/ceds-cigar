@@ -126,7 +126,37 @@ for ii=1:length(Lines)
     lineBusNames = DSSCircuit.ActiveElement.BusNames;
     Lines(ii).bus1 = lineBusNames{1};
     Lines(ii).bus2 = lineBusNames{2};
+    pos=strfind(Lines(ii).bus1,'.');
+    if ~(isempty(pos))
+        Lines(ii).bus1Name=lineBusNames{1}(1:pos(1)-1);
+    else
+        Lines(ii).bus1Name=lineBusNames{1};
+    end
     
+    pos=strfind(Lines(ii).bus2,'.');
+    if ~(isempty(pos))
+        Lines(ii).bus2Name=lineBusNames{2}(1:pos(1)-1);
+    else
+        Lines(ii).bus2Name=lineBusNames{2};
+    end
+    namePhases=[1 2 3];
+    extension=0;
+    if (isempty(strfind(lineBusNames{1},'.1')))
+        extension=extension+1;
+        namePhases(1,1)=0;
+    end
+    if (isempty(strfind(lineBusNames{1},'.2')))
+        extension=extension+1;
+        namePhases(1,2)=0;
+    end
+     if (isempty(strfind(lineBusNames{1},'.3')))
+         extension=extension+1;
+         namePhases(1,3)=0;
+     end
+    if (extension==3)
+        namePhases=[1 2 3];
+    end
+    Lines(ii).nodes=nonzeros(namePhases);
     Lines(ii).enabled = DSSCircuit.ActiveElement.Enabled;
     if ~Lines(ii).enabled % line is not enabled, so much of the active element properties will return errors
         continue;

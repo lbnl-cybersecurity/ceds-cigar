@@ -119,7 +119,7 @@ for ii=1:length(busNames)
     if isempty(DSSCircuit.ActiveBus.Name)
         error('busName:notfound',sprintf('Bus ''%s'' is not found in the circuit.  Check that this is a bus in the compiled circuit.',busNames{ii}))
     end
-    
+    Buses(ii).id=ii;
     Buses(ii).numPhases = DSSCircuit.ActiveBus.NumNodes;
     
     voltages = DSSCircuit.ActiveBus.Voltages; %complex voltages
