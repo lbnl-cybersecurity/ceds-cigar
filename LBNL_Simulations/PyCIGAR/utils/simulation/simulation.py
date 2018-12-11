@@ -6,14 +6,28 @@ from utils.openDSS.getInfo_linux import *
 from utils.device.Inverter import Inverter
 from utils.controller.AdaptiveInvController import AdaptiveInvController
 from utils.controller.FixedInvController import FixedInvController
+<<<<<<< HEAD
 
 #from utils.controller.VPGInvController import VPGInvController
 import matplotlib.pyplot as plt
+
+from utils.controller.VPGInvController import VPGInvController
+import matplotlib.pyplot as plt
+import tensorflow as tf
+from spinup.utils.logx import EpochLogger
+from spinup.utils.run_utils import setup_logger_kwargs
+
 
 #init env -> init state, init session
 class simulation:
     def __init__(self, **kwargs): 
         self.init = True
+
+
+        power_factor = 0.9
+        self.pf_converted = tan(acos(power_factor))
+        
+
         self.verbose = kwargs['verbose']
         self.openDSSkwargs = kwargs['OpenDSSkwargs']
         self.FileDirectory = kwargs['FileDirectoryBase']
@@ -23,6 +37,7 @@ class simulation:
         self.startTime = kwargs['startTime']
         self.endTime = kwargs['endTime']
         self.addNoise = kwargs['addNoise']
+
         self.RawLoad, self.RawGeneration, self.TotalLoads, self.AllLoadNames = ReadScenarioFile(self.FileDirectory, self.OpenDSSDirectory)
         self.reset(startTime=self.startTime,endTime=self.endTime,addNoise=self.addNoise)
         
@@ -40,6 +55,26 @@ class simulation:
         if endTime:
             self.endTime = endTime
         Load, Generation = ScenarioInterpolation(startTime, endTime, self.RawLoad, self.RawGeneration)
+
+        self.logger_kwargs = kwargs['logger_kwargs']
+        self.logger_kwargs = setup_logger_kwargs(**self.logger_kwargs)
+
+        self.RawLoad, self.RawGeneration, self.TotalLoads, self.AllLoadNames = ReadScenarioFile(self.FileDirectory, self.OpenDSSDirectory)
+        
+        
+        self.logger = EpochLogger(**self.logger_kwargs) #take care of logger_kwargs
+        self.sess = tf.Session()
+        #some default params to convert load
+        
+        self.reset(addNoise=self.addNoise)
+        self.sess.run(tf.global_variables_initializer()) #init for tf incase of using RL
+    
+    def reset(self, addNoise=True):
+        self.timeStep = 0
+        self.terminal = False
+
+        Load, Generation = ScenarioInterpolation(self.startTime, self.endTime, self.RawLoad, self.RawGeneration)
+
         self.Load, self.Generation = ScenarioAddNoise(Load, Generation, self.TotalLoads, addNoise)
         self.TotalTimeSteps = self.Load.shape[0]
         
@@ -52,6 +87,13 @@ class simulation:
         
 
     def runOneStep(self):
+
+        
+        self._run_solve()
+        self._run_hack()
+        self._run_pqinjection()
+                #if done, print out 'done' or plot if verbose
+
         if self.timeStep == self.TotalTimeSteps-1:
             self.terminal = True
             if self.verbose:
@@ -62,12 +104,18 @@ class simulation:
                         listInv += [key]
                 self.plot_y_at_nodes(listInv)
                 self.plot_VBP_at_nodes(listInv)
+
             print('Simulation Done!')
             return self.terminal
         
         self._run_solve()
         self._run_hack()
         self._run_pqinjection()
+
+            self.logger.log('\nSimulation Done!\n')
+            return self.terminal
+
+
         self.timeStep += 1
         
         return self.terminal
@@ -148,10 +196,18 @@ class simulation:
                                     L=self.Load[self.timeStep, node])
     
     def _restart_controller(self):
+
         self.inverters = {}
         features = ['Generation', 'sbar']
 
         if self.init == True:
+
+        features = ['Generation', 'sbar']
+
+        if self.init == True:
+            self.inverters = {}
+            
+
             for i in range(len(self.AllLoadNames)):
                 self.inverters[i] = []
                 if i in self.initController:
@@ -175,6 +231,7 @@ class simulation:
                         inv['controller'] = FixedInvController(timeList, VBP = self.initController[i]['VBP'], 
                                                                   device=inv['device'])
                     
+
                     #if i == 7:
                     #    inv['controller'] = VPGInvController(timeList, VBP = np.array([1.01, 1.03, 1.03, 1.05]), 
                     #                                         delayTimer=Delay_VBPCurveShift[i], device=inv['device'], 
@@ -184,6 +241,17 @@ class simulation:
 
                    
             self.init = False
+
+                    if typeController == 'VPGInvController':
+                        inv['controller'] = VPGInvController(timeList, VBP = np.array([1.01, 1.03, 1.03, 1.05]), 
+                                                             delayTimer=self.initController[i]['delayTimer'], 
+                                                             device=inv['device'], 
+                                                             sess=self.sess, logger=self.logger)
+                    inv['info'] = df
+                    self.inverters[i].append(inv)      
+            self.init = False
+        
+
         else:
             for i in range(self.TotalLoads):    
                 inv = self.inverters[i]
@@ -247,7 +315,10 @@ class simulation:
             plt.plot(self.nodes[node].loc['Voltage'], label=self.AllLoadNames[node]) 
 
         plt.legend()
+
         plt.show();
+
+
 
     def plot_y_at_nodes(self, nodes, height=8, width=15):
         f = plt.figure()
@@ -261,7 +332,10 @@ class simulation:
             plt.plot(self.inverters[node][0]['device'].y, label=self.AllLoadNames[node]) 
 
         plt.legend()
+
         plt.show();   
+
+
 
     def plot_VBP_at_nodes(self, nodes, height=8, width=15):
         f = plt.figure()
@@ -275,4 +349,6 @@ class simulation:
             plt.plot(self.inverters[node][0]['controller'].VBP, label=self.AllLoadNames[node]) 
 
         plt.legend()
-        plt.show();   
+
+        plt.show() 
+

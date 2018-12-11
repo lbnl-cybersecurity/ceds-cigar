@@ -9,10 +9,15 @@ import numpy as np
 import tensorflow as tf
 import time
 import utils.controller.RLAlgos.vpg.core as core
+
 from spinup.utils.logx import EpochLogger
 from spinup.utils.mpi_tf import MpiAdamOptimizer, sync_all_params
 from spinup.utils.mpi_tools import mpi_fork, mpi_avg, proc_id, mpi_statistics_scalar, num_procs
 import copy
+
+from spinup.utils.mpi_tf import MpiAdamOptimizer, sync_all_params
+from spinup.utils.mpi_tools import mpi_fork, mpi_avg, proc_id, mpi_statistics_scalar, num_procs
+
 
 class VPGBuffer:
 	"""
@@ -102,10 +107,17 @@ Vanilla Policy Gradient
 """
 
 class VPG:
+
 	def __init__(self, sess, obs_dim=(60,3), act_dim=(4,), actor_critic=core.mlp_actor_critic, ac_kwargs=dict(), seed=0,
 		steps_per_epoch=4000, epochs=50, gamma=0.99, pi_lr=3e-4,
 		vf_lr=1e-3, train_v_iters=80, lam=0.97, max_ep_len=1000,
 		logger_kwargs=dict(), save_freq=10, buff_size=5):
+
+	def __init__(self, sess, logger, obs_dim=(60,3), act_dim=(4,), actor_critic=core.mlp_actor_critic, ac_kwargs=dict(), seed=0,
+		gamma=0.99, pi_lr=3e-4,
+		vf_lr=1e-3, train_v_iters=80, lam=0.97, max_ep_len=1000,
+		save_freq=10, buff_size=5):
+
 		"""
 
 		Args:
@@ -161,7 +173,11 @@ class VPG:
 				the current policy and value function.
 		"""
 		self.sess = sess
+
 		self.logger = EpochLogger(**logger_kwargs) #take care of logger_kwargs
+
+		self.logger = logger
+
 		#logger.save_config(locals())
 		#print(locals())
 
@@ -210,8 +226,10 @@ class VPG:
 		self.train_v = tf.train.AdamOptimizer(learning_rate=vf_lr).minimize(self.v_loss)
 
 		self.start_time = time.time()
+
         #sess = tf.Session()
 		#sess.run(tf.global_variables_initializer())
+
 
 		# Sync params across processes
 		#sess.run(sync_all_params())

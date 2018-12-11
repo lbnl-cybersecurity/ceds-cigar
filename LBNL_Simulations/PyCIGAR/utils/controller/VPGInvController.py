@@ -13,8 +13,13 @@ class VPGInvController:
 
 	controllerType = 'VPGInvController' 
 	#instance atttributes
+
 	def __init__(self, time, VBP, delayTimer, device, sess, logger_kwargs=dict(), rl_kwargs=dict()): #kwargs have args for vpg and logger
 		self.logger_kwargs = logger_kwargs
+
+	def __init__(self, time, VBP, delayTimer, device, sess, logger, rl_kwargs=dict()): #kwargs have args for vpg and logger
+		self.logger = logger
+
 		self.sess = sess
 		self.time = time
 		self.delT = time[1] - time[0]
@@ -23,7 +28,9 @@ class VPGInvController:
 		self.initVBP = VBP
 		self.reset()
 		#init agent
+
 		self.vpg = VPG(sess=sess, logger_kwargs=self.logger_kwargs, **rl_kwargs)
+
 		
 	# reset internal state of controller
 	def reset(self):

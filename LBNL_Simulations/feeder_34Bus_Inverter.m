@@ -1,38 +1,26 @@
 clc;
-clear;
+clear all;
 close all;
 
 %% TUNING KNOBS - ADJUST (MAIN) PARAMETERS HERE 
 % Note that there are other tunable parameters in the code, but we expect
 % these to be tuned most often.
 Sbase=1;
-
-LoadScalingFactor = 2; 
-GenerationScalingFactor = 3; 
-SlackBusVoltage = 1.05; 
-NoiseMultiplyer=01;
-
-% LoadScalingFactor = 3; 
-% GenerationScalingFactor = 15; 
-% SlackBusVoltage = 1.04; 
-% NoiseMultiplyer=0;
-
+LoadScalingFactor = 3; 
+GenerationScalingFactor = 15; 
+SlackBusVoltage = 1.04; 
+NoiseMultiplyer=0;
 
 % Set simulation analysis period
 StartTime = 40000; 
-EndTime = 40900; 
+EndTime = 40500; 
 
 % Set hack parameters
 TimeStepOfHack = 50;
-
-PercentHacked = [0.5 0 1.0 0 0 0.5 0 0.5 0 0 0 0.5 0.5 0 ...
-                 0 0 1.0 0 0 0.5 0 0 0 0 0 0 0.5 0 0.5 1 0];
-
-
+PercentHacked = [0 0 0 0 0 0 0 0 0 0 0 0 0];
 % PercentHacked = [0.2 0.2 0.2 0.2 0.2 0.2 0.2 0.2 0.2 0.2 0.2 0.2 0.2];
 % PercentHacked = [.5 .5 .5 .5 .5 .5 .5 .5 .5 .5 .5 .5 .5];
 % PercentHacked = [.6 .6 .6 .6 .6 .6 .6 .6 .6 .6 .6 .6 .6];
-
 
 % Set initial VBP parameters for uncompromised inverters
 VQ_start = 1.01; VQ_end = 1.03; VP_start = 1.03; VP_end = 1.05;
@@ -46,11 +34,11 @@ VQ_startHacked = 1.01; VQ_endHacked = 1.015; VP_startHacked = 1.015; VP_endHacke
 kq = 1;
 kp = 1;
 
-
-% Set delays for each node
-Delay_VoltageSampling = [10 10  10 10 10  10  10  10  10  10  10  10  10]; 
-Delay_VBPCurveShift =   [120 120 120 120 120 120 120 120 120 120 120 120 120]; 
-
+% Set delays for each inverter
+Delay_VoltageSampling = [10 10 10 10 10 10 10 10 10 10 10 10 10 10 10];
+Delay_VBPCurveShift =   [120 120 120 120 120 120 120 120 120 120 120 120 120];
+                        
+             
 % Set observer voltage threshold
 ThreshHold_vqvp = 0.25;
 power_factor=0.9;
@@ -58,7 +46,7 @@ pf_converted=tan(acos(power_factor));
 Number_of_Inverters = 13;
 
 % The following variable allows to run the simulation without any inverters
-SimulateInverterHack=01;
+
 disp('Value Initializtion Done.')
 
 
@@ -77,7 +65,14 @@ DSSMon=DSSCircuit.Monitors;
 DSSText.command = 'Clear';
 
 %% QSTS Simulation
-DSSText.command = 'Compile C:\feeders\feeder34_B_NR\feeder34_B_NR.dss';
+file_path_split = split(pwd,'\');
+directory_path = file_path_split{1};
+for i=2:length(file_path_split)-2
+    directory_path = [directory_path,'\',file_path_split{i}];
+end
+feeder_file_path = [directory_path, '\feeders\feeder34_B_NR\feeder34_B_NR.dss'];
+DSSText.command = ['Compile ', feeder_file_path];
+DSSText.Command='Compile C:\feeders\feeder34_B_NR\feeder34_B_NR.dss';
 % Easy way to change parameters for all the loads , making them ZIPV
 % The last parameter refers to the minimum voltage threshhold
 % DSSText.Command= 'BatchEdit Load..* Model=8';
@@ -100,10 +95,11 @@ else
 end
 
 %% Retrieving the data from the load profile
+SimulateInverterHack=zeros(1,length(AllLoadNames));
 TimeResolutionOfData=10; % resolution in minute
 % Get the data from the Testpvnum folder
 % Provide Your Directory
-FileDirectoryBase='C:\feeders\testpvnum10\';
+FileDirectoryBase=[directory_path,'\load_data\'];
 QSTS_Time = 0:1440; % This can be changed based on the available data
 % TotalTimeSteps=length(QSTS_Time);
 QSTS_Data = zeros(length(QSTS_Time),4,TotalLoads); % 4 columns as there are four columns of data available in the .mat file
@@ -165,8 +161,10 @@ if Number_of_Inverters> TotalLoads
 end
 % Creating an array of Inverter objects
 InverterArray(1:Number_of_Inverters)=Inverter;
+InverterOffset=5;
 for i = 1:Number_of_Inverters
-    InverterArray(i).Name=AllLoadNames{i+5};
+    InverterArray(i).Name=AllLoadNames{i+InverterOffset};
+    SimulateInverterHack(i+InverterOffset)=1;
     InverterArray(i).Delay_VoltageSampling=Delay_VoltageSampling(i);
     InverterArray(i).Delay_VBPCurveShift=Delay_VBPCurveShift(i);
     InverterArray(i).LPF=1;
@@ -257,18 +255,22 @@ VBPHacked(:,3,:) = VP_startHacked;
 VBPHacked(:,4,:) = VP_endHacked;
 disp('Setting up of the solution variables are done.')
 %% OpenDSS Parameters
+NewLoad=Load;
+SimulateInverterHack=1;
 setSourceInfo(DSSObj,{'source'},'pu',SlackBusVoltage);
 for ksim =1:TotalTimeSteps
     
     if (ksim>1)
-        IntermediateLoadValue=Load(ksim,1:Number_of_Inverters)+SimulateInverterHack*InverterRealPower(ksim-1,:)...
+%         NewLoad (ksim,1+InverterOffset:Number_of_Inverters+InverterOffset)=Load(ksim,1+InverterOffset:Number_of_Inverters+InverterOffset)
+        IntermediateLoadValue=Load(ksim,InverterOffset+1:InverterOffset+Number_of_Inverters)+SimulateInverterHack*InverterRealPower(ksim-1,:)...
                             + SimulateInverterHack*InverterRealPowerHacked(ksim-1,:);
 %         IntermediateLoadValue=IntermediateLoadValue; % To convert to KW
         setLoadInfo(DSSObj,InverterBusNames,'kw',IntermediateLoadValue); % To convert to KW
-        setLoadInfo(DSSObj,InverterBusNames,'kvar',pf_converted*Load(ksim,1:Number_of_Inverters)+SimulateInverterHack*InverterReactivePower(ksim-1,:)...
+        setLoadInfo(DSSObj,InverterBusNames,'kvar',pf_converted*Load(ksim,InverterOffset+1:InverterOffset+Number_of_Inverters)+SimulateInverterHack*InverterReactivePower(ksim-1,:)...
                                 +SimulateInverterHack*InverterReactivePowerHacked(ksim-1,:));
-        setLoadInfo(DSSObj,{AllLoadNames{Number_of_Inverters+1:end}},'kw',(Load(ksim,Number_of_Inverters+1:end))); % To convert to KW
-        setLoadInfo(DSSObj,{AllLoadNames{Number_of_Inverters+1:end}},'kvar',pf_converted*(Load(ksim,Number_of_Inverters+1:end)));
+        setLoadInfo(DSSObj,AllLoadNames([1:InverterOffset InverterOffset+Number_of_Inverters+1:end]),'kw',(Load(ksim,[1:InverterOffset InverterOffset+Number_of_Inverters+1:end]))); % To convert to KW
+        setLoadInfo(DSSObj,AllLoadNames([1:InverterOffset InverterOffset+Number_of_Inverters+1:end]),'kvar',...
+                    pf_converted*(Load(ksim,[1:InverterOffset InverterOffset+Number_of_Inverters+1:end]))');
     else
         setLoadInfo(DSSObj,AllLoadNames,'kw',(Load(ksim,:))); % To convert to KW
         setLoadInfo(DSSObj,AllLoadNames,'kvar',pf_converted*(Load(ksim,:)));
@@ -356,33 +358,22 @@ legend('Real Power (kW)','Reactive Power (kVAr)')
 xlim([1 length(time)]);
 title('Power From the Substation')
 
-
-
-%%
-% Plot the movement of VBP
-
 f2 = figure(2);
 plot(time,V_vqvp(:,:),'linewidth',1.05)
 ylabel('Per Unit Voltage')
 xlim([1 length(time)]);
 title('Per Unit Voltage')
 
-
 % Plot the movement of VBP
 f3 = figure(3);
 for node=1:Number_of_Inverters
-    plot(time , squeeze(VBP(node,1,:)), time, squeeze(VBP(node,2,:)), ...
-    time, squeeze(VBP(node,3,:)), time, squeeze(VBP(node,4,:)), ...
+    plot(1:501 , squeeze(VBP(node,1,:)), 1:501, squeeze(VBP(node,2,:)), ...
+    1:501, squeeze(VBP(node,3,:)), 1:501, squeeze(VBP(node,4,:)), ...
     'LineWidth',1.5)
     title('Movement of VBP')
     hold on
 end
 xlim([1  501])
-
-figure
-plot(time,V_vqvp(:,:),'linewidth',1.05)
-ylabel('Per Unit Voltage')
-xlim([1 length(time)]);
 
 % Voltage seen at node 8
 f4 = figure(4);
@@ -477,4 +468,3 @@ plot(1:501, InverterReactivePower(:,1) + InverterReactivePowerHacked(:,1), ...
     1:501,InverterReactivePower(:,13) + InverterReactivePowerHacked(:,13), 'LineWidth',1.5)
 title(['Inverter reactive power output for each load - combined (hacked+not hacked)'])
 xlim([3 499])
-
