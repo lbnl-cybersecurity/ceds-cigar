@@ -108,7 +108,7 @@ class TRPO:
             gamma=0.99, delta=0.01, clip_ratio=0.2, pi_lr=3e-4,
             vf_lr=1e-3, damping_coeff=0.1, cg_iters=10, backtrack_iters=10, 
             backtrack_coeff=0.8, train_v_iters=80, lam=0.97,
-            target_kl=0.01, save_freq=10, buff_size=5, algo='npg'):
+            target_kl=0.01, save_freq=10, buff_size=5, algo='trpo'):
         """
 
         Args:

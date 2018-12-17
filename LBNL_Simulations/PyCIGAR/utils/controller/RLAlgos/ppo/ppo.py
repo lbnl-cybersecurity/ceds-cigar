@@ -260,6 +260,7 @@ class PPO:
 
     def update(self):
         inputs = {k:v for k,v in zip(self.all_phs, self.buf.get())}
+        print(inputs)
         pi_l_old, v_l_old, ent = self.sess.run([self.pi_loss, self.v_loss, self.approx_ent], feed_dict=inputs)
 
         # Training

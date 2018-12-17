@@ -6,7 +6,6 @@ Created on Mon Dec 05 09:59:30 2018
 @author: Sy-Toan Ngo
 """
 
-
 import numpy as np
 import tensorflow as tf
 import scipy.signal

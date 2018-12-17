@@ -6,12 +6,12 @@ Created on Mon Dec 05 09:59:30 2018
 """
 
 import numpy as np
-from utils.controller.RLAlgos.ppo.ppo import PPO
+from utils.controller.RLAlgos.ddpg.ddpg import DDPG
 import copy 
 
-class PPOInvController:
+class DDPGInvController:
 
-	controllerType = 'PPOInvController' 
+	controllerType = 'DDPGInvController' 
 	#instance atttributes
 	def __init__(self, time, VBP, delayTimer, device, sess, logger, rl_kwargs=dict()): #kwargs have args for vpg and logger
 		self.logger = logger
@@ -23,7 +23,7 @@ class PPOInvController:
 		self.initVBP = VBP
 		self.reset()
 		#init agent
-		self.ppo = PPO(sess=sess, logger=self.logger, **rl_kwargs)
+		self.ddpg = DDPG(sess=sess, logger=self.logger, **rl_kwargs)
 		
 	# reset internal state of controller
 	def reset(self):
@@ -46,13 +46,14 @@ class PPOInvController:
 			self.VBP[i] = self.initVBP
 
 		self.reward = None
-		self.v_t = None
-		self.logp_t = None
+		self.action = self.initVBP
 		self.done = False
 
 	#preprocessing VGL for state
 	def state_processing(self,V,G,L):
 		state = np.array((V,G,L)).T
+		from sklearn.preprocessing import scale
+		state = scale(state, axis=0)
 		return state
 
 	def act(self,V=0,G=0,L=0):
@@ -65,13 +66,8 @@ class PPOInvController:
 		
 		#when accumulate enough...
 		elif self.VBPCounter == self.delayTimer-1 or self.k == len(self.time)-1: #cutoff delayTimer or end of episode
-			# do training or store into buffer of PPO
+			# do training or store into buffer of DDPG
 			state = self.state_processing(self.prevV, self.prevG, self.prevL)
-			
-			if self.reward and self.v_t and self.logp_t: #skip the first length when state is dummy
-				self.ppo.buf.store(state, self.action, self.reward, self.v_t, self.logp_t)
-				self.ppo.logger.store(VVals=self.v_t)
-			
 			next_state = self.state_processing(self.V, self.G, self.L)
 			self.reward = self.get_reward()
 			
@@ -81,30 +77,35 @@ class PPOInvController:
 			else: 
 				self.done = False
 
-			self.action, self.v_t, self.logp_t = self.sess.run(self.ppo.get_action_ops, feed_dict={self.ppo.x_ph: next_state.reshape([1]+list(self.ppo.obs_dim))})
-			print(self.action)
+			if self.reward: #skip the first length when state is dummy
+				self.ddpg.buf.store(state, self.action, self.reward, next_state, self.done)
+			
+
+			if self.ddpg.warmUp >= self.ddpg.start_steps:
+				self.action = self.sess.run(self.ddpg.pi, feed_dict={self.ddpg.x_ph: next_state.reshape([1]+list(self.ddpg.obs_dim))})
+				print("new action:", self.action)
+
+				self.action += self.ddpg.act_noise * np.random.randn(self.ddpg.act_dim[0])
+				self.action += self.ddpg.act_shift
+				self.action = np.clip(self.action, -self.ddpg.act_limit + self.ddpg.act_shift, self.ddpg.act_limit + self.ddpg.act_shift)
+				print("new action:", self.action)
+			else:
+				self.action = (np.random.randn(self.ddpg.act_dim[0])-1)*self.ddpg.act_limit + self.ddpg.act_shift
+				self.ddpg.warmUp += 1
+
 			#update VBP for future timestep
 			for i in range(self.k, len(self.time)):
 				self.VBP[i] = self.action
 				
-			
+
 			if self.reward:
 				self.ep_ret += self.reward
-			self.ep_len += 1
 
-			if self.done or (self.ep_len == self.ppo.buff_size):
-				if not(self.done):
-					print('Warning: trajectory cut off by epoch at %d steps.'%(self.ep_len*self.delayTimer))
-				# if trajectory didn't reach terminal state, bootstrap value target
-				last_val = self.reward if self.done else self.sess.run(self.ppo.v, feed_dict={self.ppo.x_ph: next_state.reshape([1]+list(self.ppo.obs_dim))})
-				self.ppo.buf.finish_path(last_val)
-				
-				self.ppo.logger.store(EpRet=self.ep_ret, EpLen=self.ep_len)
-				# reset ep_len
-				self.ep_len = 0
-							
-				self.ppo.update()
-				self.ppo.dump_logger()	
+
+			if (self.ddpg.buf.current_size() > self.ddpg.batch_size):
+				print("run update")
+				self.ddpg.update()
+				self.ddpg.dump_logger()	
 		
 			#reset VBPCounter
 			self.VBPCounter = 0 #reset VBP counter
