@@ -70,8 +70,6 @@ class VPGBuffer:
 		self.ret_buf[path_slice] = core.discount_cumsum(rews, self.gamma)[:-1]
 		
 		self.path_start_idx = self.ptr
-		#print("ret_buf: ", self.ret_buf)
-		#print("val_buf: ", self.val_buf)
 
 	def get(self):
 		"""
@@ -84,9 +82,7 @@ class VPGBuffer:
 		# the next two lines implement the advantage normalization trick
 		#adv_mean, adv_std = mpi_statistics_scalar(self.adv_buf)
 		adv_mean, adv_std = np.mean(self.adv_buf), np.std(self.adv_buf)
-		#print(self.adv_buf, end = "\t")
-		#print(adv_mean, end = "\t")
-		#print(adv_std, end = "\t")
+
 		self.adv_buf = (self.adv_buf - adv_mean) / adv_std
 		return [self.obs_buf, self.act_buf, self.adv_buf, 
 				self.ret_buf, self.logp_buf]
@@ -102,7 +98,7 @@ Vanilla Policy Gradient
 class VPG:
 	def __init__(self, sess, logger, obs_dim=(60,3), act_dim=(4,), actor_critic=core.mlp_actor_critic, ac_kwargs=dict(), seed=0,
 		gamma=0.99, pi_lr=3e-4,
-		vf_lr=1e-3, train_v_iters=80, lam=0.97, max_ep_len=1000,
+		vf_lr=1e-3, train_v_iters=80, lam=0.97,
 		save_freq=10, buff_size=5):
 		"""
 
@@ -200,7 +196,7 @@ class VPG:
 		self.v_loss = tf.reduce_mean((self.ret_ph - self.v)**2)
 
 		# Info (useful to watch during learning)
-		self.approx_kl = tf.reduce_mean(self.logp_old_ph - self.logp)	  # a sample estimate for KL-divergence, easy to compute
+		self.approx_kl = tf.reduce_mean(self.logp_old_ph - self.logp)	   # a sample estimate for KL-divergence, easy to compute
 		self.approx_ent = tf.reduce_mean(-self.logp)					   # a sample estimate for entropy, also easy to compute
 
 		# Optimizers

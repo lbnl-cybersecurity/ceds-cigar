@@ -7,6 +7,9 @@ from utils.device.Inverter import Inverter
 from utils.controller.AdaptiveInvController import AdaptiveInvController
 from utils.controller.FixedInvController import FixedInvController
 from utils.controller.VPGInvController import VPGInvController
+from utils.controller.PPOInvController import PPOInvController
+from utils.controller.TRPOInvController import TRPOInvController
+
 import matplotlib.pyplot as plt
 import tensorflow as tf
 from spinup.utils.logx import EpochLogger
@@ -29,6 +32,7 @@ class simulation:
         self.endTime = kwargs['endTime']
         self.addNoise = kwargs['addNoise']
         self.logger_kwargs = kwargs['logger_kwargs']
+
         self.logger_kwargs = setup_logger_kwargs(**self.logger_kwargs)
 
         self.RawLoad, self.RawGeneration, self.TotalLoads, self.AllLoadNames = ReadScenarioFile(self.FileDirectory, self.OpenDSSDirectory)
@@ -184,8 +188,20 @@ class simulation:
                         inv['controller'] = FixedInvController(timeList, VBP = self.initController[i]['VBP'], 
                                                                   device=inv['device'])
                     
-                    if typeController == 'VPGInvController':
+                    elif typeController == 'VPGInvController':
                         inv['controller'] = VPGInvController(timeList, VBP = np.array([1.01, 1.03, 1.03, 1.05]), 
+                                                             delayTimer=self.initController[i]['delayTimer'], 
+                                                             device=inv['device'], 
+                                                             sess=self.sess, logger=self.logger)
+
+                    elif typeController == 'PPOInvController':
+                        inv['controller'] = PPOInvController(timeList, VBP = np.array([1.01, 1.03, 1.03, 1.05]), 
+                                                             delayTimer=self.initController[i]['delayTimer'], 
+                                                             device=inv['device'], 
+                                                             sess=self.sess, logger=self.logger)
+
+                    elif typeController == 'TRPOInvController':
+                        inv['controller'] = TRPOInvController(timeList, VBP = np.array([1.01, 1.03, 1.03, 1.05]), 
                                                              delayTimer=self.initController[i]['delayTimer'], 
                                                              device=inv['device'], 
                                                              sess=self.sess, logger=self.logger)
