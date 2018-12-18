@@ -6,12 +6,12 @@ Created on Mon Dec 05 09:59:30 2018
 """
 
 import numpy as np
-from utils.controller.RLAlgos.ddpg.ddpg import DDPG
+from utils.controller.RLAlgos.td3.td3 import TD3
 import copy 
 
-class DDPGInvController:
+class TD3InvController:
 
-	controllerType = 'DDPGInvController' 
+	controllerType = 'TD3InvController' 
 	#instance atttributes
 	def __init__(self, time, VBP, delayTimer, device, sess, logger, rl_kwargs=dict()): #kwargs have args for vpg and logger
 		self.logger = logger
@@ -23,7 +23,7 @@ class DDPGInvController:
 		self.initVBP = VBP
 		self.reset()
 		#init agent
-		self.ddpg = DDPG(sess=sess, logger=self.logger, **rl_kwargs)
+		self.td3 = TD3(sess=sess, logger=self.logger, **rl_kwargs)
 		
 	# reset internal state of controller
 	def reset(self):
@@ -66,7 +66,7 @@ class DDPGInvController:
 		
 		#when accumulate enough...
 		elif self.VBPCounter == self.delayTimer-1 or self.k == len(self.time)-1: #cutoff delayTimer or end of episode
-			# do training or store into buffer of DDPG
+			# do training or store into buffer of TD3
 			state = self.state_processing(self.prevV, self.prevG, self.prevL)
 			next_state = self.state_processing(self.V, self.G, self.L)
 			self.reward = self.get_reward()
@@ -78,20 +78,20 @@ class DDPGInvController:
 				self.done = False
 
 			if self.reward: #skip the first length when state is dummy
-				self.ddpg.buf.store(state, self.action - self.ddpg.act_shift, self.reward, next_state, self.done)
+				self.td3.buf.store(state, self.action - self.td3.act_shift, self.reward, next_state, self.done)
 			
 
-			if self.ddpg.warmUp >= self.ddpg.start_steps:
-				self.action = self.sess.run(self.ddpg.pi, feed_dict={self.ddpg.x_ph: next_state.reshape([1]+list(self.ddpg.obs_dim))})
+			if self.td3.warmUp >= self.td3.start_steps:
+				self.action = self.sess.run(self.td3.pi, feed_dict={self.td3.x_ph: next_state.reshape([1]+list(self.td3.obs_dim))})
 				print("new action:", self.action)
 
-				self.action += self.ddpg.act_noise * np.random.randn(self.ddpg.act_dim[0])
-				self.action += self.ddpg.act_shift
-				self.action = np.clip(self.action, -self.ddpg.act_limit + self.ddpg.act_shift, self.ddpg.act_limit + self.ddpg.act_shift)
+				self.action += self.td3.act_noise * np.random.randn(self.td3.act_dim[0])
+				self.action += self.td3.act_shift
+				self.action = np.clip(self.action, -self.td3.act_limit + self.td3.act_shift, self.td3.act_limit + self.td3.act_shift)
 				print("new action:", self.action)
 			else:
-				self.action = (np.random.randn(self.ddpg.act_dim[0])-1)*self.ddpg.act_limit + self.ddpg.act_shift
-				self.ddpg.warmUp += 1
+				self.action = (np.random.randn(self.td3.act_dim[0])-1)*self.td3.act_limit + self.td3.act_shift
+				self.td3.warmUp += 1
 
 			#update VBP for future timestep
 			for i in range(self.k, len(self.time)):
@@ -102,10 +102,10 @@ class DDPGInvController:
 				self.ep_ret += self.reward
 
 
-			if (self.ddpg.buf.current_size() > self.ddpg.batch_size):
+			if (self.td3.buf.current_size() > self.td3.batch_size):
 				print("run update")
-				self.ddpg.update()
-				self.ddpg.dump_logger()	
+				self.td3.update()
+				self.td3.dump_logger()	
 		
 			#reset VBPCounter
 			self.VBPCounter = 0 #reset VBP counter
