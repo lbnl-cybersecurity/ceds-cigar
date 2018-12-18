@@ -6,11 +6,11 @@ from utils.openDSS.getInfo_linux import *
 from utils.device.Inverter import Inverter
 from utils.controller.AdaptiveInvController import AdaptiveInvController
 from utils.controller.FixedInvController import FixedInvController
-from utils.controller.VPGInvController import VPGInvController
-from utils.controller.PPOInvController import PPOInvController
-from utils.controller.TRPOInvController import TRPOInvController
-from utils.controller.DDPGInvController import DDPGInvController
-from utils.controller.TD3InvController import TD3InvController
+from utils.controller.RLController.VPGInvController import VPGInvController
+from utils.controller.RLController.PPOInvController import PPOInvController
+from utils.controller.RLController.TRPOInvController import TRPOInvController
+from utils.controller.RLController.DDPGInvController import DDPGInvController
+from utils.controller.RLController.TD3InvController import TD3InvController
 
 import matplotlib.pyplot as plt
 import tensorflow as tf

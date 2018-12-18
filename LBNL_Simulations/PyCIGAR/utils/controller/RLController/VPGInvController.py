@@ -7,13 +7,14 @@ Created on Mon Dec 05 09:59:30 2018
 
 import numpy as np
 from utils.controller.RLAlgos.vpg.vpg import VPG
+import copy 
 
 class VPGInvController:
 
 	controllerType = 'VPGInvController' 
 	#instance atttributes
-	def __init__(self, time, VBP, delayTimer, device, sess, logger_kwargs=dict(), rl_kwargs=dict()): #kwargs have args for vpg and logger
-		self.logger_kwargs = logger_kwargs
+	def __init__(self, time, VBP, delayTimer, device, sess, logger, rl_kwargs=dict()): #kwargs have args for vpg and logger
+		self.logger = logger
 		self.sess = sess
 		self.time = time
 		self.delT = time[1] - time[0]
@@ -21,10 +22,9 @@ class VPGInvController:
 		self.delayTimer = delayTimer
 		self.initVBP = VBP
 		self.reset()
-		
 		#init agent
-		self.vpg = VPG(sess=sess, logger_kwargs=self.logger_kwargs, **rl_kwargs)
-	
+		self.vpg = VPG(sess=sess, logger=self.logger, **rl_kwargs)
+		
 	# reset internal state of controller
 	def reset(self):
 		self.V = np.zeros(self.delayTimer)
@@ -48,6 +48,7 @@ class VPGInvController:
 		self.reward = None
 		self.v_t = None
 		self.logp_t = None
+		self.done = False
 
 	#preprocessing VGL for state
 	def state_processing(self,V,G,L):
@@ -56,7 +57,7 @@ class VPGInvController:
 
 	def act(self,V=0,G=0,L=0):
 		#accumulate VGL into a sequence
-		if self.VBPCounter < self.delayTimer-1:
+		if self.VBPCounter < self.delayTimer-1 and self.k != len(self.time)-1:
 			self.V[self.VBPCounter] = V
 			self.G[self.VBPCounter] = G
 			self.L[self.VBPCounter] = L
@@ -67,10 +68,7 @@ class VPGInvController:
 			# do training or store into buffer of VPG
 			state = self.state_processing(self.prevV, self.prevG, self.prevL)
 			
-			print("reward: ", self.reward, end="\t")
-            print("reward: ", self.v_t, end="\t")
-            print("reward: ", self.logp_t, end="\t")
-            if self.reward != None and self.v_t != None and self.logp_t != None: #skip the first length when state is dummy
+			if self.reward and self.v_t and self.logp_t: #skip the first length when state is dummy
 				self.vpg.buf.store(state, self.action, self.reward, self.v_t, self.logp_t)
 				self.vpg.logger.store(VVals=self.v_t)
 			
@@ -79,34 +77,33 @@ class VPGInvController:
 			
 			#end of episode
 			if self.k == len(self.time)-1:
-				done = True
+				self.done = True
 			else: 
-				done = False
-			
+				self.done = False
+
 			self.action, self.v_t, self.logp_t = self.sess.run(self.vpg.get_action_ops, feed_dict={self.vpg.x_ph: next_state.reshape([1]+list(self.vpg.obs_dim))})
 			#update VBP for future timestep
 			for i in range(self.k, len(self.time)):
 				self.VBP[i] = self.action
 				
 
-			self.ep_ret += self.reward
+			if self.reward:
+				self.ep_ret += self.reward
 			self.ep_len += 1
 
-			if done or (self.ep_len == self.vpg.buff_size-1):
-				if not(done):
-					print('Warning: trajectory cut off by epoch at %d steps.'%self.ep_len*self.VBPCounter)
+			if self.done or (self.ep_len == self.vpg.buff_size):
+				if not(self.done):
+					print('Warning: trajectory cut off by epoch at %d steps.'%(self.ep_len*self.delayTimer))
 				# if trajectory didn't reach terminal state, bootstrap value target
 				last_val = self.reward if self.done else self.sess.run(self.vpg.v, feed_dict={self.vpg.x_ph: next_state.reshape([1]+list(self.vpg.obs_dim))})
 				self.vpg.buf.finish_path(last_val)
+				
+				self.vpg.logger.store(EpRet=self.ep_ret, EpLen=self.ep_len)
 				# reset ep_len
 				self.ep_len = 0
-				
-				if done:
-					# only save EpRet / EpLen if trajectory finished
-					self.logger.store(EpRet=self.ep_ret, EpLen=self.ep_len)
-				#update agent
+							
 				self.vpg.update()
-				self.vpg.logger.dump_logger()	
+				self.vpg.dump_logger()	
 		
 			#reset VBPCounter
 			self.VBPCounter = 0 #reset VBP counter
@@ -116,13 +113,13 @@ class VPGInvController:
 		 
 		
 		self.k += 1
-		
-		return self.VBP[self.k-1,:]
 
 	def get_reward(self):
 		rawy = self.device.get_info_rl(self.delayTimer)
+		#print(rawy)
 		y = -np.sum(rawy**2)/1000
+		return y
 
 	def get_VBP(self):
-		return self.VBP[self.k-1,:]
+		return self.VBP[self.k,:]
 
