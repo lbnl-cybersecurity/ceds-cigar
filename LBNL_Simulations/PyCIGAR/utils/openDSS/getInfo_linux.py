@@ -28,62 +28,62 @@ def getLoadInfo(DSSObj,loadname):
     return LoadList
 
 def getCapInfo(DSSObj,capname):
-    DSSCircuit = DSSObj.ActiveCircuit
-    Capacitors=DSSCircuit.Capacitors
+    
+    Capacitors=DSSObj.Capacitors
     if (len(capname)==0):
-        capname=Capacitors.AllNames
+        capname=Capacitors.AllNames()
         if (len(capname)==0):
             print('The Complied model does not have any capacitors.')
             return 0
     CapList=[]
     for row in range(len(capname)):
         capdict = {}
-        Capacitors.name=capname[row]
-        capdict['kvar']=Capacitors.kvar
-        capdict['kv'] = Capacitors.kv
-        capdict['numsteps'] = Capacitors.NumSteps
-        capdict['states']=Capacitors.States
-        capdict['name'] = Capacitors.Name
+        Capacitors.Name(capname[row])
+        capdict['kvar']=Capacitors.kvar()
+        capdict['kv'] = Capacitors.kv()
+        capdict['numsteps'] = Capacitors.NumSteps()
+        capdict['states']=Capacitors.States()
+        capdict['name'] = Capacitors.Name()
         CapList.append(capdict)
     return CapList
 
 
 def getCapControlInfo (DSSObj,capcontrolname):
-    DSSCircuit=DSSObj.ActiveCircuit
-    CapControls=DSSCircuit.CapControls
+#    DSSCircuit=DSSObj.ActiveCircuit
+    CapControls=DSSObj.CapControls
     if (len(capcontrolname)==0):
-        capcontrolname=CapControls.AllNames
+        capcontrolname=CapControls.AllNames()
         if (len(capcontrolname)==0):
             print('The Compiled Model does not have any capacitor control objects.')
             return 0
     CapControlList=[]
     for row in range(len(capcontrolname)):
         capcontroldict={}
-        CapControls.name=capcontrolname[row]
-        capcontroldict['ptratio']=CapControls.PTratio
-        capcontroldict['ctratio'] = CapControls.CTratio
-        capcontroldict['onsetting'] = CapControls.ONSetting
-        capcontroldict['offsetting'] = CapControls.OFFSetting
-        capcontroldict['delay'] = CapControls.Delay
-        capcontroldict['delayoff'] = CapControls.DelayOff
-        capcontroldict['deadtime'] = CapControls.DeadTime
-        capcontroldict['vmax'] = CapControls.Vmax
-        capcontroldict['vmin'] = CapControls.Vmin
-        capcontroldict['capacitor'] = CapControls.Capacitor
-        capcontroldict['monitoredobj'] = CapControls.MonitoredObj
-        capcontroldict['monitoredterm'] = CapControls.MonitoredTerm
-        capcontroldict['name'] = CapControls.Name
-        DSSCircuit.SetActiveElement('CapControl.'+CapControls.Name)
-        capcontroldict['enabled']=DSSCircuit.ActiveElement.Enabled
+        CapControls.Name(capcontrolname[row])
+        capcontroldict['ptratio']=CapControls.PTratio()
+        capcontroldict['ctratio'] = CapControls.CTratio()
+        capcontroldict['onsetting'] = CapControls.ONSetting()
+        capcontroldict['offsetting'] = CapControls.OFFSetting()
+        capcontroldict['delay'] = CapControls.Delay()
+        capcontroldict['delayoff'] = CapControls.DelayOff()
+        capcontroldict['deadtime'] = CapControls.DeadTime()
+        capcontroldict['vmax'] = CapControls.Vmax()
+        capcontroldict['vmin'] = CapControls.Vmin()
+        capcontroldict['capacitor'] = CapControls.Capacitor()
+        capcontroldict['monitoredobj'] = CapControls.MonitoredObj()
+        capcontroldict['monitoredterm'] = CapControls.MonitoredTerm()
+        capcontroldict['name'] = CapControls.Name()
+        DSSObj.CktElement.Name='CapControl.'+CapControls.Name
+        capcontroldict['enabled']=DSSObj.CktElement.Enabled
         CapControlList.append(capcontroldict)
     return CapControlList
 
 
 def getRegInfo(DSSObj,regname):
-    DSSCircuit = DSSObj.ActiveCircuit
-    regcontrols = DSSCircuit.RegControls
+#    DSSCircuit = DSSObj.ActiveCircuit
+    regcontrols = DSSObj.RegControls
     if (len(regname)==0):
-        regname= regcontrols.AllNames
+        regname= regcontrols.AllNames()
         if (len(regname)==0):
             print('The Compiled Model Does not Have any Regulators.')
             return 0
@@ -97,43 +97,43 @@ def getRegInfo(DSSObj,regname):
         regdict['tapnumber'] = regcontrols.TapNumber
         regdict['transformer'] = regcontrols.Transformer
         regdict['name'] = regcontrols.name
-        DSSCircuit.SetActiveElement('RegControl.' + regcontrols.Name)
-        regdict['enabled'] =DSSCircuit.ActiveElement.Enabled
+        DSSObj.CktElement.Name='RegControl.' + regcontrols.Name
+        regdict['enabled'] = DSSObj.CktElement.Enabled
         RegList.append(regdict)
     return RegList
 
 
 def getLineInfo(DSSObj,linename):
-    DSSCircuit = DSSObj.ActiveCircuit
-    Lines = DSSCircuit.Lines
+#    DSSCircuit = DSSObj.ActiveCircuit
+    Lines = DSSObj.Lines
     if (len(linename)==0):
-        linename=DSSCircuit.Lines.AllNames
+        linename=Lines.AllNames()
         if (len(linename)==0):
             print('The Compiled Model Does not Have any Line.')
             return 0
     LineList=[]
     for row in range(len(linename)):
         linedict={}
-        Lines.name=linename[row]
-        linedict['r1']=Lines.R1
+        Lines.Name(linename[row])
+        linedict['r1']=Lines.R1()
         linedict['name']=linename[row]
-        linedict['x1']=Lines.X1
-        linedict['length']=Lines.length
-        DSSCircuit.SetActiveElement('line.'+linename[row])
-        lineBusNames = DSSCircuit.ActiveElement.BusNames
+        linedict['x1']=Lines.X1()
+        linedict['length']=Lines.Length()
+        DSSObj.CktElement.Name='line.'+linename[row]
+        lineBusNames = DSSObj.CktElement.BusNames()
         linedict['bus1'] = lineBusNames[0]
         linedict['bus2'] = lineBusNames[1]
-        linedict['enabled']=DSSCircuit.ActiveElement.Enabled
-        if (not DSSCircuit.ActiveElement.Enabled):
-            continue
-        power = np.asarray(DSSCircuit.ActiveCktElement.Powers)
+        linedict['enabled']=DSSObj.CktElement.Enabled
+#        if (not DSSObj.CktElement.Enabled):
+#            continue
+        power = np.asarray(DSSObj.CktElement.Powers())
         bus1power = power[0: (int)(len(power) / 2)]
         bus2power = power[(int)(len(power) / 2):]
         bus1powerreal=bus1power[0::2]
         bus1powerrective = bus1power[1::2]
         bus2powerreal = bus2power[0::2]
         bus2powerrective = bus2power[1::2]
-        numofphases = DSSCircuit.ActiveElement.NumPhases
+        numofphases = DSSObj.CktElement.NumPhases()
         linedict['numofphases'] = numofphases
         phaseinfo = np.asarray(['.1' in lineBusNames[0], '.2' in lineBusNames[0], '.3' in lineBusNames[0]])
         if (numofphases==3):
@@ -173,7 +173,7 @@ def getLineInfo(DSSObj,linename):
 def getBusInfo(DSSObj,busname):
     DSSCircuit = DSSObj.ActiveCircuit
     if (len(busname)==0):
-        busname=DSSCircuit.AllBusNames
+        busname=DSSCircuit.AllBusNames()
     BusList=[]
     for row in range(len(busname)):
         busdict={}
@@ -192,8 +192,8 @@ def getBusInfo(DSSObj,busname):
     return BusList
 
 def getXYCurveInfo(DSSObj,xycurvename):
-    DSSCircuit = DSSObj.ActiveCircuit
-    XYCurves = DSSCircuit.XYCurves
+#    DSSCircuit = DSSObj.ActiveCircuit
+    XYCurves = DSSObj.XYCurves
     XYCurveList=[]
     if (XYCurves.Count==0):
         return XYCurveList
