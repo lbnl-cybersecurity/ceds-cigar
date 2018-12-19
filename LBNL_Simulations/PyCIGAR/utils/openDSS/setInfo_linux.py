@@ -34,14 +34,46 @@ def setLoadInfo(DSSObj,loadname,property,value,NameChecker=0):
     return DSSObj,True
 
 
+	
+def setLineInfo(DSSObj,linename,property,value,NameChecker=0):
+    try:
+        property=property.lower()
+    except:
+        print('String Expected')
+        return DSSObj,False
+
+    Lines = DSSObj.Lines
+
+    if (NameChecker !=0):
+        AllLineNames = Lines.AllNames()
+        match_values = 0
+        for i in range(len(linename)):
+            if any(linename[i] in item for item in AllLineNames):
+                match_values+=1
+        if match_values != len(linename):
+            print('Line Not Found')
+            return DSSObj,False
+    if (len(linename) != len(value)):
+        return DSSObj,False
+    for counter in range(len(value)):
+        Lines.Name(linename[counter])
+        if (property=='enabled'):
+            DSSObj.ActiveCircuit.SetActiveElement(linename[counter])
+            DSSObj.ActiveCircuit.ActiveElement.Enabled = value[counter]
+        
+        else:
+            print('Property Not Found')
+            return DSSObj,False
+    return DSSObj,True	
+	
 def setCapInfo(DSSObj,capname,property,value,NameChecker=0):
     try:
         property = property.lower()
     except:
         print('String Expected')
         return DSSObj, False
-    DSSCircuit = DSSObj.ActiveCircuit
-    Caps=DSSCircuit.Capacitors
+    
+    Caps=DSSObj.Capacitors
 
     if (NameChecker !=0):
         AllCapNames = Caps.AllNames
@@ -75,8 +107,9 @@ def setCapControlInfo(DSSObj,capcontrolname,property,value,NameChecker=0):
     except:
         print('String Expected')
         return DSSObj, False
-    DSSCircuit = DSSObj.ActiveCircuit
-    CapControls = DSSCircuit.CapControls
+    
+    CapControls = DSSObj.CapControls
+    
     if (NameChecker !=0):
         AllCapControlNames = CapControls.AllNames
         match_values = 0
@@ -158,8 +191,8 @@ def setRegInfo(DSSObj,regname,property,value,NameChecker=0):
         print('String Expected')
         return DSSObj,False
 
-    DSSCircuit = DSSObj.ActiveCircuit
-    regcontrols = DSSCircuit.RegControls
+    
+    regcontrols = DSSObj.RegControls
     DSSText = DSSObj.Text
     if (NameChecker !=0):
         AllRegNames = regcontrols.AllNames
@@ -203,8 +236,8 @@ def setRegInfo(DSSObj,regname,property,value,NameChecker=0):
     return DSSObj,True
 
 def setXYCurveInfo(DSSObj,xycurvename,value,NameChecker=0):
-    DSSCircuit = DSSObj.ActiveCircuit
-    XYCurves = DSSCircuit.XYCurves
+    
+    XYCurves = DSSObj.XYCurves
     if (XYCurves.Count==0):
         print('No XYCurve Found in the OpenDSS Model.')
         return DSSObj, False
