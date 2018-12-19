@@ -11,6 +11,7 @@ from utils.controller.RLController.PPOInvController import PPOInvController
 from utils.controller.RLController.TRPOInvController import TRPOInvController
 from utils.controller.RLController.DDPGInvController import DDPGInvController
 from utils.controller.RLController.TD3InvController import TD3InvController
+from utils.controller.RLController.SACInvController import SACInvController
 
 import matplotlib.pyplot as plt
 import tensorflow as tf
@@ -216,6 +217,12 @@ class simulation:
 
                     elif typeController == 'TD3InvController':
                         inv['controller'] = TD3InvController(timeList, VBP = np.array([1.01, 1.03, 1.03, 1.05]), 
+                                                             delayTimer=self.initController[i]['delayTimer'], 
+                                                             device=inv['device'], 
+                                                             sess=self.sess, logger=self.logger)
+
+                    elif typeController == 'SACInvController':
+                        inv['controller'] = SACInvController(timeList, VBP = np.array([1.01, 1.03, 1.03, 1.05]), 
                                                              delayTimer=self.initController[i]['delayTimer'], 
                                                              device=inv['device'], 
                                                              sess=self.sess, logger=self.logger)
