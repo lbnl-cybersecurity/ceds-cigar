@@ -34,7 +34,6 @@ def setLoadInfo(DSSObj,loadname,property,value,NameChecker=0):
             return DSSObj,False
     return DSSObj,True
 
-
 def setCapInfo(DSSObj,capname,property,value,NameChecker=0):
     try:
         property = property.lower()

@@ -57,8 +57,11 @@ for counter= 1:length(value)
     Lines.Name=linename{counter};
     switch property
         case 'enabled' 
-            DSSObj.ActiveCircuit.SetActiveElement(linename{counter});
-            DSSObj.ActiveCircuit.ActiveElement.Enabled = value(counter);
+%             if (value(counter))==0
+%                 DSSText.Command=strcat('open line.',linename{counter},' term=1');
+%             else
+%                 DSSText.Command=strcat('close line.',linename{counter},' term=1');
+%             end
         otherwise
             warning ('No Property Matched')
     end

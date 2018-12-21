@@ -58,6 +58,7 @@ end
 for counter= 1:length(value)
     regcontrols.Name=regname{counter};
     switch property
+%         case 'band'
         case 'maxtapchange'
             regcontrols.MaxTapChange=value(counter);
             boolean=1;

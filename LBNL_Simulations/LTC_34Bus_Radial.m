@@ -1,6 +1,6 @@
 clc;
 clear;
-close all;
+% close all;
 
 %% Load the components related to OpenDSS
 [DSSObj, DSSText, gridpvpath] = DSSStartup;
@@ -15,13 +15,22 @@ DSSText.command = 'Compile C:\feeders\34BusLTC\Radial34Bus.dss';
 % DSSText.command ='New InvControl.InvPVCtrl Combimode = VV_VW voltage_curvex_ref= rated vvc_curve1= vv_curve VV_RefReactivePower=VARAVAIL_WATTS EventLog= yes voltwatt_curve=vw_curve VoltageChangeTolerance=0.001 deltaP_factor=0.5';
 % DSSText.command ='New InvControl.InvPVCtrl mode=VOLTWATT voltage_curvex_ref=rated  EventLog=yes  deltaP_factor=0.7 VarChangeTolerance=0.5  VoltageChangeTolerance=0.1 VV_RefReactivePower=VARAVAL_WATTS voltwatt_curve=vw_curve';
 
-% DSSText.command='BatchEdit PVSystem..* pctpmpp=100';
-% DSSText.command='BatchEdit InvControl..* enabled=Yes';
-% DSSText.command='BatchEdit RegControl..* enabled= Yes';
+DSSText.command='BatchEdit PVSystem..* pctpmpp=100';
+DSSText.command='BatchEdit InvControl..* enabled=Yes';
+DSSText.command='BatchEdit RegControl..* enabled= Yes';
+
+% Check the regulator value 
+x=getRegInfo(DSSObj);
+fprintf('Current Max Tap Change : %d\n',x.MaxTapChange);
 
 
+%%
+%  Set the regulator info; remember the band value can not be changed
+%  through the COM Object
+setRegInfo(DSSObj,{'ltc-t_02'}, 'maxtapchange',1);
 setSolutionParams(DSSObj,'daily',1440,60,'static',1000000,30000);
 DSSSolution.Solve();
+
 
 
 %% Plotting Monitors Data

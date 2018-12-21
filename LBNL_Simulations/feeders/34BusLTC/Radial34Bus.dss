@@ -32,22 +32,14 @@ New "XYCurve.solar 02 Efficiency Curve" npts=4 Xarray=[0.1 0.2 0.4 1] Yarray=[0.
 New "PVSystem.solar 02" Bus1="solar 02.1.2.3.0" phases=3 enabled=Yes Conn="wye" kV=24.9 kVA=300 irradiance=1  Pmpp=250 Temperature=25 EffCurve="solar 02 Efficiency Curve" P-TCurve="solar 02 PowerTemp Curve" %cutin=10 %cutout=10 VarFollowInverter=False Daily="LS-Canada_irradiance" TDaily="LS-Canada_temperature"
 
 // Loads and motors
-New "Load.DL_82034" Bus1="DL_82034.1.2.3.0" phases=3 Conn="wye" kV=24.9 kVA=114.09395973 Pf=0.894 VminPU=0.95 Model=2 Daily="LS-load_611"
+New "Load.DL_82034" Bus1="DL_82034.1.2.3.0" phases=3 Conn="wye" kV=24.9 kVA=144.09395973 Pf=0.894 VminPU=0.95 Model=2 Daily="LS-load_611"
 New "Load.DLoad_806m" Bus1="DLoad_806m.1.2.3.0" phases=3 Conn="wye" kV=24.9 kVA=90.60402685 Pf=0.894 VminPU=0.95 Model=1 Daily="LS-load_611"
 New "Load.DLoad_822" Bus1="DLoad_822.1.2.3.0" phases=3 Conn="wye" kV=24.9 kVA=228.29763247 Pf=0.887 VminPU=0.95 Model=1 Daily="LS-load_611"
 New "Load.DLoad_822m" Bus1="DLoad_822m.1.2.3.0" phases=3 Conn="wye" kV=24.9 kVA=228.29763247 Pf=0.887 VminPU=0.95 Model=1 Daily="LS-load_611"
-New "Load.DLoad_824" Bus1="DLoad_824.1.2.3.0" phases=3 Conn="wye" kV=24.9 kVA=16.1637931 Pf=0.928 VminPU=0.95 Model=5 Daily="LS-load_634"
+New "Load.DLoad_824" Bus1="DLoad_824.1.2.3.0" phases=3 Conn="wye" kV=24.9 kVA=46.1637931 Pf=0.928 VminPU=0.95 Model=5 Daily="LS-load_634"
 New "Load.DLoad_826" Bus1="DLoad_826.1.2.3.0" phases=3 Conn="wye" kV=24.9 kVA=67.11409396 Pf=0.894 VminPU=0.95 Model=5  Daily="LS-load_634"
 New "Load.DLoad_826m" Bus1="DLoad_826m.1.2.3.0" phases=3 Conn="wye" kV=24.9 kVA=67.11409396 Pf=0.894 VminPU=0.95 Model=5 Daily="LS-load_634"
 
-
-//New "Load.DL_82034" Bus1="DL_82034.1.2.3.0" phases=3 Conn="wye" kV=24.9 kVA=114.09395973 Pf=0.894 VminPU=0.95 Model=2 Daily="LS-load_611"
-//New "Load.DLoad_806m" Bus1="DLoad_806m.1.2.3.0" phases=3 Conn="wye" kV=24.9 kVA=90.60402685 Pf=0.894 VminPU=0.95 Model=1 Daily="LS-load_611"
-//New "Load.DLoad_822" Bus1="DLoad_822.1.2.3.0" phases=3 Conn="wye" kV=24.9 kVA=228.29763247 Pf=0.887 VminPU=0.95 Model=1 Daily="LS-load_611"
-//New "Load.DLoad_822m" Bus1="DLoad_822m.1.2.3.0" phases=3 Conn="wye" kV=24.9 kVA=228.29763247 Pf=0.887 VminPU=0.95 Model=1 Daily="LS-load_611"
-//New "Load.DLoad_824" Bus1="DLoad_824.1.2.3.0" phases=3 Conn="wye" kV=24.9 kVA=16.1637931 Pf=0.928 VminPU=0.95 Model=5 Daily="LS-load_611"
-//New "Load.DLoad_826" Bus1="DLoad_826.1.2.3.0" phases=3 Conn="wye" kV=24.9 kVA=67.11409396 Pf=0.894 VminPU=0.95 Model=5 Daily="LS-load_611"
-//New "Load.DLoad_826m" Bus1="DLoad_826m.1.2.3.0" phases=3 Conn="wye" kV=24.9 kVA=67.11409396 Pf=0.894 VminPU=0.95 Model=5 Daily="LS-load_611"
 
 // Linecodes
 New "Linecode.LC-custom_b166a9bc-3829-4cfe-bdbf-719cc1f2305e" nphases=3 R1=0.2514 X1=0.2544 R0=0.2514 X0=0.2544 Units="kft" Normamps=260
@@ -104,26 +96,22 @@ New "Transformer.t 02" phases=3 Windings=2 XHL=5.63833889 %LoadLoss=1.12766778
 
 
 // Transformer Load Tap Change (LTC) controls
-New "RegControl.LTC-t 02" Transformer="t 02" winding=2 vreg=122 ptratio=117.84 band=3 Bus="bus_850.1.2.3" inversetime=Yes
+New "RegControl.LTC-t_02" Transformer="t 02" winding=2 vreg=122 ptratio=117.84 band=1 Bus="bus_850.1.2.3" debugtrace=Yes EventLog =Yes maxtapchange=16
+
 
 
 New XYCurve.vv_curve npts=4 Yarray = (1,1,-1,-1) XArray= (0.5,0.95,1.05,1.5)
-New XYCurve.vv_curve_deadband npts=6 Yarray = (1,1,0,0,-1,-1) XArray= (0.5,0.95,,0.98,1.02,1.05,1.5)
-New XYCurve.vw_curve npts=4 Yarray = (1,1,0,0) XArray= (0.0,1.0,1.05,1.5)
-//New InvControl.InvPVCtrl Combimode = VV_VW voltage_curvex_ref= rated vvc_curve1= vv_curve VV_RefReactivePower=VARAVAIL_WATTS EventLog= yes voltwatt_curve=vw_curve VoltageChangeTolerance=0.001 deltaP_factor=0.5
+New XYCurve.vw_curve npts=4 Yarray = (1,1,0,0) XArray= (0.0,1.0,1.02,1.05)
+New InvControl.InvPVCtrl Combimode = VV_VW voltage_curvex_ref= rated vvc_curve1= vv_curve VV_RefReactivePower=VARAVAIL_WATTS voltwatt_curve=vw_curve VoltageChangeTolerance=0.001 deltaP_factor=0.5 deltaQ_factor=0.3 EventLog= yes 
 
 
-//New XYCurve.vv_curve_mod npts=4 Yarray=(1.0,1.0,-1.0,-1.0)   XArray=(0.5,1.01,10.10,1.5) 
-New InvControl.InvPVCtrl mode=VOLTVAR voltage_curvex_ref=rated  vvc_curve1=vv_curve EventLog=yes  deltaQ_factor=0.3 VarChangeTolerance=0.05   VoltageChangeTolerance=0.001 VV_RefReactivePower=VARAVAL_WATTS
-//New InvControl.InvPVCtrl mode=VOLTWATT voltage_curvex_ref=rated enabled= No EventLog=yes  deltaP_factor=0.7 VarChangeTolerance=0.5  VoltageChangeTolerance=0.1 VV_RefReactivePower=VARAVAL_WATTS voltwatt_curve=vw_curve
-
-BatchEdit PVSystem..* pctpmpp=100
-BatchEdit RegControl..* enabled= Yes
-BatchEdit InvControl..* enabled=Yes
+//BatchEdit PVSystem..* pctpmpp=100
+//BatchEdit RegControl..* enabled= Yes
+//BatchEdit InvControl..* enabled=Yes
 
 New "Monitor.tapMonitor" Element="Transformer.t 02" terminal=2 mode=2
-New "Monitor.tapvoltage" Element="Transformer.t 02" terminal=2 mode=1 PPolar=False baseFreq=60
-New "Monitor.solar_01" Element="PVSystem.solar 01" Terminal=1 mode=1 PPolar=False baseFreq=60
+New "Monitor.tapvoltage" Element="Transformer.t 02" terminal=2 mode=0 PPolar=False baseFreq=60
+New "Monitor.solar 01" Element="PVSystem.solar 01" Terminal=1 mode=1 PPolar=False baseFreq=60
 New "Monitor.solar 02" Element="PVSystem.solar 02" Terminal=1 mode=1 PPolar=False baseFreq=60
 New "Monitor.solar 01 VI" Element="Line.solar 01" Terminal=2 mode=0 PPolar=True baseFreq=60
 New "Monitor.Subt_01" Element="Transformer.Subt_01" Terminal=1 mode=1 PPolar=False baseFreq=60
@@ -143,12 +131,11 @@ Set DIVerbose=True
 CloseDI
 
 
-
-plot monitor object = "tapmonitor" channels=(1) 
-plot monitor object = "solar_01" channels (1)
-plot monitor object = "solar_01" channels (4)
+//plot monitor object = "tapvoltage" channels=(1) base=(14376)
+//plot monitor object = "tapmonitor" channels=(1) 
+//plot monitor object = "solar_01" channels (1)
+//plot monitor object = "solar_01" channels (4)
 //plot monitor object = "Subt_01" channels (1,2)
 //plot monitor object="solar 01 VI" channels=(1) base=(14376)
 
 
-C:\feeders\34Bus Regulator\simulation.dss
