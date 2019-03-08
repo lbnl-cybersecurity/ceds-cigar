@@ -7,11 +7,21 @@ from utils.device.Inverter import Inverter
 from utils.controller.AdaptiveInvController import AdaptiveInvController
 from utils.controller.FixedInvController import FixedInvController
 <<<<<<< HEAD
+<<<<<<< HEAD
 
 #from utils.controller.VPGInvController import VPGInvController
 import matplotlib.pyplot as plt
 
 from utils.controller.VPGInvController import VPGInvController
+=======
+from utils.controller.RLController.VPGInvController import VPGInvController
+from utils.controller.RLController.PPOInvController import PPOInvController
+from utils.controller.RLController.TRPOInvController import TRPOInvController
+from utils.controller.RLController.DDPGInvController import DDPGInvController
+from utils.controller.RLController.TD3InvController import TD3InvController
+from utils.controller.RLController.SACInvController import SACInvController
+
+>>>>>>> toan_dev
 import matplotlib.pyplot as plt
 import tensorflow as tf
 from spinup.utils.logx import EpochLogger
@@ -57,6 +67,7 @@ class simulation:
         Load, Generation = ScenarioInterpolation(startTime, endTime, self.RawLoad, self.RawGeneration)
 
         self.logger_kwargs = kwargs['logger_kwargs']
+
         self.logger_kwargs = setup_logger_kwargs(**self.logger_kwargs)
 
         self.RawLoad, self.RawGeneration, self.TotalLoads, self.AllLoadNames = ReadScenarioFile(self.FileDirectory, self.OpenDSSDirectory)
@@ -231,6 +242,7 @@ class simulation:
                         inv['controller'] = FixedInvController(timeList, VBP = self.initController[i]['VBP'], 
                                                                   device=inv['device'])
                     
+<<<<<<< HEAD
 
                     #if i == 7:
                     #    inv['controller'] = VPGInvController(timeList, VBP = np.array([1.01, 1.03, 1.03, 1.05]), 
@@ -243,7 +255,40 @@ class simulation:
             self.init = False
 
                     if typeController == 'VPGInvController':
+=======
+                    elif typeController == 'VPGInvController':
+>>>>>>> toan_dev
                         inv['controller'] = VPGInvController(timeList, VBP = np.array([1.01, 1.03, 1.03, 1.05]), 
+                                                             delayTimer=self.initController[i]['delayTimer'], 
+                                                             device=inv['device'], 
+                                                             sess=self.sess, logger=self.logger)
+
+                    elif typeController == 'PPOInvController':
+                        inv['controller'] = PPOInvController(timeList, VBP = np.array([1.01, 1.03, 1.03, 1.05]), 
+                                                             delayTimer=self.initController[i]['delayTimer'], 
+                                                             device=inv['device'], 
+                                                             sess=self.sess, logger=self.logger)
+
+                    elif typeController == 'TRPOInvController':
+                        inv['controller'] = TRPOInvController(timeList, VBP = np.array([1.01, 1.03, 1.03, 1.05]), 
+                                                             delayTimer=self.initController[i]['delayTimer'], 
+                                                             device=inv['device'], 
+                                                             sess=self.sess, logger=self.logger)
+
+                    elif typeController == 'DDPGInvController':
+                        inv['controller'] = DDPGInvController(timeList, VBP = np.array([1.01, 1.03, 1.03, 1.05]), 
+                                                             delayTimer=self.initController[i]['delayTimer'], 
+                                                             device=inv['device'], 
+                                                             sess=self.sess, logger=self.logger)
+
+                    elif typeController == 'TD3InvController':
+                        inv['controller'] = TD3InvController(timeList, VBP = np.array([1.01, 1.03, 1.03, 1.05]), 
+                                                             delayTimer=self.initController[i]['delayTimer'], 
+                                                             device=inv['device'], 
+                                                             sess=self.sess, logger=self.logger)
+
+                    elif typeController == 'SACInvController':
+                        inv['controller'] = SACInvController(timeList, VBP = np.array([1.01, 1.03, 1.03, 1.05]), 
                                                              delayTimer=self.initController[i]['delayTimer'], 
                                                              device=inv['device'], 
                                                              sess=self.sess, logger=self.logger)

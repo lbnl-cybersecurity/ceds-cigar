@@ -6,12 +6,12 @@ Created on Mon Dec 05 09:59:30 2018
 """
 
 import numpy as np
-from utils.controller.RLAlgos.vpg.vpg import VPG
+from utils.controller.RLAlgos.trpo.trpo import TRPO
 import copy 
 
-class VPGInvController:
+class TRPOInvController:
 
-	controllerType = 'VPGInvController' 
+	controllerType = 'TRPOInvController' 
 	#instance atttributes
 	def __init__(self, time, VBP, delayTimer, device, sess, logger, rl_kwargs=dict()): #kwargs have args for vpg and logger
 		self.logger = logger
@@ -23,7 +23,7 @@ class VPGInvController:
 		self.initVBP = VBP
 		self.reset()
 		#init agent
-		self.vpg = VPG(sess=sess, logger=self.logger, **rl_kwargs)
+		self.trpo = TRPO(sess=sess, logger=self.logger, **rl_kwargs)
 		
 	# reset internal state of controller
 	def reset(self):
@@ -65,12 +65,12 @@ class VPGInvController:
 		
 		#when accumulate enough...
 		elif self.VBPCounter == self.delayTimer-1 or self.k == len(self.time)-1: #cutoff delayTimer or end of episode
-			# do training or store into buffer of VPG
+			# do training or store into buffer of PPO
 			state = self.state_processing(self.prevV, self.prevG, self.prevL)
 			
 			if self.reward and self.v_t and self.logp_t: #skip the first length when state is dummy
-				self.vpg.buf.store(state, self.action, self.reward, self.v_t, self.logp_t)
-				self.vpg.logger.store(VVals=self.v_t)
+				self.trpo.buf.store(state, self.action, self.reward, self.v_t, self.logp_t, self.info_t)
+				self.trpo.logger.store(VVals=self.v_t)
 			
 			next_state = self.state_processing(self.V, self.G, self.L)
 			self.reward = self.get_reward()
@@ -81,7 +81,8 @@ class VPGInvController:
 			else: 
 				self.done = False
 
-			self.action, self.v_t, self.logp_t = self.sess.run(self.vpg.get_action_ops, feed_dict={self.vpg.x_ph: next_state.reshape([1]+list(self.vpg.obs_dim))})
+			agent_outs = self.sess.run(self.trpo.get_action_ops, feed_dict={self.trpo.x_ph: next_state.reshape([1]+list(self.trpo.obs_dim))})
+			self.action, self.v_t, self.logp_t, self.info_t = agent_outs[0][0], agent_outs[1], agent_outs[2], agent_outs[3:]
 			#update VBP for future timestep
 			for i in range(self.k, len(self.time)):
 				self.VBP[i] = self.action
@@ -91,19 +92,19 @@ class VPGInvController:
 				self.ep_ret += self.reward
 			self.ep_len += 1
 
-			if self.done or (self.ep_len == self.vpg.buff_size):
+			if self.done or (self.ep_len == self.trpo.buff_size):
 				if not(self.done):
 					print('Warning: trajectory cut off by epoch at %d steps.'%(self.ep_len*self.delayTimer))
 				# if trajectory didn't reach terminal state, bootstrap value target
-				last_val = self.reward if self.done else self.sess.run(self.vpg.v, feed_dict={self.vpg.x_ph: next_state.reshape([1]+list(self.vpg.obs_dim))})
-				self.vpg.buf.finish_path(last_val)
+				last_val = self.reward if self.done else self.sess.run(self.trpo.v, feed_dict={self.trpo.x_ph: next_state.reshape([1]+list(self.trpo.obs_dim))})
+				self.trpo.buf.finish_path(last_val)
 				
-				self.vpg.logger.store(EpRet=self.ep_ret, EpLen=self.ep_len)
+				self.trpo.logger.store(EpRet=self.ep_ret, EpLen=self.ep_len)
 				# reset ep_len
 				self.ep_len = 0
 							
-				self.vpg.update()
-				self.vpg.dump_logger()	
+				self.trpo.update()
+				self.trpo.dump_logger()	
 		
 			#reset VBPCounter
 			self.VBPCounter = 0 #reset VBP counter

@@ -6,20 +6,15 @@ Created on Mon Dec 05 09:59:30 2018
 """
 
 import numpy as np
-from utils.controller.RLAlgos.vpg.vpg import VPG
+from utils.controller.RLAlgos.td3.td3 import TD3
 import copy 
 
-class VPGInvController:
+class TD3InvController:
 
-	controllerType = 'VPGInvController' 
+	controllerType = 'TD3InvController' 
 	#instance atttributes
-
-	def __init__(self, time, VBP, delayTimer, device, sess, logger_kwargs=dict(), rl_kwargs=dict()): #kwargs have args for vpg and logger
-		self.logger_kwargs = logger_kwargs
-
 	def __init__(self, time, VBP, delayTimer, device, sess, logger, rl_kwargs=dict()): #kwargs have args for vpg and logger
 		self.logger = logger
-
 		self.sess = sess
 		self.time = time
 		self.delT = time[1] - time[0]
@@ -28,9 +23,7 @@ class VPGInvController:
 		self.initVBP = VBP
 		self.reset()
 		#init agent
-
-		self.vpg = VPG(sess=sess, logger_kwargs=self.logger_kwargs, **rl_kwargs)
-
+		self.td3 = TD3(sess=sess, logger=self.logger, **rl_kwargs)
 		
 	# reset internal state of controller
 	def reset(self):
@@ -53,13 +46,14 @@ class VPGInvController:
 			self.VBP[i] = self.initVBP
 
 		self.reward = None
-		self.v_t = None
-		self.logp_t = None
+		self.action = self.initVBP
 		self.done = False
 
 	#preprocessing VGL for state
 	def state_processing(self,V,G,L):
 		state = np.array((V,G,L)).T
+		from sklearn.preprocessing import scale
+		state = scale(state, axis=0)
 		return state
 
 	def act(self,V=0,G=0,L=0):
@@ -72,13 +66,8 @@ class VPGInvController:
 		
 		#when accumulate enough...
 		elif self.VBPCounter == self.delayTimer-1 or self.k == len(self.time)-1: #cutoff delayTimer or end of episode
-			# do training or store into buffer of VPG
+			# do training or store into buffer of TD3
 			state = self.state_processing(self.prevV, self.prevG, self.prevL)
-			
-			if self.reward and self.v_t and self.logp_t: #skip the first length when state is dummy
-				self.vpg.buf.store(state, self.action, self.reward, self.v_t, self.logp_t)
-				self.vpg.logger.store(VVals=self.v_t)
-			
 			next_state = self.state_processing(self.V, self.G, self.L)
 			self.reward = self.get_reward()
 			
@@ -88,7 +77,22 @@ class VPGInvController:
 			else: 
 				self.done = False
 
-			self.action, self.v_t, self.logp_t = self.sess.run(self.vpg.get_action_ops, feed_dict={self.vpg.x_ph: next_state.reshape([1]+list(self.vpg.obs_dim))})
+			if self.reward: #skip the first length when state is dummy
+				self.td3.buf.store(state, self.action - self.td3.act_shift, self.reward, next_state, self.done)
+			
+
+			if self.td3.warmUp >= self.td3.start_steps:
+				self.action = self.sess.run(self.td3.pi, feed_dict={self.td3.x_ph: next_state.reshape([1]+list(self.td3.obs_dim))})
+				print("new action:", self.action)
+
+				self.action += self.td3.act_noise * np.random.randn(self.td3.act_dim[0])
+				self.action += self.td3.act_shift
+				self.action = np.clip(self.action, -self.td3.act_limit + self.td3.act_shift, self.td3.act_limit + self.td3.act_shift)
+				print("new action:", self.action)
+			else:
+				self.action = (np.random.randn(self.td3.act_dim[0])-1)*self.td3.act_limit + self.td3.act_shift
+				self.td3.warmUp += 1
+
 			#update VBP for future timestep
 			for i in range(self.k, len(self.time)):
 				self.VBP[i] = self.action
@@ -96,21 +100,12 @@ class VPGInvController:
 
 			if self.reward:
 				self.ep_ret += self.reward
-			self.ep_len += 1
 
-			if self.done or (self.ep_len == self.vpg.buff_size):
-				if not(self.done):
-					print('Warning: trajectory cut off by epoch at %d steps.'%(self.ep_len*self.delayTimer))
-				# if trajectory didn't reach terminal state, bootstrap value target
-				last_val = self.reward if self.done else self.sess.run(self.vpg.v, feed_dict={self.vpg.x_ph: next_state.reshape([1]+list(self.vpg.obs_dim))})
-				self.vpg.buf.finish_path(last_val)
-				
-				self.vpg.logger.store(EpRet=self.ep_ret, EpLen=self.ep_len)
-				# reset ep_len
-				self.ep_len = 0
-							
-				self.vpg.update()
-				self.vpg.dump_logger()	
+
+			if (self.td3.buf.current_size() > self.td3.batch_size):
+				print("run update")
+				self.td3.update()
+				self.td3.dump_logger()	
 		
 			#reset VBPCounter
 			self.VBPCounter = 0 #reset VBP counter

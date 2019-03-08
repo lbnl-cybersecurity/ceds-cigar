@@ -6,15 +6,20 @@ Created on Mon Dec 05 09:59:30 2018
 """
 
 import numpy as np
-from utils.controller.RLAlgos.vpg.vpg import VPG
+from utils.controller.RLAlgos.ppo.ppo import PPO
 import copy 
 
-class VPGInvController:
+class PPOInvController:
 
-	controllerType = 'VPGInvController' 
+	controllerType = 'PPOInvController' 
 	#instance atttributes
+
+	def __init__(self, time, VBP, delayTimer, device, sess, logger_kwargs=dict(), rl_kwargs=dict()): #kwargs have args for vpg and logger
+		self.logger_kwargs = logger_kwargs
+
 	def __init__(self, time, VBP, delayTimer, device, sess, logger, rl_kwargs=dict()): #kwargs have args for vpg and logger
 		self.logger = logger
+
 		self.sess = sess
 		self.time = time
 		self.delT = time[1] - time[0]
@@ -23,7 +28,13 @@ class VPGInvController:
 		self.initVBP = VBP
 		self.reset()
 		#init agent
-		self.vpg = VPG(sess=sess, logger=self.logger, **rl_kwargs)
+<<<<<<< HEAD:LBNL_Simulations/PyCIGAR/utils/controller/VPGInvController.py
+
+		self.vpg = VPG(sess=sess, logger_kwargs=self.logger_kwargs, **rl_kwargs)
+
+=======
+		self.ppo = PPO(sess=sess, logger=self.logger, **rl_kwargs)
+>>>>>>> toan_dev:LBNL_Simulations/PyCIGAR/utils/controller/RLController/PPOInvController.py
 		
 	# reset internal state of controller
 	def reset(self):
@@ -65,12 +76,12 @@ class VPGInvController:
 		
 		#when accumulate enough...
 		elif self.VBPCounter == self.delayTimer-1 or self.k == len(self.time)-1: #cutoff delayTimer or end of episode
-			# do training or store into buffer of VPG
+			# do training or store into buffer of PPO
 			state = self.state_processing(self.prevV, self.prevG, self.prevL)
 			
 			if self.reward and self.v_t and self.logp_t: #skip the first length when state is dummy
-				self.vpg.buf.store(state, self.action, self.reward, self.v_t, self.logp_t)
-				self.vpg.logger.store(VVals=self.v_t)
+				self.ppo.buf.store(state, self.action, self.reward, self.v_t, self.logp_t)
+				self.ppo.logger.store(VVals=self.v_t)
 			
 			next_state = self.state_processing(self.V, self.G, self.L)
 			self.reward = self.get_reward()
@@ -81,29 +92,30 @@ class VPGInvController:
 			else: 
 				self.done = False
 
-			self.action, self.v_t, self.logp_t = self.sess.run(self.vpg.get_action_ops, feed_dict={self.vpg.x_ph: next_state.reshape([1]+list(self.vpg.obs_dim))})
+			self.action, self.v_t, self.logp_t = self.sess.run(self.ppo.get_action_ops, feed_dict={self.ppo.x_ph: next_state.reshape([1]+list(self.ppo.obs_dim))})
+			print(self.action)
 			#update VBP for future timestep
 			for i in range(self.k, len(self.time)):
 				self.VBP[i] = self.action
 				
-
+			
 			if self.reward:
 				self.ep_ret += self.reward
 			self.ep_len += 1
 
-			if self.done or (self.ep_len == self.vpg.buff_size):
+			if self.done or (self.ep_len == self.ppo.buff_size):
 				if not(self.done):
 					print('Warning: trajectory cut off by epoch at %d steps.'%(self.ep_len*self.delayTimer))
 				# if trajectory didn't reach terminal state, bootstrap value target
-				last_val = self.reward if self.done else self.sess.run(self.vpg.v, feed_dict={self.vpg.x_ph: next_state.reshape([1]+list(self.vpg.obs_dim))})
-				self.vpg.buf.finish_path(last_val)
+				last_val = self.reward if self.done else self.sess.run(self.ppo.v, feed_dict={self.ppo.x_ph: next_state.reshape([1]+list(self.ppo.obs_dim))})
+				self.ppo.buf.finish_path(last_val)
 				
-				self.vpg.logger.store(EpRet=self.ep_ret, EpLen=self.ep_len)
+				self.ppo.logger.store(EpRet=self.ep_ret, EpLen=self.ep_len)
 				# reset ep_len
 				self.ep_len = 0
 							
-				self.vpg.update()
-				self.vpg.dump_logger()	
+				self.ppo.update()
+				self.ppo.dump_logger()	
 		
 			#reset VBPCounter
 			self.VBPCounter = 0 #reset VBP counter

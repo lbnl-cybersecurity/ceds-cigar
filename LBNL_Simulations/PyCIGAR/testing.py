@@ -1,4 +1,3 @@
-
 from utils.misc.parser import parser
 import numpy as np
 from utils.simulation.simulation import simulation

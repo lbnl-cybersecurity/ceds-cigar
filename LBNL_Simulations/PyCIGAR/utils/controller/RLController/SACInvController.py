@@ -6,12 +6,12 @@ Created on Mon Dec 05 09:59:30 2018
 """
 
 import numpy as np
-from utils.controller.RLAlgos.vpg.vpg import VPG
+from utils.controller.RLAlgos.sac.sac import SAC
 import copy 
 
-class VPGInvController:
+class SACInvController:
 
-	controllerType = 'VPGInvController' 
+	controllerType = 'SACInvController' 
 	#instance atttributes
 	def __init__(self, time, VBP, delayTimer, device, sess, logger, rl_kwargs=dict()): #kwargs have args for vpg and logger
 		self.logger = logger
@@ -23,7 +23,7 @@ class VPGInvController:
 		self.initVBP = VBP
 		self.reset()
 		#init agent
-		self.vpg = VPG(sess=sess, logger=self.logger, **rl_kwargs)
+		self.sac = SAC(sess=sess, logger=self.logger, **rl_kwargs)
 		
 	# reset internal state of controller
 	def reset(self):
@@ -46,13 +46,14 @@ class VPGInvController:
 			self.VBP[i] = self.initVBP
 
 		self.reward = None
-		self.v_t = None
-		self.logp_t = None
+		self.action = self.initVBP
 		self.done = False
 
 	#preprocessing VGL for state
 	def state_processing(self,V,G,L):
 		state = np.array((V,G,L)).T
+		from sklearn.preprocessing import scale
+		state = scale(state, axis=0)
 		return state
 
 	def act(self,V=0,G=0,L=0):
@@ -65,13 +66,8 @@ class VPGInvController:
 		
 		#when accumulate enough...
 		elif self.VBPCounter == self.delayTimer-1 or self.k == len(self.time)-1: #cutoff delayTimer or end of episode
-			# do training or store into buffer of VPG
+			# do training or store into buffer of SAC
 			state = self.state_processing(self.prevV, self.prevG, self.prevL)
-			
-			if self.reward and self.v_t and self.logp_t: #skip the first length when state is dummy
-				self.vpg.buf.store(state, self.action, self.reward, self.v_t, self.logp_t)
-				self.vpg.logger.store(VVals=self.v_t)
-			
 			next_state = self.state_processing(self.V, self.G, self.L)
 			self.reward = self.get_reward()
 			
@@ -81,7 +77,21 @@ class VPGInvController:
 			else: 
 				self.done = False
 
-			self.action, self.v_t, self.logp_t = self.sess.run(self.vpg.get_action_ops, feed_dict={self.vpg.x_ph: next_state.reshape([1]+list(self.vpg.obs_dim))})
+			if self.reward: #skip the first length when state is dummy
+				self.sac.buf.store(state, self.action - self.sac.act_shift, self.reward, next_state, self.done)
+			
+
+			if self.sac.warmUp >= self.sac.start_steps:
+				self.action = self.sess.run(self.sac.pi, feed_dict={self.sac.x_ph: next_state.reshape([1]+list(self.sac.obs_dim))})
+				print("new action:", self.action)
+
+				self.action += self.sac.act_shift
+				self.action = np.clip(self.action, -self.sac.act_limit + self.sac.act_shift, self.sac.act_limit + self.sac.act_shift)
+				print("new action:", self.action)
+			else:
+				self.action = (np.random.randn(self.sac.act_dim[0])-1)*self.sac.act_limit + self.sac.act_shift
+				self.sac.warmUp += 1
+
 			#update VBP for future timestep
 			for i in range(self.k, len(self.time)):
 				self.VBP[i] = self.action
@@ -89,21 +99,12 @@ class VPGInvController:
 
 			if self.reward:
 				self.ep_ret += self.reward
-			self.ep_len += 1
 
-			if self.done or (self.ep_len == self.vpg.buff_size):
-				if not(self.done):
-					print('Warning: trajectory cut off by epoch at %d steps.'%(self.ep_len*self.delayTimer))
-				# if trajectory didn't reach terminal state, bootstrap value target
-				last_val = self.reward if self.done else self.sess.run(self.vpg.v, feed_dict={self.vpg.x_ph: next_state.reshape([1]+list(self.vpg.obs_dim))})
-				self.vpg.buf.finish_path(last_val)
-				
-				self.vpg.logger.store(EpRet=self.ep_ret, EpLen=self.ep_len)
-				# reset ep_len
-				self.ep_len = 0
-							
-				self.vpg.update()
-				self.vpg.dump_logger()	
+
+			if (self.sac.buf.current_size() > self.sac.batch_size):
+				print("run update")
+				self.sac.update()
+				self.sac.dump_logger()	
 		
 			#reset VBPCounter
 			self.VBPCounter = 0 #reset VBP counter
