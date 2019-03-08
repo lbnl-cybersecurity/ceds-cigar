@@ -1,3 +1,4 @@
+
 % Author : Shammya Saha (sssaha@lbl.gov)
 % Date : 05/22/2018
 % This code shows the comparative result of OpenDSS and the custom developed FBS power flow solution technique
@@ -182,3 +183,4 @@ title('Real Power (kW) from Substation')
 %%
 csvwrite('13busload',Load)
 csvwrite('Solar',SolarGeneration_NC)
+

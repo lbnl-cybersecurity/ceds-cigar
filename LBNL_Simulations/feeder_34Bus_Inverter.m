@@ -65,14 +65,18 @@ DSSMon=DSSCircuit.Monitors;
 DSSText.command = 'Clear';
 
 %% QSTS Simulation
-file_path_split = split(pwd,'\');
-directory_path = file_path_split{1};
-for i=2:length(file_path_split)-2
-    directory_path = [directory_path,'\',file_path_split{i}];
-end
-feeder_file_path = [directory_path, '\feeders\feeder34_B_NR\feeder34_B_NR.dss'];
-DSSText.command = ['Compile ', feeder_file_path];
+
+% file_path_split = split(pwd,'\');
+% directory_path = file_path_split{1};
+% for i=2:length(file_path_split)-2
+%     directory_path = [directory_path,'\',file_path_split{i}];
+% end
+% feeder_file_path = [directory_path, '\feeders\feeder34_B_NR\feeder34_B_NR.dss'];
+% DSSText.command = ['Compile ', feeder_file_path];
 DSSText.Command='Compile C:\feeders\feeder34_B_NR\feeder34_B_NR.dss';
+% feeder_file_path = [pwd, '\feeders\feeder34_B_NR\feeder34_B_NR.dss'];
+% DSSText.command = ['Compile ', feeder_file_path];
+
 % Easy way to change parameters for all the loads , making them ZIPV
 % The last parameter refers to the minimum voltage threshhold
 % DSSText.Command= 'BatchEdit Load..* Model=8';
@@ -99,7 +103,11 @@ SimulateInverterHack=zeros(1,length(AllLoadNames));
 TimeResolutionOfData=10; % resolution in minute
 % Get the data from the Testpvnum folder
 % Provide Your Directory
-FileDirectoryBase=[directory_path,'\load_data\'];
+
+% FileDirectoryBase=[directory_path,'\load_data\'];
+
+FileDirectoryBase=[pwd,'\testpvnum10\'];
+
 QSTS_Time = 0:1440; % This can be changed based on the available data
 % TotalTimeSteps=length(QSTS_Time);
 QSTS_Data = zeros(length(QSTS_Time),4,TotalLoads); % 4 columns as there are four columns of data available in the .mat file
