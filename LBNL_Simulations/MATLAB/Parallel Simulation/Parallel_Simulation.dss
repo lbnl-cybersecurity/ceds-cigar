@@ -1,0 +1,23 @@
+clear all
+set parallel=no
+! starts with actor 1
+compile (Radial34Bus.DSS)
+set CPU=0
+solve
+
+NewActor
+!compile (C:\ceds-cigar\LBNL_Simulations\MATLAB\Parallel Simulation\33BusMeshed.DSS)
+compile (33BusMeshed.DSS)
+set CPU=1
+solve
+
+set parallel=yes
+SolveAll
+Wait
+
+set ConcatenateReports=Yes
+
+set activeactor=1 ! activates actor 1
+show voltages
+set activeactor=2 ! activates actor 2
+show voltages
