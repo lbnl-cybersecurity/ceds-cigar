@@ -13,7 +13,7 @@ DSSText.command = 'clear all';
 
 DSSText.command = 'set parallel=no';
 % starts with actor 1
-DSSText.command = 'compile (C:\ceds-cigar\LBNL_Simulations\MATLAB\Parallel Simulation\33BusMeshed.DSS\Radial34Bus.DSS)';
+DSSText.command = 'compile (C:\ceds-cigar\LBNL_Simulations\MATLAB\Parallel Simulation\Radial34Bus.DSS)';
 DSSText.command = 'set CPU=0';
 DSSText.command = 'solve';
 DSSText.command = 'NewActor';
