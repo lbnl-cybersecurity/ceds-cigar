@@ -4,7 +4,7 @@ This code is an example of how to open and close lines in OpenDSS using the DSST
 
 import opendssdirect as dss
 
-dss.run_command('Redirect 33BusMeshed/33BusMeshed.dss')
+dss.run_command('Redirect feeder/33BusMeshed/33BusMeshed.dss')
 dss.Solution.Solve()
 dss.Circuit.SetActiveElement('line_30')
 print('Flow Before Opening  line 29 and 5: {}'.format(dss.CktElement.Powers()))

@@ -76,7 +76,6 @@ def parser(file_name):
         OpenDSSkwargs[prop.split(':')[0].strip(' ')] = ast.literal_eval(prop.split(':')[1].strip(' '))
 
     
-
     logger_kwargs = {}
     for prop in df.loc['logger_kwargs'][0].split(';'):
         try:
@@ -92,7 +91,6 @@ def parser(file_name):
         except:
             rl_kwargs[prop.split(':')[0].strip(' ')] = prop.split(':')[1].strip(' ')
 
-
     args = {}
     args['initController'] = initController
     args['initHackedController'] = initHackedController
@@ -101,9 +99,7 @@ def parser(file_name):
     args['FileDirectoryBase'] = FileDirectoryBase
     args['OpenDSSDirectory'] = OpenDSSDirectory
     args['OpenDSSkwargs'] = OpenDSSkwargs
-
     args['logger_kwargs'] = logger_kwargs
     #args['rl_kwargs'] = rl_kwargs
-
 
     return args

@@ -9,30 +9,17 @@ import time
 ####         Load data from file                    ###
 #######################################################
 #######################################################
-
-def ReadScenarioFile(FileDirectory='/home/toanngo/Documents/GitHub/ceds-cigar/LBNL_Simulations/testpvnum10/',
-                    OpenDSSDirectory='/home/toanngo/Documents/GitHub/ceds-cigar/LBNL_Simulations/feeders/feeder34_B_NR/feeder34_B_NR.dss'):
-    DSSObj.run_command('Redirect ' + OpenDSSDirectory)
-    TotalLoads=DSSObj.Loads.Count()
-    AllLoadNames=DSSObj.Loads.AllNames()
-
 def ReadScenarioFile(FileDirectory, OpenDSSDirectory):
     DSSObj.run_command('Redirect ' + OpenDSSDirectory)
     TotalLoads=DSSObj.Loads.Count()
     AllLoadNames=DSSObj.Loads.AllNames()
     print(TotalLoads, AllLoadNames)
-
     Sbase=1
     LoadScalingFactor = 1.5
     GenerationScalingFactor = 5
     #Retrieving the data from the load profile
     TimeResolutionOfData=10 #resolution in minute
-
-    #Get the data from the Testpvnum folder
-    #Provide Your Directory - move testpvnum10 from github to drive C: 
-
     #Get the data from the Testpvnum folder 
-
     QSTS_Time = list(range(1441)) #This can be changed based on the available data - for example, 1440 timesteps
     QSTS_Data = np.zeros((len(QSTS_Time),4,TotalLoads)) #4 columns as there are four columns of data available in the .mat file
 
