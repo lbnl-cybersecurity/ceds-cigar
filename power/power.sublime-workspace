@@ -1,0 +1,298 @@
+{
+	"auto_complete":
+	{
+		"selected_items":
+		[
+			[
+				"En",
+				"Environment"
+			],
+			[
+				"get_ob",
+				"get_observation_space_size"
+			],
+			[
+				"train",
+				"train_obs"
+			],
+			[
+				"reward",
+				"reward_bound"
+			],
+			[
+				"epi",
+				"episode_steps"
+			],
+			[
+				"ep",
+				"episode_reward"
+			],
+			[
+				"Ep",
+				"EpisodeStep"
+			],
+			[
+				"act",
+				"act_probs_v"
+			],
+			[
+				"actions",
+				"action_scores_v"
+			],
+			[
+				"iter",
+				"iterate_batches"
+			],
+			[
+				"train_",
+				"train_act_v"
+			],
+			[
+				"bat",
+				"batch_size"
+			],
+			[
+				"eps",
+				"episode_reward"
+			],
+			[
+				"obs",
+				"observation"
+			]
+		]
+	},
+	"buffers":
+	[
+	],
+	"build_system": "",
+	"build_system_choices":
+	[
+	],
+	"build_varint": "",
+	"command_palette":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+			[
+				"",
+				"Anaconda: Display object docs"
+			],
+			[
+				"Package Control: ",
+				"Package Control: Remove Package"
+			],
+			[
+				"Package Control: instal",
+				"Package Control: Install Package"
+			],
+			[
+				"add re",
+				"Package Control: Add Repository"
+			]
+		],
+		"width": 0.0
+	},
+	"console":
+	{
+		"height": 209.0,
+		"history":
+		[
+			"quit",
+			"exit()",
+			"quit90",
+			"quit()",
+			"print(sys.version)",
+			"import sys",
+			"__version__",
+			"python.__version__",
+			"print(10)",
+			"print(a)",
+			"print(a_",
+			"1 + 1",
+			"python --version",
+			"import urllib.request,os,hashlib; h = '6f4c264a24d933ce70df5dedcf1dcaee' + 'ebe013ee18cced0ef93d5f746d80ef60'; pf = 'Package Control.sublime-package'; ipp = sublime.installed_packages_path(); urllib.request.install_opener( urllib.request.build_opener( urllib.request.ProxyHandler()) ); by = urllib.request.urlopen( 'http://packagecontrol.io/' + pf.replace(' ', '%20')).read(); dh = hashlib.sha256(by).hexdigest(); print('Error validating download (got %s instead of %s), please try manual install' % (dh, h)) if dh != h else open(os.path.join( ipp, pf), 'wb' ).write(by) "
+		]
+	},
+	"distraction_free":
+	{
+		"menu_visible": true,
+		"show_minimap": false,
+		"show_open_files": false,
+		"show_tabs": false,
+		"side_bar_visible": false,
+		"status_bar_visible": false
+	},
+	"expanded_folders":
+	[
+		"/home/toanngo/Documents/GitHub/power"
+	],
+	"file_history":
+	[
+		"/home/toanngo/Documents/GitHub/power/README.md",
+		"/home/toanngo/Documents/GitHub/power/power.sublime-project",
+		"/home/toanngo/Downloads/CACC.ang",
+		"/home/toanngo/Documents/GitHub/power/sftp-config.json",
+		"/home/toanngo/Documents/GitHub/power/setup.py",
+		"/home/toanngo/Documents/GitHub/power.sublime-project",
+		"/home/toanngo/.config/sublime-text-3/Packages/User/Anaconda.sublime-settings",
+		"/home/toanngo/.config/sublime-text-3/Packages/User/Package Control.sublime-settings",
+		"/home/toanngo/Documents/GitHub/power/power/utils/power_warnings.py",
+		"/home/toanngo/Documents/GitHub/power/power/utils/exeptions.py",
+		"/home/toanngo/Documents/GitHub/power/requirements.txt",
+		"/home/toanngo/.config/sublime-text-3/Packages/Package Control/Package Control.sublime-settings",
+		"/home/toanngo/Documents/GitHub/power/environment.yml",
+		"/home/toanngo/Documents/GitHub/power/.readthedocs.yml",
+		"/home/toanngo/Documents/GitHub/power/utils/exeption.py",
+		"/home/toanngo/Documents/GitHub/power/.travis.yml",
+		"/home/toanngo/Documents/GitHub/power/power/core/__init__.py",
+		"/home/toanngo/Documents/TX/RL_HandsOn/chap03/PongNoFrameskip-v4-best.dat",
+		"/home/toanngo/Documents/TX/RL_HandsOn/chap03/student_distillated.py",
+		"/home/toanngo/Documents/TX/RL_HandsOn/chap03/distillated_student.py",
+		"/home/toanngo/Documents/TX/distillated_student.py",
+		"/home/toanngo/Documents/TX/RL_HandsOn/chap03/dqn_spaceinvader.py",
+		"/home/toanngo/Documents/TX/RL_HandsOn/chap03/dqn_pong.py",
+		"/home/toanngo/Documents/TX/RL_HandsOn/chap03/CrossEntropy_FrozenLake.py",
+		"/home/toanngo/Documents/TX/RL_HandsOn/chap03/Pytorch101.py",
+		"/home/toanngo/Documents/TX/RL_HandsOn/chap03/lib/dqn_pong.py",
+		"/home/toanngo/Documents/TX/RL_HandsOn/chap03/lib/__init__.py",
+		"/home/toanngo/Documents/TX/RL_HandsOn/chap03/Pytorch101"
+	],
+	"find":
+	{
+		"height": 23.0
+	},
+	"find_in_files":
+	{
+		"height": 0.0,
+		"where_history":
+		[
+		]
+	},
+	"find_state":
+	{
+		"case_sensitive": false,
+		"find_history":
+		[
+		],
+		"highlight": true,
+		"in_selection": false,
+		"preserve_case": false,
+		"regex": true,
+		"replace_history":
+		[
+		],
+		"reverse": false,
+		"show_context": true,
+		"use_buffer2": true,
+		"whole_word": false,
+		"wrap": true
+	},
+	"groups":
+	[
+		{
+			"sheets":
+			[
+			]
+		}
+	],
+	"incremental_find":
+	{
+		"height": 23.0
+	},
+	"input":
+	{
+		"height": 35.0
+	},
+	"layout":
+	{
+		"cells":
+		[
+			[
+				0,
+				0,
+				1,
+				1
+			]
+		],
+		"cols":
+		[
+			0.0,
+			1.0
+		],
+		"rows":
+		[
+			0.0,
+			1.0
+		]
+	},
+	"menu_visible": true,
+	"output.SublimeLinter":
+	{
+		"height": 102.0
+	},
+	"output.SublimeLinter Messages":
+	{
+		"height": 102.0
+	},
+	"output.anaconda_documentation":
+	{
+		"height": 102.0
+	},
+	"output.find_results":
+	{
+		"height": 0.0
+	},
+	"output.sftp":
+	{
+		"height": 102.0
+	},
+	"pinned_build_system": "",
+	"project": "power.sublime-project",
+	"replace":
+	{
+		"height": 42.0
+	},
+	"save_all_on_build": true,
+	"select_file":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"select_project":
+	{
+		"height": 500.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 380.0
+	},
+	"select_symbol":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"selected_group": 0,
+	"settings":
+	{
+	},
+	"show_minimap": true,
+	"show_open_files": true,
+	"show_tabs": true,
+	"side_bar_visible": true,
+	"side_bar_width": 285.0,
+	"status_bar_visible": true,
+	"template_settings":
+	{
+	}
+}

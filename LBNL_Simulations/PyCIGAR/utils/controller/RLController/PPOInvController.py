@@ -13,13 +13,8 @@ class PPOInvController:
 
 	controllerType = 'PPOInvController' 
 	#instance atttributes
-
-	def __init__(self, time, VBP, delayTimer, device, sess, logger_kwargs=dict(), rl_kwargs=dict()): #kwargs have args for vpg and logger
-		self.logger_kwargs = logger_kwargs
-
 	def __init__(self, time, VBP, delayTimer, device, sess, logger, rl_kwargs=dict()): #kwargs have args for vpg and logger
 		self.logger = logger
-
 		self.sess = sess
 		self.time = time
 		self.delT = time[1] - time[0]
@@ -28,13 +23,7 @@ class PPOInvController:
 		self.initVBP = VBP
 		self.reset()
 		#init agent
-<<<<<<< HEAD:LBNL_Simulations/PyCIGAR/utils/controller/VPGInvController.py
-
-		self.vpg = VPG(sess=sess, logger_kwargs=self.logger_kwargs, **rl_kwargs)
-
-=======
 		self.ppo = PPO(sess=sess, logger=self.logger, **rl_kwargs)
->>>>>>> toan_dev:LBNL_Simulations/PyCIGAR/utils/controller/RLController/PPOInvController.py
 		
 	# reset internal state of controller
 	def reset(self):

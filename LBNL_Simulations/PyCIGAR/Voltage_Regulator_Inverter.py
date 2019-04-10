@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import opendssdirect as dss
 import numpy as np
 
-dss.run_command("Redirect 34BusLTC/Radial34Bus.dss")
+dss.run_command("Redirect feeder/34BusLTC/Radial34Bus.dss")
 
 #  Enabling the controls for both regulators and Inverters; OpenDSS only allow to change the PVSystem Parameters, not the INvControl parameters
 dss.Text.Command('BatchEdit PVSystem..* pctpmpp=100')
