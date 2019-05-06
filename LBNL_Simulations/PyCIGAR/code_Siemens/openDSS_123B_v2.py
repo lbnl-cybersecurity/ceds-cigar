@@ -17,6 +17,7 @@ from math import tan, acos
 import copy
 import pandas as pd
 import time
+import opendssdirect as dss
 
 #######################################################
 #######################################################
@@ -37,7 +38,7 @@ TimeStepOfHack = 300
 percent_hacked = np.array([0, 0, 0, 0, 0, 0, 0, .5, 0, 0, .5, .5, .5, .5, .5, 0, 0, .5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
 
 # Set delays for each node
-Delay_VBPCurveShift = np.array([0, 0, 0, 0, 0, 60, 60, 60, 60, 60, 60, 60, 60, 60, 60, 60, 60, 60, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
+Delay_VBPCurveShift = np.array([0, 0, 0, 0, 0, 60, 60, 60, 60, 60, 60, 60, 60, 60, 60, 60, 60, 60, 60, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
 
 # Set observer voltage threshold
 ThreshHold_vqvp = 0.25
@@ -55,11 +56,13 @@ if noise_multiplier < 0:
 # START OPENDSS #
 #########################################################
 
-import opendssdirect as DSSObj
 
-DSSObj.run_command('Redirect C:\\ceds-cigar\\LBNL_Simulations\\PyCIGAR\\feeder\\feeder34_B_NR\\feeder34_B_NR.dss')
-DSSSolution = DSSObj.Solution
-DSSMon = DSSObj.Monitors
+
+dss.run_command('Redirect C:\\ceds-cigar\\LBNL_Simulations\\PyCIGAR\\feeder\\IEEE123Bus\\IEEE123Master.dss')
+dss.Text.Command('BatchEdit RegControl..* enabled= No') # Disabling all regulator controls
+dss.Text.Command('BatchEdit CapControl..* enabled= No') # Disabling all capacitor controls
+DSSSolution = dss.Solution
+DSSMon = dss.Monitors
 
 DSSSolution.Solve()
 if not DSSSolution.Converged():
@@ -69,15 +72,18 @@ else:
     # Doing this solve command is required for GridPV, that is why the monitors
     # go under a reset process
     DSSMon.ResetAll()
-    setSolutionParams(DSSObj, 'daily', 1, 1, 'off', 1000000, 30000)
+    # setSolutionParams(dss, 'daily', 1, 1, 'off', 1000000, 30000)
     # Easy process to get all names and count of loads, a trick to avoid
     # some more lines of code
-    TotalLoads = DSSObj.Loads.Count()
-    AllLoadNames = DSSObj.Loads.AllNames()
+    TotalLoads = dss.Loads.Count()
+    TotalLoads = 31
+    AllLoadNames = dss.Loads.AllNames()
+    AllLoadNames = AllLoadNames[:TotalLoads]
     print('OpenDSS Model Compliation Done.')
 
 # set Source Info for OpenDSS
-setSourceInfo(DSSObj, ['source'], 'pu', [slack_bus_voltage])
+dss.Vsources.PU(slack_bus_voltage)
+#setSourceInfo(dss, ['source'], 'pu', [slack_bus_voltage])
 # In[2]:
 
 
@@ -205,7 +211,7 @@ features = ['Generation', 'sbar']
 
 # we create inverters from node 5 to node (5+13)
 offset = 5
-number_of_Inverters = 13
+number_of_Inverters = 14
 
 for i in range(len(AllLoadNames)):
     inverters[i] = []
@@ -239,16 +245,22 @@ for timeStep in range(TotalTimeSteps):
     if timeStep == 0:
         for node in range(len(AllLoadNames)):
             nodeName = AllLoadNames[node]
-            setLoadInfo(DSSObj, [nodeName], 'kw', [Load[timeStep, node]])
-            setLoadInfo(DSSObj, [nodeName], 'kvar', [pf_converted * Load[timeStep, node]])
+            dss.Loads.Name(nodeName)
+            dss.Loads.kW(Load[timeStep, node])
+            dss.Loads.kvar(pf_converted * Load[timeStep, node])
+#            setLoadInfo(dss, [nodeName], 'kw', [Load[timeStep, node]])
+#            setLoadInfo(dss, [nodeName], 'kvar', [pf_converted * Load[timeStep, node]])
 
     # otherwise, we add Active Power (P) and Reactive Power (Q) which we injected at last timestep
     # to the grid at that node
     else:
         for node in range(len(AllLoadNames)):
             nodeName = AllLoadNames[node]
-            setLoadInfo(DSSObj, [nodeName], 'kw', [Load[timeStep, node] + nodes[node].at['P', timeStep - 1]])
-            setLoadInfo(DSSObj, [nodeName], 'kvar', [pf_converted * Load[timeStep, node] + nodes[node].at['Q', timeStep - 1]])
+            dss.Loads.Name(nodeName)
+            dss.Loads.kW(Load[timeStep, node] + nodes[node].at['P', timeStep - 1])
+            dss.Loads.kvar(pf_converted * Load[timeStep, node] + nodes[node].at['Q', timeStep - 1])
+#            setLoadInfo(dss, [nodeName], 'kw', [Load[timeStep, node] + nodes[node].at['P', timeStep - 1]])
+#            setLoadInfo(dss, [nodeName], 'kvar', [pf_converted * Load[timeStep, node] + nodes[node].at['Q', timeStep - 1]])
 
     # solve() openDSS with new values of Load
     DSSSolution.Solve()
@@ -256,11 +268,19 @@ for timeStep in range(TotalTimeSteps):
         print('Solution Not Converged at Step:', timeStep)
 
     # get the voltage info
-    nodeInfo = getLoadInfo(DSSObj, [])
+    # nodeInfo = getLoadInfo(dss, [])
+    nodeInfo = []
+    for node in range(len(AllLoadNames)):
+        nodeName = AllLoadNames[node]
+        dss.Circuit.SetActiveElement('load.' + nodeName)
+        dss.Circuit.SetActiveBus(dss.CktElement.BusNames()[0])
+        voltage = dss.Bus.puVmagAngle()[::2]
+        nodeInfo.append(np.mean(voltage))
     # distribute voltage to node
     for i in range(len(nodes)):
         node = nodes[i]
-        node.at['Voltage', timeStep] = nodeInfo[i]['voltagePU']
+        # node.at['Voltage', timeStep] = nodeInfo[i]['voltagePU']
+        node.at['Voltage', timeStep] = nodeInfo[i]
 
     #############################################################
     #############################################################

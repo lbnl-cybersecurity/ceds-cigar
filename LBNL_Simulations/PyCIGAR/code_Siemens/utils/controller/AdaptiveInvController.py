@@ -19,7 +19,9 @@ class AdaptiveInvController:
                 self.initVBP = VBP
                 self.up = np.zeros(len(time))
                 self.uq = np.zeros(len(time))
-                self.delayTimer = delayTimer
+                self.delayTimer = 60
+                if delayTimer != 0:
+                    self.delayTimer = delayTimer
                 self.device = device
                 self.nk = nk
                 self.thresh = threshold

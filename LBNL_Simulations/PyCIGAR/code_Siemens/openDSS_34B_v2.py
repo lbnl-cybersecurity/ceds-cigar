@@ -55,11 +55,11 @@ if noise_multiplier < 0:
 # START OPENDSS #
 #########################################################
 
-import opendssdirect as DSSObj
+import opendssdirect as dss
 
-DSSObj.run_command('Redirect C:\\ceds-cigar\\LBNL_Simulations\\PyCIGAR\\feeder\\feeder34_B_NR\\feeder34_B_NR.dss')
-DSSSolution = DSSObj.Solution
-DSSMon = DSSObj.Monitors
+dss.run_command('Redirect C:\\ceds-cigar\\LBNL_Simulations\\PyCIGAR\\feeder\\feeder34_B_NR\\feeder34_B_NR.dss')
+DSSSolution = dss.Solution
+DSSMon = dss.Monitors
 
 DSSSolution.Solve()
 if not DSSSolution.Converged():
@@ -69,15 +69,15 @@ else:
     # Doing this solve command is required for GridPV, that is why the monitors
     # go under a reset process
     DSSMon.ResetAll()
-    setSolutionParams(DSSObj, 'daily', 1, 1, 'off', 1000000, 30000)
+    # setSolutionParams(dss, 'daily', 1, 1, 'off', 1000000, 30000)
     # Easy process to get all names and count of loads, a trick to avoid
     # some more lines of code
-    TotalLoads = DSSObj.Loads.Count()
-    AllLoadNames = DSSObj.Loads.AllNames()
+    TotalLoads = dss.Loads.Count()
+    AllLoadNames = dss.Loads.AllNames()
     print('OpenDSS Model Compliation Done.')
 
 # set Source Info for OpenDSS
-setSourceInfo(DSSObj, ['source'], 'pu', [slack_bus_voltage])
+dss.Vsources.PU(slack_bus_voltage)
 # In[2]:
 
 
@@ -218,7 +218,7 @@ for i in range(len(AllLoadNames)):
         inv['controller'] = AdaptiveInvController(timeList,  # list of timestep
                                                   VBP=np.array([1.01, 1.03, 1.03, 1.05]),  # init VBP
                                                   delayTimer=Delay_VBPCurveShift[i],  # delay change in VBP
-                                                  nk=0.1,  # how is the agressive change of AdaptiveController
+                                                  nk=0.1,  # how is the aggressive change of AdaptiveController
                                                   threshold=0.25,  # threshold of Y-value for AdaptiveController to react
                                                   device=inv['device']
                                                   )
@@ -239,16 +239,22 @@ for timeStep in range(TotalTimeSteps):
     if timeStep == 0:
         for node in range(len(AllLoadNames)):
             nodeName = AllLoadNames[node]
-            setLoadInfo(DSSObj, [nodeName], 'kw', [Load[timeStep, node]])
-            setLoadInfo(DSSObj, [nodeName], 'kvar', [pf_converted * Load[timeStep, node]])
+            dss.Loads.Name(nodeName)
+            dss.Loads.kW(Load[timeStep, node])
+            dss.Loads.kvar(pf_converted * Load[timeStep, node])
+            # setLoadInfo(dss, [nodeName], 'kw', [Load[timeStep, node]])
+            # setLoadInfo(dss, [nodeName], 'kvar', [pf_converted * Load[timeStep, node]])
 
     # otherwise, we add Active Power (P) and Reactive Power (Q) which we injected at last timestep
     # to the grid at that node
     else:
         for node in range(len(AllLoadNames)):
             nodeName = AllLoadNames[node]
-            setLoadInfo(DSSObj, [nodeName], 'kw', [Load[timeStep, node] + nodes[node].at['P', timeStep - 1]])
-            setLoadInfo(DSSObj, [nodeName], 'kvar', [pf_converted * Load[timeStep, node] + nodes[node].at['Q', timeStep - 1]])
+            dss.Loads.Name(nodeName)
+            dss.Loads.kW(Load[timeStep, node] + nodes[node].at['P', timeStep - 1])
+            dss.Loads.kvar(pf_converted * Load[timeStep, node] + nodes[node].at['Q', timeStep - 1])
+            # setLoadInfo(dss, [nodeName], 'kw', [Load[timeStep, node] + nodes[node].at['P', timeStep - 1]])
+            # setLoadInfo(dss, [nodeName], 'kvar', [pf_converted * Load[timeStep, node] + nodes[node].at['Q', timeStep - 1]])
 
     # solve() openDSS with new values of Load
     DSSSolution.Solve()
@@ -256,11 +262,19 @@ for timeStep in range(TotalTimeSteps):
         print('Solution Not Converged at Step:', timeStep)
 
     # get the voltage info
-    nodeInfo = getLoadInfo(DSSObj, [])
+    # nodeInfo = getLoadInfo(dss, [])
+    nodeInfo = []
+    for node in range(len(AllLoadNames)):
+        nodeName = AllLoadNames[node]
+        dss.Circuit.SetActiveElement('load.' + nodeName)
+        dss.Circuit.SetActiveBus(dss.CktElement.BusNames()[0])
+        voltage = dss.Bus.puVmagAngle()[::2]
+        nodeInfo.append(np.mean(voltage))
     # distribute voltage to node
     for i in range(len(nodes)):
         node = nodes[i]
-        node.at['Voltage', timeStep] = nodeInfo[i]['voltagePU']
+        # node.at['Voltage', timeStep] = nodeInfo[i]['voltagePU']
+        node.at['Voltage', timeStep] = nodeInfo[i]
 
     #############################################################
     #############################################################
