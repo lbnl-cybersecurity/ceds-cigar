@@ -48,10 +48,10 @@ class AdaptiveInvController:
                         self.uq[self.k] = self.adaptive_control(self.nk, vk, vkmdelay, self.uq[self.k-self.delayTimer+1], self.thresh, yk)
 
                         vbp = np.array([
-                                        self.VBP[0][0] - self.uq[self.k],
-                                        self.VBP[0][1] + self.uq[self.k], 
-                                        self.VBP[0][2] - self.up[self.k], 
-                                        self.VBP[0][3] + self.up[self.k]])
+                                        self.VBP[0][0] - 2*self.uq[self.k],
+                                        self.VBP[0][1] - self.uq[self.k],
+                                        self.VBP[0][2] + self.up[self.k],
+                                        self.VBP[0][3] + 2*self.up[self.k]])
                                 
                         for i in range(self.k, len(self.time)):
                                 self.VBP[i] = copy.deepcopy(vbp)
