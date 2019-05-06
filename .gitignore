@@ -30,6 +30,7 @@ sftp-config.json
 
 # pyenv
 .python-version
+.pyc
 
 # dotenv
 .env

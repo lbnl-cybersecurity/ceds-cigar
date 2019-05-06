@@ -303,10 +303,14 @@ for timeStep in range(TotalTimeSteps):
     #(voltage[0]+voltage[2]+voltage[4])/(DSSCircuit.ActiveElement.NumPhases*(Loads.kV*1000/(3**0.5)))
     nodeInfo = []
     for nodeName in AllLoadNames:
-        dss.Loads.Name(nodeName)
-        voltage = dss.CktElement.VoltagesMagAng()
-        voltagePU = (voltage[0]+voltage[2]+voltage[4])/(dss.CktElement.NumPhases()*(dss.Loads.kV()*1000/(3**0.5)))
-        nodeInfo.append(voltagePU)
+#        dss.Loads.Name(nodeName)
+#        voltage = dss.CktElement.VoltagesMagAng()
+#        voltagePU = (voltage[0]+voltage[2]+voltage[4])/(dss.CktElement.NumPhases()*(dss.Loads.kV()*1000/(3**0.5)))
+#        nodeInfo.append(voltagePU)
+        dss.Circuit.SetActiveElement('load.' + nodeName)
+        dss.Circuit.SetActiveBus(dss.CktElement.BusNames()[0])
+        voltage = dss.Bus.puVmagAngle()[::2]
+        nodeInfo.append(np.mean(voltage))
     
     #distribute voltage to node
     for i in range(len(nodes)):
