@@ -12,6 +12,8 @@ import matplotlib.pyplot as plt
 from math import tan, acos
 import copy
 import pandas as pd
+import random
+from scipy.interpolate import interp1d
 import time
 
 #######################################################
@@ -54,10 +56,10 @@ if NoiseMultiplyer < 0:
     print('Setup Noise Multiplyer Correctly.')
 
 # dss.run_command('Redirect feeder/feeder34_B_NR/feeder34_B_NR.dss')
-dss.run_command('Redirect feeder/8500-Node/master.dss')
+dss.run_command('Redirect feeder/IEEE123Bus/IEEE123Master.dss')
 dss.Text.Command('BatchEdit RegControl..* enabled= No') # Disabling all regulator controls
 dss.Text.Command('BatchEdit CapControl..* enabled= No') # Disabling all capacitor controls
-
+dss.Vsources.PU(SlackBusVoltage)
 dss.Solution.Solve()
 if not dss.Solution.Converged:
     print('Initial Solution Not Converged. Check Model for Convergence')
@@ -79,7 +81,7 @@ else:
     # some more lines of code
     TotalLoads = dss.Loads.Count()
     AllLoadNames = dss.Loads.AllNames()
-    print('OpenDSS Model Compliation Done.')
+    print('OpenDSS Model Compilation Done.')
 
 # In[2]:
 
@@ -98,9 +100,20 @@ FileDirectoryBase = '../Data Files/testpvnum10/'
 QSTS_Time = list(range(1441))  # This can be changed based on the available data - for example, 1440 timesteps
 QSTS_Data = np.zeros((len(QSTS_Time), 4, TotalLoads))  # 4 columns as there are four columns of data available in the .mat file
 
+total_number_of_files = 37
+if TotalLoads <= total_number_of_files:
+    file_index = list(range(1, TotalLoads + 1))
+else:
+    file_index = list(range(1,total_number_of_files+1))  # Because the first file starts with 1, range always excludes the last number
+    remaining_loads = [random.randint(1, total_number_of_files) for r in range(TotalLoads-total_number_of_files)]
+    file_index += remaining_loads
+
+    # file_index = [random.randint(1, total_number_of_files) for r in range(TotalLoads-total_number_of_files)] # Uncomment this line if total randomization is required for all the loads
+
 for node in range(TotalLoads):
     # This is created manually according to the naming of the folder
-    FileDirectoryExtension = 'node_' + str(node + 1) + '_pv_' + str(TimeResolutionOfData) + '_minute.csv'
+
+    FileDirectoryExtension = 'node_' + str(file_index[node]) + '_pv_' + str(TimeResolutionOfData) + '_minute.csv'
     # The total file directory
     FileName = FileDirectoryBase + FileDirectoryExtension
     # Load the file
@@ -118,8 +131,6 @@ print('Reading Data for Pecan Street is done.')
 #### Interpolate to change data from minutes to seconds ####
 ############################################################
 ############################################################
-
-from scipy.interpolate import interp1d
 
 print('Starting Interpolation...')
 
@@ -166,41 +177,6 @@ else:
 MaxGenerationPossible = np.max(Generation, axis=0)
 sbar = MaxGenerationPossible
 
-#########################################################
-################### RESTART OPENDSS #####################
-#########################################################
-dss.run_command('Redirect feeder/feeder34_B_NR/feeder34_B_NR.dss')
-dss.Solution.Solve()
-
-if dss.Solution.Converged:
-    print('Initial Model Converged. Proceeding to Next Step.')
-
-else:
-    print('Initial Solution Not Converged. Check Model for Convergence')
-    # Doing this solve command is required for GridPV, that is why the monitors
-    # go under a reset process
-    dss.Monitors.ResetAll()
-
-    # set solution Params
-    # setSolutionParams(dss,'daily',1,1,'off',1000000,30000)
-    dss.Solution.Mode(1)
-    dss.Solution.Number(1)
-    dss.Solution.StepSize(1)
-    dss.Solution.ControlMode(-1)
-    dss.Solution.MaxControlIterations(1000000)
-    dss.Solution.MaxIterations(30000)
-    # Easy process to get all names and count of loads, a trick to avoid
-    # some more lines of code
-    TotalLoads = dss.Loads.Count()
-    AllLoadNames = dss.Loads.AllNames()
-    print('OpenDSS Model Compliation Done.')
-
-# set Source Info for OpenDSS
-# setSourceInfo(dss,['source'],'pu',[SlackBusVoltage])
-dss.Vsources.PU(SlackBusVoltage)
-############################################
-############ INIT NODES ####################
-############################################
 """ 
  nodes' variable is a dictionary contains all the nodes in the grid,
  with KEY is the node's number, VALUE is a dataframe with 
@@ -242,11 +218,11 @@ features = ['Generation', 'sbar']
 
 # we create inverters from node 5 to node (5+13)
 offset = 5
-numberofInverters = 13
+number_of_inverters = 22
 
 for i in range(len(AllLoadNames)):
     inverters[i] = []
-    if offset - 1 < i < numberofInverters + offset:
+    if offset - 1 < i < number_of_inverters + offset:
         # inverter device
         inv = {}
         inv['device'] = Inverter(timeList, lpf_meas=1, lpf_output=0.1)
@@ -261,7 +237,7 @@ for i in range(len(AllLoadNames)):
         inv['info'] = df
         inverters[i].append(inv)
 
-# for each timestep in the simulation
+# for each time-step in the simulation
 for timeStep in range(TotalTimeSteps):
     # for timeStep in range(400):
     ####################################################
@@ -274,10 +250,8 @@ for timeStep in range(TotalTimeSteps):
             dss.Loads.Name(nodeName)
             dss.Loads.kW(Load[timeStep, node])
             dss.Loads.kvar(pf_converted * Load[timeStep, node])
-            # setLoadInfo(DSSObj, [nodeName], 'kw', [Load[timeStep, node]])
-            # setLoadInfo(DSSObj, [nodeName], 'kvar', [pf_converted*Load[timeStep, node]])
 
-    # otherwise, we add Active Power (P) and Reactive Power (Q) which we injected at last timestep
+    # otherwise, we add Active Power (P) and Reactive Power (Q) which we injected at last time-step
     # to the grid at that node
     else:
         for node in range(len(AllLoadNames)):
@@ -285,22 +259,14 @@ for timeStep in range(TotalTimeSteps):
             dss.Loads.Name(nodeName)  # set active element
             dss.Loads.kW(Load[timeStep, node] + nodes[node].at['P', timeStep - 1])
             dss.Loads.kvar(pf_converted * Load[timeStep, node] + nodes[node].at['Q', timeStep - 1])
-            # setLoadInfo(DSSObj, [nodeName], 'kw', [Load[timeStep, node] + nodes[node].at['P', timeStep-1]])
-            # setLoadInfo(DSSObj, [nodeName], 'kvar', [pf_converted*Load[timeStep, node] + nodes[node].at['Q', timeStep-1]])
 
     # solve() openDSS with new values of Load
     dss.Solution.Solve()
     if not dss.Solution.Converged:
         print('Solution Not Converged at Step:', timeStep)
 
-    # get the voltage info
-    # (voltage[0]+voltage[2]+voltage[4])/(DSSCircuit.ActiveElement.NumPhases*(Loads.kV*1000/(3**0.5)))
     nodeInfo = []
     for nodeName in AllLoadNames:
-        #        dss.Loads.Name(nodeName)
-        #        voltage = dss.CktElement.VoltagesMagAng()
-        #        voltagePU = (voltage[0]+voltage[2]+voltage[4])/(dss.CktElement.NumPhases()*(dss.Loads.kV()*1000/(3**0.5)))
-        #        nodeInfo.append(voltagePU)
         dss.Circuit.SetActiveElement('load.' + nodeName)
         dss.Circuit.SetActiveBus(dss.CktElement.BusNames()[0])
         voltage = dss.Bus.puVmagAngle()[::2]
@@ -314,7 +280,7 @@ for timeStep in range(TotalTimeSteps):
     #############################################################
     #############################################################
     #############################################################
-    # at hack timestep, we do this
+    # at hack time-step, we do this
     if timeStep == TimeStepOfHack - 1:
         # with each node...
         for node in range(len(AllLoadNames)):
@@ -354,11 +320,7 @@ for timeStep in range(TotalTimeSteps):
                 # if timeStep > 510:
                 #    print('Enter debug here')
                 # calcuate P Q injected into the grid by an inverter
-                p_inv, q_inv = device.step(v=nodes[node].at['Voltage', timeStep],
-                                           solar_irr=info.at['Generation', timeStep],
-                                           solar_minval=5,
-                                           Sbar=info.at['sbar', timeStep],
-                                           VBP=controller.get_VBP())
+                p_inv, q_inv = device.step(v=nodes[node].at['Voltage', timeStep], solar_irr=info.at['Generation', timeStep], solar_minval=5, Sbar=info.at['sbar', timeStep], VBP=controller.get_VBP())
 
                 # add P Q injected to the node
                 nodes[node].at['P', timeStep] += p_inv
@@ -367,26 +329,19 @@ for timeStep in range(TotalTimeSteps):
                 # change internal VBP
                 controller.act(nk=0.1, device=device, thresh=0.25)
 
-# In[4]:
 
-
-# invertersNode[1]['controller'].VBP
-
-
-# In[5]:
 
 
 ######### drawing #####################
 f = plt.figure(figsize=[20, 10])
-# f.set_figheight(4)
-# f.set_figwidth(20)
+
 for node in nodes:
     plt.plot(nodes[node].loc['Voltage'])
+plt.title('Voltage at Inverter Nodes')
 plt.show()
 
 f = plt.figure(figsize=[20, 10])
-# plt.ylim([0.99, 1.01])
-# plt.xlim([450, 550])
+
 for i in range(5, 18):
     x = inverters[i][0]['controller'].VBP
     y = np.zeros([len(x), x[0].shape[0]])
@@ -396,11 +351,12 @@ for i in range(5, 18):
     plt.plot(y[:, 1], 'y')
     plt.plot(y[:, 2], 'b')
     plt.plot(y[:, 3], 'k')
-
+plt.title('Movement of VBP points')
 plt.show()
 
 # In[18]:
 
 
 plt.plot(nodes[2].loc['Generation'], marker='o')
+plt.title('Generation at a chosen Node')
 plt.show()
