@@ -46,7 +46,7 @@ number_of_inverters = 13  # even feeder is 34Bus, we only have 13 inverters, whi
 
 # File directory
 FileDirectoryBase = '../Data Files/testpvnum10/'  # Get the data from the Testpvnum folder
-network_model_directory = 'feeder/feeder34_B_NR/feeder34_B_NR.dss'
+network_model_directory = 'feeder/8500-Node/master.dss'
 
 # Error checking of the global variable
 if end_time < start_time or end_time < 0 or start_time < 0:
@@ -180,7 +180,7 @@ for i in range(len(all_load_names)):
 """ 
  inverters' variable is a dictionary contains all the inverters in the grid,
  with KEY is the node's number where we have inverters, VALUE is a list of inverters at that node.
- 
+
  Each inverter has a dictionary:
      'device': Inverter_Object
      'controller: Controller_Object
@@ -220,7 +220,7 @@ for timeStep in range(TotalTimeSteps):
     if timeStep == 0:
         for node in range(len(all_load_names)):
             nodeName = all_load_names[node]
-            dss.Loads.Name(nodeName) # set active load
+            dss.Loads.Name(nodeName)  # set active load
             dss.Loads.kW(Load[timeStep, node])
             dss.Loads.kvar(pf_converted * Load[timeStep, node])
     # otherwise, we add Active Power (P) and Reactive Power (Q) which we injected at last time-step to the grid at that node
@@ -238,10 +238,10 @@ for timeStep in range(TotalTimeSteps):
 
     nodeInfo = []
     for nodeName in all_load_names:
-        dss.Circuit.SetActiveElement('load.' + nodeName) # set active element
-        dss.Circuit.SetActiveBus(dss.CktElement.BusNames()[0]) # grab the bus for the active element
-        voltage = dss.Bus.puVmagAngle()[::2] # get the pu information directly
-        nodeInfo.append(np.mean(voltage)) # average of the per-unit voltage
+        dss.Circuit.SetActiveElement('load.' + nodeName)  # set active element
+        dss.Circuit.SetActiveBus(dss.CktElement.BusNames()[0])  # grab the bus for the active element
+        voltage = dss.Bus.puVmagAngle()[::2]  # get the pu information directly
+        nodeInfo.append(np.mean(voltage))  # average of the per-unit voltage
 
     # distribute voltage to node
     for i in range(len(nodes)):
