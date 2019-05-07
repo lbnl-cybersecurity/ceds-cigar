@@ -1,0 +1,943 @@
+Clear
+
+New Circuit.Full_Network 
+
+!Redirect LineCodes.dss
+
+New Linecode.3P_UG_Code3 units=km Xmatrix=(0.757292936491 0.211000297824 0.211000297824 | 0.211000297824 0.757292936491 0.164005359718 | 0.211000297824 0.164005359718 0.757292936491 ) nphases=3 Rmatrix=(0.0899939594868 0.0329072034253 0.0329072034253 | 0.0329072034253 0.0899939594868 0.0329072034253 | 0.0329072034253 0.0329072034253 0.0899939594868 )
+
+New Linecode.1P_UG_Code8 units=km Xmatrix=(0.757292936491 0.0 0.0 | 0.0 0.0 0.0 | 0.0 0.0 0.0 ) nphases=1 Rmatrix=(0.0899939594868 0.0 0.0 | 0.0 0.0 0.0 | 0.0 0.0 0.0 )
+
+New Linecode.3P_UG_Code0 units=km Xmatrix=(0.865062143623 0.229930887869 0.229930887869 | 0.229930887869 0.865062143623 0.182935949762 | 0.229930887869 0.182935949762 0.865062143623 ) nphases=3 Rmatrix=(0.621401685602 0.0702192132842 0.0702192132842 | 0.0702192132842 0.621401685602 0.0702192132842 | 0.0702192132842 0.0702192132842 0.621401685602 )
+
+New Linecode.3P_UG_Code6 units=km Xmatrix=(0.7582375514 0.211944912733 0.211944912733 | 0.211944912733 0.7582375514 0.164949974627 | 0.211944912733 0.164949974627 0.7582375514 ) nphases=3 Rmatrix=(0.0420538795276 0.0282594047739 0.0282594047739 | 0.0282594047739 0.0420538795276 0.0282594047739 | 0.0282594047739 0.0282594047739 0.0420538795276 )
+
+New Linecode.1P_UG_Code5 units=km Xmatrix=(0.0 0.0 0.0 | 0.0 0.0 0.0 | 0.0 0.0 0.757292936491 ) nphases=1 Rmatrix=(0.0 0.0 0.0 | 0.0 0.0 0.0 | 0.0 0.0 0.0899939594868 )
+
+New Linecode.1P_UG_Code4 units=km Xmatrix=(0.0 0.0 0.0 | 0.0 0.0 0.0 | 0.0 0.0 0.865062143623 ) nphases=1 Rmatrix=(0.0 0.0 0.0 | 0.0 0.0 0.0 | 0.0 0.0 0.621401685602 )
+
+New Linecode.2P_OH_Code7 units=km Xmatrix=(-0.200680358561 -0.117163997415 | -0.117163997415 -0.200680358561 ) nphases=2 Rmatrix=(0.0080297706168 0.00460515099956 | 0.00460515099956 0.0080297706168 )
+
+New Linecode.1P_OH_Code1 units=km Xmatrix=(1e-05 ) nphases=1 Rmatrix=(1e-05 )
+
+New Linecode.3P_OH_Code2 units=km Xmatrix=(1e-05 0.0 0.0 | 0.0 1e-05 0.0 | 0.0 0.0 1e-05 ) nphases=3 Rmatrix=(1e-05 0.0 0.0 | 0.0 1e-05 0.0 | 0.0 0.0 1e-05 )
+
+New Linecode.1P_UG_Code9 units=km Xmatrix=(0.865062143623 0.0 0.0 | 0.0 0.0 0.0 | 0.0 0.0 0.0 ) nphases=1 Rmatrix=(0.621401685602 0.0 0.0 | 0.0 0.0 0.0 | 0.0 0.0 0.0 )
+
+!Redirect Lines.dss
+
+New Line.R1-12-47-4_ul_227 Units=km Length=0.108204 bus1=R1-12-47-4_node_245.2.1.3 bus2=R1-12-47-4_node_246.2.1.3 switch=n enabled=y phases=3 Linecode=3P_UG_Code0
+
+New Line.R1-12-47-4_fuse_2 Units=km Length=0.001 bus1=R1-12-47-4_node_21.1 bus2=R1-12-47-4_node_287.1 switch=n enabled=y phases=1 Linecode=1P_OH_Code1
+
+New Fuse.Fuse_R1-12-47-4_fuse_2 monitoredobj=Line.R1-12-47-4_fuse_2 enabled=y
+
+New Line.R1-12-47-4_fuse_3 Units=km Length=0.001 bus1=R1-12-47-4_node_24.1 bus2=R1-12-47-4_node_288.1 switch=n enabled=y phases=1 Linecode=1P_OH_Code1
+
+New Fuse.Fuse_R1-12-47-4_fuse_3 monitoredobj=Line.R1-12-47-4_fuse_3 enabled=y
+
+New Line.R1-12-47-4_fuse_1 Units=km Length=0.001 bus1=R1-12-47-4_node_10.1.2.3 bus2=R1-12-47-4_node_169.1.2.3 switch=n enabled=y phases=3 Linecode=3P_OH_Code2
+
+New Fuse.Fuse_R1-12-47-4_fuse_1 monitoredobj=Line.R1-12-47-4_fuse_1 enabled=y
+
+New Line.R1-12-47-4_fuse_6 Units=km Length=0.001 bus1=R1-12-47-4_node_41.3 bus2=R1-12-47-4_node_291.3 switch=n enabled=y phases=1 Linecode=1P_OH_Code1
+
+New Fuse.Fuse_R1-12-47-4_fuse_6 monitoredobj=Line.R1-12-47-4_fuse_6 enabled=y
+
+New Line.R1-12-47-4_fuse_7 Units=km Length=0.001 bus1=R1-12-47-4_node_43.3 bus2=R1-12-47-4_node_292.3 switch=n enabled=y phases=1 Linecode=1P_OH_Code1
+
+New Fuse.Fuse_R1-12-47-4_fuse_7 monitoredobj=Line.R1-12-47-4_fuse_7 enabled=y
+
+New Line.R1-12-47-4_fuse_4 Units=km Length=0.001 bus1=R1-12-47-4_node_27.1 bus2=R1-12-47-4_node_289.1 switch=n enabled=y phases=1 Linecode=1P_OH_Code1
+
+New Fuse.Fuse_R1-12-47-4_fuse_4 monitoredobj=Line.R1-12-47-4_fuse_4 enabled=y
+
+New Line.R1-12-47-4_fuse_5 Units=km Length=0.001 bus1=R1-12-47-4_node_38.3 bus2=R1-12-47-4_node_290.3 switch=n enabled=y phases=1 Linecode=1P_OH_Code1
+
+New Fuse.Fuse_R1-12-47-4_fuse_5 monitoredobj=Line.R1-12-47-4_fuse_5 enabled=y
+
+New Line.R1-12-47-4_fuse_8 Units=km Length=0.001 bus1=R1-12-47-4_node_50.3 bus2=R1-12-47-4_node_293.3 switch=n enabled=y phases=1 Linecode=1P_OH_Code1
+
+New Fuse.Fuse_R1-12-47-4_fuse_8 monitoredobj=Line.R1-12-47-4_fuse_8 enabled=y
+
+New Line.R1-12-47-4_fuse_9 Units=km Length=0.001 bus1=R1-12-47-4_node_54.1.2.3 bus2=R1-12-47-4_node_294.1.2.3 switch=n enabled=y phases=3 Linecode=3P_OH_Code2
+
+New Fuse.Fuse_R1-12-47-4_fuse_9 monitoredobj=Line.R1-12-47-4_fuse_9 enabled=y
+
+New Line.R1-12-47-4_fuse_32 Units=km Length=0.001 bus1=R1-12-47-4_node_144.1.2.3 bus2=R1-12-47-4_node_226.1.2.3 switch=n enabled=y phases=3 Linecode=3P_OH_Code2
+
+New Fuse.Fuse_R1-12-47-4_fuse_32 monitoredobj=Line.R1-12-47-4_fuse_32 enabled=y
+
+New Line.R1-12-47-4_fuse_33 Units=km Length=0.001 bus1=R1-12-47-4_node_111.1.2.3 bus2=R1-12-47-4_node_227.1.2.3 switch=n enabled=y phases=3 Linecode=3P_OH_Code2
+
+New Fuse.Fuse_R1-12-47-4_fuse_33 monitoredobj=Line.R1-12-47-4_fuse_33 enabled=y
+
+New Line.R1-12-47-4_fuse_30 Units=km Length=0.001 bus1=R1-12-47-4_node_120.1.2.3 bus2=R1-12-47-4_node_224.1.2.3 switch=n enabled=y phases=3 Linecode=3P_OH_Code2
+
+New Fuse.Fuse_R1-12-47-4_fuse_30 monitoredobj=Line.R1-12-47-4_fuse_30 enabled=y
+
+New Line.R1-12-47-4_fuse_31 Units=km Length=0.001 bus1=R1-12-47-4_node_140.1.2.3 bus2=R1-12-47-4_node_225.1.2.3 switch=n enabled=y phases=3 Linecode=3P_OH_Code2
+
+New Fuse.Fuse_R1-12-47-4_fuse_31 monitoredobj=Line.R1-12-47-4_fuse_31 enabled=y
+
+New Line.R1-12-47-4_fuse_36 Units=km Length=0.001 bus1=R1-12-47-4_node_126.1.2.3 bus2=R1-12-47-4_node_230.1.2.3 switch=n enabled=y phases=3 Linecode=3P_OH_Code2
+
+New Fuse.Fuse_R1-12-47-4_fuse_36 monitoredobj=Line.R1-12-47-4_fuse_36 enabled=y
+
+New Line.R1-12-47-4_fuse_37 Units=km Length=0.001 bus1=R1-12-47-4_node_204.1.2.3 bus2=R1-12-47-4_node_107.1.2.3 switch=n enabled=y phases=3 Linecode=3P_OH_Code2
+
+New Fuse.Fuse_R1-12-47-4_fuse_37 monitoredobj=Line.R1-12-47-4_fuse_37 enabled=y
+
+New Line.R1-12-47-4_fuse_34 Units=km Length=0.001 bus1=R1-12-47-4_node_113.1.2.3 bus2=R1-12-47-4_node_228.1.2.3 switch=n enabled=y phases=3 Linecode=3P_OH_Code2
+
+New Fuse.Fuse_R1-12-47-4_fuse_34 monitoredobj=Line.R1-12-47-4_fuse_34 enabled=y
+
+New Line.R1-12-47-4_fuse_35 Units=km Length=0.001 bus1=R1-12-47-4_node_115.1.2.3 bus2=R1-12-47-4_node_229.1.2.3 switch=n enabled=y phases=3 Linecode=3P_OH_Code2
+
+New Fuse.Fuse_R1-12-47-4_fuse_35 monitoredobj=Line.R1-12-47-4_fuse_35 enabled=y
+
+New Line.R1-12-47-4_fuse_38 Units=km Length=0.001 bus1=R1-12-47-4_node_209.1.2.3 bus2=R1-12-47-4_node_106.1.2.3 switch=n enabled=y phases=3 Linecode=3P_OH_Code2
+
+New Fuse.Fuse_R1-12-47-4_fuse_38 monitoredobj=Line.R1-12-47-4_fuse_38 enabled=y
+
+New Line.R1-12-47-4_fuse_39 Units=km Length=0.001 bus1=R1-12-47-4_node_153.1.2.3 bus2=R1-12-47-4_node_237.1.2.3 switch=n enabled=y phases=3 Linecode=3P_OH_Code2
+
+New Fuse.Fuse_R1-12-47-4_fuse_39 monitoredobj=Line.R1-12-47-4_fuse_39 enabled=y
+
+New Line.R1-12-47-4_ul_232 Units=km Length=0.001 bus1=R1-12-47-4_node_240.3.1.2 bus2=R1-12-47-4_node_159.3.1.2 switch=n enabled=y phases=3 Linecode=3P_UG_Code3
+
+New Line.R1-12-47-4_ul_144 Units=km Length=0.0542544 bus1=R1-12-47-4_node_210.1.2.3 bus2=R1-12-47-4_node_112.1.2.3 switch=n enabled=y phases=3 Linecode=3P_UG_Code0
+
+New Line.R1-12-47-4_ul_179 Units=km Length=0.0713232 bus1=R1-12-47-4_node_142.3.1.2 bus2=R1-12-47-4_node_143.3.1.2 switch=n enabled=y phases=3 Linecode=3P_UG_Code0
+
+New Line.R1-12-47-4_ul_60 Units=km Length=0.0704088 bus1=R1-12-47-4_node_60.1.2.3 bus2=R1-12-47-4_node_280.1.2.3 switch=n enabled=y phases=3 Linecode=3P_UG_Code0
+
+New Line.R1-12-47-4_ul_168 Units=km Length=0.0134112 bus1=R1-12-47-4_node_131.2.1.3 bus2=R1-12-47-4_node_105.2.1.3 switch=n enabled=y phases=3 Linecode=3P_UG_Code0
+
+New Line.R1-12-47-4_ul_143 Units=km Length=0.0359664 bus1=R1-12-47-4_node_110.3.1.2 bus2=R1-12-47-4_node_109.3.1.2 switch=n enabled=y phases=3 Linecode=3P_UG_Code3
+
+New Line.R1-12-47-4_ul_142 Units=km Length=0.0283464 bus1=R1-12-47-4_node_143.1.3.2 bus2=R1-12-47-4_node_221.1.3.2 switch=n enabled=y phases=3 Linecode=3P_UG_Code0
+
+New Line.R1-12-47-4_ul_141 Units=km Length=0.0865632 bus1=R1-12-47-4_node_130.3.1.2 bus2=R1-12-47-4_node_139.3.1.2 switch=n enabled=y phases=3 Linecode=3P_UG_Code3
+
+New Line.R1-12-47-4_ul_140 Units=km Length=0.1103376 bus1=R1-12-47-4_node_104.1.3.2 bus2=R1-12-47-4_node_4.1.3.2 switch=n enabled=y phases=3 Linecode=3P_UG_Code0
+
+New Line.R1-12-47-4_ul_147 Units=km Length=0.077724 bus1=R1-12-47-4_node_114.3.1.2 bus2=R1-12-47-4_node_213.3.1.2 switch=n enabled=y phases=3 Linecode=3P_UG_Code0
+
+New Line.R1-12-47-4_ul_146 Units=km Length=0.004572 bus1=R1-12-47-4_node_212.1.3.2 bus2=R1-12-47-4_node_114.1.3.2 switch=n enabled=y phases=3 Linecode=3P_UG_Code0
+
+New Line.R1-12-47-4_ul_145 Units=km Length=0.0051816 bus1=R1-12-47-4_node_112.3.1.2 bus2=R1-12-47-4_node_211.3.1.2 switch=n enabled=y phases=3 Linecode=3P_UG_Code0
+
+New Line.R1-12-47-4_ul_109 Units=km Length=0.0582168 bus1=R1-12-47-4_node_98.1.3.2 bus2=R1-12-47-4_node_97.1.3.2 switch=n enabled=y phases=3 Linecode=3P_UG_Code3
+
+New Line.R1-12-47-4_ul_149 Units=km Length=0.0896112 bus1=R1-12-47-4_node_117.3.1.2 bus2=R1-12-47-4_node_116.3.1.2 switch=n enabled=y phases=3 Linecode=3P_UG_Code3
+
+New Line.R1-12-47-4_ul_148 Units=km Length=0.0408432 bus1=R1-12-47-4_node_116.1.3.2 bus2=R1-12-47-4_node_110.1.3.2 switch=n enabled=y phases=3 Linecode=3P_UG_Code3
+
+New Line.R1-12-47-4_ul_49 Units=km Length=0.01524 bus1=R1-12-47-4_node_53.3 bus2=R1-12-47-4_node_52.3 switch=n enabled=y phases=1 Linecode=1P_UG_Code4
+
+New Line.R1-12-47-4_ul_48 Units=km Length=0.02286 bus1=R1-12-47-4_node_51.3 bus2=R1-12-47-4_node_267.3 switch=n enabled=y phases=1 Linecode=1P_UG_Code4
+
+New Line.R1-12-47-4_ul_157 Units=km Length=0.071628 bus1=R1-12-47-4_node_119.1.2.3 bus2=R1-12-47-4_node_215.1.2.3 switch=n enabled=y phases=3 Linecode=3P_UG_Code0
+
+New Line.R1-12-47-4_ul_41 Units=km Length=0.1673352 bus1=R1-12-47-4_node_42.3 bus2=R1-12-47-4_node_264.3 switch=n enabled=y phases=1 Linecode=1P_UG_Code4
+
+New Line.R1-12-47-4_ul_17 Units=km Length=0.001 bus1=R1-12-47-4_node_41.3 bus2=R1-12-47-4_node_263.3 switch=n enabled=y phases=1 Linecode=1P_UG_Code5
+
+New Line.R1-12-47-4_ul_43 Units=km Length=0.0158496 bus1=R1-12-47-4_node_45.3 bus2=R1-12-47-4_node_44.3 switch=n enabled=y phases=1 Linecode=1P_UG_Code4
+
+New Line.R1-12-47-4_ul_42 Units=km Length=0.0219456 bus1=R1-12-47-4_node_44.3 bus2=R1-12-47-4_node_265.3 switch=n enabled=y phases=1 Linecode=1P_UG_Code4
+
+New Line.R1-12-47-4_ul_45 Units=km Length=0.1045464 bus1=R1-12-47-4_node_47.3 bus2=R1-12-47-4_node_46.3 switch=n enabled=y phases=1 Linecode=1P_UG_Code4
+
+New Line.R1-12-47-4_ul_44 Units=km Length=0.0201168 bus1=R1-12-47-4_node_46.3 bus2=R1-12-47-4_node_45.3 switch=n enabled=y phases=1 Linecode=1P_UG_Code4
+
+New Line.R1-12-47-4_ul_47 Units=km Length=0.0234696 bus1=R1-12-47-4_node_266.3 bus2=R1-12-47-4_node_49.3 switch=n enabled=y phases=1 Linecode=1P_UG_Code4
+
+New Line.R1-12-47-4_ul_46 Units=km Length=0.0207264 bus1=R1-12-47-4_node_49.3 bus2=R1-12-47-4_node_48.3 switch=n enabled=y phases=1 Linecode=1P_UG_Code4
+
+New Line.R1-12-47-4_ul_132 Units=km Length=0.0012192 bus1=R1-12-47-4_node_177.1.3.2 bus2=R1-12-47-4_node_178.1.3.2 switch=n enabled=y phases=3 Linecode=3P_UG_Code6
+
+New Line.R1-12-47-4_ul_133 Units=km Length=0.003048 bus1=R1-12-47-4_node_180.2.1.3 bus2=R1-12-47-4_node_177.2.1.3 switch=n enabled=y phases=3 Linecode=3P_UG_Code6
+
+New Line.R1-12-47-4_ul_130 Units=km Length=0.0012192 bus1=R1-12-47-4_node_174.1.2.3 bus2=R1-12-47-4_node_175.1.2.3 switch=n enabled=y phases=3 Linecode=3P_UG_Code6
+
+New Line.R1-12-47-4_ul_208 Units=km Length=0.2542032 bus1=R1-12-47-4_node_151.1.3.2 bus2=R1-12-47-4_node_152.1.3.2 switch=n enabled=y phases=3 Linecode=3P_UG_Code3
+
+New Line.R1-12-47-4_ul_209 Units=km Length=0.1712976 bus1=R1-12-47-4_node_152.2.1.3 bus2=R1-12-47-4_node_117.2.1.3 switch=n enabled=y phases=3 Linecode=3P_UG_Code3
+
+New Line.R1-12-47-4_switch_9 Units=km Length=0.001 bus1=R1-12-47-4_node_72.1.2.3 bus2=R1-12-47-4_node_172.1.2.3 switch=y enabled=y phases=3 Linecode=3P_OH_Code2
+
+New Line.R1-12-47-4_switch_8 Units=km Length=0.001 bus1=R1-12-47-4_node_182.1.2.3 bus2=R1-12-47-4_node_303.1.2.3 switch=y enabled=y phases=3 Linecode=3P_OH_Code2
+
+New Line.R1-12-47-4_switch_7 Units=km Length=0.001 bus1=R1-12-47-4_node_193.1.2.3 bus2=R1-12-47-4_node_96.1.2.3 switch=y enabled=y phases=3 Linecode=3P_OH_Code2
+
+New Line.R1-12-47-4_switch_6 Units=km Length=0.001 bus1=R1-12-47-4_node_194.1.2.3 bus2=R1-12-47-4_node_102.1.2.3 switch=y enabled=y phases=3 Linecode=3P_OH_Code2
+
+New Line.R1-12-47-4_switch_5 Units=km Length=0.001 bus1=R1-12-47-4_node_286.3 bus2=R1-12-47-4_node_31.3 switch=y enabled=y phases=1 Linecode=1P_OH_Code1
+
+New Line.R1-12-47-4_switch_4 Units=km Length=0.001 bus1=R1-12-47-4_node_251.1 bus2=R1-12-47-4_node_13.1 switch=y enabled=y phases=1 Linecode=1P_OH_Code1
+
+New Line.R1-12-47-4_switch_3 Units=km Length=0.001 bus1=R1-12-47-4_node_275.1.2.3 bus2=R1-12-47-4_node_68.1.2.3 switch=y enabled=y phases=3 Linecode=3P_OH_Code2
+
+New Line.R1-12-47-4_switch_2 Units=km Length=0.001 bus1=R1-12-47-4_node_10.1.2.3 bus2=R1-12-47-4_node_167.1.2.3 switch=y enabled=y phases=3 Linecode=3P_OH_Code2
+
+New Line.R1-12-47-4_switch_1 Units=km Length=0.001 bus1=R1-12-47-4_node_4.1.2.3 bus2=R1-12-47-4_node_5.1.2.3 switch=y enabled=y phases=3 Linecode=3P_OH_Code2
+
+New Line.R1-12-47-4_ul_203 Units=km Length=0.003048 bus1=R1-12-47-4_node_208.2.1.3 bus2=R1-12-47-4_node_205.2.1.3 switch=n enabled=y phases=3 Linecode=3P_UG_Code6
+
+New Line.R1-12-47-4_ul_18 Units=km Length=0.001 bus1=R1-12-47-4_node_264.3 bus2=R1-12-47-4_node_41.3 switch=n enabled=y phases=1 Linecode=1P_UG_Code5
+
+New Line.R1-12-47-4_ul_234 Units=km Length=0.001 bus1=R1-12-47-4_node_157.3.1.2 bus2=R1-12-47-4_node_239.3.1.2 switch=n enabled=y phases=3 Linecode=3P_UG_Code3
+
+New Line.R1-12-47-4_tl_19 Units=km Length=0.009144 bus1=R1-12-47-4_tn_19.1.2 bus2=R1-12-47-4_tm_19.1.2 switch=n enabled=y phases=2 Linecode=2P_OH_Code7
+
+New Line.R1-12-47-4_tl_18 Units=km Length=0.009144 bus1=R1-12-47-4_tn_18.1.2 bus2=R1-12-47-4_tm_18.1.2 switch=n enabled=y phases=2 Linecode=2P_OH_Code7
+
+New Line.R1-12-47-4_tl_17 Units=km Length=0.009144 bus1=R1-12-47-4_tn_17.1.2 bus2=R1-12-47-4_tm_17.1.2 switch=n enabled=y phases=2 Linecode=2P_OH_Code7
+
+New Line.R1-12-47-4_tl_16 Units=km Length=0.009144 bus1=R1-12-47-4_tn_16.1.2 bus2=R1-12-47-4_tm_16.1.2 switch=n enabled=y phases=2 Linecode=2P_OH_Code7
+
+New Line.R1-12-47-4_tl_15 Units=km Length=0.009144 bus1=R1-12-47-4_tn_15.1.2 bus2=R1-12-47-4_tm_15.1.2 switch=n enabled=y phases=2 Linecode=2P_OH_Code7
+
+New Line.R1-12-47-4_tl_13 Units=km Length=0.009144 bus1=R1-12-47-4_tn_13.1.2 bus2=R1-12-47-4_tm_13.1.2 switch=n enabled=y phases=2 Linecode=2P_OH_Code7
+
+New Line.R1-12-47-4_tl_12 Units=km Length=0.009144 bus1=R1-12-47-4_tn_12.2.1 bus2=R1-12-47-4_tm_12.2.1 switch=n enabled=y phases=2 Linecode=2P_OH_Code7
+
+New Line.R1-12-47-4_tl_11 Units=km Length=0.009144 bus1=R1-12-47-4_tn_11.1.2 bus2=R1-12-47-4_tm_11.1.2 switch=n enabled=y phases=2 Linecode=2P_OH_Code7
+
+New Line.R1-12-47-4_tl_10 Units=km Length=0.009144 bus1=R1-12-47-4_tn_10.1.2 bus2=R1-12-47-4_tm_10.1.2 switch=n enabled=y phases=2 Linecode=2P_OH_Code7
+
+New Line.R1-12-47-4_ul_165 Units=km Length=0.028956 bus1=R1-12-47-4_node_128.2.1.3 bus2=R1-12-47-4_node_129.2.1.3 switch=n enabled=y phases=3 Linecode=3P_UG_Code0
+
+New Line.R1-12-47-4_ul_164 Units=km Length=0.0161544 bus1=R1-12-47-4_node_127.1.2.3 bus2=R1-12-47-4_node_128.1.2.3 switch=n enabled=y phases=3 Linecode=3P_UG_Code0
+
+New Line.R1-12-47-4_ul_167 Units=km Length=0.1399032 bus1=R1-12-47-4_node_129.1.2.3 bus2=R1-12-47-4_node_131.1.2.3 switch=n enabled=y phases=3 Linecode=3P_UG_Code0
+
+New Line.R1-12-47-4_ul_166 Units=km Length=0.0405384 bus1=R1-12-47-4_node_122.3.1.2 bus2=R1-12-47-4_node_130.3.1.2 switch=n enabled=y phases=3 Linecode=3P_UG_Code3
+
+New Line.R1-12-47-4_ul_161 Units=km Length=0.10668 bus1=R1-12-47-4_node_124.2.1.3 bus2=R1-12-47-4_node_125.2.1.3 switch=n enabled=y phases=3 Linecode=3P_UG_Code0
+
+New Line.R1-12-47-4_ul_160 Units=km Length=0.1380744 bus1=R1-12-47-4_node_123.3.1.2 bus2=R1-12-47-4_node_124.3.1.2 switch=n enabled=y phases=3 Linecode=3P_UG_Code0
+
+New Line.R1-12-47-4_ul_226 Units=km Length=0.0573024 bus1=R1-12-47-4_node_163.1.2.3 bus2=R1-12-47-4_node_244.1.2.3 switch=n enabled=y phases=3 Linecode=3P_UG_Code0
+
+New Line.R1-12-47-4_ul_189 Units=km Length=0.001 bus1=R1-12-47-4_node_213.2.1.3 bus2=R1-12-47-4_node_115.2.1.3 switch=n enabled=y phases=3 Linecode=3P_UG_Code3
+
+New Line.R1-12-47-4_ul_188 Units=km Length=0.001 bus1=R1-12-47-4_node_113.1.3.2 bus2=R1-12-47-4_node_212.1.3.2 switch=n enabled=y phases=3 Linecode=3P_UG_Code3
+
+New Line.R1-12-47-4_ul_187 Units=km Length=0.001 bus1=R1-12-47-4_node_211.1.2.3 bus2=R1-12-47-4_node_113.1.2.3 switch=n enabled=y phases=3 Linecode=3P_UG_Code3
+
+New Line.R1-12-47-4_ul_186 Units=km Length=0.001 bus1=R1-12-47-4_node_111.1.3.2 bus2=R1-12-47-4_node_210.1.3.2 switch=n enabled=y phases=3 Linecode=3P_UG_Code3
+
+New Line.R1-12-47-4_ul_185 Units=km Length=0.001 bus1=R1-12-47-4_node_223.3.1.2 bus2=R1-12-47-4_node_111.3.1.2 switch=n enabled=y phases=3 Linecode=3P_UG_Code3
+
+New Line.R1-12-47-4_ul_184 Units=km Length=0.001 bus1=R1-12-47-4_node_120.1.3.2 bus2=R1-12-47-4_node_216.1.3.2 switch=n enabled=y phases=3 Linecode=3P_UG_Code3
+
+New Line.R1-12-47-4_ul_183 Units=km Length=0.001 bus1=R1-12-47-4_node_215.3.1.2 bus2=R1-12-47-4_node_120.3.1.2 switch=n enabled=y phases=3 Linecode=3P_UG_Code3
+
+New Line.R1-12-47-4_ul_182 Units=km Length=0.001 bus1=R1-12-47-4_node_146.1.3.2 bus2=R1-12-47-4_node_6.1.3.2 switch=n enabled=y phases=3 Linecode=3P_UG_Code3
+
+New Line.R1-12-47-4_ul_181 Units=km Length=0.0521208 bus1=R1-12-47-4_node_106.3.1.2 bus2=R1-12-47-4_node_223.3.1.2 switch=n enabled=y phases=3 Linecode=3P_UG_Code0
+
+New Line.R1-12-47-4_ul_180 Units=km Length=0.111252 bus1=R1-12-47-4_node_139.1.3.2 bus2=R1-12-47-4_node_222.1.3.2 switch=n enabled=y phases=3 Linecode=3P_UG_Code3
+
+New Line.R1-12-47-4_ul_131 Units=km Length=0.0012192 bus1=R1-12-47-4_node_177.3.1.2 bus2=R1-12-47-4_node_176.3.1.2 switch=n enabled=y phases=3 Linecode=3P_UG_Code6
+
+New Line.R1-12-47-4_ul_98 Units=km Length=0.0067056 bus1=R1-12-47-4_node_185.1.3.2 bus2=R1-12-47-4_node_86.1.3.2 switch=n enabled=y phases=3 Linecode=3P_UG_Code0
+
+New Line.R1-12-47-4_ul_92 Units=km Length=0.0789432 bus1=R1-12-47-4_node_81.3.1.2 bus2=R1-12-47-4_node_182.3.1.2 switch=n enabled=y phases=3 Linecode=3P_UG_Code0
+
+New Line.R1-12-47-4_ul_93 Units=km Length=0.1697736 bus1=R1-12-47-4_node_78.3.1.2 bus2=R1-12-47-4_node_79.3.1.2 switch=n enabled=y phases=3 Linecode=3P_UG_Code3
+
+New Line.R1-12-47-4_ul_90 Units=km Length=0.001 bus1=R1-12-47-4_node_284.1.3.2 bus2=R1-12-47-4_node_64.1.3.2 switch=n enabled=y phases=3 Linecode=3P_UG_Code3
+
+New Line.R1-12-47-4_ul_91 Units=km Length=0.001 bus1=R1-12-47-4_node_278.1.2.3 bus2=R1-12-47-4_node_58.1.2.3 switch=n enabled=y phases=3 Linecode=3P_UG_Code3
+
+New Line.R1-12-47-4_ul_96 Units=km Length=0.1069848 bus1=R1-12-47-4_node_183.1.3.2 bus2=R1-12-47-4_node_83.1.3.2 switch=n enabled=y phases=3 Linecode=3P_UG_Code0
+
+New Line.R1-12-47-4_ul_97 Units=km Length=0.0917448 bus1=R1-12-47-4_node_86.3.1.2 bus2=R1-12-47-4_node_85.3.1.2 switch=n enabled=y phases=3 Linecode=3P_UG_Code0
+
+New Line.R1-12-47-4_ul_94 Units=km Length=0.0524256 bus1=R1-12-47-4_node_82.1.3.2 bus2=R1-12-47-4_node_81.1.3.2 switch=n enabled=y phases=3 Linecode=3P_UG_Code0
+
+New Line.R1-12-47-4_ul_95 Units=km Length=0.0877824 bus1=R1-12-47-4_node_83.3.1.2 bus2=R1-12-47-4_node_82.3.1.2 switch=n enabled=y phases=3 Linecode=3P_UG_Code0
+
+New Line.R1-12-47-4_ul_70 Units=km Length=0.001 bus1=R1-12-47-4_node_50.3 bus2=R1-12-47-4_node_266.3 switch=n enabled=y phases=1 Linecode=1P_UG_Code5
+
+New Line.R1-12-47-4_ul_71 Units=km Length=0.001 bus1=R1-12-47-4_node_267.3 bus2=R1-12-47-4_node_50.3 switch=n enabled=y phases=1 Linecode=1P_UG_Code5
+
+New Line.R1-12-47-4_ul_72 Units=km Length=0.001 bus1=R1-12-47-4_node_259.1 bus2=R1-12-47-4_node_27.1 switch=n enabled=y phases=1 Linecode=1P_UG_Code8
+
+New Line.R1-12-47-4_ul_73 Units=km Length=0.001 bus1=R1-12-47-4_node_27.1 bus2=R1-12-47-4_node_258.1 switch=n enabled=y phases=1 Linecode=1P_UG_Code8
+
+New Line.R1-12-47-4_ul_74 Units=km Length=0.001 bus1=R1-12-47-4_node_24.1 bus2=R1-12-47-4_node_256.1 switch=n enabled=y phases=1 Linecode=1P_UG_Code8
+
+New Line.R1-12-47-4_ul_75 Units=km Length=0.001 bus1=R1-12-47-4_node_257.1 bus2=R1-12-47-4_node_24.1 switch=n enabled=y phases=1 Linecode=1P_UG_Code8
+
+New Line.R1-12-47-4_ul_76 Units=km Length=0.001 bus1=R1-12-47-4_node_255.1 bus2=R1-12-47-4_node_21.1 switch=n enabled=y phases=1 Linecode=1P_UG_Code8
+
+New Line.R1-12-47-4_ul_77 Units=km Length=0.001 bus1=R1-12-47-4_node_21.1 bus2=R1-12-47-4_node_254.1 switch=n enabled=y phases=1 Linecode=1P_UG_Code8
+
+New Line.R1-12-47-4_ul_78 Units=km Length=0.001 bus1=R1-12-47-4_node_19.1 bus2=R1-12-47-4_node_252.1 switch=n enabled=y phases=1 Linecode=1P_UG_Code8
+
+New Line.R1-12-47-4_ul_79 Units=km Length=0.001 bus1=R1-12-47-4_node_253.1 bus2=R1-12-47-4_node_19.1 switch=n enabled=y phases=1 Linecode=1P_UG_Code8
+
+New Line.R1-12-47-4_ul_229 Units=km Length=0.001 bus1=R1-12-47-4_node_244.1.3.2 bus2=R1-12-47-4_node_164.1.3.2 switch=n enabled=y phases=3 Linecode=3P_UG_Code3
+
+New Line.R1-12-47-4_ul_205 Units=km Length=0.0012192 bus1=R1-12-47-4_node_208.2.1.3 bus2=R1-12-47-4_node_209.2.1.3 switch=n enabled=y phases=3 Linecode=3P_UG_Code6
+
+New Line.R1-12-47-4_ul_99 Units=km Length=0.0039624 bus1=R1-12-47-4_node_88.1.2.3 bus2=R1-12-47-4_node_186.1.2.3 switch=n enabled=y phases=3 Linecode=3P_UG_Code0
+
+New Line.R1-12-47-4_ul_235 Units=km Length=0.001 bus1=R1-12-47-4_node_238.1.3.2 bus2=R1-12-47-4_node_157.1.3.2 switch=n enabled=y phases=3 Linecode=3P_UG_Code3
+
+New Line.R1-12-47-4_fuse_21 Units=km Length=0.001 bus1=R1-12-47-4_node_58.1.2.3 bus2=R1-12-47-4_node_195.1.2.3 switch=n enabled=y phases=3 Linecode=3P_OH_Code2
+
+New Fuse.Fuse_R1-12-47-4_fuse_21 monitoredobj=Line.R1-12-47-4_fuse_21 enabled=y
+
+New Line.R1-12-47-4_fuse_20 Units=km Length=0.001 bus1=R1-12-47-4_node_56.1.2.3 bus2=R1-12-47-4_node_276.1.2.3 switch=n enabled=y phases=3 Linecode=3P_OH_Code2
+
+New Fuse.Fuse_R1-12-47-4_fuse_20 monitoredobj=Line.R1-12-47-4_fuse_20 enabled=y
+
+New Line.R1-12-47-4_fuse_23 Units=km Length=0.001 bus1=R1-12-47-4_node_87.1.2.3 bus2=R1-12-47-4_node_197.1.2.3 switch=n enabled=y phases=3 Linecode=3P_OH_Code2
+
+New Fuse.Fuse_R1-12-47-4_fuse_23 monitoredobj=Line.R1-12-47-4_fuse_23 enabled=y
+
+New Line.R1-12-47-4_fuse_22 Units=km Length=0.001 bus1=R1-12-47-4_node_84.1.2.3 bus2=R1-12-47-4_node_196.1.2.3 switch=n enabled=y phases=3 Linecode=3P_OH_Code2
+
+New Fuse.Fuse_R1-12-47-4_fuse_22 monitoredobj=Line.R1-12-47-4_fuse_22 enabled=y
+
+New Line.R1-12-47-4_fuse_25 Units=km Length=0.001 bus1=R1-12-47-4_node_93.1.2.3 bus2=R1-12-47-4_node_199.1.2.3 switch=n enabled=y phases=3 Linecode=3P_OH_Code2
+
+New Fuse.Fuse_R1-12-47-4_fuse_25 monitoredobj=Line.R1-12-47-4_fuse_25 enabled=y
+
+New Line.R1-12-47-4_fuse_24 Units=km Length=0.001 bus1=R1-12-47-4_node_91.1.2.3 bus2=R1-12-47-4_node_198.1.2.3 switch=n enabled=y phases=3 Linecode=3P_OH_Code2
+
+New Fuse.Fuse_R1-12-47-4_fuse_24 monitoredobj=Line.R1-12-47-4_fuse_24 enabled=y
+
+New Line.R1-12-47-4_fuse_27 Units=km Length=0.001 bus1=R1-12-47-4_node_175.1.2.3 bus2=R1-12-47-4_node_74.1.2.3 switch=n enabled=y phases=3 Linecode=3P_OH_Code2
+
+New Fuse.Fuse_R1-12-47-4_fuse_27 monitoredobj=Line.R1-12-47-4_fuse_27 enabled=y
+
+New Line.R1-12-47-4_fuse_26 Units=km Length=0.001 bus1=R1-12-47-4_node_170.1.2.3 bus2=R1-12-47-4_node_73.1.2.3 switch=n enabled=y phases=3 Linecode=3P_OH_Code2
+
+New Fuse.Fuse_R1-12-47-4_fuse_26 monitoredobj=Line.R1-12-47-4_fuse_26 enabled=y
+
+New Line.R1-12-47-4_fuse_29 Units=km Length=0.001 bus1=R1-12-47-4_node_181.1.2.3 bus2=R1-12-47-4_node_76.1.2.3 switch=n enabled=y phases=3 Linecode=3P_OH_Code2
+
+New Fuse.Fuse_R1-12-47-4_fuse_29 monitoredobj=Line.R1-12-47-4_fuse_29 enabled=y
+
+New Line.R1-12-47-4_fuse_28 Units=km Length=0.001 bus1=R1-12-47-4_node_176.1.2.3 bus2=R1-12-47-4_node_77.1.2.3 switch=n enabled=y phases=3 Linecode=3P_OH_Code2
+
+New Fuse.Fuse_R1-12-47-4_fuse_28 monitoredobj=Line.R1-12-47-4_fuse_28 enabled=y
+
+New Line.R1-12-47-4_ul_138 Units=km Length=0.001 bus1=R1-12-47-4_node_189.2.1.3 bus2=R1-12-47-4_node_59.2.1.3 switch=n enabled=y phases=3 Linecode=3P_UG_Code3
+
+New Line.R1-12-47-4_ul_169 Units=km Length=0.0143256 bus1=R1-12-47-4_node_103.3.1.2 bus2=R1-12-47-4_node_132.3.1.2 switch=n enabled=y phases=3 Linecode=3P_UG_Code0
+
+New Line.R1-12-47-4_ul_237 Units=km Length=0.001 bus1=R1-12-47-4_node_232.1.2.3 bus2=R1-12-47-4_node_231.1.2.3 switch=n enabled=y phases=3 Linecode=3P_UG_Code3
+
+New Line.R1-12-47-4_ul_135 Units=km Length=0.0012192 bus1=R1-12-47-4_node_180.1.3.2 bus2=R1-12-47-4_node_181.1.3.2 switch=n enabled=y phases=3 Linecode=3P_UG_Code6
+
+New Line.R1-12-47-4_ul_236 Units=km Length=0.001 bus1=R1-12-47-4_node_302.3.1.2 bus2=R1-12-47-4_node_149.3.1.2 switch=n enabled=y phases=3 Linecode=3P_UG_Code3
+
+New Line.R1-12-47-4_ul_154 Units=km Length=0.0786384 bus1=R1-12-47-4_node_147.1.3.2 bus2=R1-12-47-4_node_148.1.3.2 switch=n enabled=y phases=3 Linecode=3P_UG_Code3
+
+New Line.R1-12-47-4_ul_155 Units=km Length=0.0338328 bus1=R1-12-47-4_node_107.3.1.2 bus2=R1-12-47-4_node_118.3.1.2 switch=n enabled=y phases=3 Linecode=3P_UG_Code0
+
+New Line.R1-12-47-4_ul_156 Units=km Length=0.0414528 bus1=R1-12-47-4_node_118.1.3.2 bus2=R1-12-47-4_node_119.1.3.2 switch=n enabled=y phases=3 Linecode=3P_UG_Code0
+
+New Line.R1-12-47-4_ul_150 Units=km Length=0.0408432 bus1=R1-12-47-4_node_146.3.1.2 bus2=R1-12-47-4_node_145.3.1.2 switch=n enabled=y phases=3 Linecode=3P_UG_Code3
+
+New Line.R1-12-47-4_ul_151 Units=km Length=0.0341376 bus1=R1-12-47-4_node_7.1.2.3 bus2=R1-12-47-4_node_146.1.2.3 switch=n enabled=y phases=3 Linecode=3P_UG_Code3
+
+New Line.R1-12-47-4_ul_152 Units=km Length=0.0344424 bus1=R1-12-47-4_node_56.2.1.3 bus2=R1-12-47-4_node_8.2.1.3 switch=n enabled=y phases=3 Linecode=3P_UG_Code3
+
+New Line.R1-12-47-4_ul_153 Units=km Length=0.0100584 bus1=R1-12-47-4_node_6.3.1.2 bus2=R1-12-47-4_node_65.3.1.2 switch=n enabled=y phases=3 Linecode=3P_UG_Code3
+
+New Line.R1-12-47-4_ul_158 Units=km Length=0.0347472 bus1=R1-12-47-4_node_108.1.2.3 bus2=R1-12-47-4_node_122.1.2.3 switch=n enabled=y phases=3 Linecode=3P_UG_Code3
+
+New Line.R1-12-47-4_ul_159 Units=km Length=0.0463296 bus1=R1-12-47-4_node_121.2.1.3 bus2=R1-12-47-4_node_123.2.1.3 switch=n enabled=y phases=3 Linecode=3P_UG_Code0
+
+New Line.R1-12-47-4_ul_231 Units=km Length=0.001 bus1=R1-12-47-4_node_162.3.1.2 bus2=R1-12-47-4_node_243.3.1.2 switch=n enabled=y phases=3 Linecode=3P_UG_Code3
+
+New Line.R1-12-47-4_ul_38 Units=km Length=0.0301752 bus1=R1-12-47-4_node_39.3 bus2=R1-12-47-4_node_262.3 switch=n enabled=y phases=1 Linecode=1P_UG_Code4
+
+New Line.R1-12-47-4_ul_39 Units=km Length=0.0155448 bus1=R1-12-47-4_node_40.3 bus2=R1-12-47-4_node_39.3 switch=n enabled=y phases=1 Linecode=1P_UG_Code4
+
+New Line.R1-12-47-4_ul_34 Units=km Length=0.0637032 bus1=R1-12-47-4_node_34.3 bus2=R1-12-47-4_node_33.3 switch=n enabled=y phases=1 Linecode=1P_UG_Code4
+
+New Line.R1-12-47-4_ul_35 Units=km Length=0.016764 bus1=R1-12-47-4_node_35.3 bus2=R1-12-47-4_node_34.3 switch=n enabled=y phases=1 Linecode=1P_UG_Code4
+
+New Line.R1-12-47-4_ul_36 Units=km Length=0.0158496 bus1=R1-12-47-4_node_37.3 bus2=R1-12-47-4_node_36.3 switch=n enabled=y phases=1 Linecode=1P_UG_Code4
+
+New Line.R1-12-47-4_ul_37 Units=km Length=0.0341376 bus1=R1-12-47-4_node_261.3 bus2=R1-12-47-4_node_37.3 switch=n enabled=y phases=1 Linecode=1P_UG_Code4
+
+New Line.R1-12-47-4_ul_30 Units=km Length=0.0094488 bus1=R1-12-47-4_node_258.1 bus2=R1-12-47-4_node_26.1 switch=n enabled=y phases=1 Linecode=1P_UG_Code9
+
+New Line.R1-12-47-4_ul_31 Units=km Length=0.1033272 bus1=R1-12-47-4_node_28.1 bus2=R1-12-47-4_node_259.1 switch=n enabled=y phases=1 Linecode=1P_UG_Code9
+
+New Line.R1-12-47-4_ul_32 Units=km Length=0.0161544 bus1=R1-12-47-4_node_29.1 bus2=R1-12-47-4_node_28.1 switch=n enabled=y phases=1 Linecode=1P_UG_Code9
+
+New Line.R1-12-47-4_ul_33 Units=km Length=0.0192024 bus1=R1-12-47-4_node_33.3 bus2=R1-12-47-4_node_32.3 switch=n enabled=y phases=1 Linecode=1P_UG_Code4
+
+New Line.R1-12-47-4_ul_230 Units=km Length=0.001 bus1=R1-12-47-4_node_242.3.1.2 bus2=R1-12-47-4_node_162.3.1.2 switch=n enabled=y phases=3 Linecode=3P_UG_Code3
+
+New Line.R1-12-47-4_ul_40 Units=km Length=0.0877824 bus1=R1-12-47-4_node_263.3 bus2=R1-12-47-4_node_40.3 switch=n enabled=y phases=1 Linecode=1P_UG_Code4
+
+New Line.R1-12-47-4_ul_113 Units=km Length=0.0387096 bus1=R1-12-47-4_node_77.3.1.2 bus2=R1-12-47-4_node_60.3.1.2 switch=n enabled=y phases=3 Linecode=3P_UG_Code0
+
+New Line.R1-12-47-4_ul_233 Units=km Length=0.001 bus1=R1-12-47-4_node_159.1.3.2 bus2=R1-12-47-4_node_241.1.3.2 switch=n enabled=y phases=3 Linecode=3P_UG_Code3
+
+New Line.R1-12-47-4_ul_121 Units=km Length=0.001 bus1=R1-12-47-4_node_187.3.1.2 bus2=R1-12-47-4_node_91.3.1.2 switch=n enabled=y phases=3 Linecode=3P_UG_Code3
+
+New Line.R1-12-47-4_ul_120 Units=km Length=0.001 bus1=R1-12-47-4_node_190.1.3.2 bus2=R1-12-47-4_node_93.1.3.2 switch=n enabled=y phases=3 Linecode=3P_UG_Code3
+
+New Line.R1-12-47-4_ul_123 Units=km Length=0.001 bus1=R1-12-47-4_node_184.1.2.3 bus2=R1-12-47-4_node_84.1.2.3 switch=n enabled=y phases=3 Linecode=3P_UG_Code3
+
+New Line.R1-12-47-4_ul_122 Units=km Length=0.001 bus1=R1-12-47-4_node_84.1.3.2 bus2=R1-12-47-4_node_183.1.3.2 switch=n enabled=y phases=3 Linecode=3P_UG_Code3
+
+New Line.R1-12-47-4_ul_125 Units=km Length=0.001 bus1=R1-12-47-4_node_186.3.1.2 bus2=R1-12-47-4_node_87.3.1.2 switch=n enabled=y phases=3 Linecode=3P_UG_Code3
+
+New Line.R1-12-47-4_ul_124 Units=km Length=0.001 bus1=R1-12-47-4_node_87.1.3.2 bus2=R1-12-47-4_node_185.1.3.2 switch=n enabled=y phases=3 Linecode=3P_UG_Code3
+
+New Line.R1-12-47-4_ul_127 Units=km Length=0.0012192 bus1=R1-12-47-4_node_172.3.1.2 bus2=R1-12-47-4_node_171.3.1.2 switch=n enabled=y phases=3 Linecode=3P_UG_Code6
+
+New Line.R1-12-47-4_ul_126 Units=km Length=0.0012192 bus1=R1-12-47-4_node_171.1.3.2 bus2=R1-12-47-4_node_170.1.3.2 switch=n enabled=y phases=3 Linecode=3P_UG_Code6
+
+New Line.R1-12-47-4_ul_128 Units=km Length=0.003048 bus1=R1-12-47-4_node_171.3.1.2 bus2=R1-12-47-4_node_174.3.1.2 switch=n enabled=y phases=3 Linecode=3P_UG_Code6
+
+New Line.R1-12-47-4_ul_129 Units=km Length=0.0012192 bus1=R1-12-47-4_node_174.1.2.3 bus2=R1-12-47-4_node_173.1.2.3 switch=n enabled=y phases=3 Linecode=3P_UG_Code6
+
+New Line.R1-12-47-4_tl_22 Units=km Length=0.009144 bus1=R1-12-47-4_tn_22.1.2 bus2=R1-12-47-4_tm_22.1.2 switch=n enabled=y phases=2 Linecode=2P_OH_Code7
+
+New Line.R1-12-47-4_tl_23 Units=km Length=0.009144 bus1=R1-12-47-4_tn_23.2.1 bus2=R1-12-47-4_tm_23.2.1 switch=n enabled=y phases=2 Linecode=2P_OH_Code7
+
+New Line.R1-12-47-4_tl_20 Units=km Length=0.009144 bus1=R1-12-47-4_tn_20.1.2 bus2=R1-12-47-4_tm_20.1.2 switch=n enabled=y phases=2 Linecode=2P_OH_Code7
+
+New Line.R1-12-47-4_tl_21 Units=km Length=0.009144 bus1=R1-12-47-4_tn_21.1.2 bus2=R1-12-47-4_tm_21.1.2 switch=n enabled=y phases=2 Linecode=2P_OH_Code7
+
+New Line.R1-12-47-4_tl_26 Units=km Length=0.009144 bus1=R1-12-47-4_tn_26.1.2 bus2=R1-12-47-4_tm_26.1.2 switch=n enabled=y phases=2 Linecode=2P_OH_Code7
+
+New Line.R1-12-47-4_tl_27 Units=km Length=0.009144 bus1=R1-12-47-4_tn_27.1.2 bus2=R1-12-47-4_tm_27.1.2 switch=n enabled=y phases=2 Linecode=2P_OH_Code7
+
+New Line.R1-12-47-4_tl_24 Units=km Length=0.009144 bus1=R1-12-47-4_tn_24.1.2 bus2=R1-12-47-4_tm_24.1.2 switch=n enabled=y phases=2 Linecode=2P_OH_Code7
+
+New Line.R1-12-47-4_tl_25 Units=km Length=0.009144 bus1=R1-12-47-4_tn_25.1.2 bus2=R1-12-47-4_tm_25.1.2 switch=n enabled=y phases=2 Linecode=2P_OH_Code7
+
+New Line.R1-12-47-4_tl_28 Units=km Length=0.009144 bus1=R1-12-47-4_tn_28.2.1 bus2=R1-12-47-4_tm_28.2.1 switch=n enabled=y phases=2 Linecode=2P_OH_Code7
+
+New Line.R1-12-47-4_tl_29 Units=km Length=0.009144 bus1=R1-12-47-4_tn_29.2.1 bus2=R1-12-47-4_tm_29.2.1 switch=n enabled=y phases=2 Linecode=2P_OH_Code7
+
+New Line.R1-12-47-4_ul_163 Units=km Length=0.0057912 bus1=R1-12-47-4_node_218.1.3.2 bus2=R1-12-47-4_node_127.1.3.2 switch=n enabled=y phases=3 Linecode=3P_UG_Code0
+
+New Line.R1-12-47-4_ul_162 Units=km Length=0.0057912 bus1=R1-12-47-4_node_125.1.3.2 bus2=R1-12-47-4_node_217.1.3.2 switch=n enabled=y phases=3 Linecode=3P_UG_Code0
+
+New Line.R1-12-47-4_ul_190 Units=km Length=0.001 bus1=R1-12-47-4_node_217.2.1.3 bus2=R1-12-47-4_node_126.2.1.3 switch=n enabled=y phases=3 Linecode=3P_UG_Code3
+
+New Line.R1-12-47-4_ul_194 Units=km Length=0.001 bus1=R1-12-47-4_node_221.1.3.2 bus2=R1-12-47-4_node_144.1.3.2 switch=n enabled=y phases=3 Linecode=3P_UG_Code3
+
+New Line.R1-12-47-4_ul_195 Units=km Length=0.0012192 bus1=R1-12-47-4_node_200.1.3.2 bus2=R1-12-47-4_node_201.1.3.2 switch=n enabled=y phases=3 Linecode=3P_UG_Code6
+
+New Line.R1-12-47-4_ul_196 Units=km Length=0.0012192 bus1=R1-12-47-4_node_201.2.1.3 bus2=R1-12-47-4_node_203.2.1.3 switch=n enabled=y phases=3 Linecode=3P_UG_Code6
+
+New Line.R1-12-47-4_switch_13 Units=km Length=0.001 bus1=R1-12-47-4_node_222.1.2.3 bus2=R1-12-47-4_node_56.1.2.3 switch=y enabled=y phases=3 Linecode=3P_OH_Code2
+
+New Line.R1-12-47-4_switch_12 Units=km Length=0.001 bus1=R1-12-47-4_node_75.1.2.3 bus2=R1-12-47-4_node_179.1.2.3 switch=y enabled=y phases=3 Linecode=3P_OH_Code2
+
+New Line.R1-12-47-4_switch_11 Units=km Length=0.001 bus1=R1-12-47-4_node_178.1.2.3 bus2=R1-12-47-4_node_78.1.2.3 switch=y enabled=y phases=3 Linecode=3P_OH_Code2
+
+New Line.R1-12-47-4_switch_10 Units=km Length=0.001 bus1=R1-12-47-4_node_173.1.2.3 bus2=R1-12-47-4_node_71.1.2.3 switch=y enabled=y phases=3 Linecode=3P_OH_Code2
+
+New Line.R1-12-47-4_switch_17 Units=km Length=0.001 bus1=R1-12-47-4_node_109.1.2.3 bus2=R1-12-47-4_node_207.1.2.3 switch=y enabled=y phases=3 Linecode=3P_OH_Code2
+
+New Line.R1-12-47-4_switch_16 Units=km Length=0.001 bus1=R1-12-47-4_node_206.1.2.3 bus2=R1-12-47-4_node_108.1.2.3 switch=y enabled=y phases=3 Linecode=3P_OH_Code2
+
+New Line.R1-12-47-4_switch_15 Units=km Length=0.001 bus1=R1-12-47-4_node_115.1.2.3 bus2=R1-12-47-4_node_214.1.2.3 switch=y enabled=y phases=3 Linecode=3P_OH_Code2
+
+New Line.R1-12-47-4_switch_14 Units=km Length=0.001 bus1=R1-12-47-4_node_8.1.2.3 bus2=R1-12-47-4_node_7.1.2.3 switch=y enabled=y phases=3 Linecode=3P_OH_Code2
+
+New Line.R1-12-47-4_ul_84 Units=km Length=0.001 bus1=R1-12-47-4_node_59.1.3.2 bus2=R1-12-47-4_node_279.1.3.2 switch=n enabled=y phases=3 Linecode=3P_UG_Code3
+
+New Line.R1-12-47-4_switch_19 Units=km Length=0.001 bus1=R1-12-47-4_node_101.1.2.3 bus2=R1-12-47-4_node_234.1.2.3 switch=y enabled=y phases=3 Linecode=3P_OH_Code2
+
+New Line.R1-12-47-4_switch_18 Units=km Length=0.001 bus1=R1-12-47-4_node_166.1.2.3 bus2=R1-12-47-4_node_236.1.2.3 switch=y enabled=y phases=3 Linecode=3P_OH_Code2
+
+New Line.R1-12-47-4_ul_81 Units=km Length=0.001 bus1=R1-12-47-4_node_282.3.1.2 bus2=R1-12-47-4_node_63.3.1.2 switch=n enabled=y phases=3 Linecode=3P_UG_Code3
+
+New Line.R1-12-47-4_ul_80 Units=km Length=0.001 bus1=R1-12-47-4_node_63.1.2.3 bus2=R1-12-47-4_node_283.1.2.3 switch=n enabled=y phases=3 Linecode=3P_UG_Code3
+
+New Line.R1-12-47-4_ul_83 Units=km Length=0.001 bus1=R1-12-47-4_node_280.1.3.2 bus2=R1-12-47-4_node_61.1.3.2 switch=n enabled=y phases=3 Linecode=3P_UG_Code3
+
+New Line.R1-12-47-4_ul_82 Units=km Length=0.001 bus1=R1-12-47-4_node_61.3.1.2 bus2=R1-12-47-4_node_281.3.1.2 switch=n enabled=y phases=3 Linecode=3P_UG_Code3
+
+New Line.R1-12-47-4_ul_63 Units=km Length=0.0844296 bus1=R1-12-47-4_node_9.1.3.2 bus2=R1-12-47-4_node_284.1.3.2 switch=n enabled=y phases=3 Linecode=3P_UG_Code0
+
+New Line.R1-12-47-4_ul_62 Units=km Length=0.109728 bus1=R1-12-47-4_node_62.3.1.2 bus2=R1-12-47-4_node_282.3.1.2 switch=n enabled=y phases=3 Linecode=3P_UG_Code0
+
+New Line.R1-12-47-4_ul_61 Units=km Length=0.103632 bus1=R1-12-47-4_node_281.1.3.2 bus2=R1-12-47-4_node_62.1.3.2 switch=n enabled=y phases=3 Linecode=3P_UG_Code0
+
+New Line.R1-12-47-4_ul_67 Units=km Length=0.1200912 bus1=R1-12-47-4_node_52.3 bus2=R1-12-47-4_node_51.3 switch=n enabled=y phases=1 Linecode=1P_UG_Code4
+
+New Line.R1-12-47-4_ul_66 Units=km Length=0.0219456 bus1=R1-12-47-4_node_48.3 bus2=R1-12-47-4_node_47.3 switch=n enabled=y phases=1 Linecode=1P_UG_Code4
+
+New Line.R1-12-47-4_ul_65 Units=km Length=0.0332232 bus1=R1-12-47-4_node_32.3 bus2=R1-12-47-4_node_286.3 switch=n enabled=y phases=1 Linecode=1P_UG_Code4
+
+New Line.R1-12-47-4_ul_64 Units=km Length=0.0219456 bus1=R1-12-47-4_node_285.3 bus2=R1-12-47-4_node_42.3 switch=n enabled=y phases=1 Linecode=1P_UG_Code4
+
+New Line.R1-12-47-4_ul_69 Units=km Length=0.001 bus1=R1-12-47-4_node_43.3 bus2=R1-12-47-4_node_285.3 switch=n enabled=y phases=1 Linecode=1P_UG_Code5
+
+New Line.R1-12-47-4_ul_68 Units=km Length=0.001 bus1=R1-12-47-4_node_265.3 bus2=R1-12-47-4_node_43.3 switch=n enabled=y phases=1 Linecode=1P_UG_Code5
+
+New Line.R1-12-47-4_ul_5 Units=km Length=0.1109472 bus1=R1-12-47-4_node_11.3.1.2 bus2=R1-12-47-4_node_168.3.1.2 switch=n enabled=y phases=3 Linecode=3P_UG_Code0
+
+New Line.R1-12-47-4_ul_224 Units=km Length=0.0173736 bus1=R1-12-47-4_node_161.2.1.3 bus2=R1-12-47-4_node_242.2.1.3 switch=n enabled=y phases=3 Linecode=3P_UG_Code0
+
+New Line.R1-12-47-4_ul_225 Units=km Length=0.0179832 bus1=R1-12-47-4_node_243.3.1.2 bus2=R1-12-47-4_node_163.3.1.2 switch=n enabled=y phases=3 Linecode=3P_UG_Code0
+
+New Line.R1-12-47-4_ul_222 Units=km Length=0.0298704 bus1=R1-12-47-4_node_241.3.1.2 bus2=R1-12-47-4_node_160.3.1.2 switch=n enabled=y phases=3 Linecode=3P_UG_Code0
+
+New Line.R1-12-47-4_ul_223 Units=km Length=0.0896112 bus1=R1-12-47-4_node_160.2.1.3 bus2=R1-12-47-4_node_161.2.1.3 switch=n enabled=y phases=3 Linecode=3P_UG_Code0
+
+New Line.R1-12-47-4_ul_220 Units=km Length=0.0996696 bus1=R1-12-47-4_node_239.3.1.2 bus2=R1-12-47-4_node_158.3.1.2 switch=n enabled=y phases=3 Linecode=3P_UG_Code0
+
+New Line.R1-12-47-4_ul_221 Units=km Length=0.0310896 bus1=R1-12-47-4_node_158.1.3.2 bus2=R1-12-47-4_node_240.1.3.2 switch=n enabled=y phases=3 Linecode=3P_UG_Code0
+
+New Line.R1-12-47-4_tl_2 Units=km Length=0.009144 bus1=R1-12-47-4_tn_2.1.2 bus2=R1-12-47-4_tm_2.1.2 switch=n enabled=y phases=2 Linecode=2P_OH_Code7
+
+New Line.R1-12-47-4_ul_89 Units=km Length=0.001 bus1=R1-12-47-4_node_54.1.3.2 bus2=R1-12-47-4_node_270.1.3.2 switch=n enabled=y phases=3 Linecode=3P_UG_Code3
+
+New Line.R1-12-47-4_ul_119 Units=km Length=0.001 bus1=R1-12-47-4_node_93.2.1.3 bus2=R1-12-47-4_node_191.2.1.3 switch=n enabled=y phases=3 Linecode=3P_UG_Code3
+
+New Line.R1-12-47-4_tl_4 Units=km Length=0.009144 bus1=R1-12-47-4_tn_4.1.2 bus2=R1-12-47-4_tm_4.1.2 switch=n enabled=y phases=2 Linecode=2P_OH_Code7
+
+New Line.R1-12-47-4_fuse_14 Units=km Length=0.001 bus1=R1-12-47-4_node_63.1.2.3 bus2=R1-12-47-4_node_299.1.2.3 switch=n enabled=y phases=3 Linecode=3P_OH_Code2
+
+New Fuse.Fuse_R1-12-47-4_fuse_14 monitoredobj=Line.R1-12-47-4_fuse_14 enabled=y
+
+New Line.R1-12-47-4_fuse_15 Units=km Length=0.001 bus1=R1-12-47-4_node_64.1.2.3 bus2=R1-12-47-4_node_300.1.2.3 switch=n enabled=y phases=3 Linecode=3P_OH_Code2
+
+New Fuse.Fuse_R1-12-47-4_fuse_15 monitoredobj=Line.R1-12-47-4_fuse_15 enabled=y
+
+New Line.R1-12-47-4_fuse_16 Units=km Length=0.001 bus1=R1-12-47-4_node_19.1 bus2=R1-12-47-4_node_301.1 switch=n enabled=y phases=1 Linecode=1P_OH_Code1
+
+New Fuse.Fuse_R1-12-47-4_fuse_16 monitoredobj=Line.R1-12-47-4_fuse_16 enabled=y
+
+New Line.R1-12-47-4_fuse_17 Units=km Length=0.001 bus1=R1-12-47-4_node_30.1 bus2=R1-12-47-4_node_260.1 switch=n enabled=y phases=1 Linecode=1P_OH_Code1
+
+New Fuse.Fuse_R1-12-47-4_fuse_17 monitoredobj=Line.R1-12-47-4_fuse_17 enabled=y
+
+New Line.R1-12-47-4_fuse_10 Units=km Length=0.001 bus1=R1-12-47-4_node_55.1.2.3 bus2=R1-12-47-4_node_295.1.2.3 switch=n enabled=y phases=3 Linecode=3P_OH_Code2
+
+New Fuse.Fuse_R1-12-47-4_fuse_10 monitoredobj=Line.R1-12-47-4_fuse_10 enabled=y
+
+New Line.R1-12-47-4_fuse_11 Units=km Length=0.001 bus1=R1-12-47-4_node_57.1.2.3 bus2=R1-12-47-4_node_296.1.2.3 switch=n enabled=y phases=3 Linecode=3P_OH_Code2
+
+New Fuse.Fuse_R1-12-47-4_fuse_11 monitoredobj=Line.R1-12-47-4_fuse_11 enabled=y
+
+New Line.R1-12-47-4_fuse_12 Units=km Length=0.001 bus1=R1-12-47-4_node_59.1.2.3 bus2=R1-12-47-4_node_297.1.2.3 switch=n enabled=y phases=3 Linecode=3P_OH_Code2
+
+New Fuse.Fuse_R1-12-47-4_fuse_12 monitoredobj=Line.R1-12-47-4_fuse_12 enabled=y
+
+New Line.R1-12-47-4_fuse_13 Units=km Length=0.001 bus1=R1-12-47-4_node_61.1.2.3 bus2=R1-12-47-4_node_298.1.2.3 switch=n enabled=y phases=3 Linecode=3P_OH_Code2
+
+New Fuse.Fuse_R1-12-47-4_fuse_13 monitoredobj=Line.R1-12-47-4_fuse_13 enabled=y
+
+New Line.R1-12-47-4_fuse_18 Units=km Length=0.001 bus1=R1-12-47-4_node_30.3 bus2=R1-12-47-4_node_268.3 switch=n enabled=y phases=1 Linecode=1P_OH_Code1
+
+New Fuse.Fuse_R1-12-47-4_fuse_18 monitoredobj=Line.R1-12-47-4_fuse_18 enabled=y
+
+New Line.R1-12-47-4_fuse_19 Units=km Length=0.001 bus1=R1-12-47-4_node_30.1.2.3 bus2=R1-12-47-4_node_274.1.2.3 switch=n enabled=y phases=3 Linecode=3P_OH_Code2
+
+New Fuse.Fuse_R1-12-47-4_fuse_19 monitoredobj=Line.R1-12-47-4_fuse_19 enabled=y
+
+New Line.R1-12-47-4_ul_206 Units=km Length=0.080772 bus1=R1-12-47-4_node_149.1.2.3 bus2=R1-12-47-4_node_150.1.2.3 switch=n enabled=y phases=3 Linecode=3P_UG_Code3
+
+New Line.R1-12-47-4_ul_207 Units=km Length=0.0170688 bus1=R1-12-47-4_node_150.3.1.2 bus2=R1-12-47-4_node_151.3.1.2 switch=n enabled=y phases=3 Linecode=3P_UG_Code3
+
+New Line.R1-12-47-4_ul_200 Units=km Length=0.001 bus1=R1-12-47-4_node_203.2.1.3 bus2=R1-12-47-4_node_103.2.1.3 switch=n enabled=y phases=3 Linecode=3P_UG_Code3
+
+New Line.R1-12-47-4_ul_201 Units=km Length=0.0012192 bus1=R1-12-47-4_node_205.1.2.3 bus2=R1-12-47-4_node_204.1.2.3 switch=n enabled=y phases=3 Linecode=3P_UG_Code6
+
+New Line.R1-12-47-4_ul_202 Units=km Length=0.0012192 bus1=R1-12-47-4_node_205.1.3.2 bus2=R1-12-47-4_node_206.1.3.2 switch=n enabled=y phases=3 Linecode=3P_UG_Code6
+
+New Line.R1-12-47-4_ul_114 Units=km Length=0.1033272 bus1=R1-12-47-4_node_85.3.1.2 bus2=R1-12-47-4_node_184.3.1.2 switch=n enabled=y phases=3 Linecode=3P_UG_Code0
+
+New Line.R1-12-47-4_ul_88 Units=km Length=0.001 bus1=R1-12-47-4_node_55.1.2.3 bus2=R1-12-47-4_node_272.1.2.3 switch=n enabled=y phases=3 Linecode=3P_UG_Code3
+
+New Line.R1-12-47-4_ul_139 Units=km Length=0.0719328 bus1=R1-12-47-4_node_216.3.1.2 bus2=R1-12-47-4_node_121.3.1.2 switch=n enabled=y phases=3 Linecode=3P_UG_Code0
+
+New Line.R1-12-47-4_ul_29 Units=km Length=0.021336 bus1=R1-12-47-4_node_26.1 bus2=R1-12-47-4_node_25.1 switch=n enabled=y phases=1 Linecode=1P_UG_Code9
+
+New Line.R1-12-47-4_ul_28 Units=km Length=0.047244 bus1=R1-12-47-4_node_25.1 bus2=R1-12-47-4_node_257.1 switch=n enabled=y phases=1 Linecode=1P_UG_Code9
+
+New Line.R1-12-47-4_ul_27 Units=km Length=0.0530352 bus1=R1-12-47-4_node_256.1 bus2=R1-12-47-4_node_23.1 switch=n enabled=y phases=1 Linecode=1P_UG_Code9
+
+New Line.R1-12-47-4_ul_26 Units=km Length=0.0216408 bus1=R1-12-47-4_node_23.1 bus2=R1-12-47-4_node_22.1 switch=n enabled=y phases=1 Linecode=1P_UG_Code9
+
+New Line.R1-12-47-4_ul_25 Units=km Length=0.0902208 bus1=R1-12-47-4_node_254.1 bus2=R1-12-47-4_node_20.1 switch=n enabled=y phases=1 Linecode=1P_UG_Code9
+
+New Line.R1-12-47-4_ul_24 Units=km Length=0.024384 bus1=R1-12-47-4_node_20.1 bus2=R1-12-47-4_node_253.1 switch=n enabled=y phases=1 Linecode=1P_UG_Code9
+
+New Line.R1-12-47-4_ul_23 Units=km Length=0.024384 bus1=R1-12-47-4_node_252.1 bus2=R1-12-47-4_node_18.1 switch=n enabled=y phases=1 Linecode=1P_UG_Code9
+
+New Line.R1-12-47-4_ul_22 Units=km Length=0.019812 bus1=R1-12-47-4_node_17.1 bus2=R1-12-47-4_node_16.1 switch=n enabled=y phases=1 Linecode=1P_UG_Code9
+
+New Line.R1-12-47-4_ul_21 Units=km Length=0.0691896 bus1=R1-12-47-4_node_16.1 bus2=R1-12-47-4_node_15.1 switch=n enabled=y phases=1 Linecode=1P_UG_Code9
+
+New Line.R1-12-47-4_ul_20 Units=km Length=0.0210312 bus1=R1-12-47-4_node_15.1 bus2=R1-12-47-4_node_14.1 switch=n enabled=y phases=1 Linecode=1P_UG_Code9
+
+New Line.R1-12-47-4_ul_111 Units=km Length=0.085344 bus1=R1-12-47-4_node_99.3.1.2 bus2=R1-12-47-4_node_98.3.1.2 switch=n enabled=y phases=3 Linecode=3P_UG_Code3
+
+New Line.R1-12-47-4_ul_238 Units=km Length=0.001 bus1=R1-12-47-4_node_302.2.1.3 bus2=R1-12-47-4_node_2.2.1.3 switch=n enabled=y phases=3 Linecode=3P_UG_Code6
+
+New Line.R1-12-47-4_ul_86 Units=km Length=0.001 bus1=R1-12-47-4_node_273.1.2.3 bus2=R1-12-47-4_node_55.1.2.3 switch=n enabled=y phases=3 Linecode=3P_UG_Code3
+
+New Line.R1-12-47-4_ul_110 Units=km Length=0.0972312 bus1=R1-12-47-4_node_101.1.2.3 bus2=R1-12-47-4_node_194.1.2.3 switch=n enabled=y phases=3 Linecode=3P_UG_Code3
+
+New Line.R1-12-47-4_ul_136 Units=km Length=0.001 bus1=R1-12-47-4_node_91.3.1.2 bus2=R1-12-47-4_node_188.3.1.2 switch=n enabled=y phases=3 Linecode=3P_UG_Code3
+
+New Line.R1-12-47-4_ul_137 Units=km Length=0.001 bus1=R1-12-47-4_node_64.2.1.3 bus2=R1-12-47-4_node_304.2.1.3 switch=n enabled=y phases=3 Linecode=3P_UG_Code3
+
+New Line.R1-12-47-4_ul_134 Units=km Length=0.0012192 bus1=R1-12-47-4_node_179.1.3.2 bus2=R1-12-47-4_node_180.1.3.2 switch=n enabled=y phases=3 Linecode=3P_UG_Code6
+
+New Line.R1-12-47-4_ul_193 Units=km Length=0.001 bus1=R1-12-47-4_node_140.3.1.2 bus2=R1-12-47-4_node_220.3.1.2 switch=n enabled=y phases=3 Linecode=3P_UG_Code3
+
+New Line.R1-12-47-4_ul_112 Units=km Length=0.1700784 bus1=R1-12-47-4_node_79.1.3.2 bus2=R1-12-47-4_node_80.1.3.2 switch=n enabled=y phases=3 Linecode=3P_UG_Code3
+
+New Line.R1-12-47-4_ul_10 Units=km Length=0.0710184 bus1=R1-12-47-4_node_36.3 bus2=R1-12-47-4_node_35.3 switch=n enabled=y phases=1 Linecode=1P_UG_Code4
+
+New Line.R1-12-47-4_tl_35 Units=km Length=0.009144 bus1=R1-12-47-4_tn_35.1.2 bus2=R1-12-47-4_tm_35.1.2 switch=n enabled=y phases=2 Linecode=2P_OH_Code7
+
+New Line.R1-12-47-4_tl_34 Units=km Length=0.009144 bus1=R1-12-47-4_tn_34.1.2 bus2=R1-12-47-4_tm_34.1.2 switch=n enabled=y phases=2 Linecode=2P_OH_Code7
+
+New Line.R1-12-47-4_tl_37 Units=km Length=0.009144 bus1=R1-12-47-4_tn_37.2.1 bus2=R1-12-47-4_tm_37.2.1 switch=n enabled=y phases=2 Linecode=2P_OH_Code7
+
+New Line.R1-12-47-4_tl_36 Units=km Length=0.009144 bus1=R1-12-47-4_tn_36.2.1 bus2=R1-12-47-4_tm_36.2.1 switch=n enabled=y phases=2 Linecode=2P_OH_Code7
+
+New Line.R1-12-47-4_tl_31 Units=km Length=0.009144 bus1=R1-12-47-4_tn_31.1.2 bus2=R1-12-47-4_tm_31.1.2 switch=n enabled=y phases=2 Linecode=2P_OH_Code7
+
+New Line.R1-12-47-4_tl_30 Units=km Length=0.009144 bus1=R1-12-47-4_tn_30.1.2 bus2=R1-12-47-4_tm_30.1.2 switch=n enabled=y phases=2 Linecode=2P_OH_Code7
+
+New Line.R1-12-47-4_tl_33 Units=km Length=0.009144 bus1=R1-12-47-4_tn_33.1.2 bus2=R1-12-47-4_tm_33.1.2 switch=n enabled=y phases=2 Linecode=2P_OH_Code7
+
+New Line.R1-12-47-4_tl_32 Units=km Length=0.009144 bus1=R1-12-47-4_tn_32.1.2 bus2=R1-12-47-4_tm_32.1.2 switch=n enabled=y phases=2 Linecode=2P_OH_Code7
+
+New Line.R1-12-47-4_ul_16 Units=km Length=0.001 bus1=R1-12-47-4_node_262.3 bus2=R1-12-47-4_node_38.3 switch=n enabled=y phases=1 Linecode=1P_UG_Code5
+
+New Line.R1-12-47-4_ul_118 Units=km Length=0.0920496 bus1=R1-12-47-4_node_100.1.3.2 bus2=R1-12-47-4_node_99.1.3.2 switch=n enabled=y phases=3 Linecode=3P_UG_Code3
+
+New Line.R1-12-47-4_tl_38 Units=km Length=0.009144 bus1=R1-12-47-4_tn_38.1.2 bus2=R1-12-47-4_tm_38.1.2 switch=n enabled=y phases=2 Linecode=2P_OH_Code7
+
+New Line.R1-12-47-4_ul_115 Units=km Length=0.0679704 bus1=R1-12-47-4_node_73.2.1.3 bus2=R1-12-47-4_node_90.2.1.3 switch=n enabled=y phases=3 Linecode=3P_UG_Code0
+
+New Line.R1-12-47-4_ul_19 Units=km Length=0.0405384 bus1=R1-12-47-4_node_14.1 bus2=R1-12-47-4_node_251.1 switch=n enabled=y phases=1 Linecode=1P_UG_Code9
+
+New Line.R1-12-47-4_ul_51 Units=km Length=0.0664464 bus1=R1-12-47-4_node_272.1.3.2 bus2=R1-12-47-4_node_271.1.3.2 switch=n enabled=y phases=3 Linecode=3P_UG_Code0
+
+New Line.R1-12-47-4_ul_116 Units=km Length=0.1725168 bus1=R1-12-47-4_node_89.2.1.3 bus2=R1-12-47-4_node_189.2.1.3 switch=n enabled=y phases=3 Linecode=3P_UG_Code0
+
+New Line.R1-12-47-4_ul_107 Units=km Length=0.0408432 bus1=R1-12-47-4_node_74.3.1.2 bus2=R1-12-47-4_node_95.3.1.2 switch=n enabled=y phases=3 Linecode=3P_UG_Code0
+
+New Line.R1-12-47-4_ul_106 Units=km Length=0.1197864 bus1=R1-12-47-4_node_94.1.3.2 bus2=R1-12-47-4_node_192.1.3.2 switch=n enabled=y phases=3 Linecode=3P_UG_Code0
+
+New Line.R1-12-47-4_ul_117 Units=km Length=0.0384048 bus1=R1-12-47-4_node_95.1.2.3 bus2=R1-12-47-4_node_193.1.2.3 switch=n enabled=y phases=3 Linecode=3P_UG_Code0
+
+New Line.R1-12-47-4_switch_20 Units=km Length=0.001 bus1=R1-12-47-4_node_302.1.2.3 bus2=R1-12-47-4_node_232.1.2.3 switch=y enabled=y phases=3 Linecode=3P_OH_Code2
+
+New Line.R1-12-47-4_switch_21 Units=km Length=0.001 bus1=R1-12-47-4_node_1.1.2.3 bus2=R1-12-47-4_node_233.1.2.3 switch=y enabled=y phases=3 Linecode=3P_OH_Code2
+
+New Line.R1-12-47-4_ul_56 Units=km Length=0.0993648 bus1=R1-12-47-4_node_68.3.1.2 bus2=R1-12-47-4_node_69.3.1.2 switch=n enabled=y phases=3 Linecode=3P_UG_Code3
+
+New Line.R1-12-47-4_ul_57 Units=km Length=0.0969264 bus1=R1-12-47-4_node_69.3.1.2 bus2=R1-12-47-4_node_70.3.1.2 switch=n enabled=y phases=3 Linecode=3P_UG_Code3
+
+New Line.R1-12-47-4_ul_54 Units=km Length=0.0993648 bus1=R1-12-47-4_node_30.2.1.3 bus2=R1-12-47-4_node_67.2.1.3 switch=n enabled=y phases=3 Linecode=3P_UG_Code3
+
+New Line.R1-12-47-4_ul_55 Units=km Length=0.0996696 bus1=R1-12-47-4_node_67.1.2.3 bus2=R1-12-47-4_node_275.1.2.3 switch=n enabled=y phases=3 Linecode=3P_UG_Code3
+
+New Line.R1-12-47-4_ul_52 Units=km Length=0.10668 bus1=R1-12-47-4_node_65.1.3.2 bus2=R1-12-47-4_node_66.1.3.2 switch=n enabled=y phases=3 Linecode=3P_UG_Code3
+
+New Line.R1-12-47-4_ul_53 Units=km Length=0.0947928 bus1=R1-12-47-4_node_66.3.1.2 bus2=R1-12-47-4_node_30.3.1.2 switch=n enabled=y phases=3 Linecode=3P_UG_Code3
+
+New Line.R1-12-47-4_ul_50 Units=km Length=0.1143 bus1=R1-12-47-4_node_270.1.3.2 bus2=R1-12-47-4_node_269.1.3.2 switch=n enabled=y phases=3 Linecode=3P_UG_Code0
+
+New Line.R1-12-47-4_tl_8 Units=km Length=0.009144 bus1=R1-12-47-4_tn_8.2.1 bus2=R1-12-47-4_tm_8.2.1 switch=n enabled=y phases=2 Linecode=2P_OH_Code7
+
+New Line.R1-12-47-4_ul_58 Units=km Length=0.0947928 bus1=R1-12-47-4_node_70.2.1.3 bus2=R1-12-47-4_node_12.2.1.3 switch=n enabled=y phases=3 Linecode=3P_UG_Code3
+
+New Line.R1-12-47-4_ul_59 Units=km Length=0.0932688 bus1=R1-12-47-4_node_279.1.3.2 bus2=R1-12-47-4_node_278.1.3.2 switch=n enabled=y phases=3 Linecode=3P_UG_Code0
+
+New Line.R1-12-47-4_ul_228 Units=km Length=0.001 bus1=R1-12-47-4_node_164.1.2.3 bus2=R1-12-47-4_node_245.1.2.3 switch=n enabled=y phases=3 Linecode=3P_UG_Code3
+
+New Line.R1-12-47-4_ul_176 Units=km Length=0.0124968 bus1=R1-12-47-4_node_138.1.3.2 bus2=R1-12-47-4_node_219.1.3.2 switch=n enabled=y phases=3 Linecode=3P_UG_Code0
+
+New Line.R1-12-47-4_ul_177 Units=km Length=0.013716 bus1=R1-12-47-4_node_220.3.1.2 bus2=R1-12-47-4_node_141.3.1.2 switch=n enabled=y phases=3 Linecode=3P_UG_Code0
+
+New Line.R1-12-47-4_ul_174 Units=km Length=0.021336 bus1=R1-12-47-4_node_136.2.1.3 bus2=R1-12-47-4_node_137.2.1.3 switch=n enabled=y phases=3 Linecode=3P_UG_Code0
+
+New Line.R1-12-47-4_ul_108 Units=km Length=0.1377696 bus1=R1-12-47-4_node_97.1.3.2 bus2=R1-12-47-4_node_75.1.3.2 switch=n enabled=y phases=3 Linecode=3P_UG_Code3
+
+New Line.R1-12-47-4_ul_170 Units=km Length=0.1399032 bus1=R1-12-47-4_node_132.1.3.2 bus2=R1-12-47-4_node_133.1.3.2 switch=n enabled=y phases=3 Linecode=3P_UG_Code0
+
+New Line.R1-12-47-4_ul_171 Units=km Length=0.0292608 bus1=R1-12-47-4_node_133.1.3.2 bus2=R1-12-47-4_node_134.1.3.2 switch=n enabled=y phases=3 Linecode=3P_UG_Code0
+
+New Line.R1-12-47-4_ul_204 Units=km Length=0.0012192 bus1=R1-12-47-4_node_207.1.2.3 bus2=R1-12-47-4_node_208.1.2.3 switch=n enabled=y phases=3 Linecode=3P_UG_Code6
+
+New Line.R1-12-47-4_ul_219 Units=km Length=0.100584 bus1=R1-12-47-4_node_156.2.1.3 bus2=R1-12-47-4_node_238.2.1.3 switch=n enabled=y phases=3 Linecode=3P_UG_Code0
+
+New Line.R1-12-47-4_ul_218 Units=km Length=0.0801624 bus1=R1-12-47-4_node_155.3.1.2 bus2=R1-12-47-4_node_156.3.1.2 switch=n enabled=y phases=3 Linecode=3P_UG_Code0
+
+New Line.R1-12-47-4_ul_178 Units=km Length=0.0484632 bus1=R1-12-47-4_node_141.1.3.2 bus2=R1-12-47-4_node_142.1.3.2 switch=n enabled=y phases=3 Linecode=3P_UG_Code0
+
+New Line.R1-12-47-4_ul_175 Units=km Length=0.0435864 bus1=R1-12-47-4_node_137.3.1.2 bus2=R1-12-47-4_node_138.3.1.2 switch=n enabled=y phases=3 Linecode=3P_UG_Code0
+
+New Line.R1-12-47-4_ul_191 Units=km Length=0.001 bus1=R1-12-47-4_node_126.1.2.3 bus2=R1-12-47-4_node_218.1.2.3 switch=n enabled=y phases=3 Linecode=3P_UG_Code3
+
+New Line.R1-12-47-4_ul_172 Units=km Length=0.0134112 bus1=R1-12-47-4_node_134.1.3.2 bus2=R1-12-47-4_node_135.1.3.2 switch=n enabled=y phases=3 Linecode=3P_UG_Code0
+
+New Line.R1-12-47-4_ul_192 Units=km Length=0.001 bus1=R1-12-47-4_node_219.3.1.2 bus2=R1-12-47-4_node_140.3.1.2 switch=n enabled=y phases=3 Linecode=3P_UG_Code3
+
+New Line.R1-12-47-4_ul_173 Units=km Length=0.1109472 bus1=R1-12-47-4_node_135.1.3.2 bus2=R1-12-47-4_node_136.1.3.2 switch=n enabled=y phases=3 Linecode=3P_UG_Code0
+
+New Line.R1-12-47-4_ul_197 Units=km Length=0.0018288 bus1=R1-12-47-4_node_201.3.1.2 bus2=R1-12-47-4_node_202.3.1.2 switch=n enabled=y phases=3 Linecode=3P_UG_Code6
+
+New Line.R1-12-47-4_ul_198 Units=km Length=0.001 bus1=R1-12-47-4_node_105.1.2.3 bus2=R1-12-47-4_node_200.1.2.3 switch=n enabled=y phases=3 Linecode=3P_UG_Code3
+
+New Line.R1-12-47-4_ul_199 Units=km Length=0.001 bus1=R1-12-47-4_node_202.1.3.2 bus2=R1-12-47-4_node_104.1.3.2 switch=n enabled=y phases=3 Linecode=3P_UG_Code3
+
+New Line.R1-12-47-4_ul_213 Units=km Length=0.013716 bus1=R1-12-47-4_node_235.1.3.2 bus2=R1-12-47-4_node_88.1.3.2 switch=n enabled=y phases=3 Linecode=3P_UG_Code0
+
+New Line.R1-12-47-4_ul_212 Units=km Length=0.013716 bus1=R1-12-47-4_node_234.3.1.2 bus2=R1-12-47-4_node_100.3.1.2 switch=n enabled=y phases=3 Linecode=3P_UG_Code3
+
+New Line.R1-12-47-4_ul_214 Units=km Length=0.079248 bus1=R1-12-47-4_node_153.2.1.3 bus2=R1-12-47-4_node_166.2.1.3 switch=n enabled=y phases=3 Linecode=3P_UG_Code3
+
+New Line.R1-12-47-4_ul_211 Units=km Length=0.0999744 bus1=R1-12-47-4_node_165.3.1.2 bus2=R1-12-47-4_node_101.3.1.2 switch=n enabled=y phases=3 Linecode=3P_UG_Code3
+
+New Line.R1-12-47-4_ul_9 Units=km Length=0.0173736 bus1=R1-12-47-4_node_260.1 bus2=R1-12-47-4_node_29.1 switch=n enabled=y phases=1 Linecode=1P_UG_Code9
+
+New Line.R1-12-47-4_ul_210 Units=km Length=0.0621792 bus1=R1-12-47-4_node_56.2.1.3 bus2=R1-12-47-4_node_165.2.1.3 switch=n enabled=y phases=3 Linecode=3P_UG_Code3
+
+New Line.R1-12-47-4_ul_217 Units=km Length=0.0316992 bus1=R1-12-47-4_node_154.1.3.2 bus2=R1-12-47-4_node_155.1.3.2 switch=n enabled=y phases=3 Linecode=3P_UG_Code0
+
+New Line.R1-12-47-4_ul_216 Units=km Length=0.0149352 bus1=R1-12-47-4_node_237.2.1.3 bus2=R1-12-47-4_node_154.2.1.3 switch=n enabled=y phases=3 Linecode=3P_UG_Code0
+
+New Line.R1-12-47-4_ul_8 Units=km Length=0.1441704 bus1=R1-12-47-4_node_22.1 bus2=R1-12-47-4_node_255.1 switch=n enabled=y phases=1 Linecode=1P_UG_Code9
+
+New Line.R1-12-47-4_ul_215 Units=km Length=0.0774192 bus1=R1-12-47-4_node_148.1.2.3 bus2=R1-12-47-4_node_153.1.2.3 switch=n enabled=y phases=3 Linecode=3P_UG_Code3
+
+New Line.R1-12-47-4_ul_1 Units=km Length=0.001 bus1=R1-12-47-4_node_302.2.1.3 bus2=R1-12-47-4_node_3.2.1.3 switch=n enabled=y phases=3 Linecode=3P_UG_Code6
+
+New Line.R1-12-47-4_ul_2 Units=km Length=0.001524 bus1=R1-12-47-4_node_149.3.1.2 bus2=R1-12-47-4_node_1.3.1.2 switch=n enabled=y phases=3 Linecode=3P_UG_Code3
+
+New Line.R1-12-47-4_ul_3 Units=km Length=0.039624 bus1=R1-12-47-4_node_6.1.3.2 bus2=R1-12-47-4_node_147.1.3.2 switch=n enabled=y phases=3 Linecode=3P_UG_Code3
+
+New Line.R1-12-47-4_ul_4 Units=km Length=0.1072896 bus1=R1-12-47-4_node_167.1.2.3 bus2=R1-12-47-4_node_9.1.2.3 switch=n enabled=y phases=3 Linecode=3P_UG_Code0
+
+New Line.R1-12-47-4_ul_6 Units=km Length=0.001 bus1=R1-12-47-4_node_168.1.3.2 bus2=R1-12-47-4_node_10.1.3.2 switch=n enabled=y phases=3 Linecode=3P_UG_Code3
+
+New Line.R1-12-47-4_ul_7 Units=km Length=0.0682752 bus1=R1-12-47-4_node_18.1 bus2=R1-12-47-4_node_17.1 switch=n enabled=y phases=1 Linecode=1P_UG_Code9
+
+New Line.R1-12-47-4_tl_9 Units=km Length=0.009144 bus1=R1-12-47-4_tn_9.1.2 bus2=R1-12-47-4_tm_9.1.2 switch=n enabled=y phases=2 Linecode=2P_OH_Code7
+
+New Line.R1-12-47-4_tl_3 Units=km Length=0.009144 bus1=R1-12-47-4_tn_3.1.2 bus2=R1-12-47-4_tm_3.1.2 switch=n enabled=y phases=2 Linecode=2P_OH_Code7
+
+New Line.R1-12-47-4_tl_1 Units=km Length=0.009144 bus1=R1-12-47-4_tn_1.2.1 bus2=R1-12-47-4_tm_1.2.1 switch=n enabled=y phases=2 Linecode=2P_OH_Code7
+
+New Line.R1-12-47-4_tl_7 Units=km Length=0.009144 bus1=R1-12-47-4_tn_7.2.1 bus2=R1-12-47-4_tm_7.2.1 switch=n enabled=y phases=2 Linecode=2P_OH_Code7
+
+New Line.R1-12-47-4_tl_6 Units=km Length=0.009144 bus1=R1-12-47-4_tn_6.1.2 bus2=R1-12-47-4_tm_6.1.2 switch=n enabled=y phases=2 Linecode=2P_OH_Code7
+
+New Line.R1-12-47-4_tl_5 Units=km Length=0.009144 bus1=R1-12-47-4_tn_5.1.2 bus2=R1-12-47-4_tm_5.1.2 switch=n enabled=y phases=2 Linecode=2P_OH_Code7
+
+New Line.R1-12-47-4_ul_12 Units=km Length=0.0527304 bus1=R1-12-47-4_node_274.1.2.3 bus2=R1-12-47-4_node_273.1.2.3 switch=n enabled=y phases=3 Linecode=3P_UG_Code0
+
+New Line.R1-12-47-4_ul_13 Units=km Length=0.0871728 bus1=R1-12-47-4_node_276.3.1.2 bus2=R1-12-47-4_node_277.3.1.2 switch=n enabled=y phases=3 Linecode=3P_UG_Code0
+
+New Line.R1-12-47-4_ul_11 Units=km Length=0.0161544 bus1=R1-12-47-4_node_268.3 bus2=R1-12-47-4_node_53.3 switch=n enabled=y phases=1 Linecode=1P_UG_Code4
+
+New Line.R1-12-47-4_ul_14 Units=km Length=0.0780288 bus1=R1-12-47-4_node_283.3.1.2 bus2=R1-12-47-4_node_11.3.1.2 switch=n enabled=y phases=3 Linecode=3P_UG_Code0
+
+New Line.R1-12-47-4_ul_15 Units=km Length=0.001 bus1=R1-12-47-4_node_38.3 bus2=R1-12-47-4_node_261.3 switch=n enabled=y phases=1 Linecode=1P_UG_Code5
+
+New Line.R1-12-47-4_ul_105 Units=km Length=0.0762 bus1=R1-12-47-4_node_191.3.1.2 bus2=R1-12-47-4_node_94.3.1.2 switch=n enabled=y phases=3 Linecode=3P_UG_Code0
+
+New Line.R1-12-47-4_ul_104 Units=km Length=0.1018032 bus1=R1-12-47-4_node_92.1.3.2 bus2=R1-12-47-4_node_190.1.3.2 switch=n enabled=y phases=3 Linecode=3P_UG_Code0
+
+New Line.R1-12-47-4_ul_103 Units=km Length=0.1011936 bus1=R1-12-47-4_node_188.3.1.2 bus2=R1-12-47-4_node_92.3.1.2 switch=n enabled=y phases=3 Linecode=3P_UG_Code0
+
+New Line.R1-12-47-4_ul_102 Units=km Length=0.1085088 bus1=R1-12-47-4_node_90.1.3.2 bus2=R1-12-47-4_node_187.1.3.2 switch=n enabled=y phases=3 Linecode=3P_UG_Code0
+
+New Line.R1-12-47-4_ul_101 Units=km Length=0.06858 bus1=R1-12-47-4_node_80.3.1.2 bus2=R1-12-47-4_node_72.3.1.2 switch=n enabled=y phases=3 Linecode=3P_UG_Code3
+
+New Line.R1-12-47-4_ul_100 Units=km Length=0.131064 bus1=R1-12-47-4_node_76.1.3.2 bus2=R1-12-47-4_node_89.1.3.2 switch=n enabled=y phases=3 Linecode=3P_UG_Code0
+
+New Line.R1-12-47-4_tl_14 Units=km Length=0.009144 bus1=R1-12-47-4_tn_14.1.2 bus2=R1-12-47-4_tm_14.1.2 switch=n enabled=y phases=2 Linecode=2P_OH_Code7
+
+New Line.R1-12-47-4_ul_85 Units=km Length=0.001 bus1=R1-12-47-4_node_277.1.2.3 bus2=R1-12-47-4_node_57.1.2.3 switch=n enabled=y phases=3 Linecode=3P_UG_Code3
+
+New Line.R1-12-47-4_ul_87 Units=km Length=0.001 bus1=R1-12-47-4_node_271.2.1.3 bus2=R1-12-47-4_node_54.2.1.3 switch=n enabled=y phases=3 Linecode=3P_UG_Code3
+
+New Line.R1-12-47-4_fuse_44 Units=km Length=0.001 bus1=R1-12-47-4_node_164.1.2.3 bus2=R1-12-47-4_node_250.1.2.3 switch=n enabled=y phases=3 Linecode=3P_OH_Code2
+
+New Fuse.Fuse_R1-12-47-4_fuse_44 monitoredobj=Line.R1-12-47-4_fuse_44 enabled=y
+
+New Line.R1-12-47-4_fuse_43 Units=km Length=0.001 bus1=R1-12-47-4_node_162.1.2.3 bus2=R1-12-47-4_node_249.1.2.3 switch=n enabled=y phases=3 Linecode=3P_OH_Code2
+
+New Fuse.Fuse_R1-12-47-4_fuse_43 monitoredobj=Line.R1-12-47-4_fuse_43 enabled=y
+
+New Line.R1-12-47-4_fuse_42 Units=km Length=0.001 bus1=R1-12-47-4_node_159.1.2.3 bus2=R1-12-47-4_node_248.1.2.3 switch=n enabled=y phases=3 Linecode=3P_OH_Code2
+
+New Fuse.Fuse_R1-12-47-4_fuse_42 monitoredobj=Line.R1-12-47-4_fuse_42 enabled=y
+
+New Line.R1-12-47-4_fuse_41 Units=km Length=0.001 bus1=R1-12-47-4_node_157.1.2.3 bus2=R1-12-47-4_node_247.1.2.3 switch=n enabled=y phases=3 Linecode=3P_OH_Code2
+
+New Fuse.Fuse_R1-12-47-4_fuse_41 monitoredobj=Line.R1-12-47-4_fuse_41 enabled=y
+
+New Line.R1-12-47-4_fuse_40 Units=km Length=0.001 bus1=R1-12-47-4_node_101.1.2.3 bus2=R1-12-47-4_node_235.1.2.3 switch=n enabled=y phases=3 Linecode=3P_OH_Code2
+
+New Fuse.Fuse_R1-12-47-4_fuse_40 monitoredobj=Line.R1-12-47-4_fuse_40 enabled=y
+
+!Redirect Transformers.dss
+
+New Transformer.R1-12-47-4_xfmr_17 phases=1 windings=3 wdg=1 bus=R1-12-47-4_node_299.1 Kv=7.2 kva=50.0 %r=0.0015 wdg=2 bus=R1-12-47-4_tn_17.1.0 Kv=0.12 kva=25.0 %r=0.003 wdg=3 bus=R1-12-47-4_tn_17.0.2 Kv=0.12 kva=25.0 %r=0.003 XHL=0.0016 XLT=0.0008 XHT=0.0008
+
+New Transformer.R1-12-47-4_xfmr_50 phases=3 windings=2 wdg=1 conn=wye Kv=12.0 kva=25.0 %R=0.000665 bus=R1-12-47-4_node_250 wdg=2 conn=wye Kv=0.48 kva=25.0 %R=0.000665 bus=R1-12-47-4_meter_12 XHL=0.00667
+
+New Transformer.R1-12-47-4_xfmr_16 phases=1 windings=3 wdg=1 bus=R1-12-47-4_node_298.3 Kv=7.2 kva=50.0 %r=0.0015 wdg=2 bus=R1-12-47-4_tn_16.1.0 Kv=0.12 kva=25.0 %r=0.003 wdg=3 bus=R1-12-47-4_tn_16.0.2 Kv=0.12 kva=25.0 %r=0.003 XHL=0.0016 XLT=0.0008 XHT=0.0008
+
+New Transformer.R1-12-47-4_xfmr_18 phases=1 windings=3 wdg=1 bus=R1-12-47-4_node_299.2 Kv=7.2 kva=50.0 %r=0.0015 wdg=2 bus=R1-12-47-4_tn_18.1.0 Kv=0.12 kva=25.0 %r=0.003 wdg=3 bus=R1-12-47-4_tn_18.0.2 Kv=0.12 kva=25.0 %r=0.003 XHL=0.0016 XLT=0.0008 XHT=0.0008
+
+New Transformer.R1-12-47-4_xfmr_19 phases=1 windings=3 wdg=1 bus=R1-12-47-4_node_299.3 Kv=7.2 kva=50.0 %r=0.0015 wdg=2 bus=R1-12-47-4_tn_19.1.0 Kv=0.12 kva=25.0 %r=0.003 wdg=3 bus=R1-12-47-4_tn_19.0.2 Kv=0.12 kva=25.0 %r=0.003 XHL=0.0016 XLT=0.0008 XHT=0.0008
+
+New Transformer.R1-12-47-4_xfmr_14 phases=1 windings=3 wdg=1 bus=R1-12-47-4_node_298.1 Kv=7.2 kva=50.0 %r=0.0015 wdg=2 bus=R1-12-47-4_tn_14.1.0 Kv=0.12 kva=25.0 %r=0.003 wdg=3 bus=R1-12-47-4_tn_14.0.2 Kv=0.12 kva=25.0 %r=0.003 XHL=0.0016 XLT=0.0008 XHT=0.0008
+
+New Transformer.R1-12-47-4_xfmr_8 phases=1 windings=3 wdg=1 bus=R1-12-47-4_node_291.3 Kv=7.2 kva=10.0 %r=0.0075 wdg=2 bus=R1-12-47-4_tn_8.1.0 Kv=0.12 kva=5.0 %r=0.015 wdg=3 bus=R1-12-47-4_tn_8.0.2 Kv=0.12 kva=5.0 %r=0.015 XHL=0.008 XLT=0.004 XHT=0.004
+
+New Transformer.R1-12-47-4_xfmr_9 phases=1 windings=3 wdg=1 bus=R1-12-47-4_node_292.3 Kv=7.2 kva=10.0 %r=0.0075 wdg=2 bus=R1-12-47-4_tn_9.1.0 Kv=0.12 kva=5.0 %r=0.015 wdg=3 bus=R1-12-47-4_tn_9.0.2 Kv=0.12 kva=5.0 %r=0.015 XHL=0.008 XLT=0.004 XHT=0.004
+
+New Transformer.R1-12-47-4_xfmr_15 phases=1 windings=3 wdg=1 bus=R1-12-47-4_node_298.2 Kv=7.2 kva=50.0 %r=0.0015 wdg=2 bus=R1-12-47-4_tn_15.1.0 Kv=0.12 kva=25.0 %r=0.003 wdg=3 bus=R1-12-47-4_tn_15.0.2 Kv=0.12 kva=25.0 %r=0.003 XHL=0.0016 XLT=0.0008 XHT=0.0008
+
+New Transformer.R1-12-47-4_xfmr_2 phases=1 windings=3 wdg=1 bus=R1-12-47-4_node_169.2 Kv=7.2 kva=10.0 %r=0.0075 wdg=2 bus=R1-12-47-4_tn_2.1.0 Kv=0.12 kva=5.0 %r=0.015 wdg=3 bus=R1-12-47-4_tn_2.0.2 Kv=0.12 kva=5.0 %r=0.015 XHL=0.008 XLT=0.004 XHT=0.004
+
+New Transformer.R1-12-47-4_xfmr_3 phases=1 windings=3 wdg=1 bus=R1-12-47-4_node_169.3 Kv=7.2 kva=10.0 %r=0.0075 wdg=2 bus=R1-12-47-4_tn_3.1.0 Kv=0.12 kva=5.0 %r=0.015 wdg=3 bus=R1-12-47-4_tn_3.0.2 Kv=0.12 kva=5.0 %r=0.015 XHL=0.008 XLT=0.004 XHT=0.004
+
+New Transformer.R1-12-47-4_xfmr_1 phases=1 windings=3 wdg=1 bus=R1-12-47-4_node_169.1 Kv=7.2 kva=10.0 %r=0.0075 wdg=2 bus=R1-12-47-4_tn_1.1.0 Kv=0.12 kva=5.0 %r=0.015 wdg=3 bus=R1-12-47-4_tn_1.0.2 Kv=0.12 kva=5.0 %r=0.015 XHL=0.008 XLT=0.004 XHT=0.004
+
+New Transformer.R1-12-47-4_xfmr_6 phases=1 windings=3 wdg=1 bus=R1-12-47-4_node_289.1 Kv=7.2 kva=15.0 %r=0.005 wdg=2 bus=R1-12-47-4_tn_6.1.0 Kv=0.12 kva=7.5 %r=0.01 wdg=3 bus=R1-12-47-4_tn_6.0.2 Kv=0.12 kva=7.5 %r=0.01 XHL=0.005336 XLT=0.002668 XHT=0.002668
+
+New Transformer.R1-12-47-4_xfmr_4 phases=1 windings=3 wdg=1 bus=R1-12-47-4_node_287.1 Kv=7.2 kva=15.0 %r=0.005 wdg=2 bus=R1-12-47-4_tn_4.1.0 Kv=0.12 kva=7.5 %r=0.01 wdg=3 bus=R1-12-47-4_tn_4.0.2 Kv=0.12 kva=7.5 %r=0.01 XHL=0.005336 XLT=0.002668 XHT=0.002668
+
+New Transformer.R1-12-47-4_xfmr_5 phases=1 windings=3 wdg=1 bus=R1-12-47-4_node_288.1 Kv=7.2 kva=10.0 %r=0.0075 wdg=2 bus=R1-12-47-4_tn_5.1.0 Kv=0.12 kva=5.0 %r=0.015 wdg=3 bus=R1-12-47-4_tn_5.0.2 Kv=0.12 kva=5.0 %r=0.015 XHL=0.008 XLT=0.004 XHT=0.004
+
+New Transformer.R1-12-47-4_xfmr_10 phases=1 windings=3 wdg=1 bus=R1-12-47-4_node_293.3 Kv=7.2 kva=10.0 %r=0.0075 wdg=2 bus=R1-12-47-4_tn_10.1.0 Kv=0.12 kva=5.0 %r=0.015 wdg=3 bus=R1-12-47-4_tn_10.0.2 Kv=0.12 kva=5.0 %r=0.015 XHL=0.008 XLT=0.004 XHT=0.004
+
+New Transformer.R1-12-47-4_xfmr_11 phases=1 windings=3 wdg=1 bus=R1-12-47-4_node_297.1 Kv=7.2 kva=25.0 %r=0.003 wdg=2 bus=R1-12-47-4_tn_11.1.0 Kv=0.12 kva=12.5 %r=0.006 wdg=3 bus=R1-12-47-4_tn_11.0.2 Kv=0.12 kva=12.5 %r=0.006 XHL=0.0032 XLT=0.0016 XHT=0.0016
+
+New Transformer.R1-12-47-4_xfmr_49 phases=3 windings=2 wdg=1 conn=wye Kv=12.0 kva=25.0 %R=0.000665 bus=R1-12-47-4_node_249 wdg=2 conn=wye Kv=0.48 kva=25.0 %R=0.000665 bus=R1-12-47-4_meter_11 XHL=0.00667
+
+New Transformer.R1-12-47-4_xfmr_48 phases=3 windings=2 wdg=1 conn=wye Kv=12.0 kva=25.0 %R=0.000665 bus=R1-12-47-4_node_230 wdg=2 conn=wye Kv=0.48 kva=25.0 %R=0.000665 bus=R1-12-47-4_meter_10 XHL=0.00667
+
+New Transformer.R1-12-47-4_xfmr_47 phases=3 windings=2 wdg=1 conn=wye Kv=12.0 kva=25.0 %R=0.000665 bus=R1-12-47-4_node_229 wdg=2 conn=wye Kv=0.48 kva=25.0 %R=0.000665 bus=R1-12-47-4_meter_9 XHL=0.00667
+
+New Transformer.R1-12-47-4_xfmr_46 phases=3 windings=2 wdg=1 conn=wye Kv=12.0 kva=15.0 %R=0.00111 bus=R1-12-47-4_node_228 wdg=2 conn=wye Kv=0.48 kva=15.0 %R=0.00111 bus=R1-12-47-4_meter_8 XHL=0.01111
+
+New Transformer.R1-12-47-4_xfmr_45 phases=3 windings=2 wdg=1 conn=wye Kv=12.0 kva=30.0 %R=0.000555 bus=R1-12-47-4_node_227 wdg=2 conn=wye Kv=0.48 kva=30.0 %R=0.000555 bus=R1-12-47-4_meter_7 XHL=0.00556
+
+New Transformer.R1-12-47-4_xfmr_44 phases=3 windings=2 wdg=1 conn=wye Kv=12.0 kva=15.0 %R=0.00111 bus=R1-12-47-4_node_225 wdg=2 conn=wye Kv=0.48 kva=15.0 %R=0.00111 bus=R1-12-47-4_meter_6 XHL=0.01111
+
+New Transformer.R1-12-47-4_xfmr_43 phases=3 windings=2 wdg=1 conn=wye Kv=12.0 kva=15.0 %R=0.00111 bus=R1-12-47-4_node_224 wdg=2 conn=wye Kv=0.48 kva=15.0 %R=0.00111 bus=R1-12-47-4_meter_5 XHL=0.01111
+
+New Transformer.R1-12-47-4_xfmr_42 phases=3 windings=2 wdg=1 conn=wye Kv=12.0 kva=25.0 %R=0.000665 bus=R1-12-47-4_node_197 wdg=2 conn=wye Kv=0.48 kva=25.0 %R=0.000665 bus=R1-12-47-4_meter_4 XHL=0.00667
+
+New Transformer.R1-12-47-4_xfmr_41 phases=3 windings=2 wdg=1 conn=wye Kv=12.0 kva=25.0 %R=0.000665 bus=R1-12-47-4_node_296 wdg=2 conn=wye Kv=0.48 kva=25.0 %R=0.000665 bus=R1-12-47-4_meter_3 XHL=0.00667
+
+New Transformer.R1-12-47-4_xfmr_40 phases=3 windings=2 wdg=1 conn=wye Kv=12.0 kva=37.5 %R=0.000445 bus=R1-12-47-4_node_295 wdg=2 conn=wye Kv=0.48 kva=37.5 %R=0.000445 bus=R1-12-47-4_meter_2 XHL=0.00444
+
+New Transformer.R1-12-47-4_xfmr_38 phases=1 windings=3 wdg=1 bus=R1-12-47-4_node_247.3 Kv=7.2 kva=5.0 %r=0.0075 wdg=2 bus=R1-12-47-4_tn_38.1.0 Kv=0.12 kva=2.5 %r=0.015 wdg=3 bus=R1-12-47-4_tn_38.0.2 Kv=0.12 kva=2.5 %r=0.015 XHL=0.008 XLT=0.004 XHT=0.004
+
+New Transformer.R1-12-47-4_xfmr_39 phases=3 windings=2 wdg=1 conn=wye Kv=12.0 kva=10.0 %R=0.001665 bus=R1-12-47-4_node_294 wdg=2 conn=wye Kv=0.48 kva=10.0 %R=0.001665 bus=R1-12-47-4_meter_1 XHL=0.01667
+
+New Transformer.R1-12-47-4_xfmr_32 phases=1 windings=3 wdg=1 bus=R1-12-47-4_node_198.3 Kv=7.2 kva=30.0 %r=0.0025 wdg=2 bus=R1-12-47-4_tn_32.1.0 Kv=0.12 kva=15.0 %r=0.005 wdg=3 bus=R1-12-47-4_tn_32.0.2 Kv=0.12 kva=15.0 %r=0.005 XHL=0.002664 XLT=0.001332 XHT=0.001332
+
+New Transformer.R1-12-47-4_xfmr_33 phases=1 windings=3 wdg=1 bus=R1-12-47-4_node_199.1 Kv=7.2 kva=25.0 %r=0.003 wdg=2 bus=R1-12-47-4_tn_33.1.0 Kv=0.12 kva=12.5 %r=0.006 wdg=3 bus=R1-12-47-4_tn_33.0.2 Kv=0.12 kva=12.5 %r=0.006 XHL=0.0032 XLT=0.0016 XHT=0.0016
+
+New Transformer.R1-12-47-4_xfmr_30 phases=1 windings=3 wdg=1 bus=R1-12-47-4_node_198.1 Kv=7.2 kva=30.0 %r=0.0025 wdg=2 bus=R1-12-47-4_tn_30.1.0 Kv=0.12 kva=15.0 %r=0.005 wdg=3 bus=R1-12-47-4_tn_30.0.2 Kv=0.12 kva=15.0 %r=0.005 XHL=0.002664 XLT=0.001332 XHT=0.001332
+
+New Transformer.R1-12-47-4_xfmr_31 phases=1 windings=3 wdg=1 bus=R1-12-47-4_node_198.2 Kv=7.2 kva=30.0 %r=0.0025 wdg=2 bus=R1-12-47-4_tn_31.1.0 Kv=0.12 kva=15.0 %r=0.005 wdg=3 bus=R1-12-47-4_tn_31.0.2 Kv=0.12 kva=15.0 %r=0.005 XHL=0.002664 XLT=0.001332 XHT=0.001332
+
+New Transformer.R1-12-47-4_xfmr_36 phases=1 windings=3 wdg=1 bus=R1-12-47-4_node_247.1 Kv=7.2 kva=5.0 %r=0.0075 wdg=2 bus=R1-12-47-4_tn_36.1.0 Kv=0.12 kva=2.5 %r=0.015 wdg=3 bus=R1-12-47-4_tn_36.0.2 Kv=0.12 kva=2.5 %r=0.015 XHL=0.008 XLT=0.004 XHT=0.004
+
+New Transformer.R1-12-47-4_xfmr_37 phases=1 windings=3 wdg=1 bus=R1-12-47-4_node_247.2 Kv=7.2 kva=5.0 %r=0.0075 wdg=2 bus=R1-12-47-4_tn_37.1.0 Kv=0.12 kva=2.5 %r=0.015 wdg=3 bus=R1-12-47-4_tn_37.0.2 Kv=0.12 kva=2.5 %r=0.015 XHL=0.008 XLT=0.004 XHT=0.004
+
+New Transformer.R1-12-47-4_xfmr_34 phases=1 windings=3 wdg=1 bus=R1-12-47-4_node_199.2 Kv=7.2 kva=25.0 %r=0.003 wdg=2 bus=R1-12-47-4_tn_34.1.0 Kv=0.12 kva=12.5 %r=0.006 wdg=3 bus=R1-12-47-4_tn_34.0.2 Kv=0.12 kva=12.5 %r=0.006 XHL=0.0032 XLT=0.0016 XHT=0.0016
+
+New Transformer.R1-12-47-4_xfmr_35 phases=1 windings=3 wdg=1 bus=R1-12-47-4_node_199.3 Kv=7.2 kva=25.0 %r=0.003 wdg=2 bus=R1-12-47-4_tn_35.1.0 Kv=0.12 kva=12.5 %r=0.006 wdg=3 bus=R1-12-47-4_tn_35.0.2 Kv=0.12 kva=12.5 %r=0.006 XHL=0.0032 XLT=0.0016 XHT=0.0016
+
+New Transformer.R1-12-47-4_xfmr_12 phases=1 windings=3 wdg=1 bus=R1-12-47-4_node_297.2 Kv=7.2 kva=25.0 %r=0.003 wdg=2 bus=R1-12-47-4_tn_12.1.0 Kv=0.12 kva=12.5 %r=0.006 wdg=3 bus=R1-12-47-4_tn_12.0.2 Kv=0.12 kva=12.5 %r=0.006 XHL=0.0032 XLT=0.0016 XHT=0.0016
+
+New Transformer.R1-12-47-4_xfmr_13 phases=1 windings=3 wdg=1 bus=R1-12-47-4_node_297.3 Kv=7.2 kva=25.0 %r=0.003 wdg=2 bus=R1-12-47-4_tn_13.1.0 Kv=0.12 kva=12.5 %r=0.006 wdg=3 bus=R1-12-47-4_tn_13.0.2 Kv=0.12 kva=12.5 %r=0.006 XHL=0.0032 XLT=0.0016 XHT=0.0016
+
+New Transformer.R1-12-47-4_xfmr_7 phases=1 windings=3 wdg=1 bus=R1-12-47-4_node_290.3 Kv=7.2 kva=10.0 %r=0.0075 wdg=2 bus=R1-12-47-4_tn_7.1.0 Kv=0.12 kva=5.0 %r=0.015 wdg=3 bus=R1-12-47-4_tn_7.0.2 Kv=0.12 kva=5.0 %r=0.015 XHL=0.008 XLT=0.004 XHT=0.004
+
+New Transformer.R1-12-47-4_xfmr_29 phases=1 windings=3 wdg=1 bus=R1-12-47-4_node_196.3 Kv=7.2 kva=75.0 %r=0.001 wdg=2 bus=R1-12-47-4_tn_29.1.0 Kv=0.12 kva=37.5 %r=0.002 wdg=3 bus=R1-12-47-4_tn_29.0.2 Kv=0.12 kva=37.5 %r=0.002 XHL=0.001064 XLT=0.000532 XHT=0.000532
+
+New Transformer.R1-12-47-4_xfmr_28 phases=1 windings=3 wdg=1 bus=R1-12-47-4_node_196.2 Kv=7.2 kva=75.0 %r=0.001 wdg=2 bus=R1-12-47-4_tn_28.1.0 Kv=0.12 kva=37.5 %r=0.002 wdg=3 bus=R1-12-47-4_tn_28.0.2 Kv=0.12 kva=37.5 %r=0.002 XHL=0.001064 XLT=0.000532 XHT=0.000532
+
+New Transformer.R1-12-47-4_xfmr_21 phases=1 windings=3 wdg=1 bus=R1-12-47-4_node_300.2 Kv=7.2 kva=50.0 %r=0.0015 wdg=2 bus=R1-12-47-4_tn_21.1.0 Kv=0.12 kva=25.0 %r=0.003 wdg=3 bus=R1-12-47-4_tn_21.0.2 Kv=0.12 kva=25.0 %r=0.003 XHL=0.0016 XLT=0.0008 XHT=0.0008
+
+New Transformer.R1-12-47-4_xfmr_20 phases=1 windings=3 wdg=1 bus=R1-12-47-4_node_300.1 Kv=7.2 kva=50.0 %r=0.0015 wdg=2 bus=R1-12-47-4_tn_20.1.0 Kv=0.12 kva=25.0 %r=0.003 wdg=3 bus=R1-12-47-4_tn_20.0.2 Kv=0.12 kva=25.0 %r=0.003 XHL=0.0016 XLT=0.0008 XHT=0.0008
+
+New Transformer.R1-12-47-4_xfmr_23 phases=1 windings=3 wdg=1 bus=R1-12-47-4_node_301.1 Kv=7.2 kva=10.0 %r=0.0075 wdg=2 bus=R1-12-47-4_tn_23.1.0 Kv=0.12 kva=5.0 %r=0.015 wdg=3 bus=R1-12-47-4_tn_23.0.2 Kv=0.12 kva=5.0 %r=0.015 XHL=0.008 XLT=0.004 XHT=0.004
+
+New Transformer.R1-12-47-4_xfmr_22 phases=1 windings=3 wdg=1 bus=R1-12-47-4_node_300.3 Kv=7.2 kva=50.0 %r=0.0015 wdg=2 bus=R1-12-47-4_tn_22.1.0 Kv=0.12 kva=25.0 %r=0.003 wdg=3 bus=R1-12-47-4_tn_22.0.2 Kv=0.12 kva=25.0 %r=0.003 XHL=0.0016 XLT=0.0008 XHT=0.0008
+
+New Transformer.R1-12-47-4_xfmr_25 phases=1 windings=3 wdg=1 bus=R1-12-47-4_node_195.2 Kv=7.2 kva=25.0 %r=0.003 wdg=2 bus=R1-12-47-4_tn_25.1.0 Kv=0.12 kva=12.5 %r=0.006 wdg=3 bus=R1-12-47-4_tn_25.0.2 Kv=0.12 kva=12.5 %r=0.006 XHL=0.0032 XLT=0.0016 XHT=0.0016
+
+New Transformer.R1-12-47-4_xfmr_24 phases=1 windings=3 wdg=1 bus=R1-12-47-4_node_195.1 Kv=7.2 kva=25.0 %r=0.003 wdg=2 bus=R1-12-47-4_tn_24.1.0 Kv=0.12 kva=12.5 %r=0.006 wdg=3 bus=R1-12-47-4_tn_24.0.2 Kv=0.12 kva=12.5 %r=0.006 XHL=0.0032 XLT=0.0016 XHT=0.0016
+
+New Transformer.R1-12-47-4_xfmr_27 phases=1 windings=3 wdg=1 bus=R1-12-47-4_node_196.1 Kv=7.2 kva=75.0 %r=0.001 wdg=2 bus=R1-12-47-4_tn_27.1.0 Kv=0.12 kva=37.5 %r=0.002 wdg=3 bus=R1-12-47-4_tn_27.0.2 Kv=0.12 kva=37.5 %r=0.002 XHL=0.001064 XLT=0.000532 XHT=0.000532
+
+New Transformer.R1-12-47-4_xfmr_26 phases=1 windings=3 wdg=1 bus=R1-12-47-4_node_195.3 Kv=7.2 kva=25.0 %r=0.003 wdg=2 bus=R1-12-47-4_tn_26.1.0 Kv=0.12 kva=12.5 %r=0.006 wdg=3 bus=R1-12-47-4_tn_26.0.2 Kv=0.12 kva=12.5 %r=0.006 XHL=0.0032 XLT=0.0016 XHT=0.0016
+
+New Transformer.trans_R1-12-47-4_reg_1 phases=3 windings=2 kvs=(7.2, 7.2) kvas)
+
+!Redirect Regulators.dss
+
+New RegControl.R1-12-47-4_reg_1 transformer=trans_R1-12-47-4_reg_1 winding=2
+
+!Redirect Loads.dss
+
+New Load.R1-12-47-4_load_9 bus1=R1-12-47-4_meter_9.1.2.3 kV=7.2 model=1 kW=172.2559815 kvar=111.4291098 Phases=3
+
+New Load.R1-12-47-4_load_8 bus1=R1-12-47-4_meter_8.1.2.3 kV=7.2 model=1 kW=79.5767339 kvar=51.4766718 Phases=3
+
+New Load.R1-12-47-4_load_5 bus1=R1-12-47-4_meter_5.1.2.3 kV=7.2 model=1 kW=94.0496022 kvar=60.8388943 Phases=3
+
+New Load.R1-12-47-4_load_4 bus1=R1-12-47-4_meter_4.1.2.3 kV=7.2 model=1 kW=114.1962194 kvar=73.8713568 Phases=3
+
+New Load.R1-12-47-4_load_6 bus1=R1-12-47-4_meter_6.1.2.3 kV=7.2 model=1 kW=97.1509311 kvar=62.8450848 Phases=3
+
+New Load.R1-12-47-4_load_1 bus1=R1-12-47-4_meter_1.1.2.3 kV=7.2 model=1 kW=55.5354246 kvar=35.9248072 Phases=3
+
+New Load.R1-12-47-4_load_7 bus1=R1-12-47-4_meter_7.1.2.3 kV=7.2 model=1 kW=210.3133742 kvar=136.0477115 Phases=3
+
+New Load.R1-12-47-4_load_3 bus1=R1-12-47-4_meter_3.1.2.3 kV=7.2 model=1 kW=162.9519948 kvar=105.4105382 Phases=3
+
+New Load.R1-12-47-4_load_2 bus1=R1-12-47-4_meter_2.1.2.3 kV=7.2 model=1 kW=237.6483429 kvar=153.7301815 Phases=3
+
+New Load.R1-12-47-4_load_11 bus1=R1-12-47-4_meter_11.1.2.3 kV=7.2 model=1 kW=153.1912232 kvar=99.0964812 Phases=3
+
+New Load.R1-12-47-4_load_10 bus1=R1-12-47-4_meter_10.1.2.3 kV=7.2 model=1 kW=127.5872288 kvar=82.5337454 Phases=3
+
+New Load.R1-12-47-4_load_12 bus1=R1-12-47-4_meter_12.1.2.3 kV=7.2 model=1 kW=130.8808881 kvar=84.6643508 Phases=3
+
+!Redirect Capacitors.dss
+
+New Capacitor.R1-12-47-4_cap_1 phases=3 Kv=7.2 Kvar=1800.0
+
+New CapControl.R1-12-47-4_cap_1 Capacitor=R1-12-47-4_cap_1 delay=30.0 Type=voltage Vmin=7100.0 Vmax=7300.0 PTPhase=2
+
+Set Voltagebases=[0.20784609690826525, 0.48, 7.2, 12.0]
+
+Calcvoltagebases
+
+Solve
