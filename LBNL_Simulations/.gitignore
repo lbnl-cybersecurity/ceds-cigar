@@ -1,6 +1,0 @@
-PyCIGAR/.idea/
-*.pyc
-PyCIGAR/code_Siemens/utils/__pycache__
-PyCIGAR/code_Siemens/utils/openDSS/__pycache__
-PyCIGAR/code_Siemens/utils/device/__pycache__/*.pyc
-PyCIGAR/dss/
