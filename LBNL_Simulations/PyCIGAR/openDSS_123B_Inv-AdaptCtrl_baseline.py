@@ -1,8 +1,3 @@
-# coding: utf-8
-
-# In[1]:
-
-
 import numpy as np
 import opendssdirect as dss
 from utils.device.Inverter import Inverter
@@ -42,7 +37,7 @@ Delay_VBPCurveShift = np.array([0, 0, 0, 0, 0, 60, 60, 60, 60, 60, 60, 60, 60, 6
 threshold_vqvp = 0.25
 power_factor = 0.9
 pf_converted = tan(acos(power_factor))
-number_of_inverters = 13  # even feeder is 34Bus, we only have 13 inverters, which is chosen randomly for now
+number_of_inverters = 13  # even feeder is 123Bus, we only have 13 inverters, which is chosen randomly for now
 
 # File directory
 FileDirectoryBase = '../Data Files/testpvnum10/'  # Get the data from the Testpvnum folder

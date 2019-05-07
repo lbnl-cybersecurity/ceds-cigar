@@ -1,8 +1,3 @@
-# coding: utf-8
-
-# In[1]:
-
-
 import numpy as np
 import opendssdirect as dss
 from utils.device.Inverter import Inverter
