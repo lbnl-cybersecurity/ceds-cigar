@@ -1,6 +1,6 @@
 Clear
 
-New Circuit.Full_Network 
+New Circuit.Full_Network basekv=12.47 pu = 1 R1 = 0 X1= 0.0001 R0= 0 X0 = 0.0001 Bus1 = R1-12-47-4_node_305
 
 !Redirect LineCodes.dss
 
@@ -898,7 +898,7 @@ New Transformer.R1-12-47-4_xfmr_27 phases=1 windings=3 wdg=1 bus=R1-12-47-4_node
 
 New Transformer.R1-12-47-4_xfmr_26 phases=1 windings=3 wdg=1 bus=R1-12-47-4_node_195.3 Kv=7.2 kva=25.0 %r=0.003 wdg=2 bus=R1-12-47-4_tn_26.1.0 Kv=0.12 kva=12.5 %r=0.006 wdg=3 bus=R1-12-47-4_tn_26.0.2 Kv=0.12 kva=12.5 %r=0.006 XHL=0.0032 XLT=0.0016 XHT=0.0016
 
-New Transformer.trans_R1-12-47-4_reg_1 phases=3 windings=2 kvs=(7.2, 7.2) kvas)
+New Transformer.trans_R1-12-47-4_reg_1 phases=3 windings=2 kvs=(7.2, 7.2) kvas= (10000,10000)
 
 !Redirect Regulators.dss
 
