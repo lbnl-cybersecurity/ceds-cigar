@@ -1,20 +1,20 @@
 Clear
 
-New Circuit.Full_Network basekv=12 pu = 1 R1 = 0 X1= 0.0001 R0= 0 X0 = 0.0001 Bus1 = R1-12-47-4_node_305  phases = 3
+New Circuit.Full_Network basekv=12.47 pu = 1 R1 = 0 X1= 0.0001 R0= 0 X0 = 0.0001 Bus1 = R1-12-47-4_node_305
 
 !Redirect LineCodes.dss
 
 New Linecode.3P_UG_Code3 units=km Xmatrix=(0.757292936491 0.211000297824 0.211000297824 | 0.211000297824 0.757292936491 0.164005359718 | 0.211000297824 0.164005359718 0.757292936491 ) nphases=3 Rmatrix=(0.0899939594868 0.0329072034253 0.0329072034253 | 0.0329072034253 0.0899939594868 0.0329072034253 | 0.0329072034253 0.0329072034253 0.0899939594868 )
 
-New Linecode.1P_UG_Code8 units=km Xmatrix=(0.757292936491) nphases=1 Rmatrix=(0.0899939594868)
+New Linecode.1P_UG_Code8 units=km Xmatrix=(0.757292936491 0.0 0.0 | 0.0 0.0 0.0 | 0.0 0.0 0.0 ) nphases=1 Rmatrix=(0.0899939594868 0.0 0.0 | 0.0 0.0 0.0 | 0.0 0.0 0.0 )
 
 New Linecode.3P_UG_Code0 units=km Xmatrix=(0.865062143623 0.229930887869 0.229930887869 | 0.229930887869 0.865062143623 0.182935949762 | 0.229930887869 0.182935949762 0.865062143623 ) nphases=3 Rmatrix=(0.621401685602 0.0702192132842 0.0702192132842 | 0.0702192132842 0.621401685602 0.0702192132842 | 0.0702192132842 0.0702192132842 0.621401685602 )
 
 New Linecode.3P_UG_Code6 units=km Xmatrix=(0.7582375514 0.211944912733 0.211944912733 | 0.211944912733 0.7582375514 0.164949974627 | 0.211944912733 0.164949974627 0.7582375514 ) nphases=3 Rmatrix=(0.0420538795276 0.0282594047739 0.0282594047739 | 0.0282594047739 0.0420538795276 0.0282594047739 | 0.0282594047739 0.0282594047739 0.0420538795276 )
 
-New Linecode.1P_UG_Code5 units=km Xmatrix=(757292936491 ) nphases=1 Rmatrix=(0899939594868 )
+New Linecode.1P_UG_Code5 units=km Xmatrix=(0.0 0.0 0.0 | 0.0 0.0 0.0 | 0.0 0.0 0.757292936491 ) nphases=1 Rmatrix=(0.0 0.0 0.0 | 0.0 0.0 0.0 | 0.0 0.0 0.0899939594868 )
 
-New Linecode.1P_UG_Code4 units=km Xmatrix=(0.865062143623 ) nphases=1 Rmatrix=(0.621401685602 )
+New Linecode.1P_UG_Code4 units=km Xmatrix=(0.0 0.0 0.0 | 0.0 0.0 0.0 | 0.0 0.0 0.865062143623 ) nphases=1 Rmatrix=(0.0 0.0 0.0 | 0.0 0.0 0.0 | 0.0 0.0 0.621401685602 )
 
 New Linecode.2P_OH_Code7 units=km Xmatrix=(-0.200680358561 -0.117163997415 | -0.117163997415 -0.200680358561 ) nphases=2 Rmatrix=(0.0080297706168 0.00460515099956 | 0.00460515099956 0.0080297706168 )
 
@@ -22,7 +22,7 @@ New Linecode.1P_OH_Code1 units=km Xmatrix=(1e-05 ) nphases=1 Rmatrix=(1e-05 )
 
 New Linecode.3P_OH_Code2 units=km Xmatrix=(1e-05 0.0 0.0 | 0.0 1e-05 0.0 | 0.0 0.0 1e-05 ) nphases=3 Rmatrix=(1e-05 0.0 0.0 | 0.0 1e-05 0.0 | 0.0 0.0 1e-05 )
 
-New Linecode.1P_UG_Code9 units=km Xmatrix=(0.865062143623) nphases=1 Rmatrix=(0.621401685602)
+New Linecode.1P_UG_Code9 units=km Xmatrix=(0.865062143623 0.0 0.0 | 0.0 0.0 0.0 | 0.0 0.0 0.0 ) nphases=1 Rmatrix=(0.621401685602 0.0 0.0 | 0.0 0.0 0.0 | 0.0 0.0 0.0 )
 
 !Redirect Lines.dss
 
@@ -917,6 +917,7 @@ New Load.R1-12-47-4_load_4 bus1=R1-12-47-4_meter_4.1.2.3 kV=7.2 model=1 kW=114.1
 New Load.R1-12-47-4_load_6 bus1=R1-12-47-4_meter_6.1.2.3 kV=7.2 model=1 kW=97.1509311 kvar=62.8450848 Phases=3
 
 New Load.R1-12-47-4_load_1 bus1=R1-12-47-4_meter_1.1.2.3 kV=7.2 model=1 kW=55.5354246 kvar=35.9248072 Phases=3
+
 New Load.R1-12-47-4_load_7 bus1=R1-12-47-4_meter_7.1.2.3 kV=7.2 model=1 kW=210.3133742 kvar=136.0477115 Phases=3
 
 New Load.R1-12-47-4_load_3 bus1=R1-12-47-4_meter_3.1.2.3 kV=7.2 model=1 kW=162.9519948 kvar=105.4105382 Phases=3
@@ -933,9 +934,9 @@ New Load.R1-12-47-4_load_12 bus1=R1-12-47-4_meter_12.1.2.3 kV=7.2 model=1 kW=130
 
 New Capacitor.R1-12-47-4_cap_1 phases=3 Kv=7.2 Kvar=1800.0
 
-!New CapControl.R1-12-47-4_cap_1 Capacitor=R1-12-47-4_cap_1 delay=30.0 Type=voltage Vmin=7100.0 Vmax=7300.0 PTPhase=2
+New CapControl.R1-12-47-4_cap_1 Capacitor=R1-12-47-4_cap_1 delay=30.0 Type=voltage Vmin=7100.0 Vmax=7300.0 PTPhase=2
 
-Set Voltagebases=[0.20784609690826525, 0.48, 7.2, 12.47]
+Set Voltagebases=[0.20784609690826525, 0.48, 7.2, 12.0]
 
 Calcvoltagebases
 
