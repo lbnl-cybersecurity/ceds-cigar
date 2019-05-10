@@ -1,6 +1,6 @@
 Clear
 
-New Circuit.Full_Network basekv=12 pu = 1 R1 = 0 X1= 0.0001 R0= 0 X0 = 0.0001 Bus1 = R1-12-47-4_node_305  phases = 3
+New Circuit.Full_Network basekv=7.2 pu = 1 R1 = 0 X1= 0.0001 R0= 0 X0 = 0.0001 Bus1 = R1-12-47-4_node_305  phases = 3
 
 !Redirect LineCodes.dss
 
@@ -935,7 +935,7 @@ New Capacitor.R1-12-47-4_cap_1 phases=3 Kv=7.2 Kvar=1800.0
 
 !New CapControl.R1-12-47-4_cap_1 Capacitor=R1-12-47-4_cap_1 delay=30.0 Type=voltage Vmin=7100.0 Vmax=7300.0 PTPhase=2
 
-Set Voltagebases=[0.20784609690826525, 0.48, 7.2, 12.47]
+Set Voltagebases=[0.20784609690826525, 0.48, 7.2]
 
 Calcvoltagebases
 
