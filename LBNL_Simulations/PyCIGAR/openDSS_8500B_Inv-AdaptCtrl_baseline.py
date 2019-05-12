@@ -13,8 +13,8 @@ from scipy.interpolate import interp1d
 # Global variable initialization and error checking
 
 mva_base = 1
-load_scaling_factor = 1.5
-generation_scaling_factor = 2.5
+load_scaling_factor = 0.1
+generation_scaling_factor = 1
 slack_bus_voltage = 1.04
 noise_multiplier = 0
 start_time = 42900  # Set simulation analysis period - the simulation is from StartTime to EndTime
@@ -192,7 +192,11 @@ inverters = {}
 features = ['Generation', 'sbar']
 
 # we create inverters from node 5 to node (5+13), the offset is just a chosen value
-offset = 5
+offset = 1
+if (offset - 1 >= number_of_inverters + offset):
+    print ('Check offset and number of inverter values and update accordingly...')
+    raise SystemError
+
 
 for i in range(len(all_load_names)):
     inverters[i] = []
@@ -241,7 +245,11 @@ for timeStep in range(TotalTimeSteps):
         dss.Circuit.SetActiveElement('load.' + nodeName)  # set active element
         dss.Circuit.SetActiveBus(dss.CktElement.BusNames()[0])  # grab the bus for the active element
         voltage = dss.Bus.puVmagAngle()[::2]  # get the pu information directly
-        nodeInfo.append(np.mean(voltage))  # average of the per-unit voltage
+        if (np.isnan(np.mean(voltage)) or np.isinf(np.mean(voltage))):
+            print(f'Voltage Output "{np.mean(voltage)}" from OpenDSS for Load "{nodeName}" at Bus "{dss.CktElement.BusNames()[0]}" is not appropriate.')
+            raise SystemError
+        else:
+            nodeInfo.append(np.mean(voltage))  # average of the per-unit voltage
 
     # distribute voltage to node
     for i in range(len(nodes)):
@@ -303,7 +311,7 @@ plt.title('Voltage at Inverter Nodes')
 plt.show()
 
 f = plt.figure(figsize=[20, 10])
-for i in range(5, 18):
+for i in range(offset, number_of_inverters + offset):
     x = inverters[i][0]['controller'].VBP
     y = np.zeros([len(x), x[0].shape[0]])
     for i in range(len(x)):
