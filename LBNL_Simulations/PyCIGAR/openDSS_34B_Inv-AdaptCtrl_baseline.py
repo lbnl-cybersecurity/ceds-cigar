@@ -12,17 +12,19 @@ from scipy.interpolate import interp1d
 
 # Global variable initialization and error checking
 
-mva_base = 1
-load_scaling_factor = 1.5
-generation_scaling_factor = 2.5
-slack_bus_voltage = 1.04
-noise_multiplier = 0
+mva_base = 1 # mva_base is set to 1 as per unit values are not going to be used, rather kw and kvar are going to be used
+load_scaling_factor = 1.5 # scaling factor to tune the loading values
+generation_scaling_factor = 3.5 # scaling factor to tune the generation values 
+slack_bus_voltage = 1.04 # slack bus voltage, tune this parameter to get a different voltage profile for the whole network
+noise_multiplier = 0 # If you want to add noise to the signal, put a positive value
 start_time = 42900  # Set simulation analysis period - the simulation is from StartTime to EndTime
 end_time = 44000
 end_time += 1  # creating a list, last element does not count, so we increase EndTime by 1
 # Set hack parameters
-time_step_of_hack = 500
-percent_hacked = np.array([0, 0, 0, 0, 0, 0, 0, .5, 0, 0, .5, .5, .5, .5, .5, 0, 0, .5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
+time_step_of_hack = 500 # When you want to initiate the hacking time 
+# how much hacking we are going to allow, 0.5 means 50% of the invereter capacity can not be changed after the attack is being initiated, Make sure size of this array >= number of inverters
+# Choose the time settings accordingly 
+
 
 # Set initial VBP parameters for un-compromised inverters
 VQ_start = 0.98
@@ -31,7 +33,9 @@ VP_start = 1.02
 VP_end = 1.05
 hacked_settings = np.array([1.0, 1.001, 1.001, 1.01])
 # Set delays for each node
-Delay_VBPCurveShift = np.array([0, 0, 0, 0, 0, 60, 60, 60, 60, 60, 60, 60, 60, 60, 60, 60, 60, 60, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
+
+percent_hacked = [0.5, .5, 0.5, 0.5, .5, .5, .5, .5, .5, 0, 0, .5, 0.5]
+Delay_VBPCurveShift = [60, 60, 60, 60, 60, 60, 60, 60, 60, 60, 60, 60, 60]
 
 # Set observer voltage threshold
 threshold_vqvp = 0.25
@@ -50,6 +54,13 @@ if noise_multiplier < 0:
     noise_multiplier = 0
     print('Setup Noise Multiplier Correctly.')
 
+# Error checking for percent hacked and the delay value
+if len(percent_hacked) < number_of_inverters:
+    print('Adjust the percent hacked array.')
+    raise SystemError
+if len(Delay_VBPCurveShift) < number_of_inverters:
+    print('Adjust the delay list accordingly..')
+    raise SystemError    
 # Global variable initialization done
 
 dss.run_command('Redirect ' + network_model_directory)  # redirecting to the model
@@ -195,12 +206,13 @@ if (offset - 1 >= number_of_inverters + offset):
 
 for i in range(len(all_load_names)):
     inverters[i] = []
+    delay_counter = 0
     if offset - 1 < i < number_of_inverters + offset:
         # inverter device
         inv = {}
         inv['device'] = Inverter(timeList, lpf_meas=1, lpf_output=0.1)
         # controller: timeList, VBP is initial VBP, delayTimer is the delay control on VBP
-        inv['controller'] = AdaptiveInvController(timeList, VBP=np.array([VQ_start, VQ_end, VP_start, VP_end]), delayTimer=Delay_VBPCurveShift[i], device=inv['device'])
+        inv['controller'] = AdaptiveInvController(timeList, VBP=np.array([VQ_start, VQ_end, VP_start, VP_end]), delayTimer=Delay_VBPCurveShift[delay_counter], device=inv['device'])
         # prepare info
         df = pd.DataFrame(columns=list(range(TotalTimeSteps)), index=features)
         df.loc['Generation'] = Generation[:, i]
@@ -208,6 +220,7 @@ for i in range(len(all_load_names)):
         timeList = list(range(TotalTimeSteps))
         inv['info'] = df
         inverters[i].append(inv)
+        delay_counter +=1
 
 #####################################################################################################################################
 
@@ -257,6 +270,7 @@ for timeStep in range(TotalTimeSteps):
     if timeStep == time_step_of_hack - 1:
         # with each node...
         for node in range(len(all_load_names)):
+            hack_counter = 0
             # if we have inverters at that node...
             if inverters[node] != []:
                 # we get the first inverter in the list...
@@ -269,13 +283,14 @@ for timeStep in range(TotalTimeSteps):
                     hackedInv['controller'] = FixedInvController(timeList, VBP=hacked_settings, device=hackedInv)
 
                 # change the sbar, generation of hacked Inverter Info, control percentHacked
-                hackedInv['info'].loc['sbar'][timeStep:] = hackedInv['info'].loc['sbar'][timeStep:] * percent_hacked[node]
-                hackedInv['info'].loc['Generation'][timeStep:] = hackedInv['info'].loc['Generation'][timeStep:] * percent_hacked[node]
+                hackedInv['info'].loc['sbar'][timeStep:] = hackedInv['info'].loc['sbar'][timeStep:] * percent_hacked[hack_counter]
+                hackedInv['info'].loc['Generation'][timeStep:] = hackedInv['info'].loc['Generation'][timeStep:] * percent_hacked[hack_counter]
                 # add the hacked inverter into the list of inverters at that node
                 inverters[node].append(hackedInv)
                 # generation and sbar change on the original inverter, only control 1-percentHacked
-                inverter['info'].loc['sbar'][timeStep:] = inverter['info'].loc['sbar'][timeStep:] * (1 - percent_hacked[node])
-                inverter['info'].loc['Generation'][timeStep:] = inverter['info'].loc['Generation'][timeStep:] * (1 - percent_hacked[node])
+                inverter['info'].loc['sbar'][timeStep:] = inverter['info'].loc['sbar'][timeStep:] * (1 - percent_hacked[hack_counter])
+                inverter['info'].loc['Generation'][timeStep:] = inverter['info'].loc['Generation'][timeStep:] * (1 - percent_hacked[hack_counter])
+                hack_counter += 1
     ################################################################################################################################################
 
     # with each node in the grid...
