@@ -1,0 +1,24 @@
+New Line.overhead_line1 Units=km Length=0.1524 bus1=Node632.2.3 bus2=Load645.2.3 switch=n enabled=y phases=2 Linecode=2P_OH_Code0
+
+New Line.overhead_line2 Units=km Length=0.09144 bus1=Load645.2.3 bus2=Load646.2.3 switch=n enabled=y phases=2 Linecode=2P_OH_Code0
+
+New Line.overhead_line3 Units=km Length=0.6096 bus1=Node630.1.2.3 bus2=Node632.1.2.3 switch=n enabled=y phases=3 Linecode=3P_OH_Code1
+
+New Line.overhead_line4 Units=km Length=0.1524 bus1=Node632.1.2.3 bus2=Load6321.1.2.3 switch=n enabled=y phases=3 Linecode=3P_OH_Code1
+
+New Line.overhead_line5 Units=km Length=0.45720000000000005 bus1=Load6321.1.2.3 bus2=Load671.1.2.3 switch=n enabled=y phases=3 Linecode=3P_OH_Code1
+
+New Line.overhead_line6 Units=km Length=0.3048 bus1=Load671.1.2.3 bus2=Node680.1.2.3 switch=n enabled=y phases=3 Linecode=3P_OH_Code1
+
+New Line.overhead_line7 Units=km Length=0.09144 bus1=Load671.1.3 bus2=Node684.1.3 switch=n enabled=y phases=2 Linecode=2P_OH_Code2
+
+New Line.overhead_line8 Units=km Length=0.09144 bus1=Node684.3 bus2=Load611.3 switch=n enabled=y phases=1 Linecode=1P_OH_Code3
+
+New Line.overhead_line9 Units=km Length=0.24384 bus1=Node684.1 bus2=Load652.1 switch=n enabled=y phases=1 Linecode=1P_UG_Code4
+
+New Line.overhead_line10 Units=km Length=0.1524 bus1=Load692.1.2.3 bus2=Load675.1.2.3 switch=n enabled=y phases=3 Linecode=3P_UG_Code5
+
+New Line.overhead_line11 Units=km Length=0.1524 bus1=Node632.1.2.3 bus2=Node633.1.2.3 switch=n enabled=y phases=3 Linecode=3P_OH_Code6
+
+New Line.switch1 Units=km Length=0.001 bus1=Load671.1.2.3 bus2=Load692.1.2.3 switch=y enabled=y phases=3 Linecode=3P_OH_Code7
+

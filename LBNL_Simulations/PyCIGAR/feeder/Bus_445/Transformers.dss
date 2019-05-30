@@ -1,0 +1,102 @@
+New Transformer.R1-12-47-4_xfmr_1 phases=1 windings=3 wdg=1 bus=R1-12-47-4_node_169.1 Kv=7.2 kva=10.0 %r=0.0075 wdg=2 bus=R1-12-47-4_tn_1.1.0 Kv=0.12 kva=5.0 %r=0.015 wdg=3 bus=R1-12-47-4_tn_1.0.2 Kv=0.12 kva=5.0 %r=0.015 XHL=0.008 XLT=0.004 XHT=0.004
+
+New Transformer.R1-12-47-4_xfmr_2 phases=1 windings=3 wdg=1 bus=R1-12-47-4_node_169.2 Kv=7.2 kva=10.0 %r=0.0075 wdg=2 bus=R1-12-47-4_tn_2.1.0 Kv=0.12 kva=5.0 %r=0.015 wdg=3 bus=R1-12-47-4_tn_2.0.2 Kv=0.12 kva=5.0 %r=0.015 XHL=0.008 XLT=0.004 XHT=0.004
+
+New Transformer.R1-12-47-4_xfmr_3 phases=1 windings=3 wdg=1 bus=R1-12-47-4_node_169.3 Kv=7.2 kva=10.0 %r=0.0075 wdg=2 bus=R1-12-47-4_tn_3.1.0 Kv=0.12 kva=5.0 %r=0.015 wdg=3 bus=R1-12-47-4_tn_3.0.2 Kv=0.12 kva=5.0 %r=0.015 XHL=0.008 XLT=0.004 XHT=0.004
+
+New Transformer.R1-12-47-4_xfmr_4 phases=1 windings=3 wdg=1 bus=R1-12-47-4_node_287.1 Kv=7.2 kva=15.0 %r=0.005 wdg=2 bus=R1-12-47-4_tn_4.1.0 Kv=0.12 kva=7.5 %r=0.01 wdg=3 bus=R1-12-47-4_tn_4.0.2 Kv=0.12 kva=7.5 %r=0.01 XHL=0.0053360000000000005 XLT=0.0026680000000000002 XHT=0.0026680000000000002
+
+New Transformer.R1-12-47-4_xfmr_5 phases=1 windings=3 wdg=1 bus=R1-12-47-4_node_288.1 Kv=7.2 kva=10.0 %r=0.0075 wdg=2 bus=R1-12-47-4_tn_5.1.0 Kv=0.12 kva=5.0 %r=0.015 wdg=3 bus=R1-12-47-4_tn_5.0.2 Kv=0.12 kva=5.0 %r=0.015 XHL=0.008 XLT=0.004 XHT=0.004
+
+New Transformer.R1-12-47-4_xfmr_6 phases=1 windings=3 wdg=1 bus=R1-12-47-4_node_289.1 Kv=7.2 kva=15.0 %r=0.005 wdg=2 bus=R1-12-47-4_tn_6.1.0 Kv=0.12 kva=7.5 %r=0.01 wdg=3 bus=R1-12-47-4_tn_6.0.2 Kv=0.12 kva=7.5 %r=0.01 XHL=0.0053360000000000005 XLT=0.0026680000000000002 XHT=0.0026680000000000002
+
+New Transformer.R1-12-47-4_xfmr_7 phases=1 windings=3 wdg=1 bus=R1-12-47-4_node_290.3 Kv=7.2 kva=10.0 %r=0.0075 wdg=2 bus=R1-12-47-4_tn_7.1.0 Kv=0.12 kva=5.0 %r=0.015 wdg=3 bus=R1-12-47-4_tn_7.0.2 Kv=0.12 kva=5.0 %r=0.015 XHL=0.008 XLT=0.004 XHT=0.004
+
+New Transformer.R1-12-47-4_xfmr_8 phases=1 windings=3 wdg=1 bus=R1-12-47-4_node_291.3 Kv=7.2 kva=10.0 %r=0.0075 wdg=2 bus=R1-12-47-4_tn_8.1.0 Kv=0.12 kva=5.0 %r=0.015 wdg=3 bus=R1-12-47-4_tn_8.0.2 Kv=0.12 kva=5.0 %r=0.015 XHL=0.008 XLT=0.004 XHT=0.004
+
+New Transformer.R1-12-47-4_xfmr_9 phases=1 windings=3 wdg=1 bus=R1-12-47-4_node_292.3 Kv=7.2 kva=10.0 %r=0.0075 wdg=2 bus=R1-12-47-4_tn_9.1.0 Kv=0.12 kva=5.0 %r=0.015 wdg=3 bus=R1-12-47-4_tn_9.0.2 Kv=0.12 kva=5.0 %r=0.015 XHL=0.008 XLT=0.004 XHT=0.004
+
+New Transformer.R1-12-47-4_xfmr_10 phases=1 windings=3 wdg=1 bus=R1-12-47-4_node_293.3 Kv=7.2 kva=10.0 %r=0.0075 wdg=2 bus=R1-12-47-4_tn_10.1.0 Kv=0.12 kva=5.0 %r=0.015 wdg=3 bus=R1-12-47-4_tn_10.0.2 Kv=0.12 kva=5.0 %r=0.015 XHL=0.008 XLT=0.004 XHT=0.004
+
+New Transformer.R1-12-47-4_xfmr_11 phases=1 windings=3 wdg=1 bus=R1-12-47-4_node_297.1 Kv=7.2 kva=25.0 %r=0.003 wdg=2 bus=R1-12-47-4_tn_11.1.0 Kv=0.12 kva=12.5 %r=0.006 wdg=3 bus=R1-12-47-4_tn_11.0.2 Kv=0.12 kva=12.5 %r=0.006 XHL=0.0032 XLT=0.0016 XHT=0.0016
+
+New Transformer.R1-12-47-4_xfmr_12 phases=1 windings=3 wdg=1 bus=R1-12-47-4_node_297.2 Kv=7.2 kva=25.0 %r=0.003 wdg=2 bus=R1-12-47-4_tn_12.1.0 Kv=0.12 kva=12.5 %r=0.006 wdg=3 bus=R1-12-47-4_tn_12.0.2 Kv=0.12 kva=12.5 %r=0.006 XHL=0.0032 XLT=0.0016 XHT=0.0016
+
+New Transformer.R1-12-47-4_xfmr_13 phases=1 windings=3 wdg=1 bus=R1-12-47-4_node_297.3 Kv=7.2 kva=25.0 %r=0.003 wdg=2 bus=R1-12-47-4_tn_13.1.0 Kv=0.12 kva=12.5 %r=0.006 wdg=3 bus=R1-12-47-4_tn_13.0.2 Kv=0.12 kva=12.5 %r=0.006 XHL=0.0032 XLT=0.0016 XHT=0.0016
+
+New Transformer.R1-12-47-4_xfmr_14 phases=1 windings=3 wdg=1 bus=R1-12-47-4_node_298.1 Kv=7.2 kva=50.0 %r=0.0015 wdg=2 bus=R1-12-47-4_tn_14.1.0 Kv=0.12 kva=25.0 %r=0.003 wdg=3 bus=R1-12-47-4_tn_14.0.2 Kv=0.12 kva=25.0 %r=0.003 XHL=0.0016 XLT=0.0008 XHT=0.0008
+
+New Transformer.R1-12-47-4_xfmr_15 phases=1 windings=3 wdg=1 bus=R1-12-47-4_node_298.2 Kv=7.2 kva=50.0 %r=0.0015 wdg=2 bus=R1-12-47-4_tn_15.1.0 Kv=0.12 kva=25.0 %r=0.003 wdg=3 bus=R1-12-47-4_tn_15.0.2 Kv=0.12 kva=25.0 %r=0.003 XHL=0.0016 XLT=0.0008 XHT=0.0008
+
+New Transformer.R1-12-47-4_xfmr_16 phases=1 windings=3 wdg=1 bus=R1-12-47-4_node_298.3 Kv=7.2 kva=50.0 %r=0.0015 wdg=2 bus=R1-12-47-4_tn_16.1.0 Kv=0.12 kva=25.0 %r=0.003 wdg=3 bus=R1-12-47-4_tn_16.0.2 Kv=0.12 kva=25.0 %r=0.003 XHL=0.0016 XLT=0.0008 XHT=0.0008
+
+New Transformer.R1-12-47-4_xfmr_17 phases=1 windings=3 wdg=1 bus=R1-12-47-4_node_299.1 Kv=7.2 kva=50.0 %r=0.0015 wdg=2 bus=R1-12-47-4_tn_17.1.0 Kv=0.12 kva=25.0 %r=0.003 wdg=3 bus=R1-12-47-4_tn_17.0.2 Kv=0.12 kva=25.0 %r=0.003 XHL=0.0016 XLT=0.0008 XHT=0.0008
+
+New Transformer.R1-12-47-4_xfmr_18 phases=1 windings=3 wdg=1 bus=R1-12-47-4_node_299.2 Kv=7.2 kva=50.0 %r=0.0015 wdg=2 bus=R1-12-47-4_tn_18.1.0 Kv=0.12 kva=25.0 %r=0.003 wdg=3 bus=R1-12-47-4_tn_18.0.2 Kv=0.12 kva=25.0 %r=0.003 XHL=0.0016 XLT=0.0008 XHT=0.0008
+
+New Transformer.R1-12-47-4_xfmr_19 phases=1 windings=3 wdg=1 bus=R1-12-47-4_node_299.3 Kv=7.2 kva=50.0 %r=0.0015 wdg=2 bus=R1-12-47-4_tn_19.1.0 Kv=0.12 kva=25.0 %r=0.003 wdg=3 bus=R1-12-47-4_tn_19.0.2 Kv=0.12 kva=25.0 %r=0.003 XHL=0.0016 XLT=0.0008 XHT=0.0008
+
+New Transformer.R1-12-47-4_xfmr_20 phases=1 windings=3 wdg=1 bus=R1-12-47-4_node_300.1 Kv=7.2 kva=50.0 %r=0.0015 wdg=2 bus=R1-12-47-4_tn_20.1.0 Kv=0.12 kva=25.0 %r=0.003 wdg=3 bus=R1-12-47-4_tn_20.0.2 Kv=0.12 kva=25.0 %r=0.003 XHL=0.0016 XLT=0.0008 XHT=0.0008
+
+New Transformer.R1-12-47-4_xfmr_21 phases=1 windings=3 wdg=1 bus=R1-12-47-4_node_300.2 Kv=7.2 kva=50.0 %r=0.0015 wdg=2 bus=R1-12-47-4_tn_21.1.0 Kv=0.12 kva=25.0 %r=0.003 wdg=3 bus=R1-12-47-4_tn_21.0.2 Kv=0.12 kva=25.0 %r=0.003 XHL=0.0016 XLT=0.0008 XHT=0.0008
+
+New Transformer.R1-12-47-4_xfmr_22 phases=1 windings=3 wdg=1 bus=R1-12-47-4_node_300.3 Kv=7.2 kva=50.0 %r=0.0015 wdg=2 bus=R1-12-47-4_tn_22.1.0 Kv=0.12 kva=25.0 %r=0.003 wdg=3 bus=R1-12-47-4_tn_22.0.2 Kv=0.12 kva=25.0 %r=0.003 XHL=0.0016 XLT=0.0008 XHT=0.0008
+
+New Transformer.R1-12-47-4_xfmr_23 phases=1 windings=3 wdg=1 bus=R1-12-47-4_node_301.1 Kv=7.2 kva=10.0 %r=0.0075 wdg=2 bus=R1-12-47-4_tn_23.1.0 Kv=0.12 kva=5.0 %r=0.015 wdg=3 bus=R1-12-47-4_tn_23.0.2 Kv=0.12 kva=5.0 %r=0.015 XHL=0.008 XLT=0.004 XHT=0.004
+
+New Transformer.R1-12-47-4_xfmr_24 phases=1 windings=3 wdg=1 bus=R1-12-47-4_node_195.1 Kv=7.2 kva=25.0 %r=0.003 wdg=2 bus=R1-12-47-4_tn_24.1.0 Kv=0.12 kva=12.5 %r=0.006 wdg=3 bus=R1-12-47-4_tn_24.0.2 Kv=0.12 kva=12.5 %r=0.006 XHL=0.0032 XLT=0.0016 XHT=0.0016
+
+New Transformer.R1-12-47-4_xfmr_25 phases=1 windings=3 wdg=1 bus=R1-12-47-4_node_195.2 Kv=7.2 kva=25.0 %r=0.003 wdg=2 bus=R1-12-47-4_tn_25.1.0 Kv=0.12 kva=12.5 %r=0.006 wdg=3 bus=R1-12-47-4_tn_25.0.2 Kv=0.12 kva=12.5 %r=0.006 XHL=0.0032 XLT=0.0016 XHT=0.0016
+
+New Transformer.R1-12-47-4_xfmr_26 phases=1 windings=3 wdg=1 bus=R1-12-47-4_node_195.3 Kv=7.2 kva=25.0 %r=0.003 wdg=2 bus=R1-12-47-4_tn_26.1.0 Kv=0.12 kva=12.5 %r=0.006 wdg=3 bus=R1-12-47-4_tn_26.0.2 Kv=0.12 kva=12.5 %r=0.006 XHL=0.0032 XLT=0.0016 XHT=0.0016
+
+New Transformer.R1-12-47-4_xfmr_27 phases=1 windings=3 wdg=1 bus=R1-12-47-4_node_196.1 Kv=7.2 kva=75.0 %r=0.001 wdg=2 bus=R1-12-47-4_tn_27.1.0 Kv=0.12 kva=37.5 %r=0.002 wdg=3 bus=R1-12-47-4_tn_27.0.2 Kv=0.12 kva=37.5 %r=0.002 XHL=0.001064 XLT=0.000532 XHT=0.000532
+
+New Transformer.R1-12-47-4_xfmr_28 phases=1 windings=3 wdg=1 bus=R1-12-47-4_node_196.2 Kv=7.2 kva=75.0 %r=0.001 wdg=2 bus=R1-12-47-4_tn_28.1.0 Kv=0.12 kva=37.5 %r=0.002 wdg=3 bus=R1-12-47-4_tn_28.0.2 Kv=0.12 kva=37.5 %r=0.002 XHL=0.001064 XLT=0.000532 XHT=0.000532
+
+New Transformer.R1-12-47-4_xfmr_29 phases=1 windings=3 wdg=1 bus=R1-12-47-4_node_196.3 Kv=7.2 kva=75.0 %r=0.001 wdg=2 bus=R1-12-47-4_tn_29.1.0 Kv=0.12 kva=37.5 %r=0.002 wdg=3 bus=R1-12-47-4_tn_29.0.2 Kv=0.12 kva=37.5 %r=0.002 XHL=0.001064 XLT=0.000532 XHT=0.000532
+
+New Transformer.R1-12-47-4_xfmr_30 phases=1 windings=3 wdg=1 bus=R1-12-47-4_node_198.1 Kv=7.2 kva=30.0 %r=0.0025 wdg=2 bus=R1-12-47-4_tn_30.1.0 Kv=0.12 kva=15.0 %r=0.005 wdg=3 bus=R1-12-47-4_tn_30.0.2 Kv=0.12 kva=15.0 %r=0.005 XHL=0.002664 XLT=0.001332 XHT=0.001332
+
+New Transformer.R1-12-47-4_xfmr_31 phases=1 windings=3 wdg=1 bus=R1-12-47-4_node_198.2 Kv=7.2 kva=30.0 %r=0.0025 wdg=2 bus=R1-12-47-4_tn_31.1.0 Kv=0.12 kva=15.0 %r=0.005 wdg=3 bus=R1-12-47-4_tn_31.0.2 Kv=0.12 kva=15.0 %r=0.005 XHL=0.002664 XLT=0.001332 XHT=0.001332
+
+New Transformer.R1-12-47-4_xfmr_32 phases=1 windings=3 wdg=1 bus=R1-12-47-4_node_198.3 Kv=7.2 kva=30.0 %r=0.0025 wdg=2 bus=R1-12-47-4_tn_32.1.0 Kv=0.12 kva=15.0 %r=0.005 wdg=3 bus=R1-12-47-4_tn_32.0.2 Kv=0.12 kva=15.0 %r=0.005 XHL=0.002664 XLT=0.001332 XHT=0.001332
+
+New Transformer.R1-12-47-4_xfmr_33 phases=1 windings=3 wdg=1 bus=R1-12-47-4_node_199.1 Kv=7.2 kva=25.0 %r=0.003 wdg=2 bus=R1-12-47-4_tn_33.1.0 Kv=0.12 kva=12.5 %r=0.006 wdg=3 bus=R1-12-47-4_tn_33.0.2 Kv=0.12 kva=12.5 %r=0.006 XHL=0.0032 XLT=0.0016 XHT=0.0016
+
+New Transformer.R1-12-47-4_xfmr_34 phases=1 windings=3 wdg=1 bus=R1-12-47-4_node_199.2 Kv=7.2 kva=25.0 %r=0.003 wdg=2 bus=R1-12-47-4_tn_34.1.0 Kv=0.12 kva=12.5 %r=0.006 wdg=3 bus=R1-12-47-4_tn_34.0.2 Kv=0.12 kva=12.5 %r=0.006 XHL=0.0032 XLT=0.0016 XHT=0.0016
+
+New Transformer.R1-12-47-4_xfmr_35 phases=1 windings=3 wdg=1 bus=R1-12-47-4_node_199.3 Kv=7.2 kva=25.0 %r=0.003 wdg=2 bus=R1-12-47-4_tn_35.1.0 Kv=0.12 kva=12.5 %r=0.006 wdg=3 bus=R1-12-47-4_tn_35.0.2 Kv=0.12 kva=12.5 %r=0.006 XHL=0.0032 XLT=0.0016 XHT=0.0016
+
+New Transformer.R1-12-47-4_xfmr_36 phases=1 windings=3 wdg=1 bus=R1-12-47-4_node_247.1 Kv=7.2 kva=5.0 %r=0.0075 wdg=2 bus=R1-12-47-4_tn_36.1.0 Kv=0.12 kva=2.5 %r=0.015 wdg=3 bus=R1-12-47-4_tn_36.0.2 Kv=0.12 kva=2.5 %r=0.015 XHL=0.008 XLT=0.004 XHT=0.004
+
+New Transformer.R1-12-47-4_xfmr_37 phases=1 windings=3 wdg=1 bus=R1-12-47-4_node_247.2 Kv=7.2 kva=5.0 %r=0.0075 wdg=2 bus=R1-12-47-4_tn_37.1.0 Kv=0.12 kva=2.5 %r=0.015 wdg=3 bus=R1-12-47-4_tn_37.0.2 Kv=0.12 kva=2.5 %r=0.015 XHL=0.008 XLT=0.004 XHT=0.004
+
+New Transformer.R1-12-47-4_xfmr_38 phases=1 windings=3 wdg=1 bus=R1-12-47-4_node_247.3 Kv=7.2 kva=5.0 %r=0.0075 wdg=2 bus=R1-12-47-4_tn_38.1.0 Kv=0.12 kva=2.5 %r=0.015 wdg=3 bus=R1-12-47-4_tn_38.0.2 Kv=0.12 kva=2.5 %r=0.015 XHL=0.008 XLT=0.004 XHT=0.004
+
+New Transformer.R1-12-47-4_xfmr_39 phases=3 windings=2 wdg=1 conn=wye Kv=12.0 kva=10.0 %R=0.001665 bus=R1-12-47-4_node_294 wdg=2 conn=wye Kv=0.48 kva=10.0 %R=0.001665 bus=R1-12-47-4_meter_1 XHL=0.01667
+
+New Transformer.R1-12-47-4_xfmr_40 phases=3 windings=2 wdg=1 conn=wye Kv=12.0 kva=37.5 %R=0.000445 bus=R1-12-47-4_node_295 wdg=2 conn=wye Kv=0.48 kva=37.5 %R=0.000445 bus=R1-12-47-4_meter_2 XHL=0.00444
+
+New Transformer.R1-12-47-4_xfmr_41 phases=3 windings=2 wdg=1 conn=wye Kv=12.0 kva=25.0 %R=0.000665 bus=R1-12-47-4_node_296 wdg=2 conn=wye Kv=0.48 kva=25.0 %R=0.000665 bus=R1-12-47-4_meter_3 XHL=0.00667
+
+New Transformer.R1-12-47-4_xfmr_42 phases=3 windings=2 wdg=1 conn=wye Kv=12.0 kva=25.0 %R=0.000665 bus=R1-12-47-4_node_197 wdg=2 conn=wye Kv=0.48 kva=25.0 %R=0.000665 bus=R1-12-47-4_meter_4 XHL=0.00667
+
+New Transformer.R1-12-47-4_xfmr_43 phases=3 windings=2 wdg=1 conn=wye Kv=12.0 kva=15.0 %R=0.00111 bus=R1-12-47-4_node_224 wdg=2 conn=wye Kv=0.48 kva=15.0 %R=0.00111 bus=R1-12-47-4_meter_5 XHL=0.01111
+
+New Transformer.R1-12-47-4_xfmr_44 phases=3 windings=2 wdg=1 conn=wye Kv=12.0 kva=15.0 %R=0.00111 bus=R1-12-47-4_node_225 wdg=2 conn=wye Kv=0.48 kva=15.0 %R=0.00111 bus=R1-12-47-4_meter_6 XHL=0.01111
+
+New Transformer.R1-12-47-4_xfmr_45 phases=3 windings=2 wdg=1 conn=wye Kv=12.0 kva=30.0 %R=0.000555 bus=R1-12-47-4_node_227 wdg=2 conn=wye Kv=0.48 kva=30.0 %R=0.000555 bus=R1-12-47-4_meter_7 XHL=0.00556
+
+New Transformer.R1-12-47-4_xfmr_46 phases=3 windings=2 wdg=1 conn=wye Kv=12.0 kva=15.0 %R=0.00111 bus=R1-12-47-4_node_228 wdg=2 conn=wye Kv=0.48 kva=15.0 %R=0.00111 bus=R1-12-47-4_meter_8 XHL=0.01111
+
+New Transformer.R1-12-47-4_xfmr_47 phases=3 windings=2 wdg=1 conn=wye Kv=12.0 kva=25.0 %R=0.000665 bus=R1-12-47-4_node_229 wdg=2 conn=wye Kv=0.48 kva=25.0 %R=0.000665 bus=R1-12-47-4_meter_9 XHL=0.00667
+
+New Transformer.R1-12-47-4_xfmr_48 phases=3 windings=2 wdg=1 conn=wye Kv=12.0 kva=25.0 %R=0.000665 bus=R1-12-47-4_node_230 wdg=2 conn=wye Kv=0.48 kva=25.0 %R=0.000665 bus=R1-12-47-4_meter_10 XHL=0.00667
+
+New Transformer.R1-12-47-4_xfmr_49 phases=3 windings=2 wdg=1 conn=wye Kv=12.0 kva=25.0 %R=0.000665 bus=R1-12-47-4_node_249 wdg=2 conn=wye Kv=0.48 kva=25.0 %R=0.000665 bus=R1-12-47-4_meter_11 XHL=0.00667
+
+New Transformer.R1-12-47-4_xfmr_50 phases=3 windings=2 wdg=1 conn=wye Kv=12.0 kva=25.0 %R=0.000665 bus=R1-12-47-4_node_250 wdg=2 conn=wye Kv=0.48 kva=25.0 %R=0.000665 bus=R1-12-47-4_meter_12 XHL=0.00667
+
+New Transformer.trans_R1-12-47-4_reg_1 phases=3 windings=2 kvs=(7.2, 7.2) kvas=(500,500)
+

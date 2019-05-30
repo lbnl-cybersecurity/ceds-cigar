@@ -1,0 +1,17 @@
+Clear
+
+New Circuit.Full_Network basekv=7.2 pu = 1 R1 = 0 X1= 0.0001 R0= 0 X0 = 0.0001 Bus1 = R1-12-47-4_node_305  phases = 3
+
+Redirect LineCodes.dss
+Redirect Lines.dss
+Redirect Transformers.dss
+Redirect Regulators.dss
+Redirect Loads.dss
+//Redirect Capacitors.dss
+
+Set Voltagebases=[0.20784609690826525, 0.48, 7.2, 12.0]
+
+Calcvoltagebases
+
+
+Solve

@@ -1,0 +1,20 @@
+New Load.load_Load634 bus1=Load634.1.2.3 kV=0.48 model=1 kW=400.0 kvar=290.0 Phases=3
+
+New Load.load_Load645 bus1=Load645.2.3 kV=2.4017771 model=1 kW=170.0 kvar=125.0 Phases=2
+
+New Load.load_Load646 bus1=Load646.2.3 kV=2.4017771 model=2 kW=76.66661788923837 kvar=44.000003808490895 Phases=2
+
+New Load.load_Load652 bus1=Load652.1 kV=2.4017771 model=2 kW=128.00009827023817 kvar=86.00012399618856 Phases=1
+
+New Load.load_Load671 bus1=Load671.1.2.3 kV=2.4017771 model=1 kW=1155.0 kvar=660.0 Phases=3
+
+New Load.load_Load675 bus1=Load675.1.2.3 kV=2.4017771 model=1 kW=843.0 kvar=462.0 Phases=3
+
+New Load.load_Load692 bus1=Load692.1.2.3 kV=2.4017771 model=1 kW=128.58981670804 kvar=26.425217638220005 Phases=3
+
+New Load.load_Load611 bus1=Load611.3 kV=2.4017771 model=5 kW=169.99996726498 kvar=80.00000450264 Phases=1
+
+New Load.Load6711 bus1=Load671.1.2.3 kV=2.4017771 model=1 kW=66.66666670000001 kvar=38.6666667 Phases=3
+
+New Load.load_Load6321 bus1=Load6321.1.2.3 kV=2.4017771 model=1 kW=133.33333299999998 kvar=77.3333333 Phases=3
+

@@ -1,0 +1,4 @@
+New Transformer.XFMR1 phases=3 windings=2 wdg=1 conn=wye Kv=4.16 kva=500.0 %R=0.0055 bus=Node633 wdg=2 conn=wye Kv=0.48 kva=500.0 %R=0.0055 bus=Load634 XHL=0.02
+
+New Transformer.trans_Reg1 phases=3 windings=2 conns=(Wye, Wye) kvs=(2.4017771, 2.4017771) kvas)
+

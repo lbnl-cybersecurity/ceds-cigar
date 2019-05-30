@@ -1,4 +1,6 @@
-PyCIGAR/.idea/
+LBNL_Simulations/PyCIGAR/.idea/
 *.pyc
 *.xml
 *.iml
+LBNL_Simulations/PyCIGAR/cigar
+LBNL_Simulations/PyCIGAR/.vscode

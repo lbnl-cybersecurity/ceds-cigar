@@ -1,0 +1,24 @@
+New Load.R1-12-47-4_load_1 bus1=R1-12-47-4_meter_1.1.2.3 kV=7.2 model=1 kW=55.5354246 kvar=35.924807200000004 Phases=3
+
+New Load.R1-12-47-4_load_2 bus1=R1-12-47-4_meter_2.1.2.3 kV=7.2 model=1 kW=237.6483429 kvar=153.73018150000001 Phases=3
+
+New Load.R1-12-47-4_load_3 bus1=R1-12-47-4_meter_3.1.2.3 kV=7.2 model=1 kW=162.9519948 kvar=105.41053820000002 Phases=3
+
+New Load.R1-12-47-4_load_4 bus1=R1-12-47-4_meter_4.1.2.3 kV=7.2 model=1 kW=114.1962194 kvar=73.87135680000002 Phases=3
+
+New Load.R1-12-47-4_load_5 bus1=R1-12-47-4_meter_5.1.2.3 kV=7.2 model=1 kW=94.0496022 kvar=60.8388943 Phases=3
+
+New Load.R1-12-47-4_load_6 bus1=R1-12-47-4_meter_6.1.2.3 kV=7.2 model=1 kW=97.1509311 kvar=62.845084799999995 Phases=3
+
+New Load.R1-12-47-4_load_7 bus1=R1-12-47-4_meter_7.1.2.3 kV=7.2 model=1 kW=210.31337420000003 kvar=136.0477115 Phases=3
+
+New Load.R1-12-47-4_load_8 bus1=R1-12-47-4_meter_8.1.2.3 kV=7.2 model=1 kW=79.57673390000001 kvar=51.4766718 Phases=3
+
+New Load.R1-12-47-4_load_9 bus1=R1-12-47-4_meter_9.1.2.3 kV=7.2 model=1 kW=172.2559815 kvar=111.4291098 Phases=3
+
+New Load.R1-12-47-4_load_10 bus1=R1-12-47-4_meter_10.1.2.3 kV=7.2 model=1 kW=127.58722880000002 kvar=82.5337454 Phases=3
+
+New Load.R1-12-47-4_load_11 bus1=R1-12-47-4_meter_11.1.2.3 kV=7.2 model=1 kW=153.19122320000002 kvar=99.09648120000001 Phases=3
+
+New Load.R1-12-47-4_load_12 bus1=R1-12-47-4_meter_12.1.2.3 kV=7.2 model=1 kW=130.88088810000002 kvar=84.66435080000001 Phases=3
+

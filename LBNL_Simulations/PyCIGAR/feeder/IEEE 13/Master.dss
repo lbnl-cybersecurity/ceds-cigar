@@ -1,0 +1,16 @@
+Clear
+
+New Circuit.Full_Network 
+
+Redirect LineCodes.dss
+Redirect Lines.dss
+Redirect Transformers.dss
+Redirect Regulators.dss
+Redirect Loads.dss
+
+Set Voltagebases=[0.48, 2.4017771, 4.16]
+
+Calcvoltagebases
+
+
+Solve

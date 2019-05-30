@@ -1,0 +1,4 @@
+New Capacitor.R1-12-47-4_cap_1 phases=3 Kv=7.2 Kvar=1800.0
+
+New CapControl.R1-12-47-4_cap_1 Capacitor=R1-12-47-4_cap_1 delay=30.0 Type=voltage Vmin=7100.0 Vmax=7300.0 PTPhase=2
+
