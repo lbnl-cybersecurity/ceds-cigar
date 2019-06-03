@@ -52,7 +52,7 @@ class AdaptiveInvController:
                                         self.VBP[0][1],
                                         self.VBP[0][2],
                                         self.VBP[0][3] + self.up[self.k],
-                                        self.VBP[0][4]] + self.up[self.k])
+                                        self.VBP[0][4] + self.up[self.k]])
                                 
                         for i in range(self.k, len(self.time)):
                                 self.VBP[i] = copy.deepcopy(vbp)
