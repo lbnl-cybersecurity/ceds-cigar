@@ -15,7 +15,7 @@ class FixedInvController:
 		self.device = device
 		self.time = time	
 		self.delT = time[1]- time[0]
-		self.VBP = np.zeros([len(time), 4])
+		self.VBP = np.zeros([len(time), 5])
 		for i in range(len(time)):
 			self.VBP[i] = VBP
 		#simulation index

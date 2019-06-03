@@ -12,10 +12,10 @@ class AdaptiveInvController:
 
         controllerType = 'AdaptiveInvController' 
         #instance atttributes
-        def __init__(self, time, VBP, delayTimer, device, nk=0.1, threshold=0.25):
+        def __init__(self, time, VBP, delayTimer, device, nk, threshold):
                 self.time = time        
                 self.delT = time[1] - time[0]
-                self.VBP = np.zeros((len(time), 4))
+                self.VBP = np.zeros((len(time), 5))
                 self.initVBP = VBP
                 self.up = np.zeros(len(time))
                 self.uq = np.zeros(len(time))
@@ -48,10 +48,11 @@ class AdaptiveInvController:
                         self.uq[self.k] = self.adaptive_control(self.nk, vk, vkmdelay, self.uq[self.k-self.delayTimer+1], self.thresh, yk)
 
                         vbp = np.array([
-                                        self.VBP[0][0] - 2*self.uq[self.k],
-                                        self.VBP[0][1] - self.uq[self.k],
-                                        self.VBP[0][2] + self.up[self.k],
-                                        self.VBP[0][3] + 2*self.up[self.k]])
+                                        self.VBP[0][0] - self.uq[self.k],
+                                        self.VBP[0][1],
+                                        self.VBP[0][2],
+                                        self.VBP[0][3] + self.up[self.k],
+                                        self.VBP[0][4]] + self.up[self.k])
                                 
                         for i in range(self.k, len(self.time)):
                                 self.VBP[i] = copy.deepcopy(vbp)
