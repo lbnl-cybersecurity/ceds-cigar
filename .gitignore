@@ -2,5 +2,7 @@ LBNL_Simulations/PyCIGAR/.idea/
 *.pyc
 *.xml
 *.iml
+*.CSV
+*.TXT
 LBNL_Simulations/PyCIGAR/cigar
 LBNL_Simulations/PyCIGAR/.vscode

@@ -27,7 +27,8 @@ new Line.5 bus1=P6.1.2.3 bus2=P27.1.2.3 phases=3 length=50 units=ft geometry=Pri
 new Line.6 bus1=P6.1.2.3 bus2=P44.1.2.3 phases=3 length=25 units=ft geometry=Pri
 new Line.7 bus1=P44.1.2.3 bus2=P45.1.2.3 phases=3 length=25 units=ft geometry=Pri
 new Line.8 bus1=P44.1.2.3 bus2=P62.1.2.3 phases=3 length=25 units=ft geometry=Pri
-new Line.9 bus1=P10.1.2.3 bus2=P81.1.2.3 phases=3 length=50 units=ft geometry=Pri 
+new Line.9 bus1=P10.1.2.3 bus2=P81.1.2.3 phases=3 length=50 units=ft geometry=Pri
+new Line.10 bus1=P10.1.2.3 bus2=P97.1.2.3 phases=3 length=50 units=ft geometry=Pri
 new Line.11 bus1=P10.1.2.3 bus2=P116.1.2.3 phases=3 length=25 units=ft geometry=Pri
 new Line.12 bus1=P116.1.2.3 bus2=P117.1.2.3 phases=3 length=25 units=ft geometry=Pri
 new Line.13 bus1=P116.1.2.3 bus2=P134.1.2.3 phases=3 length=25 units=ft geometry=Pri
@@ -147,7 +148,7 @@ new Line.126 bus1=P138.1.2.3 bus2=P141.1.2.3 phases=3 length=100 units=ft geomet
 new Line.127 bus1=P141.1.2.3 bus2=P142.1.2.3 phases=3 length=100 units=ft geometry=Pri
 new Line.128 bus1=P141.1.2.3 bus2=P143.1.2.3 phases=3 length=100 units=ft geometry=Pri
 new Line.129 bus1=P143.1.2.3 bus2=P144.1.2.3 phases=3 length=100 units=ft geometry=Pri
-new Line.130 bus1=P144.1.2.3 bus2=P145.1.2.3 phases=3 length=100 units=ft geometry=Pri 
+new Line.130 bus1=P144.1.2.3 bus2=P145.1.2.3 phases=3 length=100 units=ft geometry=Pri
 new Line.131 bus1=P145.1.2.3 bus2=P146.1.2.3 phases=3 length=100 units=ft geometry=Pri
 new Line.132 bus1=P143.1.2.3 bus2=P147.1.2.3 phases=3 length=100 units=ft geometry=Pri
 new Line.133 bus1=P147.1.2.3 bus2=P148.1.2.3 phases=3 length=100 units=ft geometry=Pri
@@ -2042,4 +2043,3 @@ new Transformer.70 buses=[P84,S190] kvs=[13.800,0.208] kvas=[1000,1000] conns=[d
  
 Set Voltagebases=[230, 13.8, 0.48, 0.208]
 calcv
-Solve

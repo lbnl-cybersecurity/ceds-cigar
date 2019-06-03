@@ -1,8 +1,4 @@
-'''
-Author : Shammya Saha
-This code uses the 33 bus meshed version of a distribution network and uses Python 3.x for simulating the adaptive controller with protection systems and inverter control actions included
-'''
-
+#%%
 import numpy as np
 import opendssdirect as dss
 from utils.device.Inverter import Inverter
@@ -15,12 +11,14 @@ import copy
 import pandas as pd
 import random
 from scipy.interpolate import interp1d
+from configobj import ConfigObj
 
 # Global variable initialization and error checking
-
+#%%
+config = ConfigObj('feeder/33BusMeshed/config_no_regulator.ini')
 mva_base = 1 # mva_base is set to 1 as per unit values are not going to be used, rather kw and kvar are going to be used
 load_scaling_factor = 1.5 # scaling factor to tune the loading values
-generation_scaling_factor = 3.2 # scaling factor to tune the generation values 
+generation_scaling_factor = 5 # scaling factor to tune the generation values 
 slack_bus_voltage = 1.04 # slack bus voltage, tune this parameter to get a different voltage profile for the whole network
 noise_multiplier = 0 # If you want to add noise to the signal, put a positive value
 start_time = 42900  # Set simulation analysis period - the simulation is from StartTime to EndTime
@@ -30,9 +28,8 @@ end_time += 1  # creating a list, last element does not count, so we increase En
 time_step_of_hack = 500 # When you want to initiate the hacking time 
 # how much hacking we are going to allow, 0.5 means 50% of the invereter capacity can not be changed after the attack is being initiated, Make sure size of this array >= number of inverters
 # Choose the time settings accordingly 
-simulate_line_switching = False
 
-
+#%%
 # Set initial VBP parameters for un-compromised inverters
 VQ_start = 0.98
 VQ_end = 1.01
@@ -48,49 +45,64 @@ Delay_VBPCurveShift = [60, 60, 60, 60, 60, 60, 60, 60, 60, 60, 60, 60, 60]
 threshold_vqvp = 0.25
 power_factor = 0.9
 pf_converted = tan(acos(power_factor))
-number_of_inverters = 6  # even feeder is 34Bus, we only have 13 inverters, which is chosen randomly for now
+number_of_inverters = 13  # even feeder is 34Bus, we only have 13 inverters, which is chosen randomly for now
 
 # File directory
-FileDirectoryBase = '../Data Files/testpvnum10/'  # Get the data from the Testpvnum folder
+FileDirectoryBase = '../../../Data Files/testpvnum10/'  # Get the data from the Testpvnum folder
 network_model_directory = 'feeder/33BusMeshed/33BusMeshed.dss'
+
 
 # Error checking of the global variable
 if end_time < start_time or end_time < 0 or start_time < 0:
-    print ('Setup Simulation Times Inappropriately.')
+    print('Setup Simulation Times Inappropriately.')
 if noise_multiplier < 0:
     noise_multiplier = 0
-    print ('Setup Noise Multiplier Correctly.')
-
+    print('Setup Noise Multiplier Correctly.')
 
 # Error checking for percent hacked and the delay value
 if len(percent_hacked) < number_of_inverters:
-    print ('Adjust the percent hacked array.')
+    print('Adjust the percent hacked array.')
     raise SystemError
 if len(Delay_VBPCurveShift) < number_of_inverters:
-    print ('Adjust the delay list accordingly..')
+    print('Adjust the delay list accordingly..')
     raise SystemError    
 # Global variable initialization done
-
+#%%
 dss.run_command('Redirect ' + network_model_directory)  # redirecting to the model
+dss.run_command('Compile ' + network_model_directory)  # redirecting to the model
 dss.Vsources.PU(slack_bus_voltage)  # setting up the slack bus voltage
+#dss.run_command('BatchEdit InvControl..* enabled=No')
+#dss.run_command('BatchEdit RegControl..* enabled= No')
 # Setting up the solution parameters, check OpenDSS documentation for details
 dss.Monitors.ResetAll()
-dss.Solution.Mode(1)
+dss.Solution.Mode(0)
 dss.Solution.Number(1)
 dss.Solution.StepSize(1)
 dss.Solution.ControlMode(-1)
 dss.Solution.MaxControlIterations(1000000)
 dss.Solution.MaxIterations(30000)
 dss.Solution.Solve()  # solve commands execute the power flow
-if not dss.Solution.Converged:
-    print ('Initial Solution Not Converged. Check Model for Convergence')
+total_loads = dss.Loads.Count()
+if not dss.Solution.Converged or total_loads<=0:
+    print('Initial Solution Not Converged/Compiled. Check Model for Convergence')
     raise SystemError
 else:
-    print ('Initial Model Converged. Proceeding to Next Step.')
-    total_loads = dss.Loads.Count()
+    print('Initial Model Converged. Proceeding to Next Step.')
+    
     all_load_names = dss.Loads.AllNames()
-    print ('OpenDSS Model Compilation Done.')
+    all_regulator_controls_names = dss.RegControls.AllNames()
+    print('OpenDSS Model Compilation Done.')
 
+#for regc in all_regulator_controls_names:
+#    dss.RegControls.Name(regc)
+#    dss.CktElement.Enabled(1) # disabling all regulators
+#    dss.RegControls.ForwardBand(1)
+
+if len(all_regulator_controls_names)>0:
+    dss.Solution.Mode(1) # converted to daily mode
+    dss.Solution.ControlMode(2) # Set as TIME mode 
+    dss.Monitors.ResetAll()   
+#%%
 #####################################################################################################################################
 # Load data from file
 TimeResolutionOfData = 10  # resolution in minute
@@ -121,11 +133,11 @@ Generation = QSTS_Data[:, 1, :] * generation_scaling_factor  # solar generation
 Load = QSTS_Data[:, 3, :] * load_scaling_factor  # load demand
 Generation = np.squeeze(Generation) / mva_base  # To convert to per unit, it should not be multiplied by 100
 Load = np.squeeze(Load) / mva_base
-print ('Reading Data for Pecan Street is done.')
-
+print('Reading Data for Pecan Street is done.')
+#%%
 #####################################################################################################################################
 # Interpolate to change data from minutes to seconds
-print ('Starting Interpolation...')
+print('Starting Interpolation...')
 # interpolation for the whole period...
 Time = list(range(start_time, end_time))
 TotalTimeSteps = len(Time)
@@ -146,7 +158,7 @@ GenerationSeconds = GenerationSeconds[start_time:end_time, :]
 Load = LoadSeconds
 Generation = GenerationSeconds
 timeList = list(range(TotalTimeSteps))
-print ('Finished Interpolation!')
+print('Finished Interpolation!')
 
 # Create noise vector
 Noise = np.empty([TotalTimeSteps, total_loads])
@@ -158,9 +170,9 @@ for node in range(total_loads):
     Load[:, node] = Load[:, node] + noise_multiplier * Noise[:, node]
 
 if noise_multiplier > 0:
-    print ('Load Interpolation has been done. Noise was added to the load profile.')
+    print('Load Interpolation has been done. Noise was added to the load profile.')
 else:
-    print ('Load Interpolation has been done. No Noise was added to the load profile.')
+    print('Load Interpolation has been done. No Noise was added to the load profile.')
 
 #####################################################################################################################################
 
@@ -212,6 +224,44 @@ if (offset - 1 >= number_of_inverters + offset):
     raise SystemError
 
 
+#%%
+# Setup the regulator monitoring elements
+if dss.RegControls.Count() ==0:
+    print ('No  Regulator is present in this model') 
+all_regulators_data = copy.deepcopy(dict(config['MONITOR']['REGULATOR']))
+for key,val in all_regulators_data.items():
+    all_regulators_data [key]['TAP'] = []
+
+
+#%% 
+# Preparing attack variables for line protection devices    
+line_list = []
+switching_timestep = []
+action = [] # action 0 means opening the line, 1 means closing the line
+
+lines_to_trip = dict(config['PROTECTION_DEVICE'])
+for key,val in lines_to_trip.items():
+    if dss.Circuit.SetActiveElement('Line.' + val['NAME'])>0: # Check whether the line is present in the model or not
+        line_list.append(val['NAME'])
+        switching_timestep.append(int(val['TIME_STEP_OF_HACK']))
+        action.append(int(val['ACTION']))
+
+# Preparing attack variables for line regulators 
+reg_list = []
+reg_attack_timing = []
+reg_tap_delay=[]
+reg_band= []
+
+regs_to_attack = dict(config['REGULATOR']) 
+for key,val in regs_to_attack.items():
+    if dss.Circuit.SetActiveElement('RegControl.' + val['NAME'])>0:
+        reg_list.append(val['NAME'])
+        reg_attack_timing.append(int(val['TIME_STEP_OF_HACK']))
+        reg_tap_delay.append(float(val['TAP_DELAY']))
+        reg_band.append(float(val['FORWARD_BAND']))
+       
+           
+#%%  
 for i in range(len(all_load_names)):
     inverters[i] = []
     delay_counter = 0
@@ -230,21 +280,8 @@ for i in range(len(all_load_names)):
         inverters[i].append(inv)
         delay_counter +=1
 
-
-line_list = ['line_29']
-switching_timestep = [480]
-action = [0] # action 0 means opening the line, 1 means closing the line
-# Checking whether the lines exist or not
-
-for line in line_list:
-    if dss.Circuit.SetActiveElement(line) < 0:
-        try: 
-            print ('Line %s not found in the opendss model' % (line))
-            raise SystemError
-            line_list.remove(line)
-        except: 
-            pass    
 #####################################################################################################################################
+taps= [] 
 # for each time-step in the simulation
 for timeStep in range(TotalTimeSteps):
 
@@ -266,8 +303,15 @@ for timeStep in range(TotalTimeSteps):
 
     # solve() openDSS with new values of Load
     dss.Solution.Solve()
+    
+    for regc in all_regulator_controls_names:
+        dss.RegControls.Name(regc)
+        all_regulators_data [regc]['TAP'].append(dss.RegControls.TapNumber())
+    
+    
+    
     if not dss.Solution.Converged:
-        print ('Solution Not Converged at Step:', timeStep)
+        print('Solution Not Converged at Step:', timeStep)
 
     nodeInfo = []
     for nodeName in all_load_names:
@@ -275,7 +319,7 @@ for timeStep in range(TotalTimeSteps):
         dss.Circuit.SetActiveBus(dss.CktElement.BusNames()[0]) # grab the bus for the active element
         voltage = dss.Bus.puVmagAngle()[::2] # get the pu information directly
         if (np.isnan(np.mean(voltage)) or np.isinf(np.mean(voltage))):
-            print ('Voltage Output %f from OpenDSS for Load %s at Bus %s is not appropriate.' % (np.mean(voltage),nodeName,dss.CktElement.BusNames()[0])) 
+            print(f'Voltage Output "{np.mean(voltage)}" from OpenDSS for Load "{nodeName}" at Bus "{dss.CktElement.BusNames()[0]}" is not appropriate.')
             raise SystemError
         else:
             nodeInfo.append(np.mean(voltage))  # average of the per-unit voltage
@@ -287,18 +331,28 @@ for timeStep in range(TotalTimeSteps):
 
     #####################################################################################################################################
     #  Switching Line 
-    if simulate_line_switching:
+    if config.as_bool('SIMULATE_PROTECTION_DEVICE_HACK'):
         for count in range(len(switching_timestep)):
             # print dss.Circuit.SetActiveElement('line'+line_list[count])
             # if dss.Circuit.SetActiveElement(line_list[count]) >0:
             if timeStep == switching_timestep[count] -1 : 
                 if action[count] ==0 : 
-                    print ('Opened Line:', line_list[count], 'at time step:', timeStep)
+                    print ('Opened Line:', line_list[count], 'at time step:', timeStep+1)
                     dss.Text.Command(line_switch['open_line'](line_list[count]))
                 if action[count] ==1 : 
-                    print ('Closed Line:', line_list[count], 'at time step:', timeStep)
+                    print ('Closed Line:', line_list[count], 'at time step:', timeStep+1)
                     dss.Text.Command(line_switch['close_line'](line_list[count]))
+    
+    
+    #####################################################################################################################################
 
+    if config.as_bool('SIMULATE_REGULATOR_HACK'):
+        for count in range(len(reg_attack_timing)):
+            if timeStep == reg_attack_timing[count] -1:
+                dss.RegControls.Name(reg_list[count])
+                dss.RegControls.ForwardBand(reg_band[count])
+                dss.RegControls.TapDelay(reg_tap_delay[count])
+                print ('Attack Event Initiated for Regulator Control ', reg_list[count], 'with tap delay:', reg_tap_delay[count], 'and band:',reg_band[count], 'at Time Step:', timeStep+1 )
 
     #####################################################################################################################################
     # at hack time-step, we do this
@@ -348,6 +402,7 @@ for timeStep in range(TotalTimeSteps):
                 controller.act(nk=0.1, device=device, thresh=threshold_vqvp)
     ################################################################################################################################################
 
+#%% 
 #  Plotting
 f = plt.figure(figsize=[20, 10])
 for node in nodes:
@@ -372,4 +427,11 @@ f = plt.figure(figsize=[20, 10])
 plt.plot(nodes[2].loc['Generation'], marker='o')
 plt.title('Generation at a chosen Node')
 plt.show()
+
+if dss.RegControls.Count()>0:
+    f = plt.figure(figsize=[20, 10])
+    for regc in all_regulator_controls_names:
+        plt.plot(all_regulators_data[regc]['TAP'])
+    plt.title('Tap for all regulators ')
+    plt.show()
 ################################################################################################################################################
