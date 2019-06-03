@@ -1,7 +1,7 @@
 
 # coding: utf-8
 
-# In[1]:
+# In[27]:
 
 
 import numpy as np
@@ -14,7 +14,7 @@ from math import tan,acos
 import copy
 import pandas as pd
 import time
-#get_ipython().magic('matplotlib inline')
+get_ipython().magic('matplotlib inline')
 #######################################################
 #######################################################
 ###Global variable initialization and error checking###
@@ -22,20 +22,20 @@ import time
 #######################################################
 Sbase=1
 LoadScalingFactor = 1.5
-GenerationScalingFactor = 2.5
+GenerationScalingFactor = 3
 SlackBusVoltage = 1.04
 NoiseMultiplyer= 0.2
 #Set simulation analysis period - the simulation is from StartTime to EndTime
-StartTime = 42800
-EndTime = 44200
+StartTime = 30000 + 2*60*60
+EndTime = StartTime + 2000
 EndTime += 1 # creating a list, last element does not count, so we increase EndTime by 1
 #Set hack parameters
-TimeStepOfHack = 1000
-PercentHacked = np.array([0,0,0,0,0, 0,0,.5,0,0,.5,.5,.5,.5,.5,0,0,.5, 0,0,0,0,0,0,0,0,0,0,0,0,0])
+TimeStepOfHack = 200
+PercentHacked = np.array([0,0,0,0,0, 0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5, 0,0,0,0,0,0,0,0,0,0,0,0,0])
 
 #Set initial VBP parameters for uncompromised inverters
-VBP_normal=np.array([0.98, 1.01, 1.02, 1.05])
-VBP_attack=np.array([1.0, 1.001, 1.001, 1.002])
+VBP_normal=np.array([0.98, 1.01, 1.01, 1.04, 1.08])
+VBP_attack=np.array([1.014, 1.015, 1.015, 1.016, 1.017])
 
 #Set delays for each node
 Delay_VBPCurveShift = (30+5*np.random.randn(31)).astype(int)
@@ -44,8 +44,8 @@ lpf_meas_vector = (1+0.2*np.random.randn(31))
 lpf_output_vector= (0.1+0.015*np.random.randn(31))
 
 #Set observer voltage threshold
-ThreshHold_vqvp = 0.25
-adaptive_gain=0.1
+ThreshHold_vqvp = 0.05
+adaptive_gain=20
 
 
 power_factor=0.9
@@ -85,15 +85,26 @@ else:
     print('OpenDSS Model Compliation Done.')
 
 
-# In[2]:
+# np.savetxt("delay_vector.csv", Delay_VBPCurveShift, delimiter=",")
+# np.savetxt("lpf_meas.csv", lpf_meas_vector, delimiter=",")
+# np.savetxt("lpf_output.csv", lpf_output_vector, delimiter=",")
+
+# In[28]:
+
+
+Delay_VBPCurveShift = np.loadtxt("delay_vector.csv", delimiter=",",dtype=int)
+lpf_meas_vector = np.loadtxt("lpf_meas.csv", delimiter=",")
+lpf_output_vector = np.loadtxt("lpf_output.csv", delimiter=",")
+
+
+# In[29]:
 
 
 for i in range(5,18):
-    if PercentHacked[i]>0:
-        print(AllLoadNames[i])
+    PercentHacked[i]=0.2
 
 
-# In[3]:
+# In[30]:
 
 
 #######################################################
@@ -126,7 +137,7 @@ Load = np.squeeze(Load)/Sbase
 print('Reading Data for Pecan Street is done.')
 
 
-# In[4]:
+# In[31]:
 
 
 fig = plt.figure(figsize=[16,10])
@@ -134,7 +145,7 @@ for i in range(0, 10):
     plt.plot(Load[:,i])
 
 
-# In[5]:
+# In[32]:
 
 
 fig = plt.figure(figsize=[16,10])
@@ -142,7 +153,7 @@ for i in range(0, 31):
     plt.plot(Generation[:,i])
 
 
-# In[6]:
+# In[33]:
 
 
 ############################################################
@@ -179,7 +190,7 @@ timeList = list(range(TotalTimeSteps))
 print('Finished Interpolation!')
 
 
-# In[7]:
+# In[34]:
 
 
 fig = plt.figure(figsize=[16,10])
@@ -187,7 +198,7 @@ for i in range(0, 31):
     plt.plot(Load[:,i])
 
 
-# In[8]:
+# In[35]:
 
 
 #Create noise vector
@@ -205,10 +216,16 @@ else:
     print('Load Interpolation has been done. No Noise was added to the load profile.') 
 
 MaxGenerationPossible = np.max(Generation, axis = 0)
-sbar = MaxGenerationPossible
+sbar = 1.10*MaxGenerationPossible
 
 
-# In[9]:
+# In[36]:
+
+
+len(AllLoadNames)
+
+
+# In[37]:
 
 
 fig = plt.figure(figsize=[16,10])
@@ -218,13 +235,20 @@ for i in range(0, 31):
 
 # np.savetxt("loads_with_noise.csv", Load, delimiter=",")
 
-# In[10]:
+# In[38]:
 
 
 Load = np.loadtxt("loads_with_noise.csv", delimiter=",")
 
 
-# In[11]:
+# In[39]:
+
+
+print(Load.sum(axis=1))
+print(Generation[:,5:18].sum(axis=1))
+
+
+# In[40]:
 
 
 #########################################################
@@ -414,6 +438,7 @@ for timeStep in range(TotalTimeSteps):
                 device = inverter['device']
                 controller = inverter['controller']
                 info = inverter['info']
+
                 #calcuate P Q injected into the grid by an inverter
                 p_inv, q_inv = device.step(v=nodes[node].at['Voltage', timeStep], 
                                                 solar_irr=info.at['Generation', timeStep],
@@ -426,11 +451,17 @@ for timeStep in range(TotalTimeSteps):
                 nodes[node].at['Q', timeStep] += q_inv
 
                 #change internal VBP 
-                controller.act(nk=0.1, device=device, thresh=0.25)
+                controller.act(nk=adaptive_gain, device=device, thresh=ThreshHold_vqvp)
 
 
 
-# In[12]:
+# In[41]:
+
+
+inverters[5][0]['device'].VBP
+
+
+# In[42]:
 
 
 max_norm=0
@@ -439,26 +470,37 @@ for i in range(len(nodes)):
         max_norm_index=i
 
 
-# In[13]:
+# In[43]:
 
 
 max_norm_index
 
 
-# In[14]:
+# In[44]:
 
 
-AllLoadNames[30]
+for i in range(5,17):
+    plt.plot(nodes[i].loc['Voltage'],'o')
+plt.ylim([1,1.045])
+plt.xlim(195,205)
 
 
-# In[15]:
+# In[45]:
 
 
 for i in range(5,18):
-    print(AllLoadNames[i])
+    plt.plot(inverters[i][0]['device'].q_out,'o')
+plt.xlim(195,205)
 
 
-# In[16]:
+# In[46]:
+
+
+plt.plot(inverters[5][1]['device'].v_lpf[200:],inverters[5][1]['device'].q_out[200:],'o')  
+plt.xlim(0.98,1.05)
+
+
+# In[47]:
 
 
 ######### drawing #####################
@@ -483,105 +525,161 @@ for i in range(5,18):
 plt.show()
 
 
-# In[17]:
-
-
-plt.plot(nodes[2].loc['Generation'], marker='o')
-plt.show()
-
-
-# In[18]:
-
-
-plt.plot(nodes[7].loc['Voltage'])
-
-
-# In[41]:
-
-
-plt.plot(nodes[10].loc['Voltage'])
-
-
-# In[20]:
+# In[48]:
 
 
 q_list = [-1,-1,0,0,1,1]
-plt.plot([0.95]+ VBP_normal.tolist()+ [1.08],q_list,'b')
+plt.plot([0.95]+ VBP_normal[0:4].tolist()+ [1.08],q_list,'b')
 bp = pd.DataFrame(q_list,columns=['q_breaks'])
-bp['orig'] = [0.95]+ VBP_normal.tolist()+ [1.08]
-bp['attack'] = [0.95]+VBP_attack.tolist()+ [1.08]
+bp['orig'] = [0.95]+ VBP_normal[0:4].tolist()+ [1.08]
+bp['attack'] = [0.95]+VBP_attack[0:4].tolist()+ [1.08]
 for i in range(5,18):
-    x = inverters[i][0]['controller'].VBP[-1]
+    x = inverters[i][0]['controller'].VBP[-1,0:4]
     bp[i]=[0.95]+ x.tolist()+ [1.08]
     plt.plot([0.95]+ x.tolist()+ [1.08],q_list,'k')
 plt.xlim([0.96,1.08])
+plt.plot([0.95]+ VBP_normal[0:4].tolist()+ [1.08],q_list,'g')
 
 
-# In[21]:
+# In[23]:
+
+
+inverters[5][0]['controller'].VBP[-1,0:4]
+
+
+# In[24]:
+
+
+for i in range(5,18):
+    plt.plot(inverters[i][1]['device'].v_lpf[200:],inverters[i][1]['device'].q_set[200:],'o')
+
+
+# In[25]:
+
+
+for i in range(5,17):
+    plt.plot(nodes[i].loc['Voltage'])
+plt.xlim([190,220])
+plt.ylim([1,1.02])
+
+
+# In[26]:
+
+
+plt.plot(nodes[30].loc['Voltage'])
+
+
+# In[ ]:
 
 
 bp.to_csv('breakpoints.csv',index=False)
 
 
-# In[22]:
+# In[ ]:
 
 
 nodes_30=nodes[30].transpose()[100:]
 nodes_30['Time'] = np.arange(0,len(nodes_30),1)
 
 
-# In[23]:
+# In[ ]:
 
 
 nodes_30.to_csv('attack_node_30.csv',index=False)
 
 
-# In[24]:
+# In[ ]:
 
 
 plt.plot(nodes_30['Voltage'])
 
 
-# In[25]:
+# In[ ]:
 
 
-PercentHacked
+inverters[7][0]['controller'].VBP
 
 
-# In[38]:
+# In[49]:
 
 
-plt.plot(nodes[9].loc['Q'])
+plt.plot(nodes[7].loc['Q'])
 
 
-# In[40]:
+# In[50]:
+
+
+#plt.plot(inverters[7][1]['device'].v_lpf,inverters[7][1]['device'].q_set,'r')
+plt.plot(inverters[7][1]['device'].v_lpf,'r')
+plt.plot(inverters[7][0]['device'].v_lpf,'g')
+plt.ylim([1, 1.01])
+#plt.plot(inverters[7][1]['device'].q_out,'b')
+
+
+# In[51]:
+
+
+plt.plot(inverters[7][1]['device'].q_set,'b')
+plt.ylim([30,40])
+
+
+# In[52]:
+
+
+plt.plot(inverters[10][0]['device'].v_lpf,inverters[10][0]['device'].q_set,'or')
+#plt.xlim([100,1400])
+plt.xlim([0.98,1.03])
+
+
+# In[53]:
+
+
+plt.plot(inverters[9][0]['device'].p_set,'or')
+plt.plot(inverters[9][0]['device'].q_set,'ob')
+plt.xlim([1000,1400])
+
+
+# In[54]:
+
+
+plt.plot(inverters[9][0]['device'].v_lpf,'or')
+plt.ylim([0.98,1.03])
+plt.xlim([1000,1400])
+
+
+# In[17]:
 
 
 plt.plot(nodes[9].loc['Voltage'][100:400],nodes[9].loc['Q'][100:400], 'o')
 
 
-# In[37]:
+# In[56]:
 
 
 inverters[8][0]['info']
 
 
-# In[23]:
+# In[24]:
 
 
-dir(inverters[17][0]['device'])
+dir(inverters[17][0]['controller'])
 
 
-# In[31]:
+# In[19]:
 
 
-#plt.plot(inverters[17][0]['device'].epsilon)
-plt.plot(inverters[17][0]['device'].y[100:])
-plt.plot(inverters[7][0]['device'].y[100:])
-#plt.xlim([0,100])
+for i in range(5,18):
+    plt.plot(inverters[i][0]['device'].y)
+plt.ylim([0,0.1])
 
 
-# In[39]:
+# In[25]:
+
+
+inverters[7][0]['controller'].thresh
+
+
+# In[59]:
 
 
 observer = pd.DataFrame(inverters[17][0]['device'].y[100:] ,columns=['840'])
@@ -590,7 +688,7 @@ observer['Time'] = np.arange(0,len(observer),1)
 observer.to_csv('observer_50.csv', index=False)
 
 
-# In[22]:
+# In[60]:
 
 
 nodes[0]
