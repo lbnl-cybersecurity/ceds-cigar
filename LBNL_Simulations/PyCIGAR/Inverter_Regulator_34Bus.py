@@ -18,7 +18,7 @@ from configobj import ConfigObj
 config = ConfigObj('feeder/Regulator/config_with_regulator.ini')
 mva_base = 1 # mva_base is set to 1 as per unit values are not going to be used, rather kw and kvar are going to be used
 load_scaling_factor = 1.5 # scaling factor to tune the loading values
-generation_scaling_factor = 5 # scaling factor to tune the generation values 
+generation_scaling_factor = 2.5 # scaling factor to tune the generation values 
 slack_bus_voltage = 1.04 # slack bus voltage, tune this parameter to get a different voltage profile for the whole network
 noise_multiplier = 0 # If you want to add noise to the signal, put a positive value
 start_time = 42900  # Set simulation analysis period - the simulation is from StartTime to EndTime
@@ -404,6 +404,7 @@ for timeStep in range(TotalTimeSteps):
     ################################################################################################################################################
 
 #%% 
+print('Simulation Done...Starting Plotting')    
 #  Plotting
 f = plt.figure(figsize=[20, 10])
 for node in nodes:

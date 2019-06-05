@@ -12,15 +12,16 @@ import pandas as pd
 import random
 from scipy.interpolate import interp1d
 from configobj import ConfigObj
+import csv
 
 # Global variable initialization and error checking
 #%%
 config = ConfigObj('feeder/MeshedRegulator/config_meshed_regulator.ini')
 mva_base = 1 # mva_base is set to 1 as per unit values are not going to be used, rather kw and kvar are going to be used
-load_scaling_factor = 1.5 # scaling factor to tune the loading values
-generation_scaling_factor = 5 # scaling factor to tune the generation values 
+load_scaling_factor = 0.15 # scaling factor to tune the loading values
+generation_scaling_factor = 4.5 # scaling factor to tune the generation values 
 slack_bus_voltage = 1.04 # slack bus voltage, tune this parameter to get a different voltage profile for the whole network
-noise_multiplier = 0 # If you want to add noise to the signal, put a positive value
+noise_multiplier = 0.0 # If you want to add noise to the signal, put a positive value
 start_time = 42900  # Set simulation analysis period - the simulation is from StartTime to EndTime
 end_time = 44000
 end_time += 1  # creating a list, last element does not count, so we increase EndTime by 1
@@ -35,11 +36,14 @@ VQ_start = 0.98
 VQ_end = 1.01
 VP_start = 1.02
 VP_end = 1.05
-hacked_settings = np.array([1.0, 1.001, 1.001, 1.01])
+hacked_settings = np.array([1.01, 1.043, 1.03, 1.05])
 # Set delays for each node
 
-percent_hacked = [0.5, .5, 0.5, 0.5, .5, .5, .5, .5, .5, 0, 0, .5, 0.5]
+percent_hacked = [0.5, 0.5, 0.5, 0.5, .5, .5, .5, .5, .5, 0.5, 0.5, .5, 0.5]
+if not config.as_bool('SIMULATE_INVERTER_HACK'):
+    percent_hacked = [0]*len(percent_hacked)
 Delay_VBPCurveShift = [60, 60, 60, 60, 60, 60, 60, 60, 60, 60, 60, 60, 60]
+#Delay_VBPCurveShift = [30] * len(Delay_VBPCurveShift)
 
 # Set observer voltage threshold
 threshold_vqvp = 0.25
@@ -83,7 +87,7 @@ dss.Solution.MaxControlIterations(1000000)
 dss.Solution.MaxIterations(30000)
 dss.Solution.Solve()  # solve commands execute the power flow
 total_loads = dss.Loads.Count()
-if not dss.Solution.Converged or total_loads<=0:
+if not dss.Solution.Converged() or total_loads<=0:
     print('Initial Solution Not Converged/Compiled. Check Model for Convergence')
     raise SystemError
 else:
@@ -99,9 +103,13 @@ else:
 #    dss.RegControls.ForwardBand(1)
 
 if len(all_regulator_controls_names)>0:
+    dss.Monitors.ResetAll()  
     dss.Solution.Mode(1) # converted to daily mode
-    dss.Solution.ControlMode(2) # Set as TIME mode 
-    dss.Monitors.ResetAll()   
+    dss.Solution.ControlMode(2) # Set as TIME mode
+    dss.Solution.Number(1)
+    dss.Solution.StepSize(1)
+
+
 #%%
 #####################################################################################################################################
 # Load data from file
@@ -218,7 +226,7 @@ inverters = {}
 features = ['Generation', 'sbar']
 
 # we create inverters from node 5 to node (5+13), the offset is just a chosen value
-offset = 5
+offset = 6
 if (offset - 1 >= number_of_inverters + offset):
     print ('Check offset and number of inverter values and update accordingly...')
     raise SystemError
@@ -282,6 +290,7 @@ for i in range(len(all_load_names)):
 
 #####################################################################################################################################
 taps= [] 
+#%% 
 # for each time-step in the simulation
 for timeStep in range(TotalTimeSteps):
 
@@ -302,16 +311,23 @@ for timeStep in range(TotalTimeSteps):
             dss.Loads.kvar(pf_converted * Load[timeStep, node] + nodes[node].at['Q', timeStep - 1])
 
     # solve() openDSS with new values of Load
+#    print load kw value just for 
+#    sum_load = 0
+#    for load in all_load_names:
+#        dss.Loads.Name(load)
+#        sum_load += dss.Loads.kW()
+#    print ('Timestep:',timeStep, ' total load', sum_load)     
     dss.Solution.Solve()
-    
+      
     for regc in all_regulator_controls_names:
         dss.RegControls.Name(regc)
         all_regulators_data [regc]['TAP'].append(dss.RegControls.TapNumber())
     
     
     
-    if not dss.Solution.Converged:
+    if not dss.Solution.Converged():
         print('Solution Not Converged at Step:', timeStep)
+        raise SystemExit
 
     nodeInfo = []
     for nodeName in all_load_names:
@@ -356,11 +372,15 @@ for timeStep in range(TotalTimeSteps):
 
     #####################################################################################################################################
     # at hack time-step, we do this
+    
     if timeStep == time_step_of_hack - 1:
+        
         # with each node...
+        hack_counter = 0
         for node in range(len(all_load_names)):
-            hack_counter = 0
+            
             # if we have inverters at that node...
+            
             if inverters[node] != []:
                 # we get the first inverter in the list...
                 inverter = inverters[node][0]
@@ -368,8 +388,8 @@ for timeStep in range(TotalTimeSteps):
                 # we create a new inverter, called hacked inverter, this controller is FixedInvController
                 # that the Controller doesnt change the VBP w.r.t timestep
                 hackedInv = copy.deepcopy(inverter)
-                for k in range(timeStep, TotalTimeSteps):
-                    hackedInv['controller'] = FixedInvController(timeList, VBP=hacked_settings, device=hackedInv)
+#                for k in range(timeStep, TotalTimeSteps):
+                hackedInv['controller'] = FixedInvController(timeList, VBP=hacked_settings, device=hackedInv)
 
                 # change the sbar, generation of hacked Inverter Info, control percentHacked
                 hackedInv['info'].loc['sbar'][timeStep:] = hackedInv['info'].loc['sbar'][timeStep:] * percent_hacked[hack_counter]
@@ -399,7 +419,7 @@ for timeStep in range(TotalTimeSteps):
                 nodes[node].at['Q', timeStep] += q_inv
 
                 # change internal VBP
-                controller.act(nk=0.1, device=device, thresh=threshold_vqvp)
+                controller.act(nk=0.1)
     ################################################################################################################################################
 
 #%% 
@@ -407,42 +427,50 @@ for timeStep in range(TotalTimeSteps):
 f = plt.figure(figsize=[20, 10])
 for node in nodes:
     plt.plot(nodes[node].loc['Voltage'])
+#    print ('Node', node , 'Voltage', max(nodes[node].loc['Voltage']))
 plt.title('Voltage at Inverter Nodes')
 plt.show()
 
-f = plt.figure(figsize=[20, 10])
-for i in range(offset, number_of_inverters + offset):
-    x = inverters[i][0]['controller'].VBP
-    y = np.zeros([len(x), x[0].shape[0]])
-    for i in range(len(x)):
-        y[i, :] = x[i]
-    plt.plot(y[:, 0], 'r')
-    plt.plot(y[:, 1], 'y')
-    plt.plot(y[:, 2], 'b')
-    plt.plot(y[:, 3], 'k')
-plt.title('Movement of VBP points')
-plt.show()
+#f = plt.figure(figsize=[20, 10])
+#for i in range(offset, number_of_inverters + offset):
+#    x = inverters[i][0]['controller'].VBP
+#    y = np.zeros([len(x), x[0].shape[0]])
+#    for i in range(len(x)):
+#        y[i, :] = x[i]
+#    plt.plot(y[:, 0], 'r')
+#    plt.plot(y[:, 1], 'y')
+#    plt.plot(y[:, 2], 'b')
+#    plt.plot(y[:, 3], 'k')
+#plt.title('Movement of VBP points')
+#plt.show()
+#
+#f = plt.figure(figsize=[20, 10])
+#plt.plot(nodes[2].loc['Generation'], marker='o')
+#plt.title('Generation at a chosen Node')
+#plt.show()
+#
+#if dss.RegControls.Count()>0:
+#    f = plt.figure(figsize=[20, 10])
+#    for regc in all_regulator_controls_names:
+#        plt.plot(all_regulators_data[regc]['TAP'])
+#    plt.title('Tap for all regulators ')
+#    plt.show()
+#################################################################################################################################################
+## Extract the monitor data
+#dss.Monitors.Name('tapMonitor')
+#print (dss.Solution.Number())
+#time = dss.Solution.Number() / len(dss.Monitors.dblHour()) * 60 * np.asarray(dss.Monitors.dblHour())  # Because the simulation uses step size of one minute and one hour = 60 minute
+#tap = np.asarray(dss.Monitors.Channel(1))
+#
+#plt.figure()
+#plt.plot(tap, label='Transformer Tap')
+#plt.title('Transformer Tap Position')
+#plt.xlabel('seconds')
+#plt.legend()
+#plt.show()
 
-f = plt.figure(figsize=[20, 10])
-plt.plot(nodes[2].loc['Generation'], marker='o')
-plt.title('Generation at a chosen Node')
-plt.show()
-
-if dss.RegControls.Count()>0:
-    f = plt.figure(figsize=[20, 10])
-    for regc in all_regulator_controls_names:
-        plt.plot(all_regulators_data[regc]['TAP'])
-    plt.title('Tap for all regulators ')
-    plt.show()
-################################################################################################################################################
-# Extract the monitor data
-dss.Monitors.Name('tapMonitor')
-time = dss.Solution.Number() / len(dss.Monitors.dblHour()) * 60 * np.asarray(dss.Monitors.dblHour())  # Because the simulation uses step size of one minute and one hour = 60 minute
-tap = np.asarray(dss.Monitors.Channel(1))
-
-plt.figure()
-plt.plot(time,tap, label='Transformer Tap')
-plt.title('Transformer Tap Position')
-plt.xlabel('seconds')
-plt.legend()
-plt.show()
+#with open('tap.csv', mode = 'w') as tap_file:
+#    tap_writer = csv.writer(tap_file,delimiter=',')
+#    tap_writer.writerows(list(tap))
+#tap_file.close()    
+    

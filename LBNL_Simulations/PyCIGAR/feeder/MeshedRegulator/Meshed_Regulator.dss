@@ -9,7 +9,7 @@ Clear
 Set DefaultBaseFrequency=60
 
 // Source bus
-New "Circuit.utility 01" phases=3 BasekV=12.66 pu=1 Angle=0 BaseMVA=100 MVAsc1=100 MVAsc3=100 X1=0.001 R1=0 X0=0.001 R0=0
+New "Circuit.utility 01" phases=3 BasekV=12.66 pu=1.04 Angle=0 BaseMVA=100 MVAsc1=100 MVAsc3=100 X1=0.001 R1=0 X0=0.001 R0=0
 
 // Loads and motors
 New "Load.load 05" Bus1="load 05.1.2.3.0" phases=3 Conn="wye" kV=12.66 kVA=67.11409396 Pf=0.894 VminPU=0.95 Model=1
@@ -44,7 +44,6 @@ New "Load.load_02" Bus1="load_02.1.2.3.0" phases=3 Conn="wye" kV=12.66 kVA=116.6
 New "Load.load_03" Bus1="load_03.1.2.3.0" phases=3 Conn="wye" kV=12.66 kVA=98.46827133 Pf=0.914 VminPU=0.95 Model=1
 New "Load.load_04" Bus1="load_04.1.2.3.0" phases=3 Conn="wye" kV=12.66 kVA=144.23076923 Pf=0.832 VminPU=0.95 Model=1
 New "Load.load_15" Bus1="load_15.1.2.3.0" phases=3 Conn="wye" kV=12.66 kVA=60.85192698 Pf=0.986 VminPU=0.95 Model=1
-New "Load.motor 01" Bus1="motor 01.1.2.3" phases=3 Conn="delta" kV=12.66 kVA=1460.21876799 Pf=0.9 Model=1
 
 // Linecodes
 New "Linecode.LC-custom_6e269bc7-3c8c-46a7-940b-5fe3187994ee" nphases=3 R1=0.0922 X1=0.0477 R0=0.0922 X0=0.0477 Units="kft" Normamps=150
@@ -162,7 +161,7 @@ New "Transformer.t_01" phases=3 Windings=2 XHL=5.58624195 %LoadLoss=1.36249804
 ~ wdg=2 Bus="busbar 33.1.2.3.0" kV=12.66 kVA=1000 Conn="wye" MinTap=0.9 MaxTap=1.1 NumTaps=32 Tap=1
 
 // Transformer Load Tap Change (LTC) controls
-New "RegControl.ltc-t_01" Transformer="t_01" winding=2 vreg=120 ptratio=60.91 band=3 Bus="busbar 33.1.2.3" enabled = Yes  maxtapchange = 1 debugtrace = Yes 
+New "RegControl.ltc-t_01" Transformer="t_01" winding=2 vreg=120 ptratio=60.91 band=3 Bus="busbar 33.1.2.3" enabled = Yes  maxtapchange = 16
 New "Monitor.tapMonitor" Element="Transformer.t_01" terminal=2 mode=2
 // Voltage bases
 Set VoltageBases=[12.66]
@@ -170,9 +169,9 @@ CalcVoltageBases
 
 Set mode="daily"  
 Set CaseName="33BusMeshedReg"
-Set Demand=True
-Set DIVerbose=True
-CloseDI
+//Set Demand=True
+//Set DIVerbose=True
+//CloseDI
 
 Solve
 
