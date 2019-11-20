@@ -66,7 +66,6 @@ class MultiEnv(MultiAgentEnv, Env):
             else:
                 done['__all__'] = False
             infos = {key: {} for key in states.keys()}
-            infos['old_actions'] = self.old_actions
 
             if self.sim_params['env_config']['clip_actions']:
                 rl_clipped = self.clip_actions(rl_actions)
