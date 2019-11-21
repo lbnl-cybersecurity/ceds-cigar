@@ -18,10 +18,10 @@ stream = open("../rl_config_scenarios.yaml", "r")
 sim_params = yaml.safe_load(stream)
 
 pycigar_params1 = {"exp_tag": "cooperative_multiagent_ppo",
-                  "env_name": "SingleDiscreteCoopEnv",
-                  "sim_params": sim_params,
-                  "simulator": "opendss",
-                  "tracking_ids": ['pv_8', 'pv_17', 'pv_12']}
+                   "env_name": "SingleDiscreteCoopEnv",
+                   "sim_params": sim_params,
+                   "simulator": "opendss",
+                   "tracking_ids": ['pv_8', 'pv_17', 'pv_12']}
 
 
 create_env1, env_name1 = make_create_env(params=pycigar_params1, version=0)
@@ -32,10 +32,10 @@ obs_space = test_env1.observation_space
 act_space = test_env1.action_space
 
 pycigar_params2 = {"exp_tag": "cooperative_multiagent_ppo",
-                  "env_name": "SecondStageSingleDiscreteCoopEnv",
-                  "sim_params": sim_params,
-                  "simulator": "opendss",
-                  "tracking_ids": ['pv_8', 'pv_17', 'pv_12']}
+                   "env_name": "SecondStageSingleDiscreteCoopEnv",
+                   "sim_params": sim_params,
+                   "simulator": "opendss",
+                   "tracking_ids": ['pv_8', 'pv_17', 'pv_12']}
 
 
 create_env2, env_name2 = make_create_env(params=pycigar_params2, version=0)
@@ -94,9 +94,11 @@ if __name__ == "__main__":
         "gamma": 0.5,
         'lr': 5e-05,
         'sample_batch_size': 50,
+        "vf_clip_param": 500.0,
+        'entropy_coeff_schedule': [[0, 0], [150000, 0.000000000001]],
         'model': {'conv_filters': None, 'conv_activation': 'tanh',
                   'fcnet_activation': 'tanh', 'fcnet_hiddens': [512, 256, 128, 64, 32],
-                  'free_log_std': False, 'no_final_linear': False, 'vf_share_layers': True,
+                  'free_log_std': False, 'no_final_linear': False, 'vf_share_layers': False,
                   'use_lstm': False, 'max_seq_len': 20, 'lstm_cell_size': 256,
                   'lstm_use_prev_action_reward': False, 'state_shape': None,
                   'framestack': False, 'dim': 84, 'grayscale': False,

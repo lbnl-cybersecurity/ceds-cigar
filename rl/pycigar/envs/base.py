@@ -12,30 +12,87 @@ import os
 
 class Env(gym.Env):
 
+    """Base environment for PyCIGAR, only have 1 agent.
+
+    Attributes
+    ----------
+    env_time : int
+        Environment time, it may be different from the simulation time.
+        We can run a few timesteps in the simulation to warm up, but the environment time only increase when we call
+        step.
+    k : Kernel
+        PyCIGAR kernel, abstract function calling across grid simulator APIs.
+    sim_params : dict
+        A dictionary of simulation information. for example: /examples/rl_config_scenarios.yaml
+    simulator : str
+        The name of simulator we want to use, by default it is OpenDSS.
+    state : TYPE
+        The state of environment after performing one step forward.
+    tracking_ids : list
+        A list of agent ids we want to keep track.
+    tracking_infos : dict
+        The tracking information of the agent ids.
+    """
+
     def __init__(self, sim_params, simulator='opendss', tracking_ids=None):
+        """Initialize the environment.
+
+        Parameters
+        ----------
+        sim_params : dict
+            A dictionary of simulation information. for example: /examples/rl_config_scenarios.yaml
+        simulator : str
+            The name of simulator we want to use, by default it is OpenDSS.
+        tracking_ids : list
+            A list of agent ids we want to keep track.
+        """
         self.sim_params = sim_params
         self.state = None
         self.simulator = simulator
 
+        # initialize the kernel
         self.k = Kernel(simulator=self.simulator,
                         sim_params=sim_params)
 
+        # start an instance of the simulator (ex. OpenDSS)
         kernel_api = self.k.simulation.start_simulation()
+        # pass the API to all sub-kernels
         self.k.pass_api(kernel_api)
+        # start the corresponding scenario
         self.k.scenario.start_scenario()
 
+        # when exit the environment, trigger function terminate to clear all attached processes.
         atexit.register(self.terminate)
 
-        # tracking
+        # save the tracking ids, we will keep track the history of agents who have the ids in this list.
         self.tracking_ids = tracking_ids
 
     def restart_simulation(self, sim_params, render=None):
+        """Not in use.
+        """
         pass
 
     def setup_initial_state(self):
+        """Not in use.
+        """
         pass
 
     def step(self, rl_actions):
+        """Move the environment one step forward.
+
+        Parameters
+        ----------
+        rl_actions : dict
+            A dictionary of actions of each agents controlled by RL algorithms.
+
+        Returns
+        -------
+        Tuple
+            A tuple of (obs, reward, done, infos).
+            obs: a dictionary of new observation from the environment.
+            reward: a dictionary of reward received by agents.
+            done: bool
+        """
         for _ in range(self.sim_params['env_config']["sims_per_step"]):
             self.env_time += 1
 
@@ -79,9 +136,6 @@ class Env(gym.Env):
             # tracking
             if self.tracking_ids is not None:
                 self.pycigar_tracking()
-
-            #if done and self.tracking_ids is not None:
-            #    self.plot()
 
             return next_observation, reward, done, infos
 
@@ -141,6 +195,9 @@ class Env(gym.Env):
             print(traceback.format_exc())
 
     def pycigar_tracking(self):
+        """Keep track the change on list of agent ids.
+        The tracking value is voltage, y-value, p inject and action for the whole simulation.
+        """
         if self.env_time == 0:
             self.tracking_infos = {}
             for tracking_id in self.tracking_ids:
@@ -159,6 +216,17 @@ class Env(gym.Env):
             self.tracking_infos[tracking_id]['a_val'].append(list(self.k.device.get_control_setting(tracking_id)))
 
     def plot(self, exp_tag='', env_name='', iteration=0):
+        """Plot the result of tracking ids after the simulation.
+
+        Parameters
+        ----------
+        exp_tag : str, optional
+            The experiment tag, this will be used as a folder name created under /result/.
+        env_name : str, optional
+            Name of the environment which we run the simulation.
+        iteration : int, optional
+            The number of training iteration taken place before this plot.
+        """
         num_col = len(self.tracking_infos.keys())
         f, ax = plt.subplots(4, num_col, figsize=(25, 20))
         for col in range(num_col):
