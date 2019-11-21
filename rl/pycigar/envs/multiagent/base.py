@@ -84,8 +84,6 @@ class MultiEnv(MultiAgentEnv, Env):
             else:
                 done['__all__'] = False
 
-            infos = {key: {} for key in states.keys()}
-
             # we push the old action into additional info, which will return by the env after calling step.
             if self.old_actions != {}:
                 infos = {key: {'old_action': self.old_actions[key]} for key in states.keys()}
