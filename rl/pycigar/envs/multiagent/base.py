@@ -84,11 +84,22 @@ class MultiEnv(MultiAgentEnv, Env):
             else:
                 done['__all__'] = False
 
-            # we push the old action into additional info, which will return by the env after calling step.
-            if self.old_actions != {}:
-                infos = {key: {'old_action': self.old_actions[key]} for key in states.keys()}
-            else:
-                infos = {key: {'old_action': None} for key in states.keys()}
+            # we push the old action, current action, voltage, y, p_inject, p_max into additional info, which will return by the env after calling step.
+            infos = {key: {'voltage': self.k.node.get_node_voltage(self.k.device.get_node_connected_to(key)),
+                           'y': self.k.device.get_device_y(key),
+                           'p_inject': self.k.device.get_device_p_injection(key),
+                           'p_max': self.k.device.get_solar_generation(key),
+                           } for key in states.keys()}
+
+            for key in states.keys():
+                if self.old_actions != {}:
+                    infos[key]['old_action'] = self.old_actions[key]
+                else:
+                    infos[key]['old_action'] = None
+                if rl_actions != {}:
+                    infos[key]['current_action'] = rl_actions[key]
+                else:
+                    infos[key]['current_action'] = None
 
             # clip the action into a good range or not
             if self.sim_params['env_config']['clip_actions']:

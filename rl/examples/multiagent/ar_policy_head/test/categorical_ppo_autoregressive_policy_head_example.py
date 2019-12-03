@@ -270,22 +270,22 @@ class AutoregressiveActionsModel(TFModelV2):
 
         # P(a2 | a1, obs)
         a2_context = tf.keras.layers.Concatenate(axis=1)([ctx_input, a1_input])
-        a2_hidden = tf.keras.layers.Dense(16, name="a2_hidden", activation=tf.nn.tanh, kernel_initializer=normc_initializer(1.0))(a2_context)
+        a2_hidden = tf.keras.layers.Dense(32, name="a2_hidden", activation=tf.nn.tanh, kernel_initializer=normc_initializer(1.0))(a2_context)
         a2_logits = tf.keras.layers.Dense(DISCRETIZE, name="a2_logits", activation=None, kernel_initializer=normc_initializer(0.01))(a2_hidden)
 
         # P(a3 | a1, a2, obs)
         a3_context = tf.keras.layers.Concatenate(axis=1)([ctx_input, a1_input, a2_input])
-        a3_hidden = tf.keras.layers.Dense(16, name="a3_hidden", activation=tf.nn.tanh, kernel_initializer=normc_initializer(1.0))(a3_context)
+        a3_hidden = tf.keras.layers.Dense(32, name="a3_hidden", activation=tf.nn.tanh, kernel_initializer=normc_initializer(1.0))(a3_context)
         a3_logits = tf.keras.layers.Dense(DISCRETIZE, name="a3_logits", activation=None, kernel_initializer=normc_initializer(0.01))(a3_hidden)
 
         # P(a4 | a1, a2, a3, obs)
         a4_context = tf.keras.layers.Concatenate(axis=1)([ctx_input, a1_input, a2_input, a3_input])
-        a4_hidden = tf.keras.layers.Dense(16, name="a4_hidden", activation=tf.nn.tanh, kernel_initializer=normc_initializer(1.0))(a4_context)
+        a4_hidden = tf.keras.layers.Dense(32, name="a4_hidden", activation=tf.nn.tanh, kernel_initializer=normc_initializer(1.0))(a4_context)
         a4_logits = tf.keras.layers.Dense(DISCRETIZE, name="a4_logits", activation=None, kernel_initializer=normc_initializer(0.01))(a4_hidden)
 
         # P(a5 | a1, a2, a3, a4, obs)
         a5_context = tf.keras.layers.Concatenate(axis=1)([ctx_input, a1_input, a2_input, a3_input, a4_input])
-        a5_hidden = tf.keras.layers.Dense(16, name="a5_hidden", activation=tf.nn.tanh, kernel_initializer=normc_initializer(1.0))(a5_context)
+        a5_hidden = tf.keras.layers.Dense(32, name="a5_hidden", activation=tf.nn.tanh, kernel_initializer=normc_initializer(1.0))(a5_context)
         a5_logits = tf.keras.layers.Dense(DISCRETIZE, name="a5_logits", activation=None, kernel_initializer=normc_initializer(0.01))(a5_hidden)
 
         # Base layers
@@ -341,7 +341,7 @@ class CorrelatedCategoricalActionsEnv(gym.Env):
             reward += 5
 
         done = self.t > 20
-        print("last: {}, a1: {}, a2: {}, a3: {}, a4: {}, a5: {}, reward: {}".format(self.last, a1, a2, a3, a4, a5, reward))
+        # print("last: {}, a1: {}, a2: {}, a3: {}, a4: {}, a5: {}, reward: {}".format(self.last, a1, a2, a3, a4, a5, reward))
         self.last = random.choice([0, 1])
         return self.last, reward, done, {}
 
@@ -355,10 +355,10 @@ if __name__ == "__main__":
         args.run,
         stop={"episode_reward_mean": args.stop},
         config={
-            # "eager": True,
+            "eager": True,
             "env": CorrelatedCategoricalActionsEnv,
             "gamma": 0.5,
-            "lr": 0.000001,
+            "lr": 0.0001,
             "num_gpus": 0,
             "model": {
                 "custom_model": "autoregressive_model",

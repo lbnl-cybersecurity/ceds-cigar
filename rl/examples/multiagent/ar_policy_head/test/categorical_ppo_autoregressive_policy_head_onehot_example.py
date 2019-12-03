@@ -1,19 +1,48 @@
+"""Experiment of categorical autoregressive policy head with PPO.
+We create a simple environment as following:
+    - Randomly generate state [0, 1] every timestep.
+    - Each action is in [0, 1, 2, 3, 4, 5]
+    - The action is a list of [a1, a2, a3, a4, a5].
+    - If a1 == laststate -> reward + 1
+    - If a1 < a2 < a3 < a4, we get the best reward is 10.
+
+In the policy loss, we add a categorical loss when there is a violation in action.
+a1 > a2, a2 > a3, a3 > a4, a4 > a5.
+"""
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+
+import gym
 from gym.spaces import Discrete, Tuple
+import argparse
+import random
+
+import ray
+from ray import tune
+from ray.rllib.models import ModelCatalog
 from ray.rllib.models.tf.tf_action_dist import Categorical, ActionDistribution
 from ray.rllib.models.tf.misc import normc_initializer
 from ray.rllib.models.tf.tf_modelv2 import TFModelV2
 from ray.rllib.policy.policy import TupleActions
 from ray.rllib.utils import try_import_tf
-from pycigar.envs.multiagent.wrappers import DISCRETIZE
+from ray.rllib.models.tf.tf_action_dist import TFActionDistribution
+from ray.rllib.utils.annotations import override, DeveloperAPI
+
+DISCRETIZE = 10
 
 tf = try_import_tf()
+
+parser = argparse.ArgumentParser()
+parser.add_argument("--run", type=str, default="PPO")  # try PG, PPO, IMPALA
+parser.add_argument("--stop", type=int, default=210)
 
 
 class AutoregressiveOutput(ActionDistribution):
     """Action distribution P(a1, a2, a3, a4, a5) = P(a1) * P(a2 | a1) * P(a3 | a1, a2)..."""
     @staticmethod
     def required_model_output_shape(self, model_config):
-        return 32  # controls model output feature vector size
+        return 16  # controls model output feature vector size
 
     def sample(self):
         # first, sample a1
@@ -111,7 +140,7 @@ class AutoregressiveOutput(ActionDistribution):
         mask_tensor = tf.add(zeros, tf.cast(tf.constant(list(range(DISCRETIZE))), tf.float32))
         mask_a = tf.transpose(tf.add(tf.transpose(zeros), tf.cast(a1, tf.float32)))
         mask_bool = tf.greater_equal(mask_tensor, mask_a)
-        inf = tf.add(zeros, tf.constant([-1e9]*DISCRETIZE))
+        inf = tf.add(zeros, tf.constant([-1e10]*DISCRETIZE))
         a2_logits = tf.where(mask_bool, a2_logits, inf)
         a2_dist = Categorical(a2_logits)
         return a2_dist
@@ -128,7 +157,7 @@ class AutoregressiveOutput(ActionDistribution):
         mask_tensor = tf.add(zeros, tf.cast(tf.constant(list(range(DISCRETIZE))), tf.float32))
         mask_a = tf.transpose(tf.add(tf.transpose(zeros), tf.cast(a2, tf.float32)))
         mask_bool = tf.greater_equal(mask_tensor, mask_a)
-        inf = tf.add(zeros, tf.constant([-1e9]*DISCRETIZE))
+        inf = tf.add(zeros, tf.constant([-1e10]*DISCRETIZE))
         a3_logits = tf.where(mask_bool, a3_logits, inf)
         a3_dist = Categorical(a3_logits)
         return a3_dist
@@ -146,7 +175,7 @@ class AutoregressiveOutput(ActionDistribution):
         mask_tensor = tf.add(zeros, tf.cast(tf.constant(list(range(DISCRETIZE))), tf.float32))
         mask_a = tf.transpose(tf.add(tf.transpose(zeros), tf.cast(a3, tf.float32)))
         mask_bool = tf.greater_equal(mask_tensor, mask_a)
-        inf = tf.add(zeros, tf.constant([-1e9]*DISCRETIZE))
+        inf = tf.add(zeros, tf.constant([-1e10]*DISCRETIZE))
         a4_logits = tf.where(mask_bool, a4_logits, inf)
         a4_dist = Categorical(a4_logits)
         return a4_dist
@@ -207,25 +236,25 @@ class AutoregressiveActionsModel(TFModelV2):
 
         # P(a2 | a1, obs)
         a2_context = tf.keras.layers.Concatenate(axis=1)([ctx_input, a1_input])
-        a2_hidden = tf.keras.layers.Dense(64, name="a2_hidden", activation=tf.nn.tanh, kernel_initializer=normc_initializer(1.0))(a2_context)
+        a2_hidden = tf.keras.layers.Dense(32, name="a2_hidden", activation=tf.nn.tanh, kernel_initializer=normc_initializer(1.0))(a2_context)
         #a2_hidden = tf.keras.layers.Dense(32, name="a2_hidden_2", activation=tf.nn.tanh, kernel_initializer=normc_initializer(1.0))(a2_hidden)
         a2_logits = tf.keras.layers.Dense(DISCRETIZE, name="a2_logits", activation=None, kernel_initializer=normc_initializer(0.01))(a2_hidden)
 
         # P(a3 | a1, a2, obs)
         a3_context = tf.keras.layers.Concatenate(axis=1)([ctx_input, a1_input, a2_input])
-        a3_hidden = tf.keras.layers.Dense(64, name="a3_hidden", activation=tf.nn.tanh, kernel_initializer=normc_initializer(1.0))(a3_context)
+        a3_hidden = tf.keras.layers.Dense(32, name="a3_hidden", activation=tf.nn.tanh, kernel_initializer=normc_initializer(1.0))(a3_context)
         #3_hidden = tf.keras.layers.Dense(32, name="a3_hidden_2", activation=tf.nn.tanh, kernel_initializer=normc_initializer(1.0))(a3_hidden)
         a3_logits = tf.keras.layers.Dense(DISCRETIZE, name="a3_logits", activation=None, kernel_initializer=normc_initializer(0.01))(a3_hidden)
 
         # P(a4 | a1, a2, a3, obs)
         a4_context = tf.keras.layers.Concatenate(axis=1)([ctx_input, a1_input, a2_input, a3_input])
-        a4_hidden = tf.keras.layers.Dense(64, name="a4_hidden", activation=tf.nn.tanh, kernel_initializer=normc_initializer(1.0))(a4_context)
+        a4_hidden = tf.keras.layers.Dense(32, name="a4_hidden", activation=tf.nn.tanh, kernel_initializer=normc_initializer(1.0))(a4_context)
         #a4_hidden = tf.keras.layers.Dense(32, name="a4_hidden_2", activation=tf.nn.tanh, kernel_initializer=normc_initializer(1.0))(a4_hidden)
         a4_logits = tf.keras.layers.Dense(DISCRETIZE, name="a4_logits", activation=None, kernel_initializer=normc_initializer(0.01))(a4_hidden)
 
         # P(a5 | a1, a2, a3, a4, obs)
         a5_context = tf.keras.layers.Concatenate(axis=1)([ctx_input, a1_input, a2_input, a3_input, a4_input])
-        a5_hidden = tf.keras.layers.Dense(64, name="a5_hidden", activation=tf.nn.tanh, kernel_initializer=normc_initializer(1.0))(a5_context)
+        a5_hidden = tf.keras.layers.Dense(32, name="a5_hidden", activation=tf.nn.tanh, kernel_initializer=normc_initializer(1.0))(a5_context)
         #a5_hidden = tf.keras.layers.Dense(32, name="a5_hidden_2", activation=tf.nn.tanh, kernel_initializer=normc_initializer(1.0))(a5_hidden)
         a5_logits = tf.keras.layers.Dense(DISCRETIZE, name="a5_logits", activation=None, kernel_initializer=normc_initializer(0.01))(a5_hidden)
 
@@ -246,3 +275,63 @@ class AutoregressiveActionsModel(TFModelV2):
 
     def value_function(self):
         return tf.reshape(self._value_out, [-1])
+
+
+class CorrelatedCategoricalActionsEnv(gym.Env):
+    """Simple env in which the policy has to emit a tuple of equal actions.
+    The best score would be ~210 reward."""
+
+    def __init__(self, _):
+        self.observation_space = Discrete(2)
+        self.action_space = Tuple([Discrete(DISCRETIZE), Discrete(DISCRETIZE), Discrete(DISCRETIZE), Discrete(DISCRETIZE), Discrete(DISCRETIZE)])
+
+    def reset(self):
+        self.t = 0
+        self.last = random.choice([0, 1])
+        return self.last
+
+    def step(self, action):
+        self.t += 1
+        a1, a2, a3, a4, a5 = action
+        reward = 0
+        if a1 == self.last:
+            reward += 1
+
+        # encourage correlation between a1, a2, a3, a4, a5
+        if a1 < a2:
+            reward += 1
+        if a2 < a3:
+            reward += 1
+        if a3 < a4:
+            reward += 1
+        if a4 < a5:
+            reward += 1
+
+        if a2 < a3 < a4 < a5:
+            reward += 5
+
+        done = self.t > 20
+        print("last: {}, a1: {}, a2: {}, a3: {}, a4: {}, a5: {}, reward: {}".format(self.last, a1, a2, a3, a4, a5, reward))
+        self.last = random.choice([0, 1])
+        return self.last, reward, done, {}
+
+
+if __name__ == "__main__":
+    ray.init()
+    args = parser.parse_args()
+    ModelCatalog.register_custom_model("autoregressive_model", AutoregressiveActionsModel)
+    ModelCatalog.register_custom_action_dist("autoreg_output", AutoregressiveOutput)
+    tune.run(
+        args.run,
+        stop={"episode_reward_mean": args.stop},
+        config={
+            # "eager": True,
+            "env": CorrelatedCategoricalActionsEnv,
+            "gamma": 0.5,
+            "lr": 0.00001,
+            "num_gpus": 0,
+            "model": {
+                "custom_model": "autoregressive_model",
+                "custom_action_dist": "autoreg_output",
+            },
+        })

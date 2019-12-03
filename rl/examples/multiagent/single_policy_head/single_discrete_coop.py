@@ -5,6 +5,10 @@ import argparse
 import ray
 from ray import tune
 
+"""
+Different way to call ray.run()
+"""
+
 parser = argparse.ArgumentParser()
 parser.add_argument("--run", type=str, default="PPO")  # try PG, PPO, IMPALA
 parser.add_argument("--stop", type=int, default=0)

@@ -17,6 +17,7 @@ dependencies:
         - cached_property
         - joblib==0.14.0
         - matplotlib==3.0.0
+        - tabulate
         - dill
         - lz4
         - setproctitle

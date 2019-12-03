@@ -23,7 +23,7 @@ ModelCatalog.register_custom_action_dist("autoreg_output", AutoregressiveOutput)
 stream = open("../rl_config_scenarios.yaml", "r")
 sim_params = yaml.safe_load(stream)
 
-pycigar_params = {"exp_tag": "cooperative_multiagent_ppo",
+pycigar_params = {"exp_tag": "cooperative_multiagent_ppo_ar_mask",
                   "env_name": "ARDiscreteCoopEnv",
                   "sim_params": sim_params,
                   "simulator": "opendss",
@@ -39,24 +39,23 @@ act_space = test_env.action_space
 
 
 def coop_train_fn(config, reporter):
+    agent1 = PPOTrainer(env=env_name, config=config)
     for i in range(100):
-        agent1 = PPOTrainer(env=env_name, config=config)
-        for i in range(100):
-            result = agent1.train()
-            result["phase"] = 1
-            reporter(**result)
-            phase1_time = result["timesteps_total"]
-            if i % 10 == 0:
-                done = False
-                obs = test_env.reset()
-                while not done:
-                    act = {}
-                    for k, v in obs.items():
-                        act[k] = agent1.compute_action(v, policy_id='pol')
-                    obs, _, done, _ = test_env.step(act)
-                    done = done['__all__']
-                test_env.plot()
-        agent1.stop()
+        result = agent1.train()
+        result["phase"] = 1
+        reporter(**result)
+        phase1_time = result["timesteps_total"]
+        if i % 3 == 0:
+            done = False
+            obs = test_env.reset()
+            while not done:
+                act = {}
+                for k, v in obs.items():
+                    act[k] = agent1.compute_action(v, policy_id='pol')
+                obs, _, done, _ = test_env.step(act)
+                done = done['__all__']
+            test_env.plot(pycigar_params['exp_tag'], env_name, i+1)
+    agent1.stop()
 
 
 if __name__ == "__main__":
@@ -69,10 +68,10 @@ if __name__ == "__main__":
         #Total SGD batch size across all devices for SGD
         #sgd_minibatch_size": 512,
         # "vf_clip_param": 500.0,
-        "lr": 5e-5,
-        'sample_batch_size': 50,
-        "train_batch_size": 1000,
-        "gamma": 0.5,
+        "lr": 1e-6,
+        'vf_loss_coeff': 0.5, 'entropy_coeff': 0.001,
+        'sample_batch_size': 32,
+        "gamma": 0.99,
         "num_gpus": 0,
         "model": {
             "custom_model": "autoregressive_model",

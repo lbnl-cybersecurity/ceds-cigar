@@ -1,3 +1,7 @@
+"""Custom neural network.
+The goal is to implement nn with LSTM.
+"""
+
 from ray.tune.registry import register_env
 from pycigar.utils.registry import make_create_env
 import yaml

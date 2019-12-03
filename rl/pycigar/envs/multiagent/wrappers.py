@@ -13,6 +13,30 @@ C = 1       # weight for the percentage of power injection
 D = 1       # weight for taking different action from last timestep action
 E = 5       # weight for taking different action from the initial action
 
+# params for local reward wrapper, simple reward
+M = 0  # weight for y-value in reward function
+N = 5  # weight for taking different action from the initial action
+P = 0  # weight for taking different action from last timestep action
+
+# params for local reward wrapper, complex reward
+M2 = 500  # weight for y-value in reward function
+N2 = 5  # weight for taking different action from the initial action
+P2 = 1  # weight for taking different action from last timestep action
+
+
+# single head action
+ACTION_CURVE = np.array([-0.03, 0., 0., 0.03, 0.07])
+ACTION_LOWER_BOUND = 0.8
+ACTION_UPPER_BOUND = 1.1
+
+# relative single head action
+ACTION_RANGE = 0.1
+ACTION_STEP = 0.02
+DISCRETIZE_RELATIVE = int((ACTION_RANGE/ACTION_STEP))*2 + 1
+
+# number of frames to keep
+NUM_FRAMES = 5
+
 """
 In the original multiagent environment (the detail implementation is in pycigar/envs/multiagent/base.py and pycigar/envs/base.py),
 the details for observation , action and reward are as following:
@@ -143,7 +167,7 @@ class LocalObservationV2Wrapper(ObservationWrapper):
         """
 
         # tranform back the initial action to the action form of RLlib
-        a = int((INIT_ACTION[1]-0.8)/(1.1-0.8)*DISCRETIZE)
+        a = int((INIT_ACTION[1]-ACTION_LOWER_BOUND)/(ACTION_UPPER_BOUND-ACTION_LOWER_BOUND)*DISCRETIZE)
         # creating an array of zero everywhere
         init_action = np.zeros(DISCRETIZE)
         # set value 1 at the executed action, at this step, we have the init_action_onehot.
@@ -153,15 +177,90 @@ class LocalObservationV2Wrapper(ObservationWrapper):
         for key in observation.keys():
 
             # at reset time, old_action is empty, we set the old_action to init_action.
-            try:
-                old_action = self.get_old_actions()[key]
-            except:
+            if info is None or info[key]['old_action'] is None:
                 old_action = INIT_ACTION
+            else:
+                old_action = info[key]['old_action']
 
             # tranform back the initial action to the action form of RLlib
-            a = int((old_action[1]-0.8)/(1.1-0.8)*DISCRETIZE)
+            a = int((old_action[1]-ACTION_LOWER_BOUND)/(ACTION_UPPER_BOUND-ACTION_LOWER_BOUND)*DISCRETIZE)
             # creating an array of zero everywhere
             old_action = np.zeros(DISCRETIZE)
+            # set value 1 at the executed action, at this step, we have the init_action_onehot.
+            old_action[a] = 1
+
+            # in the original observation, position 2 is the y-value. We concatenate it with init_action and old_action
+            observation[key] = np.concatenate((np.array([observation[key][2]]), init_action, old_action))
+
+        return observation
+
+
+class LocalObservationV3Wrapper(ObservationWrapper):
+
+    """ ATTENTION: this wrapper is only used with single head RELATIVE ACTION wrappers (control only 1 breakpoint).
+    Observation: a dictionary of local observation for each agent, in the form of {'id_1': obs1, 'id_2': obs2,...}.
+                 each agent observation is an array of [y-value, init_action_onehot, last_action_onehot]
+                 at current timestep.
+
+                y_value: the value measuring oscillation magnitude of the volage at the agent position.
+                init_action_onehot: the initial action under one-hot encoding form.
+                last_action_onehot: the last timestep action under one-hot encoding form.
+
+                one-hot encoding: an array of zeros everywhere and have a value of 1 at the executed position.
+                For example, we discretize the action space into DISCRETIZE=10 bins, and the action sent back from
+                RLlib is: 3. The one-hot encoding of the action is: np.array([0, 0, 0, 1, 0, 0, 0, 0, 0, 0])
+    """
+
+    @property
+    def observation_space(self):
+        """Define the observation space.
+        This is required to have an valid openAI gym environment.
+
+        Returns
+        -------
+        Box
+            A valid observation is an array have range from -inf to inf. y-value is scalar, init_action_onehot
+            and last_action_onehot have a size of DISCRETIZE_RELATIVE, therefore the shape is (1+2*DISCRETIZE_RELATIVE, ).
+        """
+        return Box(low=-float('inf'), high=float('inf'), shape=(1 + 2*DISCRETIZE_RELATIVE, ), dtype=np.float32)
+
+    def observation(self, observation, info):
+        """Modifying the original observation into the observation that we want.
+
+        Parameters
+        ----------
+        observation : dict
+            The observation from the lastest wrapper.
+        info : dict
+            Additional information returned by the environment after one environment step.
+
+        Returns
+        -------
+        dict
+            new observation we want to feed into the RLlib.
+        """
+
+        # tranform back the initial action to the action form of RLlib
+        a = int(ACTION_RANGE/ACTION_STEP)
+        # creating an array of zero everywhere
+        init_action = np.zeros(DISCRETIZE_RELATIVE)
+        # set value 1 at the executed action, at this step, we have the init_action_onehot.
+        init_action[a] = 1
+
+        # get the old action of last timestep of the agents.
+        for key in observation.keys():
+
+            # at reset time, old_action is empty, we set the old_action to init_action.
+            if info is None or info[key]['old_action'] is None:
+                old_action = INIT_ACTION
+            else:
+                old_action = info[key]['old_action']
+
+            # tranform back the initial action to the action form of RLlib
+            a = int((old_action[1]-INIT_ACTION[1]+ACTION_RANGE)/ACTION_STEP)
+            # act = INIT_ACTION - ACTION_RANGE + ACTION_STEP*act
+            # creating an array of zero everywhere
+            old_action = np.zeros(DISCRETIZE_RELATIVE)
             # set value 1 at the executed action, at this step, we have the init_action_onehot.
             old_action[a] = 1
 
@@ -231,7 +330,7 @@ class FramestackObservationWrapper(ObservationWrapper):
 
         if type(obss) is Box:
             # we declare the number of frames, so we always keeps num_frames lastest observation form environment.
-            self.num_frames = 4
+            self.num_frames = NUM_FRAMES
             # frames is a deque has length num_frames, the latest observation will be at position num_frames-1.
             # deque will automatically pop out the first element (oldest observation)
             # when it is full and we append another element.
@@ -309,7 +408,7 @@ class FramestackObservationWrapper(ObservationWrapper):
 
 class FramestackObservationV2Wrapper(ObservationWrapper):
 
-    """ATTENTION: this wrapper is only used after the LocalObservationV2Wrapper.
+    """ATTENTION: this wrapper is only used after the LocalObservationV2Wrapper/LocalObservationV3Wrapper.
     The return value of this wrapper is:
         [y_value, init_action_onehot, last_action_onehot, y_value - y_value_(t-5)]
 
@@ -333,7 +432,7 @@ class FramestackObservationV2Wrapper(ObservationWrapper):
         """
         obss = self.env.observation_space
         if type(obss) is Box:
-            self.num_frames = 5
+            self.num_frames = NUM_FRAMES
             self.frames = deque([], maxlen=self.num_frames)
             shp = obss.shape
             obss = Box(
@@ -436,25 +535,21 @@ class LocalRewardWrapper(RewardWrapper):
             A dictionary of new rewards.
         """
 
-        # get the new action of each agents.
-        new_actions = {}
-        for rl_id in self.env.k.device.get_rl_device_ids():
-            new_actions[rl_id] = self.env.k.device.get_control_setting(rl_id)
-        if new_actions == {}:
-            return {}
-
         rewards = {}
         # for each agent, we set the reward as under, note that agent reward is only a function of local information.
-        for rl_id in self.env.k.device.get_rl_device_ids():
-            action = new_actions[rl_id]
-            old_action = self.get_old_actions()[rl_id]
-            connected_node = self.env.k.device.get_node_connected_to(rl_id)
-            voltage = self.env.k.node.get_node_voltage(connected_node)
-            y = self.env.k.device.get_device_y(rl_id)
-            p_inject = self.env.k.device.get_device_p_injection(rl_id)
-            p_max = self.env.k.device.get_solar_generation(rl_id)
+        for key in info.keys():
+            action = info[key]['current_action']
+            if action is None:
+                action = INIT_ACTION
+            old_action = info[key]['old_action']
+            if old_action is None:
+                old_action = INIT_ACTION
+            voltage = info[key]['voltage']
+            y = info[key]['y']
+            p_inject = info[key]['p_inject']
+            p_max = info[key]['p_max']
             r = -(np.sqrt(A*(1-voltage)**2 + B*y**2 + C*(1+p_inject/p_max)**2) + D*np.sum((action-old_action)**2))
-            rewards.update({rl_id: r})
+            rewards.update({key: r})
 
         return rewards
 
@@ -480,40 +575,24 @@ class GlobalRewardWrapper(RewardWrapper):
 
     def reward(self, reward, info):
 
-        # get the new action of the agent.
-        new_actions = {}
-        for rl_id in self.env.k.device.get_rl_device_ids():
-            new_actions[rl_id] = self.env.k.device.get_control_setting(rl_id)
-        if new_actions == {}:
-            return {}
-
         rewards = {}
 
         global_reward = 0
 
         # we accumulate agents reward into global_reward and devide it with the number of agents.
-        for rl_id in self.env.k.device.get_rl_device_ids():
-            action = np.array(new_actions[rl_id])
-            # set the old action as initial action if the old action is not available.
-            try:
-                old_action = np.array(self.env.old_actions[rl_id])
-            except:
+        for key in info.keys():
+            action = info[key]['current_action']
+            if action is None:
+                action = INIT_ACTION
+            old_action = info[key]['old_action']
+            if old_action is None:
                 old_action = INIT_ACTION
-
-            init_action = INIT_ACTION
-            connected_node = self.env.k.device.get_node_connected_to(rl_id)
-            voltage = self.env.k.node.get_node_voltage(connected_node)
-            y = self.env.k.device.get_device_y(rl_id)
-            p_inject = self.env.k.device.get_device_p_injection(rl_id)
-            p_max = self.env.k.device.get_solar_generation(rl_id)
-            M = 0
-            N = 5
-            P = 0
-            r = -((M*y**2 + P*np.sum((action-old_action)**2) + N*np.sum((action-init_action)**2)))/100
+            y = info[key]['y']
+            r = -((M*y**2 + P*np.sum((action-old_action)**2) + N*np.sum((action-INIT_ACTION)**2)))/100
             global_reward += r
-        global_reward = global_reward / len(self.env.k.device.get_rl_device_ids())
-        for rl_id in self.env.k.device.get_rl_device_ids():
-            rewards.update({rl_id: global_reward})
+        global_reward = global_reward / len(list(info.keys()))
+        for key in info.keys():
+            rewards.update({key: global_reward})
 
         return rewards
 
@@ -538,36 +617,22 @@ class SecondStageGlobalRewardWrapper(RewardWrapper):
     """
 
     def reward(self, reward, info):
-        new_actions = {}
-        for rl_id in self.env.k.device.get_rl_device_ids():
-            new_actions[rl_id] = self.env.k.device.get_control_setting(rl_id)
-        if new_actions == {}:
-            return {}
-
         rewards = {}
-
         global_reward = 0
-        for rl_id in self.env.k.device.get_rl_device_ids():
-            action = np.array(new_actions[rl_id])
-            try:
-                old_action = np.array(self.env.old_actions[rl_id])
-            except:
+        # we accumulate agents reward into global_reward and devide it with the number of agents.
+        for key in info.keys():
+            action = info[key]['current_action']
+            if action is None:
+                action = INIT_ACTION
+            old_action = info[key]['old_action']
+            if old_action is None:
                 old_action = INIT_ACTION
-
-            init_action = INIT_ACTION
-            connected_node = self.env.k.device.get_node_connected_to(rl_id)
-            voltage = self.env.k.node.get_node_voltage(connected_node)
-            y = self.env.k.device.get_device_y(rl_id)
-            p_inject = self.env.k.device.get_device_p_injection(rl_id)
-            p_max = self.env.k.device.get_solar_generation(rl_id)
-            M = 500
-            N = 5
-            P = 1
-            r = -((M*y**2 + P*np.sum((action-old_action)**2) + N*np.sum((action-init_action)**2)))/100
+            y = info[key]['y']
+            r = -((M2*y**2 + P2*np.sum((action-old_action)**2) + N2*np.sum((action-INIT_ACTION)**2)))/100
             global_reward += r
-        global_reward = global_reward / len(self.env.k.device.get_rl_device_ids())
-        for rl_id in self.env.k.device.get_rl_device_ids():
-            rewards.update({rl_id: global_reward})
+        global_reward = global_reward / len(list(info.keys()))
+        for key in info.keys():
+            rewards.update({key: global_reward})
 
         return rewards
 
@@ -587,7 +652,7 @@ class SingleDiscreteActionWrapper(ActionWrapper):
     Action head is only 1 value.
     The action head is 1 action discretized into DISCRETIZE number of bins.
     We control 5 VBPs by translate the VBPs.
-    The action we feed into the environment is ranging from 0.8->1.1.
+    The action we feed into the environment is ranging from ACTION_LOWER_BOUND->ACTION_UPPER_BOUND.
 
     """
 
@@ -610,8 +675,8 @@ class SingleDiscreteActionWrapper(ActionWrapper):
         """
         new_action = {}
         for rl_id, act in action.items():
-            act = 0.8 + (1.1-0.8)/DISCRETIZE*act
-            act = np.array([act-0.03, act, act, act+0.03, act+0.07])
+            act = ACTION_LOWER_BOUND + (ACTION_UPPER_BOUND-ACTION_LOWER_BOUND)/DISCRETIZE*act
+            act = ACTION_CURVE + act
             new_action[rl_id] = act
         return new_action
 
@@ -620,13 +685,13 @@ class SingleRelativeInitDiscreteActionWrapper(ActionWrapper):
 
     """
     Action head is only 1 value.
-    The action head is 1 action discretized into DISCRETIZE number of bins.
+    The action head is 1 action discretized into DISCRETIZE_RELATIVE number of bins.
     We control 5 VBPs by translate the VBPs.
-    Each bin is a step of 0.02 deviated from the initial action.
+    Each bin is a step of ACTION_STEP deviated from the initial action.
     """
     @property
     def action_space(self):
-        return Discrete(DISCRETIZE)
+        return Discrete(DISCRETIZE_RELATIVE)
 
     def action(self, action):
         """Modify action before feed into the simulation.
@@ -642,11 +707,11 @@ class SingleRelativeInitDiscreteActionWrapper(ActionWrapper):
             Action value for each agent with a valid form to feed into the environment.
         """
         new_action = {}
-        init_action = INIT_ACTION
         for rl_id, act in action.items():
-            act = init_action - 0.1 + 0.2/DISCRETIZE*act
+            act = INIT_ACTION - ACTION_RANGE + ACTION_STEP*act
             new_action[rl_id] = act
         return new_action
+
 
 # AR: AutoRegressive
 class ARDiscreteActionWrapper(ActionWrapper):
@@ -678,7 +743,7 @@ class ARDiscreteActionWrapper(ActionWrapper):
         new_action = {}
         for rl_id, act in action.items():
             # This is used to form the discretized value into the valid action before feed into the environment.
-            act = 0.8 + (1.1-0.8)/DISCRETIZE*np.array(act, np.float32)
+            act = ACTION_LOWER_BOUND + (ACTION_UPPER_BOUND-ACTION_LOWER_BOUND)/DISCRETIZE*np.array(act, np.float32)
             # if the action returned by the agent violate the constraint (the next point is >= the current point),
             # then we apply a hard threshold on the next point.
             if act[1] < act[0]:
