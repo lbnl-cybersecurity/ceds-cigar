@@ -5,6 +5,9 @@
 
 #time_step_of_hack = 200
 
+M2: 50  # weight for y-value in reward function
+N2: 10  # weight for taking different action from the initial action
+P2: 10  # weight for taking different action from last timestep action
 
 tune_search: False
 hack_setting: {default_control_setting: [1.039, 1.04, 1.04, 1.041, 1.042]}

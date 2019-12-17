@@ -89,6 +89,7 @@ class MultiEnv(MultiAgentEnv, Env):
                            'y': self.k.device.get_device_y(key),
                            'p_inject': self.k.device.get_device_p_injection(key),
                            'p_max': self.k.device.get_solar_generation(key),
+                           'env_time': self.env_time,
                            } for key in states.keys()}
 
             for key in states.keys():

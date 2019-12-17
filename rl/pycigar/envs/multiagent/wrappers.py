@@ -7,6 +7,7 @@ from collections import deque
 DISCRETIZE = 30
 # the initial action for inverter
 INIT_ACTION = np.array([0.98, 1.01, 1.01, 1.04, 1.08])
+
 A = 0       # weight for voltage in reward function
 B = 100     # weight for y-value in reward function
 C = 1       # weight for the percentage of power injection
@@ -15,13 +16,13 @@ E = 5       # weight for taking different action from the initial action
 
 # params for local reward wrapper, simple reward
 M = 0  # weight for y-value in reward function
-N = 5  # weight for taking different action from the initial action
+N = 10  # weight for taking different action from the initial action
 P = 0  # weight for taking different action from last timestep action
 
 # params for local reward wrapper, complex reward
-M2 = 500  # weight for y-value in reward function
-N2 = 5  # weight for taking different action from the initial action
-P2 = 1  # weight for taking different action from last timestep action
+M2 = 30  # weight for y-value in reward function
+N2 = 10  # weight for taking different action from the initial action
+P2 = 2  # weight for taking different action from last timestep action
 
 
 # single head action
@@ -167,6 +168,7 @@ class LocalObservationV2Wrapper(ObservationWrapper):
         """
 
         # tranform back the initial action to the action form of RLlib
+
         a = int((INIT_ACTION[1]-ACTION_LOWER_BOUND)/(ACTION_UPPER_BOUND-ACTION_LOWER_BOUND)*DISCRETIZE)
         # creating an array of zero everywhere
         init_action = np.zeros(DISCRETIZE)
@@ -239,7 +241,6 @@ class LocalObservationV3Wrapper(ObservationWrapper):
         dict
             new observation we want to feed into the RLlib.
         """
-
         # tranform back the initial action to the action form of RLlib
         a = int(ACTION_RANGE/ACTION_STEP)
         # creating an array of zero everywhere
@@ -258,6 +259,7 @@ class LocalObservationV3Wrapper(ObservationWrapper):
 
             # tranform back the initial action to the action form of RLlib
             a = int((old_action[1]-INIT_ACTION[1]+ACTION_RANGE)/ACTION_STEP)
+
             # act = INIT_ACTION - ACTION_RANGE + ACTION_STEP*act
             # creating an array of zero everywhere
             old_action = np.zeros(DISCRETIZE_RELATIVE)
@@ -453,6 +455,8 @@ class FramestackObservationV2Wrapper(ObservationWrapper):
         """
 
         # get the observation from environment as usual
+        self.num_frames = NUM_FRAMES
+        self.frames = deque([], maxlen=self.num_frames)
         observation = self.env.reset()
         # add the observation into frames
         self.frames.append(observation)
@@ -588,6 +592,7 @@ class GlobalRewardWrapper(RewardWrapper):
             if old_action is None:
                 old_action = INIT_ACTION
             y = info[key]['y']
+            r = 0
             r = -((M*y**2 + P*np.sum((action-old_action)**2) + N*np.sum((action-INIT_ACTION)**2)))/100
             global_reward += r
         global_reward = global_reward / len(list(info.keys()))
@@ -628,7 +633,11 @@ class SecondStageGlobalRewardWrapper(RewardWrapper):
             if old_action is None:
                 old_action = INIT_ACTION
             y = info[key]['y']
-            r = -((M2*y**2 + P2*np.sum((action-old_action)**2) + N2*np.sum((action-INIT_ACTION)**2)))/100
+
+            r = 0
+            #if y > 0.025:
+            #    r = -500
+            r += -((M2*y**2 + P2*np.sum((action-old_action)**2) + N2*np.sum((action-INIT_ACTION)**2)))/100
             global_reward += r
         global_reward = global_reward / len(list(info.keys()))
         for key in info.keys():
@@ -636,6 +645,48 @@ class SecondStageGlobalRewardWrapper(RewardWrapper):
 
         return rewards
 
+class SearchGlobalRewardWrapper(RewardWrapper):
+
+    """Redefine the reward of the last wrapper.
+    Global reward: reward of each agent is the average of reward from all agents.
+
+    For instance, reward is to encourage the agent not to take action when unnecessary and damping the oscillation.
+    Parameters
+    ----------
+    reward : dict
+        Dictionary of reward from the last wrapper.
+    info : dict
+        additional information returned by environment.
+
+    Returns
+    -------
+    dict
+        A dictionary of new rewards.
+    """
+
+    def reward(self, reward, info):
+        rewards = {}
+        global_reward = 0
+        # we accumulate agents reward into global_reward and devide it with the number of agents.
+        for key in info.keys():
+            action = info[key]['current_action']
+            if action is None:
+                action = INIT_ACTION
+            old_action = info[key]['old_action']
+            if old_action is None:
+                old_action = INIT_ACTION
+            y = info[key]['y']
+
+            r = 0
+            #if y > 0.025:
+            #    r = -500
+            r += -((self.env.sim_params['M2']*y**2 + self.env.sim_params['P2']*np.sum((action-old_action)**2) + self.env.sim_params['N2']*np.sum((action-INIT_ACTION)**2)))/100
+            global_reward += r
+        global_reward = global_reward / len(list(info.keys()))
+        for key in info.keys():
+            rewards.update({key: global_reward})
+
+        return rewards
 
 ###########################################################################
 #                            ACTION WRAPPER                               #
