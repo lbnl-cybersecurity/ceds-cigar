@@ -76,7 +76,7 @@ def coop_train_fn(config, reporter):
 
         # for every SAVE_RATE training iterations, we test the agent on the test environment to see how it performs.
         if i != 0 and (i+1) % SAVE_RATE == 0:
-            state = agent1.save('/home/toanngo/ray_results/checkpoint')
+            state = agent1.save('/home/sytoan/ray_results/checkpoint')
             done = False
             # reset the test environment
             obs = test_env.reset()
