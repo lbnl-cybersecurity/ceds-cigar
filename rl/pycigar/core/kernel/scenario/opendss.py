@@ -98,6 +98,19 @@ class OpenDSSScenario(KernelScenario):
                     else:
                         self.hack_time[device['hack'][0]] = [adversary_id]
 
+        # for reg in sim_params['scenario_config']['regulators']:
+        #     if 'devices' in reg:
+        #         for device in reg['devices']:
+        #             if device['type'] == 'regulator_device':
+        #                 device_type = RegDevice
+        #             if 'adversary_controller' in device:
+        #                 adversary_device_controller = FixedController
+        #             adversary_id = self.master_kernel.device.add(name=device['name'],
+        #                                                                      connect_to=reg['name'],
+        #                                                                      device=(device_type, dict()),
+        #                                                                      controller=(None, {}),
+        #                                                                      adversary_controller=(adversary_device_controller,
+        #                                                                                            adversary_device_configs),
         self.change_load_profile(start_time, end_time)
 
     def update(self, reset):

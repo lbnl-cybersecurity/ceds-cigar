@@ -7,7 +7,7 @@ from pycigar.utils.registry import make_create_env
 import yaml
 
 
-SAVE_RATE = 10
+SAVE_RATE = 5
 
 """
 Parser to pass argument from terminal command
@@ -74,6 +74,7 @@ def coop_train_fn(config, reporter):
 
         # for every SAVE_RATE training iterations, we test the agent on the test environment to see how it performs.
         if i != 0 and (i+1) % SAVE_RATE == 0:
+            state = agent1.save('/home/sytoan/ray_results/checkpoint')
             done = False
             # reset the test environment
             obs = test_env.reset()
@@ -86,10 +87,10 @@ def coop_train_fn(config, reporter):
                 obs, _, done, _ = test_env.step(act)
                 done = done['__all__']
             # plot the result. This will be saved in ./results
-            test_env.plot(pycigar_params['exp_tag'], env_name, i)
+            test_env.plot(pycigar_params['exp_tag'], env_name, i+1)
 
     # save the params of agent
-    state = agent1.save()
+    # state = agent1.save()
     # stop the agent
     agent1.stop()
 
@@ -99,8 +100,33 @@ if __name__ == "__main__":
     #config for RLlib - PPO agent
     config = {
         "gamma": 0.5,
-        'lr': 5e-05,
+        'lr': 5e-04,
         'sample_batch_size': 50,
+        'lr_schedule': [[0, 5e-04], [50000, 5e-05]],
+        #worker
+        'num_workers': 2,
+        'num_gpus': 0,
+        'num_cpus_per_worker': 1,
+        'num_gpus_per_worker': 0,
+        'custom_resources_per_worker': {},
+        'num_cpus_for_driver': 1,
+        'memory': 0,
+        'object_store_memory': 0,
+        'memory_per_worker': 0,
+        'object_store_memory_per_worker': 0,
+        'num_envs_per_worker': 1,
+        # tf args
+        'tf_session_args': {'intra_op_parallelism_threads': 2,
+                            'inter_op_parallelism_threads': 2,
+                            'gpu_options': {'allow_growth': True},
+                            'log_device_placement': False,
+                            'device_count': {'CPU': 1},
+                            'allow_soft_placement': True},
+        'local_tf_session_args': {'intra_op_parallelism_threads': 8,
+                                  'inter_op_parallelism_threads': 8},
+
+        'evaluation_num_episodes': 1,
+        #model
         'model': {'conv_filters': None, 'conv_activation': 'tanh',
                   'fcnet_activation': 'tanh', 'fcnet_hiddens': [256, 128, 64, 32],
                   'free_log_std': False, 'no_final_linear': False, 'vf_share_layers': True,

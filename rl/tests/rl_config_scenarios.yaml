@@ -5,7 +5,29 @@
 
 #time_step_of_hack = 200
 
+# For the Boolean variables you can write 0/ False/ No or 1/True/Yes
+# SIMULATE_INVERTER_HACK = 1
+# SIMULATE_REGULATOR_HACK = 0
+# SIMULATE_PROTECTION_DEVICE_HACK = 0
 
+#[REGULATOR]
+#    [[EVENT_1]]
+#    NAME = ltc-t_01
+#    TIME_STEP_OF_HACK = 450
+#    TAP_DELAY = 20
+#    FORWARD_BAND = 3
+
+#[PROTECTION_DEVICE]
+    # Make sure the line is actually present in the model, if not the simulation model will ignore the entry
+#    [[EVENT_1]]
+#    NAME = line_15
+#    TIME_STEP_OF_HACK = 520
+#    ACTION = 0
+
+    #[[EVENT_2]]
+    #NAME = line_29
+    #TIME_STEP_OF_HACK = 530
+    #ACTION = 1
 
 env_config:
   'clip_actions': True
@@ -288,3 +310,45 @@ scenario_config:
       - name: sload_890
         load_profile: node_31_pv_10_minute
 
+  lines:
+    - name: line_29
+      devices:
+          - name: line_29
+            type: protection_device
+            # controller: adaptive_inverter_controller
+            custom_configs: {}
+            adversary_controller: rl_controller
+            # adversary_custom_configs: {default_control_setting: [1.014, 1.015, 1.015, 1.016, 1.017]}
+            hack: [[500, 'open'],[700, 'close']]
+
+  regulators:
+    - name: ltc-t_01
+      devices:
+          - name: ltc-t_01
+            type: regulator_device
+            controller: default_reg_controller
+            custom_configs: {}
+            adversary_controller: fixed_reg_controller
+            # adversary_custom_configs: {default_control_setting: [1.014, 1.015, 1.015, 1.016, 1.017]}
+            hack: [400,{'tap_delay' : 20, 'forward_band' : 3}]
+
+    - name: ltc-t_012
+      devices:
+          - name: ltc-t_02
+            type: regulator_device
+            controller: rl_controller
+            custom_configs: {}
+            # adversary_controller: fixed_controller
+            # adversary_custom_configs: {default_control_setting: [1.014, 1.015, 1.015, 1.016, 1.017]}
+            # hack: [400,{'tap_delay' : 20, 'forward_band' : 3}]
+
+
+    # - name: line_15
+    #   devices:
+    #       - name: line_15
+    #         type: protection_device
+    #         # controller: adaptive_inverter_controller
+    #         custom_configs: {}
+    #         adversary_controller: rl_controller
+    #         # adversary_custom_configs: {default_control_setting: [1.014, 1.015, 1.015, 1.016, 1.017]}
+    #         hack: [700, 'close']

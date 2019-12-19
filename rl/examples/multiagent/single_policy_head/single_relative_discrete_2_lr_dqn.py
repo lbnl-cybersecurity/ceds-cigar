@@ -184,7 +184,7 @@ if __name__ == "__main__":
         "learning_starts": 1000,
         # Update the replay buffer with this many samples at once. Note that
         # this setting applies per-worker if num_workers > 1.
-        "sample_batch_size": 4,
+        "sample_batch_size": 32,
         # Size of a batched sampled from replay buffer for training. Note that
         # if async_updates is set, then each worker returns gradients for a
         # batch of this size.

@@ -20,7 +20,7 @@ N = 10  # weight for taking different action from the initial action
 P = 0  # weight for taking different action from last timestep action
 
 # params for local reward wrapper, complex reward
-M2 = 30  # weight for y-value in reward function
+M2 = 10  # weight for y-value in reward function
 N2 = 10  # weight for taking different action from the initial action
 P2 = 2  # weight for taking different action from last timestep action
 
@@ -224,7 +224,7 @@ class LocalObservationV3Wrapper(ObservationWrapper):
             A valid observation is an array have range from -inf to inf. y-value is scalar, init_action_onehot
             and last_action_onehot have a size of DISCRETIZE_RELATIVE, therefore the shape is (1+2*DISCRETIZE_RELATIVE, ).
         """
-        return Box(low=-float('inf'), high=float('inf'), shape=(1 + 2*DISCRETIZE_RELATIVE, ), dtype=np.float32)
+        return Box(low=-float('inf'), high=float('inf'), shape=(2 + 2*DISCRETIZE_RELATIVE, ), dtype=np.float32)
 
     def observation(self, observation, info):
         """Modifying the original observation into the observation that we want.
@@ -267,7 +267,12 @@ class LocalObservationV3Wrapper(ObservationWrapper):
             old_action[a] = 1
 
             # in the original observation, position 2 is the y-value. We concatenate it with init_action and old_action
-            observation[key] = np.concatenate((np.array([observation[key][2]]), init_action, old_action))
+            if info is None or info[list(info.keys())[0]]['env_time'] < 940:
+                hack = np.array([0])
+            else:
+                hack = np.array([1])
+
+            observation[key] = np.concatenate((np.array([observation[key][2]]), hack, init_action, old_action))
 
         return observation
 
@@ -633,11 +638,8 @@ class SecondStageGlobalRewardWrapper(RewardWrapper):
             if old_action is None:
                 old_action = INIT_ACTION
             y = info[key]['y']
-
             r = 0
-            #if y > 0.025:
-            #    r = -500
-            r += -((M2*y**2 + P2*np.sum((action-old_action)**2) + N2*np.sum((action-INIT_ACTION)**2)))/100
+            r += -((M2*y**2 + P2*np.sum(np.abs(action-old_action)) + N2*np.sum(np.abs(action-INIT_ACTION))))/100
             global_reward += r
         global_reward = global_reward / len(list(info.keys()))
         for key in info.keys():

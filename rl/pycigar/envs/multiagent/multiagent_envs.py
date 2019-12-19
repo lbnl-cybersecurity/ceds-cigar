@@ -191,7 +191,7 @@ class SingleRelativeDiscreteCoopEnv(Wrapper):
         The environment object.
     """
     def __init__(self, **kwargs):
-        self.env = FramestackObservationV2Wrapper(LocalObservationV3Wrapper(SingleRelativeInitDiscreteActionWrapper(SecondStageGlobalRewardWrapper(MultiEnv(**kwargs)))))
+        self.env = FramestackObservationWrapper(LocalObservationV3Wrapper(SingleRelativeInitDiscreteActionWrapper(SecondStageGlobalRewardWrapper(MultiEnv(**kwargs)))))
 
 
 # Coma environment

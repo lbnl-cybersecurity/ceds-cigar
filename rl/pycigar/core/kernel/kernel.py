@@ -93,7 +93,6 @@ class Kernel(object):
             self.node.update(reset)
             self.simulation.update(reset)
             self.scenario.update(reset)
-
             self.warm_up()
 
         else:
