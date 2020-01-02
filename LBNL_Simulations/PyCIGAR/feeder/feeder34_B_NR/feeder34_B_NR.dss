@@ -198,10 +198,11 @@ New "Transformer.tr_832_888" phases=3 Windings=2 XHL=4.07923065 %LoadLoss=1.8999
 ~ wdg=2 Bus="bus_888.1.2.3.0" kV=4.16 kVA=500 Conn="wye" MinTap=0.9 MaxTap=1.1 NumTaps=32 Tap=1
 
 // Transformer Load Tap Change (LTC) controls
-New "RegControl.LTC-t 01" Transformer="t 01" winding=2 vreg=120 ptratio=119.8 band=3 Bus="bus_832.1.2.3" enabled = No
-New "RegControl.LTC-t 02" Transformer="t 02" winding=2 vreg=122 ptratio=117.84 band=3 Bus="bus_850.1.2.3" enabled = No
+New "RegControl.LTC-t 01" Transformer="t 01" winding=2 vreg=120 ptratio=119.8 band=3 Bus="bus_832.1.2.3" Delay=30 enabled = Yes
+New "RegControl.LTC-t 02" Transformer="t 02" winding=2 vreg=122 ptratio=117.84 band=3 Bus="bus_850.1.2.3" Delay=30 enabled = Yes
 
 New "Monitor.utility" Element="Line.L_800_802" Terminal=1 mode=1 PPolar=False baseFreq=60
+New "Monitor.SubPower" Element="Transformer.Subt_01" Terminal=1 mode=1 ppolar=no
 
 // Voltage bases
 Set VoltageBases=[69 4.16 24.9]
