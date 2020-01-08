@@ -20,7 +20,7 @@ N = 10  # weight for taking different action from the initial action
 P = 0  # weight for taking different action from last timestep action
 
 # params for local reward wrapper, complex reward
-M2 = 10  # weight for y-value in reward function
+M2 = 30  # weight for y-value in reward function
 N2 = 10  # weight for taking different action from the initial action
 P2 = 2  # weight for taking different action from last timestep action
 
@@ -277,6 +277,80 @@ class LocalObservationV3Wrapper(ObservationWrapper):
         return observation
 
 
+class LocalObservationV4Wrapper(ObservationWrapper):
+
+    """ ATTENTION: this wrapper is only used with single head RELATIVE ACTION wrappers (control only 1 breakpoint).
+    Observation: a dictionary of local observation for each agent, in the form of {'id_1': obs1, 'id_2': obs2,...}.
+                 each agent observation is an array of [y-value, init_action_onehot, last_action_onehot]
+                 at current timestep.
+
+                y_value: the value measuring oscillation magnitude of the volage at the agent position.
+                last_action_onehot: the last timestep action under one-hot encoding form.
+
+                one-hot encoding: an array of zeros everywhere and have a value of 1 at the executed position.
+                For example, we discretize the action space into DISCRETIZE=10 bins, and the action sent back from
+                RLlib is: 3. The one-hot encoding of the action is: np.array([0, 0, 0, 1, 0, 0, 0, 0, 0, 0])
+    """
+
+    @property
+    def observation_space(self):
+        """Define the observation space.
+        This is required to have an valid openAI gym environment.
+
+        Returns
+        -------
+        Box
+            A valid observation is an array have range from -inf to inf. y-value is scalar, init_action_onehot
+            and last_action_onehot have a size of DISCRETIZE_RELATIVE, therefore the shape is (1+2*DISCRETIZE_RELATIVE, ).
+        """
+        return Box(low=-float('inf'), high=float('inf'), shape=(1 + DISCRETIZE_RELATIVE, ), dtype=np.float32)
+
+    def observation(self, observation, info):
+        """Modifying the original observation into the observation that we want.
+
+        Parameters
+        ----------
+        observation : dict
+            The observation from the lastest wrapper.
+        info : dict
+            Additional information returned by the environment after one environment step.
+
+        Returns
+        -------
+        dict
+            new observation we want to feed into the RLlib.
+        """
+
+        # tranform back the initial action to the action form of RLlib
+        a = int(ACTION_RANGE/ACTION_STEP)
+        # creating an array of zero everywhere
+        init_action = np.zeros(DISCRETIZE_RELATIVE)
+        # set value 1 at the executed action, at this step, we have the init_action_onehot.
+        init_action[a] = 1
+
+        # get the old action of last timestep of the agents.
+        for key in observation.keys():
+
+            # at reset time, old_action is empty, we set the old_action to init_action.
+            if info is None or info[key]['old_action'] is None:
+                old_action = INIT_ACTION
+            else:
+                old_action = info[key]['old_action']
+
+            # tranform back the initial action to the action form of RLlib
+            a = int((old_action[1]-INIT_ACTION[1]+ACTION_RANGE)/ACTION_STEP)
+            # act = INIT_ACTION - ACTION_RANGE + ACTION_STEP*act
+            # creating an array of zero everywhere
+            old_action = np.zeros(DISCRETIZE_RELATIVE)
+            # set value 1 at the executed action, at this step, we have the init_action_onehot.
+            old_action[a] = 1
+
+            # in the original observation, position 2 is the y-value. We concatenate it with init_action and old_action
+            observation[key] = np.concatenate((np.array([observation[key][2]]), old_action))
+
+        return observation
+
+        
 class GlobalObservationWrapper(ObservationWrapper):
 
     @property
@@ -513,6 +587,114 @@ class FramestackObservationV2Wrapper(ObservationWrapper):
 
         return obs
 
+
+class FramestackObservationV3Wrapper(ObservationWrapper):
+
+    """ATTENTION: this wrapper is only used after the LocalObservationV2Wrapper/LocalObservationV3Wrapper.
+    The return value of this wrapper is:
+        [y_value_max, y_value, last_action_onehot, y_value - y_value_(t-5)]
+
+    Attributes
+    ----------
+    frames : deque
+        A deque to keep the lastest 5 observations.
+    num_frames : int
+        Number of frame we need to keep to have y_value - y_value_(t-5).
+
+    """
+
+    @property
+    def observation_space(self):
+        """Observation space definition for this wrapper.
+
+        Returns
+        -------
+        Box
+            Observation space for this wrapper.
+        """
+        obss = self.env.observation_space
+        if type(obss) is Box:
+            self.num_frames = NUM_FRAMES
+            self.frames = deque([], maxlen=self.num_frames)
+            self.y_value_max = {}
+            shp = obss.shape
+            obss = Box(
+                low=-float('inf'),
+                high=float('inf'),
+                shape=(shp[0]+2, ),
+                dtype=np.float32)
+        return obss
+
+    def reset(self):
+        """Redefine reset of the environment.
+        This is a must since we need to warm up the deque frames, it needs to have enough num_frames value.
+
+        Returns
+        -------
+        dict
+            A dictionary of post-process observation after reset.
+        """
+
+        # get the observation from environment as usual
+        observation = self.env.reset()
+        # add the observation into frames
+        self.frames.append(observation)
+        # forward enviroment num_frames time to fill the frames. (rl action is null).
+        for _ in range(self.num_frames-1):
+            observation, _, _, _ = self.env.step({})
+            self.frames.append(observation)
+        return self._get_ob()
+
+    def observation(self, observation, info):
+        # everytime we get eh new observation from the environment, we add it to the frame and return the
+        # post-process observation.
+        self.frames.append(observation)
+        return self._get_ob()
+
+    def _get_ob(self):
+        """The post-process function.
+           We need to tranform observation collected in the deque into valid observation.
+        Returns
+        -------
+        dict
+            A dictionary of observation that we want.
+        """
+
+        # sanity check: ensure the frames has num_frames length.
+        assert len(self.frames) == self.num_frames
+        obss = self.env.observation_space
+        shp = obss.shape
+
+        # get the list of agent ids.
+        ids = self.frames[0].keys()
+
+        #get the y_value_max for each observation 
+        for i in ids:
+            y_max_frame = max([frame[i][0] for frame in self.frames])
+            if i not in self.y_value_max.keys():
+                self.y_value_max[i] = y_max_frame
+            else:
+                self.y_value_max[i] = max(self.y_value_max[i], y_max_frame)
+
+        # initialize new observation.
+        obs = {}
+
+        """for j in range(1, self.frames):
+                                    for i in ids:
+                                        if i not in obs.keys():
+                                            obs[i] = np.concatenate((self.frames[j][i].reshape(shp[0], 1), (self.frames[j][i][0]-self.frames[j-1][i][0]).reshape(1, 1)), axis=0)
+                                        else:
+                                            obs_temp = np.concatenate((self.frames[j][i].reshape(shp[0], 1), (self.frames[j][i][0]-self.frames[j-1][i][0]).reshape(1, 1)), axis=0)
+                                            obs[i] = np.concatenate((obs[i], obs_temp), axis=1)"""
+
+        # the new observation is the observation from LocalObservationV4Wrapper concatenated with y_value - y_value_at_t-5
+        for i in ids:
+            if i not in obs.keys():
+                obs[i] = np.concatenate((self.y_value_max[i].reshape(1, 1), self.frames[self.num_frames-1][i].reshape(shp[0], 1), (self.frames[self.num_frames-1][i][0]-self.frames[0][i][0]).reshape(1, 1)), axis=0).reshape(shp[0]+2, )
+            else:
+                obs[i] = np.concatenate((self.y_value_max[i].reshape(1, 1), self.frames[self.num_frames-1][i].reshape(shp[0], 1), (self.frames[self.num_frames-1][i][0]-self.frames[0][i][0]).reshape(1, 1)), axis=0).reshape(shp[0]+2, )
+
+        return obs
 ###########################################################################
 #                            REWARD WRAPPER                               #
 ###########################################################################
@@ -646,6 +828,7 @@ class SecondStageGlobalRewardWrapper(RewardWrapper):
             rewards.update({key: global_reward})
 
         return rewards
+
 
 class SearchGlobalRewardWrapper(RewardWrapper):
 

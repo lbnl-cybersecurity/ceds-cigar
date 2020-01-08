@@ -228,20 +228,36 @@ class Env(gym.Env):
             The number of training iteration taken place before this plot.
         """
         num_col = len(self.tracking_infos.keys())
-        f, ax = plt.subplots(4, num_col, figsize=(25, 20))
-        for col in range(num_col):
-            tracking_id = list(self.tracking_infos.keys())[col]
-            ax[0, col].set_title(tracking_id)
-            ax[0, col].plot(self.tracking_infos[tracking_id]['v_val'])
-            ax[0, col].set_ylabel('voltage')
-            ax[1, col].plot(self.tracking_infos[tracking_id]['y_val'])
-            ax[1, col].set_ylabel('oscillation observer')
-            ax[2, col].plot(self.tracking_infos[tracking_id]['p_val'])
-            ax[2, col].set_ylabel('(1 + p_inject/p_max)**2')
-            labels = ['a1', 'a2', 'a3', 'a4', 'a5']
-            [a1, a2, a3, a4, a5] = ax[3, col].plot(self.tracking_infos[tracking_id]['a_val'])
-            ax[3, col].set_ylabel('action')
-            plt.legend([a1, a2, a3, a4, a5], labels, loc=1)
+        if num_col != 1:
+            f, ax = plt.subplots(3, num_col, figsize=(25, 20))
+            for col in range(num_col):
+                tracking_id = list(self.tracking_infos.keys())[col]
+                ax[0, col].set_title(tracking_id)
+                ax[0, col].plot(self.tracking_infos[tracking_id]['v_val'])
+                ax[0, col].set_ylabel('voltage')
+                ax[1, col].plot(self.tracking_infos[tracking_id]['y_val'])
+                ax[1, col].set_ylabel('oscillation observer')
+                #ax[2, col].plot(self.tracking_infos[tracking_id]['p_val'])
+                #ax[2, col].set_ylabel('(1 + p_inject/p_max)**2')
+                labels = ['a1', 'a2', 'a3', 'a4', 'a5']
+                [a1, a2, a3, a4, a5] = ax[2, col].plot(self.tracking_infos[tracking_id]['a_val'])
+                ax[2, col].set_ylabel('action')
+                plt.legend([a1, a2, a3, a4, a5], labels, loc=1)
+        else:
+            f, ax = plt.subplots(3, figsize=(25/3, 20))
+            for col in range(num_col):
+                tracking_id = list(self.tracking_infos.keys())[col]
+                ax[0].set_title(tracking_id)
+                ax[0].plot(self.tracking_infos[tracking_id]['v_val'])
+                ax[0].set_ylabel('voltage')
+                ax[1].plot(self.tracking_infos[tracking_id]['y_val'])
+                ax[1].set_ylabel('oscillation observer')
+                #ax[2, col].plot(self.tracking_infos[tracking_id]['p_val'])
+                #ax[2, col].set_ylabel('(1 + p_inject/p_max)**2')
+                labels = ['a1', 'a2', 'a3', 'a4', 'a5']
+                [a1, a2, a3, a4, a5] = ax[2].plot(self.tracking_infos[tracking_id]['a_val'])
+                ax[2].set_ylabel('action')
+                plt.legend([a1, a2, a3, a4, a5], labels, loc=1)
 
         if not os.path.exists(os.path.join(config.LOG_DIR, exp_tag)):
             os.makedirs(os.path.join(config.LOG_DIR, exp_tag))

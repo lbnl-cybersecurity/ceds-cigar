@@ -41,7 +41,7 @@ pycigar_params = {"exp_tag": "cooperative_multiagent_ppo",
                   "env_name": "SingleRelativeDiscreteCoopEnv",
                   "sim_params": sim_params,
                   "simulator": "opendss",
-                  "tracking_ids": ['pv_8', 'pv_17', 'pv_12']}
+                  "tracking_ids": ['pv_17']}
 """
 call function make_create_env() to register the new environment to OpenGymAI.
 create_env() is a function to create new instance of the environment.
@@ -173,7 +173,7 @@ if __name__ == "__main__":
 
         # === Optimization ===
         # Learning rate for adam optimizer
-        "lr": 5e-4,
+        "lr": 5e-6,
         # Learning rate schedule
         "lr_schedule": None,
         # Adam epsilon hyper parameter
