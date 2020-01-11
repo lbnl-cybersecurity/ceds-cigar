@@ -20,7 +20,7 @@ N = 10  # weight for taking different action from the initial action
 P = 0  # weight for taking different action from last timestep action
 
 # params for local reward wrapper, complex reward
-M2 = 30  # weight for y-value in reward function
+M2 = 40  #35 -> 32.5# weight for y-value in reward function
 N2 = 10  # weight for taking different action from the initial action
 P2 = 2  # weight for taking different action from last timestep action
 
@@ -352,13 +352,37 @@ class LocalObservationV4Wrapper(ObservationWrapper):
 
         
 class GlobalObservationWrapper(ObservationWrapper):
+    """
+    Observation: a dictionary of global observation for each agent, in the form of:
+                 {'id_1': {
+                    'own_obs': local observation of the agent
+                    'opponent_obs': concatenation of local observation of other agents
+                    'opponent_action': concatenation of local observation of other agents (will be filled in at post-processing)  
+                 }, 
+                 'id_2': {}
+                 ,...}.
 
+                 each agent observation is an array of [y-value, y-value-max, last_action_onehot, y-y_t5]
+                 at current timestep.
+
+                y_value: the value measuring oscillation magnitude of the volage at the agent position.
+                last_action_onehot: the last timestep action under one-hot encoding form.
+
+                one-hot encoding: an array of zeros everywhere and have a value of 1 at the executed position.
+                For example, we discretize the action space into DISCRETIZE=10 bins, and the action sent back from
+                RLlib is: 3. The one-hot encoding of the action is: np.array([0, 0, 0, 1, 0, 0, 0, 0, 0, 0])
+    """
     @property
     def observation_space(self):
+        obss = self.env.observation_space
+        acts = self.env.action_space
+        if type(obss) is Box:
+            shpobs = obss.shape
+            shpact = acts.shape
         observation_space = Dict({
-                        "own_obs": Box(low=-float('inf'), high=float('inf'), shape=(5,), dtype=np.float32),
-                        "opponent_obs": Box(low=-float('inf'), high=float('inf'), shape=(5,), dtype=np.float32),
-                        "opponent_action": Box(low=-float('inf'), high=float('inf'), shape=(5,), dtype=np.float32),
+                        "own_obs": Box(low=-float('inf'), high=float('inf'), shape=(shpobs[0],), dtype=np.float32),
+                        "opponent_obs": Box(low=-float('inf'), high=float('inf'), shape=(12*shpobs[0],), dtype=np.float32),
+                        "opponent_action": Box(low=-float('inf'), high=float('inf'), shape=(12*11,), dtype=np.float32),
                         })
         return observation_space
 
@@ -375,7 +399,7 @@ class GlobalObservationWrapper(ObservationWrapper):
 
             global_obs[rl_id] = {"own_obs": own_obs,
                                  "opponent_obs": np.array(opponent_obs),
-                                 "opponent_action": np.array([-1., -1., -1., -1., -1.])
+                                 "opponent_action": np.array([-1.]*12*11) # case of single action
                                  }
         return global_obs
 
