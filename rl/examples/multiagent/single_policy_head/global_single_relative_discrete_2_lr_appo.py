@@ -172,10 +172,13 @@ if __name__ == "__main__":
     config = {
         'vtrace': True,
         "gamma": 0.99,
-        'lr': 5e-05,
+        'lr': 5e-03,
         'sample_batch_size': 200,
         'lambda': 0.99,
         'train_batch_size': 256,
+        "callbacks": {
+            "on_postprocess_traj": fill_in_actions,
+        },
         #'batch_mode': 'complete_episodes',
         #'lr_schedule': [[0, 5e-03], [400000, 5e-03], [400001, 5e-04]],
         #worker

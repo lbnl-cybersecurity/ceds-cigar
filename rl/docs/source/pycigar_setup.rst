@@ -56,23 +56,20 @@ sure to enter your conda environment by typing:
 
     source activate pycigar
 
-Let’s see some traffic action:
+Let’s see some action:
 
 ::
 
     python examples/opendss/test_env.py
 
-(Optional) Install Ray RLlib
+Install Ray RLlib
 ----------------------------
 
 PyCIGAR has used RLlib as a reinforcement learning library.
 First visit <https://github.com/ray-project/ray/blob/master/doc/source/installation.rst> and
 install the required packages.
 
-If you are not intending to develop RL algorithms or customize rllib you don't need to do anything,
-Ray was installed when you created the conda environment.
-
-If you are intending to modify Ray, the installation process for this library is as follows:
+The installation process for this library is as follows:
 
 ::
 
@@ -119,12 +116,4 @@ If tensorboard is not installed, you can install with pip:
     pip install tensorboard
 
 For information on how to deploy a cluster, refer to the `Ray instructions <http://ray.readthedocs.io/en/latest/autoscaling.html>`_.
-The basic workflow is running the following locally, ssh-ing into the host machine, and starting
-jobs from there.
-
-::
-
-    pip install boto3
-    ray create-or-update scripts/ray_autoscale.yaml
-    ray teardown scripts/ray_autoscale.yaml
 

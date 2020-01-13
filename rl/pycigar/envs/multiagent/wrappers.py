@@ -845,7 +845,17 @@ class SecondStageGlobalRewardWrapper(RewardWrapper):
                 old_action = INIT_ACTION
             y = info[key]['y']
             r = 0
-            r += -((M2*y**2 + P2*np.sum(np.abs(action-old_action)) + N2*np.sum(np.abs(action-INIT_ACTION))))/100
+            if (action == old_action).all():
+                roa = 0
+            else:
+                roa = 1
+
+            if (action == INIT_ACTION).all():
+                ria = 0
+            else:
+                ria = 1
+            r += -(5*y**2 + 0.005*roa + 0.05*ria)
+            #r += -((M2*y**2 + P2*np.sum(np.abs(action-old_action)) + N2*np.sum(np.abs(action-INIT_ACTION))))/100
             global_reward += r
         global_reward = global_reward / len(list(info.keys()))
         for key in info.keys():
