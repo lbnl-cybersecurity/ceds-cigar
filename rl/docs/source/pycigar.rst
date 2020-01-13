@@ -9,6 +9,7 @@ Subpackages
     pycigar.controllers
     pycigar.devices
     pycigar.core
+    pycigar.envs
 
 Module contents
 ---------------
