@@ -17,16 +17,6 @@ import numpy as np
 SAVE_RATE = 5
 
 tf = try_import_tf()
-"""
-Parser to pass argument from terminal command
---run: RL algorithm, ex. PG, PPO, IMPALA
---stop: stop criteria of experiment. The experiment will stop when mean reward reach to this value.
-Example of terminal command:
-  > python single_relative_discrete_2_lr.py --run PPO --stop 0
-"""
-parser = argparse.ArgumentParser()
-parser.add_argument("--run", type=str, default="PPO")  # try PG, PPO, IMPALA
-parser.add_argument("--stop", type=int, default=0)
 
 """
 Load the scenarios configuration file. This file contains the scenario information
@@ -64,7 +54,7 @@ act_space = test_env.action_space  # get the action space, we need this to const
 """
 Define training process. Ray/Tune will call this function with config params.
 """
-def coop_train_full(config, reporter):
+def testspeed_appo_5_coop_train(config, reporter):
 
     # initialize PPO agent on environment. This may create 1 or more workers.
     agent1 = APPOTrainer(env=env_name, config=config)
@@ -82,7 +72,7 @@ def coop_train_full(config, reporter):
 
         # for every SAVE_RATE training iterations, we test the agent on the test environment to see how it performs.
         if i != 0 and (i+1) % SAVE_RATE == 0:
-            state = agent1.save('/home/sytoan/ray_results/checkpoint')
+            state = agent1.save('~/ray_results/checkpoint')
             done = False
             # reset the test environment
             obs = test_env.reset()
@@ -172,7 +162,7 @@ if __name__ == "__main__":
     config = {
         'vtrace': True,
         "gamma": 0.99,
-        'lr': 5e-03,
+        'lr': 5e-04,
         'sample_batch_size': 200,
         'lambda': 0.99,
         'train_batch_size': 256,
@@ -219,4 +209,4 @@ if __name__ == "__main__":
     }
 
     # call tune.run() to run the coop_train_fn() with the config() above
-    tune.run(coop_train_full, config=config)
+    tune.run(testspeed_appo_5_coop_train, config=config)

@@ -14,7 +14,7 @@ hack_setting: {default_control_setting: [1.039, 1.04, 1.04, 1.041, 1.042]}
 
 env_config:
   'clip_actions': True
-  'sims_per_step': 1
+  'sims_per_step': 10
 
 simulation_config:
   network_model_directory: 'feeder34_test.dss'

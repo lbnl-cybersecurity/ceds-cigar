@@ -35,8 +35,20 @@ class MultiEnv(MultiAgentEnv, Env):
                   indicate all agents has finished their job.
 
         """
+        next_observation = None
+        self.old_actions = {}
+        if rl_actions is not None:
+            for rl_id in rl_actions.keys():
+                self.old_actions[rl_id] = self.k.device.get_control_setting(rl_id)
+        else:
+            rl_actions = self.old_actions
 
+        count = 0
         for _ in range(self.sim_params['env_config']['sims_per_step']):
+            # Keep track of the devices which is in the list of tracking ids.
+            if self.tracking_ids is not None:
+                self.pycigar_tracking()
+            
             self.env_time += 1
 
             # perform action update for PV inverter device controlled by adaptive control
@@ -58,62 +70,71 @@ class MultiEnv(MultiAgentEnv, Env):
                 self.k.device.apply_control(self.k.device.get_fixed_device_ids(), control_setting)
 
             # perform action update for PV inverter device controlled by RL control
-            self.old_actions = {}
-            if rl_actions is not None:
-                for rl_id in rl_actions.keys():
-                    self.old_actions[rl_id] = self.k.device.get_control_setting(rl_id)
-            else:
-                rl_actions = self.old_actions
             self.apply_rl_actions(rl_actions)
             self.additional_command()
-            self.k.update(reset=False)
+            
+            if self.k.time <= self.k.t:
+                self.k.update(reset=False)
 
-            # check whether the simulator sucessfully solved the powerflow
-            converged = self.k.simulation.check_converged()
-            if not converged:
+                # check whether the simulator sucessfully solved the powerflow
+                converged = self.k.simulation.check_converged()
+                if not converged:
+                    break
+
+                states = self.get_state()
+                if next_observation is None:
+                    next_observation = states
+                else:
+                    for key in states.keys():
+                        next_observation[key] += states[key]
+                count += 1
+
+            if self.k.time >= self.k.t:
                 break
 
-            states = self.get_state()
-            next_observation = states
+        for key in states.keys():
+            next_observation[key] = next_observation[key]/count 
+                
+        # the episode will be finished if it is not converged.
+        finish = not converged or (self.k.time == self.k.t)
+        done = {}
+        if finish:
+            done['__all__'] = True
+        else:
+            done['__all__'] = False
 
-            # the episode will be finished if it is not converged.
-            finish = not converged or (self.k.time == self.k.t)
-            done = {}
-            if finish:
-                done['__all__'] = True
+        # we push the old action, current action, voltage, y, p_inject, p_max into additional info, which will return by the env after calling step.
+        #infos = {key: {'voltage': self.k.node.get_node_voltage(self.k.device.get_node_connected_to(key)),
+        #               'y': self.k.device.get_device_y(key),
+        #               'p_inject': self.k.device.get_device_p_injection(key),
+        #               'p_max': self.k.device.get_solar_generation(key),
+        #               'env_time': self.env_time,
+        #               } for key in states.keys()}
+        infos = {key: {'voltage': next_observation[key][0],
+                       'y': next_observation[key][2],
+                       'p_inject': next_observation[key][3],
+                       'p_max': next_observation[key][4],
+                       'env_time': self.env_time,
+                       } for key in states.keys()}
+
+        for key in states.keys():
+            if self.old_actions != {}:
+                infos[key]['old_action'] = self.old_actions[key]
             else:
-                done['__all__'] = False
-
-            # we push the old action, current action, voltage, y, p_inject, p_max into additional info, which will return by the env after calling step.
-            infos = {key: {'voltage': self.k.node.get_node_voltage(self.k.device.get_node_connected_to(key)),
-                           'y': self.k.device.get_device_y(key),
-                           'p_inject': self.k.device.get_device_p_injection(key),
-                           'p_max': self.k.device.get_solar_generation(key),
-                           'env_time': self.env_time,
-                           } for key in states.keys()}
-
-            for key in states.keys():
-                if self.old_actions != {}:
-                    infos[key]['old_action'] = self.old_actions[key]
-                else:
-                    infos[key]['old_action'] = None
-                if rl_actions != {}:
-                    infos[key]['current_action'] = rl_actions[key]
-                else:
-                    infos[key]['current_action'] = None
-
-            # clip the action into a good range or not
-            if self.sim_params['env_config']['clip_actions']:
-                rl_clipped = self.clip_actions(rl_actions)
-                reward = self.compute_reward(rl_clipped, fail=not converged)
+                infos[key]['old_action'] = None
+            if rl_actions != {}:
+                infos[key]['current_action'] = rl_actions[key]
             else:
-                reward = self.compute_reward(rl_actions, fail=not converged)
+                infos[key]['current_action'] = None
 
-            # Keep track of the devices which is in the list of tracking ids.
-            if self.tracking_ids is not None:
-                self.pycigar_tracking()
+        # clip the action into a good range or not
+        if self.sim_params['env_config']['clip_actions']:
+            rl_clipped = self.clip_actions(rl_actions)
+            reward = self.compute_reward(rl_clipped, fail=not converged)
+        else:
+            reward = self.compute_reward(rl_actions, fail=not converged)
 
-            return next_observation, reward, done, infos
+        return next_observation, reward, done, infos
 
     def get_old_actions(self):
         """

@@ -11,17 +11,6 @@ import sys
 SAVE_RATE = 5
 
 """
-Parser to pass argument from terminal command
---run: RL algorithm, ex. PG, PPO, IMPALA
---stop: stop criteria of experiment. The experiment will stop when mean reward reach to this value.
-Example of terminal command:
-  > python single_relative_discrete_2_lr.py --run PPO --stop 0
-"""
-parser = argparse.ArgumentParser()
-parser.add_argument("--run", type=str, default="DQN")  # try PG, PPO, IMPALA
-parser.add_argument("--stop", type=int, default=0)
-
-"""
 Load the scenarios configuration file. This file contains the scenario information
 for the experiment.
 """
@@ -76,7 +65,7 @@ def coop_train_fn(config, reporter):
 
         # for every SAVE_RATE training iterations, we test the agent on the test environment to see how it performs.
         if i != 0 and (i+1) % SAVE_RATE == 0:
-            state = agent1.save('/home/sytoan/ray_results/checkpoint')
+            state = agent1.save('~/ray_results/checkpoint')
             done = False
             # reset the test environment
             obs = test_env.reset()

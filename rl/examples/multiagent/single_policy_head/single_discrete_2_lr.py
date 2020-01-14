@@ -8,16 +8,6 @@ import yaml
 
 SAVE_RATE = 10
 
-"""
-Parser to pass argument from terminal command
---run: RL algorithm, ex. PG, PPO, IMPALA
---stop: stop criteria of experiment. The experiment will stop when mean reward reach to this value.
-Example of terminal command:
-  > python single_relative_discrete_2_lr.py --run PPO --stop 0
-"""
-parser = argparse.ArgumentParser()
-parser.add_argument("--run", type=str, default="PPO")  # try PG, PPO, IMPALA
-parser.add_argument("--stop", type=int, default=0)
 
 """
 Load the scenarios configuration file. This file contains the scenario information
