@@ -32,7 +32,7 @@ ACTION_UPPER_BOUND = 1.1
 
 # relative single head action
 ACTION_RANGE = 0.1
-ACTION_STEP = 0.02
+ACTION_STEP = 0.05
 DISCRETIZE_RELATIVE = int((ACTION_RANGE/ACTION_STEP))*2 + 1
 
 # number of frames to keep
@@ -379,10 +379,11 @@ class GlobalObservationWrapper(ObservationWrapper):
         if type(obss) is Box:
             shpobs = obss.shape
             shpact = acts.shape
+            
         observation_space = Dict({
                         "own_obs": Box(low=-float('inf'), high=float('inf'), shape=(shpobs[0],), dtype=np.float32),
                         "opponent_obs": Box(low=-float('inf'), high=float('inf'), shape=(12*shpobs[0],), dtype=np.float32),
-                        "opponent_action": Box(low=-float('inf'), high=float('inf'), shape=(12*11,), dtype=np.float32),
+                        "opponent_action": Box(low=-float('inf'), high=float('inf'), shape=(12*DISCRETIZE_RELATIVE,), dtype=np.float32),
                         })
         return observation_space
 
@@ -399,7 +400,7 @@ class GlobalObservationWrapper(ObservationWrapper):
 
             global_obs[rl_id] = {"own_obs": own_obs,
                                  "opponent_obs": np.array(opponent_obs),
-                                 "opponent_action": np.array([-1.]*12*11) # case of single action
+                                 "opponent_action": np.array([-1.]*12*DISCRETIZE_RELATIVE) # case of single action
                                  }
         return global_obs
 

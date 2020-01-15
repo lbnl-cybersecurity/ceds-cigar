@@ -14,6 +14,8 @@ from gym.spaces import Box, Dict, Discrete
 from ray.rllib.utils import try_import_tf
 import numpy as np 
 
+from pycigar.envs.multiagent.wrappers import DISCRETIZE_RELATIVE
+
 SAVE_RATE = 5
 
 tf = try_import_tf()
@@ -104,7 +106,7 @@ def fill_in_actions(info):
     other_ids.remove(my_id)
 
 
-    action_encoder = ModelCatalog.get_preprocessor_for_space(Discrete(11))
+    action_encoder = ModelCatalog.get_preprocessor_for_space(Discrete(DISCRETIZE_RELATIVE))
 
     # set the opponent actions into the observation
     opponent_actions = []
@@ -136,7 +138,7 @@ class CentralizedCriticModel(TFModelV2):
             obs_space, action_space, num_outputs, model_config, name)
 
         self.action_model = FullyConnectedNetwork(
-            Box(low=-float('inf'), high=float('inf'), shape=(14, )),  # own_obs
+            Box(low=-float('inf'), high=float('inf'), shape=(int(obs_space.shape[0]/12-DISCRETIZE_RELATIVE), )),  # own_obs
             action_space,
             num_outputs,
             model_config,
