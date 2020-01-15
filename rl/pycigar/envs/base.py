@@ -268,7 +268,7 @@ class Env(gym.Env):
 
         if not os.path.exists(os.path.join(config.LOG_DIR, exp_tag)):
             os.makedirs(os.path.join(config.LOG_DIR, exp_tag))
-        save_path = os.path.join(os.path.join(config.LOG_DIR, exp_tag), '{}_{}_result_{}.png'.format(env_name, iteration, datetime.now().strftime("%H:%M:%S.%f_%d-%m-%Y")))
+        save_path = os.path.join(os.path.join(config.LOG_DIR, exp_tag), '{}_{}_result_{}.png'.format(exp_tag, env_name, iteration))#, datetime.now().strftime("%H:%M:%S.%f_%d-%m-%Y")))
 
         f.savefig(save_path)
         plt.close(f)
