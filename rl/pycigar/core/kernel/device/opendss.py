@@ -307,6 +307,21 @@ class OpenDSSDevice(KernelDevice):
         """
         return self.devices[device_id]['device'].p_out[1]
 
+    def get_device_q_set(self, device_id):
+        """Return the device's reactive power injection at the current timestep.
+
+        Parameters
+        ----------
+        device_id : string
+            The device id
+
+        Returns
+        -------
+        float
+            The reactive power value
+        """
+        return self.devices[device_id]['device'].q_set[1]
+
     def get_device_q_injection(self, device_id):
         """Return the device's reactive power injection at the current timestep.
 

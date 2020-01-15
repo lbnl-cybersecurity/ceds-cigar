@@ -203,16 +203,18 @@ class Env(gym.Env):
             for tracking_id in self.tracking_ids:
                 self.tracking_infos[tracking_id] = dict(v_val=[],
                                                         y_val=[],
-                                                        p_val=[],
+                                                        q_set=[],
+                                                        q_val=[],
                                                         a_val=[])
 
         for tracking_id in self.tracking_ids:
             node_id = self.k.device.get_node_connected_to(tracking_id)
             self.tracking_infos[tracking_id]['v_val'].append(self.k.node.get_node_voltage(node_id))
             self.tracking_infos[tracking_id]['y_val'].append(self.k.device.get_device_y(tracking_id))
-            p_max = self.k.device.get_solar_generation(tracking_id)
-            p_inject = self.k.device.get_device_p_injection(tracking_id)
-            self.tracking_infos[tracking_id]['p_val'].append((1+p_inject/p_max)**2)
+            #p_max = self.k.device.get_solar_generation(tracking_id)
+            #p_inject = self.k.device.get_device_p_injection(tracking_id)
+            self.tracking_infos[tracking_id]['q_set'].append(self.k.device.get_device_q_set(tracking_id))
+            self.tracking_infos[tracking_id]['q_val'].append(self.k.device.get_device_q_injection(tracking_id))
             self.tracking_infos[tracking_id]['a_val'].append(list(self.k.device.get_control_setting(tracking_id)))
 
     def plot(self, exp_tag='', env_name='', iteration=0):
@@ -244,19 +246,24 @@ class Env(gym.Env):
                 ax[2, col].set_ylabel('action')
                 plt.legend([a1, a2, a3, a4, a5], labels, loc=1)
         else:
-            f, ax = plt.subplots(3, figsize=(25/3, 20))
+            f, ax = plt.subplots(4, sharex=True, figsize=(25, 20))
             for col in range(num_col):
                 tracking_id = list(self.tracking_infos.keys())[col]
                 ax[0].set_title(tracking_id)
                 ax[0].plot(self.tracking_infos[tracking_id]['v_val'])
                 ax[0].set_ylabel('voltage')
+                ax[0].grid(b=True)
                 ax[1].plot(self.tracking_infos[tracking_id]['y_val'])
                 ax[1].set_ylabel('oscillation observer')
-                #ax[2, col].plot(self.tracking_infos[tracking_id]['p_val'])
-                #ax[2, col].set_ylabel('(1 + p_inject/p_max)**2')
+                ax[1].grid(b=True)
+                ax[2].plot(self.tracking_infos[tracking_id]['q_set'])
+                ax[2].plot(self.tracking_infos[tracking_id]['q_val'])
+                ax[2].set_ylabel('reactive power')
+                ax[2].grid(b=True)
                 labels = ['a1', 'a2', 'a3', 'a4', 'a5']
-                [a1, a2, a3, a4, a5] = ax[2].plot(self.tracking_infos[tracking_id]['a_val'])
-                ax[2].set_ylabel('action')
+                [a1, a2, a3, a4, a5] = ax[3].plot(self.tracking_infos[tracking_id]['a_val'])
+                ax[3].set_ylabel('action')
+                ax[3].grid(b=True)
                 plt.legend([a1, a2, a3, a4, a5], labels, loc=1)
 
         if not os.path.exists(os.path.join(config.LOG_DIR, exp_tag)):
