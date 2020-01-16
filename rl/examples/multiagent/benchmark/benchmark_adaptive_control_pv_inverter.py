@@ -16,6 +16,7 @@ def benchmark_adaptive_control_pv_inverter(config):
         _, reward, done, _ = env.step(None)
         total_reward += sum(reward.values())
 
+    env.plot('benchmark', env_name, 0)
     tune.track.log(mean_accuracy=total_reward)
 
 
@@ -25,6 +26,6 @@ sim_params = yaml.safe_load(stream)
 pycigar_params = {"env_name": "AdaptiveControlPVInverterEnv",
                   "sim_params": sim_params,
                   "simulator": "opendss",
-                  "tracking_ids": ["pv_8", "pv_9", "pv_12"]}
+                  "tracking_ids": ["pv_9"]}
 
 analysis = tune.run(benchmark_adaptive_control_pv_inverter, config=pycigar_params)

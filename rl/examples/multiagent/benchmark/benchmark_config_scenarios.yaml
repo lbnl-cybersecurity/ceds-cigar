@@ -52,7 +52,7 @@ scenario_config:
         devices:
             - name: pv_5
               type: pv_device
-              controller: adaptive_inverter_controller
+              controller: fixed_controller
               custom_configs: {default_control_setting: [0.98, 1.01, 1.01, 1.04, 1.08],
                                delay_timer: 60,
                                threshold: 0.05,
@@ -68,7 +68,7 @@ scenario_config:
         devices:
             - name: pv_6
               type: pv_device
-              controller: adaptive_inverter_controller
+              controller: fixed_controller
               custom_configs: {default_control_setting: [0.98, 1.01, 1.01, 1.04, 1.08],
                                delay_timer: 60,
                                threshold: 0.05,
@@ -84,7 +84,7 @@ scenario_config:
         devices:
             - name: pv_7
               type: pv_device
-              controller: adaptive_inverter_controller
+              controller: fixed_controller
               custom_configs: {default_control_setting: [0.98, 1.01, 1.01, 1.04, 1.08],
                                delay_timer: 60,
                                threshold: 0.05,
@@ -100,7 +100,7 @@ scenario_config:
         devices:
             - name: pv_8
               type: pv_device
-              controller: adaptive_inverter_controller
+              controller: fixed_controller
               custom_configs: {default_control_setting: [0.98, 1.01, 1.01, 1.04, 1.08],
                                delay_timer: 60,
                                threshold: 0.05,
@@ -116,7 +116,7 @@ scenario_config:
         devices:
             - name: pv_9
               type: pv_device
-              controller: adaptive_inverter_controller
+              controller: fixed_controller
               custom_configs: {default_control_setting: [0.98, 1.01, 1.01, 1.04, 1.08],
                                delay_timer: 60,
                                threshold: 0.05,
@@ -132,7 +132,7 @@ scenario_config:
         devices:
             - name: pv_10
               type: pv_device
-              controller: adaptive_inverter_controller
+              controller: fixed_controller
               custom_configs: {default_control_setting: [0.98, 1.01, 1.01, 1.04, 1.08],
                                delay_timer: 60,
                                threshold: 0.05,
@@ -164,7 +164,7 @@ scenario_config:
         devices:
             - name: pv_12
               type: pv_device
-              controller: adaptive_inverter_controller
+              controller: fixed_controller
               custom_configs: {default_control_setting: [0.98, 1.01, 1.01, 1.04, 1.08],
                                delay_timer: 60,
                                adaptive_gain: 20,
@@ -179,7 +179,7 @@ scenario_config:
         devices:
             - name: pv_13
               type: pv_device
-              controller: adaptive_inverter_controller
+              controller: fixed_controller
               custom_configs: {default_control_setting: [0.98, 1.01, 1.01, 1.04, 1.08],
                                delay_timer: 60,
                                adaptive_gain: 20,
@@ -194,7 +194,7 @@ scenario_config:
         devices:
             - name: pv_14
               type: pv_device
-              controller: adaptive_inverter_controller
+              controller: fixed_controller
               custom_configs: {default_control_setting: [0.98, 1.01, 1.01, 1.04, 1.08],
                                delay_timer: 60,
                                adaptive_gain: 20,
@@ -209,7 +209,7 @@ scenario_config:
         devices:
             - name: pv_15
               type: pv_device
-              controller: adaptive_inverter_controller
+              controller: fixed_controller
               custom_configs: {default_control_setting: [0.98, 1.01, 1.01, 1.04, 1.08],
                                delay_timer: 60,
                                adaptive_gain: 20,
@@ -224,7 +224,7 @@ scenario_config:
         devices:
             - name: pv_16
               type: pv_device
-              controller: adaptive_inverter_controller
+              controller: fixed_controller
               custom_configs: {default_control_setting: [0.98, 1.01, 1.01, 1.04, 1.08],
                                delay_timer: 60,
                                adaptive_gain: 20,
@@ -239,7 +239,7 @@ scenario_config:
         devices:
             - name: pv_17
               type: pv_device
-              controller: adaptive_inverter_controller
+              controller: fixed_controller
               custom_configs: {default_control_setting: [0.98, 1.01, 1.01, 1.04, 1.08],
                                delay_timer: 60,
                                adaptive_gain: 20,
