@@ -93,7 +93,7 @@ class Kernel(object):
             self.node.update(reset)
             self.simulation.update(reset)
             self.scenario.update(reset)
-            self.warm_up()
+            self.warm_up_y()
 
         else:
             self.device.update(reset)  # calculate new PQ with new VBP, then push PV to node
@@ -106,8 +106,10 @@ class Kernel(object):
         """Close the simulation and simulator."""
         self.simulation.close()
 
-    def warm_up(self):
+    def warm_up_v(self):
         """Run the simulation until the voltage is stablized."""
+
+        print(self.device.get_device_y('pv_5'))
         voltages = self.node.get_all_nodes_voltage()
         self.time += 1
         self.device.update(reset=False)
@@ -121,3 +123,34 @@ class Kernel(object):
             self.node.update(reset=False)
             self.simulation.update(reset=False)
             self.scenario.update(reset=False)
+
+    def warm_up_y(self):
+        """Run the simulation until the voltage is stablized."""
+        device_ids = self.device.get_adaptive_device_ids() + self.device.get_fixed_device_ids()
+        y = []
+        for device_id in device_ids:
+            y.append(self.device.get_device_y(device_id))
+        
+        self.time += 1
+        self.device.update(reset=False)
+        self.node.update(reset=False)
+        self.simulation.update(reset=False)
+        self.scenario.update(reset=False)
+
+        newy = []
+        for device_id in device_ids:
+            newy.append(self.device.get_device_y(device_id))
+        deltay = np.array(np.array(newy) - np.array(y))
+
+        while any(abs(deltay) > 1e-6) or all(deltay == 0):
+            y = newy
+            self.time += 1
+            self.device.update(reset=False)
+            self.node.update(reset=False)
+            self.simulation.update(reset=False)
+            self.scenario.update(reset=False)
+            newy = []
+            for device_id in device_ids:
+                newy.append(self.device.get_device_y(device_id))
+
+            deltay = np.array(np.array(newy) - np.array(y))
