@@ -266,6 +266,10 @@ class Env(gym.Env):
                 ax[3].grid(b=True)
                 plt.legend([a1, a2, a3, a4, a5], labels, loc=1)
 
+                import json 
+                file = open(os.path.join(config.LOG_DIR, 'voltage_profile.txt'),  'w+')
+                json.dump(self.tracking_infos[tracking_id]['v_val'], file)
+                file.close()
                 freqs, psd = signal.welch(self.tracking_infos[tracking_id]['v_val'])
                 #freqs = np.pad(freqs, len(self.tracking_infos[tracking_id]['v_val']), 'constant')
                 ax[4].plot(freqs)
