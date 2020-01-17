@@ -8,7 +8,7 @@ from pycigar.envs.multiagent.wrappers import GlobalObservationWrapper
 from pycigar.envs.multiagent.wrappers import FramestackObservationWrapper
 from pycigar.envs.multiagent.wrappers import FramestackObservationV2Wrapper
 from pycigar.envs.multiagent.wrappers import FramestackObservationV3Wrapper
-
+from pycigar.envs.multiagent.wrappers import FramestackObservationV4Wrapper
 
 from pycigar.envs.multiagent.wrappers import LocalRewardWrapper
 from pycigar.envs.multiagent.wrappers import GlobalRewardWrapper
@@ -195,7 +195,7 @@ class SingleRelativeDiscreteCoopEnv(Wrapper):
         The environment object.
     """
     def __init__(self, **kwargs):
-        self.env = GlobalObservationWrapper(FramestackObservationV3Wrapper(LocalObservationV4Wrapper(SingleRelativeInitDiscreteActionWrapper(SecondStageGlobalRewardWrapper(MultiEnv(**kwargs))))))
+        self.env = GlobalObservationWrapper(FramestackObservationV4Wrapper(LocalObservationV4Wrapper(SingleRelativeInitDiscreteActionWrapper(SecondStageGlobalRewardWrapper(MultiEnv(**kwargs))))))
 
 
 # Coma environment
