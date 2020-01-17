@@ -93,7 +93,7 @@ class Kernel(object):
             self.node.update(reset)
             self.simulation.update(reset)
             self.scenario.update(reset)
-            self.warm_up_y()
+            self.warm_up_v()
 
         else:
             self.device.update(reset)  # calculate new PQ with new VBP, then push PV to node
@@ -109,7 +109,6 @@ class Kernel(object):
     def warm_up_v(self):
         """Run the simulation until the voltage is stablized."""
 
-        print(self.device.get_device_y('pv_5'))
         voltages = self.node.get_all_nodes_voltage()
         self.time += 1
         self.device.update(reset=False)

@@ -1,5 +1,7 @@
 import numpy as np
 from pycigar.devices.base_device import BaseDevice
+import pycigar.utils.signal_processing as signal_processing 
+from collections import deque 
 
 DEFAULT_CONTROL_SETTING = np.array([0.98, 1.01, 1.02, 1.05, 1.07])
 
@@ -63,6 +65,25 @@ class PVDevice(BaseDevice):
         self.epsilon = 0
         self.y = 0
 
+        # init for signal processing on Voltage
+        Ts = 1
+        fosc = 0.15 
+        hp1, temp = signal_processing.butterworth_highpass(2,2*np.pi*fosc/1)
+        lp1, temp = signal_processing.butterworth_lowpass(4,2*np.pi*1*fosc)
+        bp1num = np.convolve(hp1[0,:],lp1[0,:])
+        bp1den = np.convolve(hp1[1,:],lp1[1,:])
+        bp1s = np.array([bp1num,bp1den])
+        self.BP1z = signal_processing.c2dbilinear(bp1s,Ts)
+        lpf2, temp = signal_processing.butterworth_lowpass(2,2*np.pi*fosc/2)
+        self.LPF2z = signal_processing.c2dbilinear(lpf2,Ts)
+        self.nbp1 = self.BP1z.shape[1]-1
+        self.nlpf2 = self.LPF2z.shape[1]-1
+
+        self.y1 = deque([0]*len(self.BP1z[1,0:-1]), maxlen=len(self.BP1z[1,0:-1]))
+        self.y2 = deque([0]*len(self.LPF2z[0,:]), maxlen=len(self.LPF2z[0,:]))
+        self.y3 = deque([0]*len(self.LPF2z[1,0:-1]), maxlen=len(self.LPF2z[1,0:-1]))
+        self.x = deque([0]*len(self.BP1z[0,:]), maxlen=len(self.BP1z[0,:]))
+
     def update(self, k):
         """See parent class."""
         # TODO: eliminate this magic number
@@ -79,15 +100,20 @@ class PVDevice(BaseDevice):
             vkm1 = np.abs(k.node.nodes[node_id]['voltage'][k.time-2])
             self.v_meas_k = vk
             self.v_meas_km1 = vkm1
-            psikm1 = self.psi
-            epsilonkm1 = self.epsilon
-            ykm1 = self.y
-            self.psi = psik = (vk - vkm1 - (self.high_pass_filter * self.delta_t / 2 - 1) * psikm1) / \
-                              (1 + self.high_pass_filter * self.delta_t / 2)
-            self.epsilon = epsilonk = self.gain * (psik ** 2)
-            self.y = (self.delta_t * self.low_pass_filter *
-                      (epsilonk + epsilonkm1) - (self.delta_t * self.low_pass_filter - 2) * ykm1) / \
-                     (2 + self.delta_t * self.low_pass_filter)
+            self.x.append(vk)
+
+            self.y1.append(1/self.BP1z[1,-1]*(np.sum(-self.BP1z[1,0:-1]*self.y1) + np.sum(self.BP1z[0,:]*self.x))) 
+            self.y2.append(self.y1[-1]**2)
+            self.y3.append(1/self.LPF2z[1,-1]*(np.sum(-self.LPF2z[1,0:-1]*self.y3) + np.sum(self.LPF2z[0,:]*self.y2)))
+
+            tol = 1e-8
+
+            if self.y3[-1] - self.y >= tol:
+                self.y += tol
+            elif self.y3[-1] - self.y <= tol:
+                self.y -= tol
+            else:
+                self.y = self.y3[-1]
 
         T = self.delta_t
         lpf_m = self.low_pass_filter_measure
@@ -155,9 +181,11 @@ class PVDevice(BaseDevice):
             self.q_out[0] = self.q_out[1]
             self.low_pass_filter_v[0] = self.low_pass_filter_v[1]
 
+        # import old V to x
         # inject to node
         k.node.nodes[node_id]['PQ_injection']['P'] += self.p_out[1]
         k.node.nodes[node_id]['PQ_injection']['Q'] += self.q_out[1]
+
 
     def reset(self):
         """See parent class."""
@@ -198,6 +226,11 @@ class PVDevice(BaseDevice):
         self.psi = 0
         self.epsilon = 0
         self.y = 0
+
+        self.y1 = deque([0]*len(self.BP1z[1,0:-1]), maxlen=len(self.BP1z[1,0:-1]))
+        self.y2 = deque([0]*len(self.LPF2z[0,:]), maxlen=len(self.LPF2z[0,:]))
+        self.y3 = deque([0]*len(self.LPF2z[1,0:-1]), maxlen=len(self.LPF2z[1,0:-1]))
+        self.x = deque([0]*len(self.BP1z[0,:]), maxlen=len(self.BP1z[0,:]))
 
     def set_control_setting(self, control_setting):
         """See parent class."""
