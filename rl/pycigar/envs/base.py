@@ -246,7 +246,7 @@ class Env(gym.Env):
                 ax[2, col].set_ylabel('action')
                 plt.legend([a1, a2, a3, a4, a5], labels, loc=1)
         else:
-            f, ax = plt.subplots(6, figsize=(25, 25))
+            f, ax = plt.subplots(4, figsize=(25, 25))
             for col in range(num_col):
                 tracking_id = list(self.tracking_infos.keys())[col]
                 ax[0].set_title(tracking_id)
@@ -272,13 +272,13 @@ class Env(gym.Env):
                 #json.dump(self.tracking_infos[tracking_id]['v_val'], file)
                 #file.close()
 
-                freqs, psd = signal.welch(self.tracking_infos[tracking_id]['v_val'])
+                #freqs, psd = signal.welch(self.tracking_infos[tracking_id]['v_val'])
                 #freqs = np.pad(freqs, len(self.tracking_infos[tracking_id]['v_val']), 'constant')
-                ax[4].plot(freqs)
-                ax[4].set_ylabel('freqs')
+                #ax[4].plot(freqs)
+                #ax[4].set_ylabel('freqs')
                 #psd = np.pad(psd, len(self.tracking_infos[tracking_id]['v_val']), 'constant')
-                ax[5].plot(psd)
-                ax[5].set_ylabel('psd')
+                #ax[5].plot(psd)
+                #ax[5].set_ylabel('psd')
 
         if not os.path.exists(os.path.join(config.LOG_DIR, exp_tag)):
             os.makedirs(os.path.join(config.LOG_DIR, exp_tag))
