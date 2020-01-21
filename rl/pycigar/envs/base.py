@@ -267,18 +267,6 @@ class Env(gym.Env):
                 plt.legend([a1, a2, a3, a4, a5], labels, loc=1)
 
                 np.savetxt(os.path.join(os.path.join(config.LOG_DIR, exp_tag), 'voltage_profile.txt'), self.tracking_infos[tracking_id]['v_val'])
-                #import json 
-                #file = open(os.path.join(config.LOG_DIR, 'voltage_profile.txt'),  'w+')
-                #json.dump(self.tracking_infos[tracking_id]['v_val'], file)
-                #file.close()
-
-                #freqs, psd = signal.welch(self.tracking_infos[tracking_id]['v_val'])
-                #freqs = np.pad(freqs, len(self.tracking_infos[tracking_id]['v_val']), 'constant')
-                #ax[4].plot(freqs)
-                #ax[4].set_ylabel('freqs')
-                #psd = np.pad(psd, len(self.tracking_infos[tracking_id]['v_val']), 'constant')
-                #ax[5].plot(psd)
-                #ax[5].set_ylabel('psd')
 
         if not os.path.exists(os.path.join(config.LOG_DIR, exp_tag)):
             os.makedirs(os.path.join(config.LOG_DIR, exp_tag))

@@ -11,28 +11,28 @@ class Kernel(object):
     """Kernel for abstract function calling across grid simulator APIs.
 
     The kernel contains four different subclasses for distinguishing between
-    the various components of a traffic simulator.
+    the various components of a grid simulator.
     * simulation: controls starting, loading, saving, advancing, and resetting
       the simulator (see pycigar/core/kernel/simulation/base.py)
     * scenario: generates components for an experiment. (see
       pycigar/core/kernel/scenario/base.py)
     * device: stores, regularly updates device information, apply control
-      on devices. (see pycigar/core/kernel/vehicle/base.py).
+      on devices. (see pycigar/core/kernel/device/base.py).
     * node: stores and regularly updates node information
-      (see pycigar/core/kernel/traffic_light/base.py).
+      (see pycigar/core/kernel/node/base.py).
 
     The above kernel subclasses are designed specifically to support
     simulator-agnostic state information calling. For example, if you would
     like to collect the control setting of a specific device, then simply type:
     >>> k = Kernel(simulator="...")  # a kernel for some simulator type
-    >>> device_id = "..."  # some vehicle ID
+    >>> device_id = "..."  # some device ID
     >>> control_setting = k.device.get_control_setting(device_id)
     In addition, these subclasses support sending commands to the simulator via
     its API. For example, in order to assign a specific vehicle a target
     acceleration, type:
     >>> k = Kernel(simulator="...")  # a kernel for some simulator type
-    >>> device_id = "..."  # some vehicle ID
-    >>> control_setting = "..."  # some vehicle ID
+    >>> device_id = "..."  # some device ID
+    >>> control_setting = "..."  # some device ID
     >>> k.device.apply_cotrol(device_id, control_setting)
 
     These subclasses can be modified and recycled to support various different
