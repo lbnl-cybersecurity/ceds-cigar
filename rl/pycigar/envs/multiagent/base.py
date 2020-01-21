@@ -71,16 +71,17 @@ class MultiEnv(MultiAgentEnv, Env):
                     control_setting.append(action)
                 self.k.device.apply_control(self.k.device.get_fixed_device_ids(), control_setting)
 
+            temp_rl_actions = rl_actions.copy()
             # perform action update for PV inverter device controlled by RL control
             rl_dict = {}
-            for rl_id in rl_actions.keys():
+            for rl_id in temp_rl_actions.keys():
                 if randomize_rl_update[rl_id] == 0:
-                    rl_dict[rl_id] = rl_actions[rl_id]
+                    rl_dict[rl_id] = temp_rl_actions[rl_id]
                 else:
                     randomize_rl_update[rl_id] -=1
 
             for rl_id in rl_dict.keys():
-                del rl_actions[rl_id]
+                del temp_rl_actions[rl_id]
                 
             self.apply_rl_actions(rl_dict)
             self.additional_command()
