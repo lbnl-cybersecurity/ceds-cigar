@@ -346,7 +346,7 @@ class LocalObservationV4Wrapper(ObservationWrapper):
             old_action[a] = 1
 
             # in the original observation, position 2 is the y-value. We concatenate it with init_action and old_action
-            observation[key] = np.concatenate((np.array([observation[key][2]]), old_action))
+            observation[key] = np.concatenate((1e6*np.array([observation[key][2]]), old_action))
 
         return observation
 
@@ -950,16 +950,16 @@ class SecondStageGlobalRewardWrapper(RewardWrapper):
             y = info[key]['y']
             r = 0
 
-            #if (action == old_action).all():
-            #    roa = 0
-            #else:
-            #    roa = 1
-            #if (action == INIT_ACTION).all():
-            #    ria = 0
-            #else:
-            #    ria = 1
-            #r += -(5*y**2 + 0.005*roa + 0.05*ria)
-            r += -((M2*y**2 + P2*np.sum(np.abs(action-old_action)) + N2*np.sum(np.abs(action-INIT_ACTION))))/100
+            if (action == old_action).all():
+                roa = 0
+            else:
+                roa = 1
+            if (action == INIT_ACTION).all():
+                ria = 0
+            else:
+                ria = 1
+            r += -((1e7*y)**2 + 0.005*roa + 0.5*ria)
+            #r += -((M2*y**2 + P2*np.sum(np.abs(action-old_action)) + N2*np.sum(np.abs(action-INIT_ACTION))))/100
             global_reward += r
         global_reward = global_reward / len(list(info.keys()))
         for key in info.keys():
