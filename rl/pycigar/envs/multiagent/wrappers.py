@@ -6,7 +6,7 @@ from collections import deque
 # action space discretization
 DISCRETIZE = 30
 # the initial action for inverter
-INIT_ACTION = np.array([0.98, 1.01, 1.01, 1.04, 1.08])
+#INIT_ACTION = np.array([0.98, 1.01, 1.01, 1.04, 1.08])
 
 A = 0       # weight for voltage in reward function
 B = 100     # weight for y-value in reward function
@@ -169,18 +169,13 @@ class LocalObservationV2Wrapper(ObservationWrapper):
 
         # tranform back the initial action to the action form of RLlib
 
-        a = int((INIT_ACTION[1]-ACTION_LOWER_BOUND)/(ACTION_UPPER_BOUND-ACTION_LOWER_BOUND)*DISCRETIZE)
-        # creating an array of zero everywhere
-        init_action = np.zeros(DISCRETIZE)
-        # set value 1 at the executed action, at this step, we have the init_action_onehot.
-        init_action[a] = 1
 
         # get the old action of last timestep of the agents.
         for key in observation.keys():
 
             # at reset time, old_action is empty, we set the old_action to init_action.
             if info is None or info[key]['old_action'] is None:
-                old_action = INIT_ACTION
+                old_action = self.INIT_ACTION[key]
             else:
                 old_action = info[key]['old_action']
 
@@ -190,6 +185,12 @@ class LocalObservationV2Wrapper(ObservationWrapper):
             old_action = np.zeros(DISCRETIZE)
             # set value 1 at the executed action, at this step, we have the init_action_onehot.
             old_action[a] = 1
+
+            a = int((self.INIT_ACTION[key][1]-ACTION_LOWER_BOUND)/(ACTION_UPPER_BOUND-ACTION_LOWER_BOUND)*DISCRETIZE)
+            # creating an array of zero everywhere
+            init_action = np.zeros(DISCRETIZE)
+            # set value 1 at the executed action, at this step, we have the init_action_onehot.
+            init_action[a] = 1
 
             # in the original observation, position 2 is the y-value. We concatenate it with init_action and old_action
             observation[key] = np.concatenate((np.array([observation[key][2]]), init_action, old_action))
@@ -253,12 +254,12 @@ class LocalObservationV3Wrapper(ObservationWrapper):
 
             # at reset time, old_action is empty, we set the old_action to init_action.
             if info is None or info[key]['old_action'] is None:
-                old_action = INIT_ACTION
+                old_action = self.INIT_ACTION[key]
             else:
                 old_action = info[key]['old_action']
 
             # tranform back the initial action to the action form of RLlib
-            a = int((old_action[1]-INIT_ACTION[1]+ACTION_RANGE)/ACTION_STEP)
+            a = int((old_action[1]-self.INIT_ACTION[key][1]+ACTION_RANGE)/ACTION_STEP)
 
             # act = INIT_ACTION - ACTION_RANGE + ACTION_STEP*act
             # creating an array of zero everywhere
@@ -333,12 +334,12 @@ class LocalObservationV4Wrapper(ObservationWrapper):
 
             # at reset time, old_action is empty, we set the old_action to init_action.
             if info is None or info[key]['old_action'] is None:
-                old_action = INIT_ACTION
+                old_action = self.INIT_ACTION[key]
             else:
                 old_action = info[key]['old_action']
 
             # tranform back the initial action to the action form of RLlib
-            a = int((old_action[1]-INIT_ACTION[1]+ACTION_RANGE)/ACTION_STEP)
+            a = int((old_action[1]-self.INIT_ACTION[key][1]+ACTION_RANGE)/ACTION_STEP)
             # act = INIT_ACTION - ACTION_RANGE + ACTION_STEP*act
             # creating an array of zero everywhere
             old_action = np.zeros(DISCRETIZE_RELATIVE)
@@ -859,10 +860,10 @@ class LocalRewardWrapper(RewardWrapper):
         for key in info.keys():
             action = info[key]['current_action']
             if action is None:
-                action = INIT_ACTION
+                action = self.INIT_ACTION[key]
             old_action = info[key]['old_action']
             if old_action is None:
-                old_action = INIT_ACTION
+                old_action = self.INIT_ACTION[key]
             voltage = info[key]['voltage']
             y = info[key]['y']
             p_inject = info[key]['p_inject']
@@ -902,13 +903,13 @@ class GlobalRewardWrapper(RewardWrapper):
         for key in info.keys():
             action = info[key]['current_action']
             if action is None:
-                action = INIT_ACTION
+                action = self.INIT_ACTION[key]
             old_action = info[key]['old_action']
             if old_action is None:
-                old_action = INIT_ACTION
+                old_action = self.INIT_ACTION[key]
             y = info[key]['y']
             r = 0
-            r = -((M*y**2 + P*np.sum((action-old_action)**2) + N*np.sum((action-INIT_ACTION)**2)))/100
+            r = -((M*y**2 + P*np.sum((action-old_action)**2) + N*np.sum((action-self.INIT_ACTION[key])**2)))/100
             global_reward += r
         global_reward = global_reward / len(list(info.keys()))
         for key in info.keys():
@@ -943,10 +944,10 @@ class SecondStageGlobalRewardWrapper(RewardWrapper):
         for key in info.keys():
             action = info[key]['current_action']
             if action is None:
-                action = INIT_ACTION
+                action = self.INIT_ACTION[key]
             old_action = info[key]['old_action']
             if old_action is None:
-                old_action = INIT_ACTION
+                old_action = self.INIT_ACTION[key]
             y = info[key]['y']
             r = 0
 
@@ -954,7 +955,7 @@ class SecondStageGlobalRewardWrapper(RewardWrapper):
                 roa = 0
             else:
                 roa = 1
-            if (action == INIT_ACTION).all():
+            if (action == self.INIT_ACTION[key]).all():
                 ria = 0
             else:
                 ria = 1
@@ -994,16 +995,16 @@ class SearchGlobalRewardWrapper(RewardWrapper):
         for key in info.keys():
             action = info[key]['current_action']
             if action is None:
-                action = INIT_ACTION
+                action = self.INIT_ACTION[key]
             old_action = info[key]['old_action']
             if old_action is None:
-                old_action = INIT_ACTION
+                old_action = self.INIT_ACTION[key]
             y = info[key]['y']
 
             r = 0
             #if y > 0.025:
             #    r = -500
-            r += -((self.env.sim_params['M2']*y**2 + self.env.sim_params['P2']*np.sum((action-old_action)**2) + self.env.sim_params['N2']*np.sum((action-INIT_ACTION)**2)))/100
+            r += -((self.env.sim_params['M2']*y**2 + self.env.sim_params['P2']*np.sum((action-old_action)**2) + self.env.sim_params['N2']*np.sum((action-self.INIT_ACTION[key])**2)))/100
             global_reward += r
         global_reward = global_reward / len(list(info.keys()))
         for key in info.keys():
@@ -1082,7 +1083,7 @@ class SingleRelativeInitDiscreteActionWrapper(ActionWrapper):
         """
         new_action = {}
         for rl_id, act in action.items():
-            act = INIT_ACTION - ACTION_RANGE + ACTION_STEP*act
+            act = self.INIT_ACTION[rl_id] - ACTION_RANGE + ACTION_STEP*act
             new_action[rl_id] = act
         return new_action
 

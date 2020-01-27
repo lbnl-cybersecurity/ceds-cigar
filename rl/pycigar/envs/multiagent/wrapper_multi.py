@@ -1,4 +1,5 @@
 from pycigar.envs.multiagent import MultiEnv
+import numpy as np 
 
 """
 The abstract definition of wrapper.
@@ -9,6 +10,11 @@ class Wrapper(MultiEnv):
 
     def __init__(self, env):
         self.env = env
+        self.INIT_ACTION = {}
+        k = env.get_kernel()
+        pv_device_ids = k.device.get_pv_device_ids()
+        for device_id in pv_device_ids:
+            self.INIT_ACTION[device_id] = np.array(k.device.get_control_setting(device_id))
 
     def step(self, rl_actions):
         return self.env.step(rl_actions)
@@ -19,8 +25,8 @@ class Wrapper(MultiEnv):
     def plot(self, exp_tag='', env_name='', iteration=0):
         return self.env.plot(exp_tag, env_name, iteration)
 
-    def get_old_actions(self):
-        return self.env.get_old_actions()
+    def get_kernel(self):
+        return self.env.get_kernel()
 
     @property
     def action_space(self):
@@ -39,6 +45,7 @@ class ObservationWrapper(Wrapper):
     def step(self, rl_actions):
         observation, reward, done, info = self.env.step(rl_actions)
         return self.observation(observation, info), reward, done, info
+
 
     @property
     def observation_space(self):
