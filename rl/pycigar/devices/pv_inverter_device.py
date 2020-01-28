@@ -113,25 +113,12 @@ class PVDevice(BaseDevice):
                 if np.max(abs(step_corr)) > 10:
                     output = np.ones(15)
             filter_data = output[step_buffer:-step_buffer]
-            #print("\n X is ")
-            #print(list(self.x))
-            #print(" \n ")
+
             self.y1.append(1/self.BP1z[1,-1]*(np.sum(-self.BP1z[1,0:-1]*self.y1) + np.sum(self.BP1z[0,:]*filter_data))) 
             self.y2.append(self.y1[-1]**2)
             self.y3.append(1/self.LPF2z[1,-1]*(np.sum(-self.LPF2z[1,0:-1]*self.y3) + np.sum(self.LPF2z[0,:]*self.y2)))
 
-            #tol = 1e-8
-            #y_old = self.y/1e6
-
-
-            #if self.y3[-1] - y_old >= tol:
-            #   y_old += tol
-            # elif self.y3[-1] - y_old <= tol:
-            #     y_old -= tol
-            #else:
-            #   y_old = self.y3[-1]
-            #self.y = max(0,1e6*y_old)
-            self.y = 1e5*self.y3[-1]
+            self.y = 1e6*self.y3[-1]
 
         T = self.delta_t
         lpf_m = self.low_pass_filter_measure

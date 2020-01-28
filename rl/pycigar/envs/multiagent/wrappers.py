@@ -800,11 +800,13 @@ class FramestackObservationV4Wrapper(ObservationWrapper):
         #get the y_value_max for each observation 
         for i in ids:
             y_max_frame = max([frame[i][0] for frame in self.frames])
-            if i not in self.y_value_max.keys():
-                self.y_value_max[i] = y_max_frame
-            else:
-                self.y_value_max[i] = max(self.y_value_max[i], y_max_frame)
+            #if i not in self.y_value_max.keys():
+            self.y_value_max[i] = y_max_frame
+            #else:
+            #    self.y_value_max[i] = max(self.y_value_max[i], y_max_frame)
 
+        y_value_max_mean = np.average(np.array(list(self.y_value_max.values())))
+        # np.array(y_value_max.values())
         # initialize new observation.
         obs = {}
 
@@ -817,11 +819,16 @@ class FramestackObservationV4Wrapper(ObservationWrapper):
                                             obs[i] = np.concatenate((obs[i], obs_temp), axis=1)"""
 
         # the new observation is the observation from LocalObservationV4Wrapper concatenated with y_value - y_value_at_t-5
+        #for i in ids:
+        #    if i not in obs.keys():
+        #        obs[i] = np.concatenate((self.y_value_max[i].reshape(1, 1), self.frames[-1][i].reshape(shp[0], 1)), axis=0).reshape(shp[0]+1, )
+        #    else:
+        #        obs[i] = np.concatenate((self.y_value_max[i].reshape(1, 1), self.frames[-1][i].reshape(shp[0], 1),), axis=0).reshape(shp[0]+1, )
         for i in ids:
             if i not in obs.keys():
-                obs[i] = np.concatenate((self.y_value_max[i].reshape(1, 1), self.frames[-1][i].reshape(shp[0], 1)), axis=0).reshape(shp[0]+1, )
+                obs[i] = np.concatenate((y_value_max_mean.reshape(1, 1), self.frames[-1][i].reshape(shp[0], 1)), axis=0).reshape(shp[0]+1, )
             else:
-                obs[i] = np.concatenate((self.y_value_max[i].reshape(1, 1), self.frames[-1][i].reshape(shp[0], 1),), axis=0).reshape(shp[0]+1, )
+                obs[i] = np.concatenate((y_value_max_mean.reshape(1, 1), self.frames[-1][i].reshape(shp[0], 1),), axis=0).reshape(shp[0]+1, )
 
         return obs
 ###########################################################################
@@ -941,6 +948,14 @@ class SecondStageGlobalRewardWrapper(RewardWrapper):
         rewards = {}
         global_reward = 0
         # we accumulate agents reward into global_reward and devide it with the number of agents.
+        max_y = None 
+        for key in info.keys():
+            if max_y is None:
+                max_y = info[key]['y']
+            else:
+                if max_y < info[key]['y']:
+                    max_y = info[key]['y']
+
         for key in info.keys():
             action = info[key]['current_action']
             if action is None:
@@ -948,7 +963,8 @@ class SecondStageGlobalRewardWrapper(RewardWrapper):
             old_action = info[key]['old_action']
             if old_action is None:
                 old_action = self.INIT_ACTION[key]
-            y = info[key]['y']
+            #y = info[key]['y']
+
             r = 0
 
             if (action == old_action).all():
@@ -959,7 +975,7 @@ class SecondStageGlobalRewardWrapper(RewardWrapper):
                 ria = 0
             else:
                 ria = 1
-            r += -((1e7*y)**2 + 0.005*roa + 0.5*ria)
+            r += -(5*max_y**2 + 0.005*roa + 0.5*ria)
             #r += -((M2*y**2 + P2*np.sum(np.abs(action-old_action)) + N2*np.sum(np.abs(action-INIT_ACTION))))/100
             global_reward += r
         global_reward = global_reward / len(list(info.keys()))
