@@ -4,7 +4,7 @@ import pycigar.utils.signal_processing as signal_processing
 from collections import deque 
 
 DEFAULT_CONTROL_SETTING = np.array([0.98, 1.01, 1.02, 1.05, 1.07])
-
+step_buffer=4
 
 class PVDevice(BaseDevice):
     def __init__(self, device_id, additional_params):
@@ -82,8 +82,9 @@ class PVDevice(BaseDevice):
         self.y1 = deque([0]*len(self.BP1z[1,0:-1]), maxlen=len(self.BP1z[1,0:-1]))
         self.y2 = deque([0]*len(self.LPF2z[0,:]), maxlen=len(self.LPF2z[0,:]))
         self.y3 = deque([0]*len(self.LPF2z[1,0:-1]), maxlen=len(self.LPF2z[1,0:-1]))
-        self.x = deque([0]*len(self.BP1z[0,:]), maxlen=len(self.BP1z[0,:]))
-
+        self.x = deque([0]*(len(self.BP1z[0,:])+step_buffer*2), maxlen=(len(self.BP1z[0,:])+step_buffer*2))
+        #print(" \n X Length \n")
+        #print(self.x)
     def update(self, k):
         """See parent class."""
         # TODO: eliminate this magic number
@@ -95,25 +96,42 @@ class PVDevice(BaseDevice):
         Sbar = self.Sbar
         solar_irr = self.solar_generation[k.time]
         solar_minval = self.solar_min_value
+        step = np.hstack((1*np.ones(11), np.linspace(1, -1, 7), -1*np.ones(11)))
         if k.time > 1:
             vk = np.abs(k.node.nodes[node_id]['voltage'][k.time-1])
             vkm1 = np.abs(k.node.nodes[node_id]['voltage'][k.time-2])
             self.v_meas_k = vk
             self.v_meas_km1 = vkm1
             self.x.append(vk)
-
-            self.y1.append(1/self.BP1z[1,-1]*(np.sum(-self.BP1z[1,0:-1]*self.y1) + np.sum(self.BP1z[0,:]*self.x))) 
+            #print(" \n X \n")
+            #print(self.x)
+            output = np.array(self.x).copy()
+            #if k.time > 12:
+            if np.max(output[step_buffer:-step_buffer])-np.min(output[step_buffer:-step_buffer]) > 0.004:
+                norm_data = -1+2*(list(output)-np.min(list(output)))/(np.max(list(output))-np.min(list(output)))
+                step_corr = np.convolve(norm_data, step, mode='valid')
+                if np.max(abs(step_corr)) > 10:
+                    output = np.ones(15)
+            filter_data = output[step_buffer:-step_buffer]
+            #print("\n X is ")
+            #print(list(self.x))
+            #print(" \n ")
+            self.y1.append(1/self.BP1z[1,-1]*(np.sum(-self.BP1z[1,0:-1]*self.y1) + np.sum(self.BP1z[0,:]*filter_data))) 
             self.y2.append(self.y1[-1]**2)
             self.y3.append(1/self.LPF2z[1,-1]*(np.sum(-self.LPF2z[1,0:-1]*self.y3) + np.sum(self.LPF2z[0,:]*self.y2)))
 
-            tol = 1e-8
+            #tol = 1e-8
+            #y_old = self.y/1e6
 
-            if self.y3[-1] - self.y >= tol:
-                self.y += tol
-            elif self.y3[-1] - self.y <= tol:
-                self.y -= tol
-            else:
-                self.y = self.y3[-1]
+
+            #if self.y3[-1] - y_old >= tol:
+            #   y_old += tol
+            # elif self.y3[-1] - y_old <= tol:
+            #     y_old -= tol
+            #else:
+            #   y_old = self.y3[-1]
+            #self.y = max(0,1e6*y_old)
+            self.y = 1e5*self.y3[-1]
 
         T = self.delta_t
         lpf_m = self.low_pass_filter_measure
@@ -230,7 +248,7 @@ class PVDevice(BaseDevice):
         self.y1 = deque([0]*len(self.BP1z[1,0:-1]), maxlen=len(self.BP1z[1,0:-1]))
         self.y2 = deque([0]*len(self.LPF2z[0,:]), maxlen=len(self.LPF2z[0,:]))
         self.y3 = deque([0]*len(self.LPF2z[1,0:-1]), maxlen=len(self.LPF2z[1,0:-1]))
-        self.x = deque([0]*len(self.BP1z[0,:]), maxlen=len(self.BP1z[0,:]))
+        self.x = deque([0]*(len(self.BP1z[0,:])+step_buffer*2), maxlen=(len(self.BP1z[0,:])+step_buffer*2))
 
     def set_control_setting(self, control_setting):
         """See parent class."""
