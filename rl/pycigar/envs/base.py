@@ -176,6 +176,9 @@ class Env(gym.Env):
     def get_state(self):
         raise NotImplementedError
 
+    def get_kernel(self):
+        return self.k
+
     @property
     def action_space(self):
         raise NotImplementedError

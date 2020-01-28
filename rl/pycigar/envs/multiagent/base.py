@@ -41,7 +41,7 @@ class MultiEnv(MultiAgentEnv, Env):
         if rl_actions is not None:
             for rl_id in rl_actions.keys():
                 self.old_actions[rl_id] = self.k.device.get_control_setting(rl_id)
-                randomize_rl_update[rl_id] = np.random.randint(low=0, high=2)
+                randomize_rl_update[rl_id] = np.random.randint(low=0, high=3)
         else:
             rl_actions = self.old_actions
 
