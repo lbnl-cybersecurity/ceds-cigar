@@ -1,4 +1,4 @@
-from pycigar.envs.base import Env
+from pycigar.envs.central_base import CentralEnv
 import numpy as np
 from gym.spaces.box import Box
 import numpy as numpy
@@ -10,7 +10,7 @@ ACTION_RANGE = 0.1
 ACTION_STEP = 0.05
 DISCRETIZE_RELATIVE = int((ACTION_RANGE/ACTION_STEP))*2 + 1
 
-class RLControlPVInverterEnv(Env):
+class RLControlPVInverterEnv(CentralEnv):
 
     @property
     def observation_space(self):

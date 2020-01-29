@@ -95,7 +95,7 @@ if __name__ == "__main__":
         'evaluation_num_episodes': 1,
         #model
         'model': {'conv_filters': None, 'conv_activation': 'tanh',
-                  'fcnet_activation': 'tanh', 'fcnet_hiddens': [256, 128, 64, 32],
+                  'fcnet_activation': 'tanh', 'fcnet_hiddens': [64, 32],
                   'free_log_std': False, 'no_final_linear': False, 'vf_share_layers': True,
                   'use_lstm': False, 'max_seq_len': 20, 'lstm_cell_size': 256,
                   'lstm_use_prev_action_reward': False, 'state_shape': None,
