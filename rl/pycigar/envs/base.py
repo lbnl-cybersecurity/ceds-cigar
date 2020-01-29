@@ -93,7 +93,23 @@ class Env(gym.Env):
             reward: a dictionary of reward received by agents.
             done: bool
         """
+
+        next_observation = None
+        self.old_actions = None
+        rl_id = self.k.device.get_rl_device_ids()[0]
+        self.old_actions = self.k.device.get_control_setting(rl_id)
+        randomize_rl_update = {}
+        if rl_actions is not None:
+            for rl_id in self.k.device.get_rl_device_ids():
+                randomize_rl_update[rl_id] = np.random.randint(low=0, high=3)
+        else:
+            rl_actions = self.old_actions
+
+        count = 0 
+
         for _ in range(self.sim_params['env_config']["sims_per_step"]):
+            if self.tracking_ids is not None:
+                self.pycigar_tracking()
             self.env_time += 1
 
             # perform action update for PV inverter device
@@ -112,32 +128,85 @@ class Env(gym.Env):
                     control_setting.append(action)
                 self.k.device.apply_control(self.k.device.get_fixed_device_ids(), control_setting)
 
-            # perform action update for RL inverter device
-            self.apply_rl_actions(rl_actions)
-            self.additional_command()
-            self.k.update(reset=False)
+            temp_rl_actions = {}
+            for rl_id in self.k.device.get_rl_device_ids():
+                temp_rl_actions[rl_id] = rl_actions.copy()
 
-            converged = self.k.simulation.check_converged()
-            if not converged:
+            # perform action update for PV inverter device controlled by RL control
+            rl_dict = {}
+            for rl_id in temp_rl_actions.keys():
+                if randomize_rl_update[rl_id] == 0:
+                    rl_dict[rl_id] = temp_rl_actions[rl_id]
+                else:
+                    randomize_rl_update[rl_id] -=1
+
+            for rl_id in rl_dict.keys():
+                del temp_rl_actions[rl_id]
+                
+            self.apply_rl_actions(rl_dict)
+            self.additional_command()
+            
+            if self.k.time <= self.k.t:
+                self.k.update(reset=False)
+
+                # check whether the simulator sucessfully solved the powerflow
+                converged = self.k.simulation.check_converged()
+                if not converged:
+                    break
+
+                states = self.get_state()
+                if next_observation is None:
+                    next_observation = states
+                else:
+                    next_observation += states
+                count += 1
+
+            if self.k.time >= self.k.t:
                 break
 
-            states = self.get_state()
-            next_observation = states
-            done = not converged or (self.k.time == self.k.t)
 
-            infos = {}
+        next_observation = next_observation/count 
+                
+        # the episode will be finished if it is not converged.
+        finish = not converged or (self.k.time == self.k.t)
+        done = {}
+        if finish:
+            done = True
+        else:
+            done = False
 
-            if self.sim_params['env_config']['clip_actions']:
-                rl_clipped = self.clip_actions(rl_actions)
-                reward = self.compute_reward(rl_clipped, fail=not converged)
+        # we push the old action, current action, voltage, y, p_inject, p_max into additional info, which will return by the env after calling step.
+        #infos = {key: {'voltage': self.k.node.get_node_voltage(self.k.device.get_node_connected_to(key)),
+        #               'y': self.k.device.get_device_y(key),
+        #               'p_inject': self.k.device.get_device_p_injection(key),
+        #               'p_max': self.k.device.get_solar_generation(key),
+        #               'env_time': self.env_time,
+        #               } for key in states.keys()}
+        infos = {key: {'voltage': self.k.node.get_node_voltage(self.k.device.get_node_connected_to(key)),
+                       'y': self.k.device.get_device_y(key),
+                       'p_inject': self.k.device.get_device_p_injection(key),
+                       'p_max': self.k.device.get_device_q_injection(key),
+                       'env_time': self.env_time,
+                       } for key in self.k.device.get_rl_device_ids()}
+
+        for key in self.k.device.get_rl_device_ids():
+            if self.old_actions is not None:
+                infos[key]['old_action'] = self.old_actions
             else:
-                reward = self.compute_reward(rl_actions, fail=not converged)
+                infos[key]['old_action'] = None
+            if rl_actions is not None:
+                infos[key]['current_action'] = rl_actions
+            else:
+                infos[key]['current_action'] = None
 
-            # tracking
-            if self.tracking_ids is not None:
-                self.pycigar_tracking()
+        # clip the action into a good range or not
+        if self.sim_params['env_config']['clip_actions']:
+            rl_clipped = self.clip_actions(rl_actions)
+            reward = self.compute_reward(rl_clipped, fail=not converged)
+        else:
+            reward = self.compute_reward(rl_actions, fail=not converged)
 
-            return next_observation, reward, done, infos
+        return next_observation, reward, done, infos
 
     def reset(self):
         self.env_time = 0
@@ -157,10 +226,17 @@ class Env(gym.Env):
             return None
 
         if isinstance(self.action_space, Box):
-            rl_actions = np.clip(
-                rl_actions,
-                a_min=self.action_space.low,
-                a_max=self.action_space.high)
+            if type(rl_actions) is dict:
+                for key, action in rl_actions.items():
+                    rl_actions[key] = np.clip(
+                        action,
+                        a_min=self.action_space.low,
+                        a_max=self.action_space.high)
+            else:
+                rl_actions = np.clip(
+                        rl_actions,
+                        a_min=self.action_space.low,
+                        a_max=self.action_space.high)
         return rl_actions
 
     def apply_rl_actions(self, rl_actions=None):
