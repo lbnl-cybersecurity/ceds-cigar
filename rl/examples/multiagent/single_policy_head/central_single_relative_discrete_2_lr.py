@@ -1,6 +1,7 @@
 import ray
 from ray import tune
 from ray.rllib.agents.ppo import PPOTrainer
+from ray.rllib.agents.ppo import APPOTrainer
 import argparse
 from ray.tune.registry import register_env
 from pycigar.utils.registry import make_create_env
@@ -59,13 +60,16 @@ Define training process. Ray/Tune will call this function with config params.
 def coop_train_fn(config, reporter):
 
     # initialize PPO agent on environment. This may create 1 or more workers.
-    agent1 = PPOTrainer(env=env_name, config=config)
+    agent1 = APPOTrainer(env=env_name, config=config)
 
     # begin train iteration
     for i in range(100):
         # this function will collect samples and train agent with the samples.
         # result is the summerization of training progress.
         result = agent1.train()
+        result["phase"] = 1
+        reporter(**result)
+        phase1_time = result["timesteps_total"]
     # save the params of agent
     # state = agent1.save()
     # stop the agent

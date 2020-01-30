@@ -49,12 +49,12 @@ class RLControlPVInverterEnv(CentralEnv):
 
     def compute_reward(self, rl_actions, **kwargs):
         rewards = {}
-        for measure_id in self.tracking_ids:
-            connected_node = self.k.device.get_node_connected_to(measure_id)
-            voltage = self.k.node.get_node_voltage(connected_node)
-            y = self.k.device.get_device_y(measure_id)
-            p_inject = self.k.device.get_device_p_injection(measure_id)
-            p_max = self.k.device.get_solar_generation(measure_id)
-            r = -(np.sqrt(10*(1-voltage)**2 + 11*y**2 + 12*(1+p_inject/p_max)**2))
-            rewards.update({measure_id: r})
+        #for measure_id in self.tracking_ids:
+        #    connected_node = self.k.device.get_node_connected_to(measure_id)
+        #    voltage = self.k.node.get_node_voltage(connected_node)
+        #    y = self.k.device.get_device_y(measure_id)
+        #    p_inject = self.k.device.get_device_p_injection(measure_id)
+        #    p_max = self.k.device.get_solar_generation(measure_id)
+        #    r = -(np.sqrt(1*(1-voltage)**2 + 1*y**2 + 1*(1+p_inject/p_max)**2))
+        #    rewards.update({measure_id: r})
         return 0
