@@ -23,6 +23,12 @@ from pycigar.envs.multiagent.wrappers import ARDiscreteActionWrapper
 from pycigar.envs.multiagent import MultiEnv
 from pycigar.envs.multiagent.wrapper_multi import Wrapper
 
+from pycigar.envs.multiagent.wrappers import CentralFramestackObservationWrapper
+from pycigar.envs.multiagent.wrappers import CentralLocalObservationWrapper
+from pycigar.envs.rl_control_pv_inverter_env import RLControlPVInverterEnv
+from pycigar.envs.multiagent.wrappers import CentralSingleRelativeInitDiscreteActionWrapper
+from pycigar.envs.multiagent.wrappers import CentralGlobalRewardWrapper
+from pycigar.envs.multiagent.wrapper_multi import CentralWrapper
 """
 Tutorial to add new environment:
     - Import your custom wrappers from pycigar/envs/multiagent/wrappers.py
@@ -208,3 +214,9 @@ class ARDiscreteComaEnv(Wrapper):
 class SingleDiscreteComaEnv(Wrapper):
     def __init__(self, **kwargs):
         self.env = GlobalObservationWrapper(SingleDiscreteActionWrapper(GlobalRewardWrapper(MultiEnv(**kwargs))))
+
+
+###########################################################
+class CentralControlPVInverterEnv(CentralWrapper):
+    def __init__(self, **kwargs):
+        self.env = CentralFramestackObservationWrapper(CentralLocalObservationWrapper(CentralGlobalRewardWrapper(CentralSingleRelativeInitDiscreteActionWrapper(RLControlPVInverterEnv(**kwargs)))))

@@ -38,7 +38,7 @@ tracking_ids: list of ids of devices being tracked during the experiment.
 """
 
 pycigar_params = {"exp_tag": "cooperative_multiagent_ppo",
-                  "env_name": "RLControlPVInverterEnv",
+                  "env_name": "CentralControlPVInverterEnv",
                   "sim_params": sim_params,
                   "simulator": "opendss",
                   "tracking_ids": ['pv_17']}
@@ -60,7 +60,7 @@ Define training process. Ray/Tune will call this function with config params.
 def coop_train_fn(config, reporter):
 
     # initialize PPO agent on environment. This may create 1 or more workers.
-    agent1 = APPOTrainer(env=env_name, config=config)
+    agent1 = PPOTrainer(env=env_name, config=config)
 
     # begin train iteration
     for i in range(100):

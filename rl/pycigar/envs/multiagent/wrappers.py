@@ -1,4 +1,4 @@
-from pycigar.envs.multiagent.wrapper_multi import ObservationWrapper, RewardWrapper, ActionWrapper
+from pycigar.envs.multiagent.wrapper_multi import ObservationWrapper, RewardWrapper, ActionWrapper, CentralObservationWrapper, CentralRewardWrapper, CentralActionWrapper 
 from gym.spaces import Dict, Tuple, Discrete, Box
 import numpy as np
 from collections import deque
@@ -6,7 +6,7 @@ from collections import deque
 # action space discretization
 DISCRETIZE = 30
 # the initial action for inverter
-#INIT_ACTION = np.array([0.98, 1.01, 1.01, 1.04, 1.08])
+INIT_ACTION = np.array([0.98, 1.01, 1.01, 1.04, 1.08])
 
 A = 0       # weight for voltage in reward function
 B = 100     # weight for y-value in reward function
@@ -1161,4 +1161,252 @@ class SingleContinuousActionWrapper(ActionWrapper):
             new_action[rl_id] = act
         return new_action
 
+###########################################################################
+#                           CENTRAL WRAPPER                               #
+###########################################################################
 
+class CentralLocalObservationWrapper(CentralObservationWrapper):
+
+    """ ATTENTION: this wrapper is only used with single head RELATIVE ACTION wrappers (control only 1 breakpoint).
+    Observation: a dictionary of local observation for each agent, in the form of {'id_1': obs1, 'id_2': obs2,...}.
+                 each agent observation is an array of [y-value, init_action_onehot, last_action_onehot]
+                 at current timestep.
+
+                y_value: the value measuring oscillation magnitude of the volage at the agent position.
+                last_action_onehot: the last timestep action under one-hot encoding form.
+
+                one-hot encoding: an array of zeros everywhere and have a value of 1 at the executed position.
+                For example, we discretize the action space into DISCRETIZE=10 bins, and the action sent back from
+                RLlib is: 3. The one-hot encoding of the action is: np.array([0, 0, 0, 1, 0, 0, 0, 0, 0, 0])
+    """
+
+    @property
+    def observation_space(self):
+        """Define the observation space.
+        This is required to have an valid openAI gym environment.
+
+        Returns
+        -------
+        Box
+            A valid observation is an array have range from -inf to inf. y-value is scalar, init_action_onehot
+            and last_action_onehot have a size of DISCRETIZE_RELATIVE, therefore the shape is (1+2*DISCRETIZE_RELATIVE, ).
+        """
+        return Box(low=-float('inf'), high=float('inf'), shape=(1 + DISCRETIZE_RELATIVE, ), dtype=np.float32)
+
+    def observation(self, observation, info):
+        """Modifying the original observation into the observation that we want.
+
+        Parameters
+        ----------
+        observation : dict
+            The observation from the lastest wrapper.
+        info : dict
+            Additional information returned by the environment after one environment step.
+
+        Returns
+        -------
+        dict
+            new observation we want to feed into the RLlib.
+        """
+
+        # tranform back the initial action to the action form of RLlib
+        a = int(ACTION_RANGE/ACTION_STEP)
+        # creating an array of zero everywhere
+        init_action = np.zeros(DISCRETIZE_RELATIVE)
+        # set value 1 at the executed action, at this step, we have the init_action_onehot.
+        init_action[a] = 1
+
+        # get the old action of last timestep of the agents.
+
+        # at reset time, old_action is empty, we set the old_action to init_action.
+        key = self.get_kernel().device.get_rl_device_ids()[0]
+        if info is None or info[key]['old_action'] is None:
+            old_action = INIT_ACTION
+        else:
+            old_action = info[key]['old_action']
+
+        # tranform back the initial action to the action form of RLlib
+        a = int((old_action[1]-INIT_ACTION[1]+ACTION_RANGE)/ACTION_STEP)
+        old_action = np.zeros(DISCRETIZE_RELATIVE)
+        old_action[a] = 1
+
+        # in the original observation, position 2 is the y-value. We concatenate it with init_action and old_action
+        observation = np.concatenate((np.array([observation[2]]), old_action))
+
+        return observation
+
+class CentralFramestackObservationWrapper(CentralObservationWrapper):
+
+    """ATTENTION: this wrapper is only used after the LocalObservationV2Wrapper/LocalObservationV3Wrapper.
+    The return value of this wrapper is:
+        [y_value_max, y_value, last_action_onehot, y_value - y_value_(t-5)]
+
+    Attributes
+    ----------
+    frames : deque
+        A deque to keep the lastest 5 observations.
+    num_frames : int
+        Number of frame we need to keep to have y_value - y_value_(t-5).
+
+    """
+
+    @property
+    def observation_space(self):
+        """Observation space definition for this wrapper.
+
+        Returns
+        -------
+        Box
+            Observation space for this wrapper.
+        """
+        obss = self.env.observation_space
+        if type(obss) is Box:
+            self.num_frames = NUM_FRAMES
+            self.frames = deque([], maxlen=self.num_frames)
+            shp = obss.shape
+            obss = Box(
+                low=-float('inf'),
+                high=float('inf'),
+                shape=(shp[0]+1, ),
+                dtype=np.float32)
+        return obss
+
+    def reset(self):
+        """Redefine reset of the environment.
+        This is a must since we need to warm up the deque frames, it needs to have enough num_frames value.
+
+        Returns
+        -------
+        dict
+            A dictionary of post-process observation after reset.
+        """
+
+        # get the observation from environment as usual
+        self.frames = deque([], maxlen=self.num_frames)
+        observation = self.env.reset()
+        # add the observation into frames
+        self.frames.append(observation)
+        # forward enviroment num_frames time to fill the frames. (rl action is null).
+        return self._get_ob()
+
+    def observation(self, observation, info):
+        # everytime we get eh new observation from the environment, we add it to the frame and return the
+        # post-process observation.
+        if info is None:
+            self.frames.append(observation)
+        else:
+            self.frames.append(info)
+        return self._get_ob()
+
+    def _get_ob(self):
+        """The post-process function.
+           We need to tranform observation collected in the deque into valid observation.
+        Returns
+        -------
+        dict
+            A dictionary of observation that we want.
+        """
+        obss = self.env.observation_space
+        shp = obss.shape
+
+
+        #get the y_value_max for each observation 
+        y_value_max = -1000000
+
+
+        if type(self.frames[0]) is not dict:
+            y_value_max = self.frames[0][0]
+        if len(self.frames) == 1:
+            obs = np.concatenate((y_value_max.reshape(1, 1), self.frames[0].reshape(shp[0], 1)), axis=0).reshape(shp[0]+1, )
+        else:
+            for frame in self.frames:
+                if type(frame) is dict:
+                    y_mean = 0
+                    for i in self.frames[1].keys():
+                        y_mean += frame[i]['y']
+                    y_mean = y_mean/len(list(self.frames[1].keys()))
+                    y_value_max = max([y_mean, y_value_max])
+            i = list(self.frames[1].keys())[0]
+            print(y_value_max, type(self.frames[-1]), len(self.frames))
+            obs = np.concatenate((y_value_max.reshape(1, 1), self.frames[-1][i]['y'].reshape(1, 1), np.array(self.frames[-1][i]['old_action']).reshape(shp[0]-1, 1)), axis=0).reshape(shp[0]+1, )
+            
+        return obs
+
+class CentralSingleRelativeInitDiscreteActionWrapper(CentralActionWrapper):
+
+    """
+    Action head is only 1 value.
+    The action head is 1 action discretized into DISCRETIZE_RELATIVE number of bins.
+    We control 5 VBPs by translate the VBPs.
+    Each bin is a step of ACTION_STEP deviated from the initial action.
+    """
+    @property
+    def action_space(self):
+        return Discrete(DISCRETIZE_RELATIVE)
+
+    def action(self, action):
+        """Modify action before feed into the simulation.
+
+        Parameters
+        ----------
+        action : dict
+            The action value for each agent we received from RLlib. Each action is an interger range(0, DISCRETIZE)
+
+        Returns
+        -------
+        dict
+            Action value for each agent with a valid form to feed into the environment.
+        """
+        act = INIT_ACTION - ACTION_RANGE + ACTION_STEP*action
+        return act
+
+class CentralGlobalRewardWrapper(CentralRewardWrapper):
+
+    """Redefine the reward of the last wrapper.
+    Global reward: reward of each agent is the average of reward from all agents.
+
+    For instance, reward is to encourage the agent not to take action when unnecessary and damping the oscillation.
+    Parameters
+    ----------
+    reward : dict
+        Dictionary of reward from the last wrapper.
+    info : dict
+        additional information returned by environment.
+
+    Returns
+    -------
+    dict
+        A dictionary of new rewards.
+    """
+
+    def reward(self, reward, info):
+        global_reward = 0
+        # we accumulate agents reward into global_reward and devide it with the number of agents.
+        y = -100000
+        for key in info.keys():
+            y = max(y, info[key]['y'])
+        
+        for key in info.keys():
+            action = info[key]['current_action']
+            if action is None:
+                action = INIT_ACTION
+            old_action = info[key]['old_action']
+            if old_action is None:
+                old_action = INIT_ACTION
+
+            r = 0
+
+            if (action == old_action).all():
+                roa = 0
+            else:
+                roa = 1
+            if (action == self.INIT_ACTION[key]).all():
+                ria = 0
+            else:
+                ria = 1
+            r += -(5*y**2 + 0.005*roa + 0.5*ria)
+            #r += -((M2*y**2 + P2*np.sum(np.abs(action-old_action)) + N2*np.sum(np.abs(action-INIT_ACTION))))/100
+            global_reward += r
+        global_reward = global_reward / len(list(info.keys()))
+
+        return global_reward
