@@ -169,7 +169,7 @@ class CentralEnv(gym.Env):
                 
         # the episode will be finished if it is not converged.
         finish = not converged or (self.k.time == self.k.t)
-        done = {}
+
         if finish:
             done = True
         else:
@@ -345,7 +345,7 @@ class CentralEnv(gym.Env):
                 ax[3].grid(b=True, which='both')
                 plt.legend([a1, a2, a3, a4, a5], labels, loc=1)
 
-                np.savetxt(os.path.join(os.path.join(config.LOG_DIR, exp_tag), 'voltage_profile.txt'), self.tracking_infos[tracking_id]['v_val'])
+                #np.savetxt(os.path.join(os.path.join(config.LOG_DIR, exp_tag), 'voltage_profile.txt'), self.tracking_infos[tracking_id]['v_val'])
 
         if not os.path.exists(os.path.join(config.LOG_DIR, exp_tag)):
             os.makedirs(os.path.join(config.LOG_DIR, exp_tag))

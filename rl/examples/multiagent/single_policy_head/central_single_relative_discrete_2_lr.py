@@ -70,6 +70,19 @@ def coop_train_fn(config, reporter):
         result["phase"] = 1
         reporter(**result)
         phase1_time = result["timesteps_total"]
+
+        # for every SAVE_RATE training iterations, we test the agent on the test environment to see how it performs.
+        if i != 0 and (i+1) % SAVE_RATE == 0:
+            state = agent1.save('~/ray_results/checkpoint')
+            done = False
+            obs = test_env.reset()
+            while not done:
+                # for each observation, let the policy decides what to do
+                act = agent1.compute_action(obs)
+                # forward 1 step with agent action
+                obs, _, done, _ = test_env.step(act)
+            # plot the result. This will be saved in ./results
+            test_env.plot(pycigar_params['exp_tag'], env_name, i+1)
     # save the params of agent
     # state = agent1.save()
     # stop the agent
@@ -99,7 +112,7 @@ if __name__ == "__main__":
         'evaluation_num_episodes': 1,
         #model
         'model': {'conv_filters': None, 'conv_activation': 'tanh',
-                  'fcnet_activation': 'tanh', 'fcnet_hiddens': [64, 32],
+                  'fcnet_activation': 'tanh', 'fcnet_hiddens': [256, 256, 128, 64, 32],
                   'free_log_std': False, 'no_final_linear': False, 'vf_share_layers': True,
                   'use_lstm': False, 'max_seq_len': 20, 'lstm_cell_size': 256,
                   'lstm_use_prev_action_reward': False, 'state_shape': None,
