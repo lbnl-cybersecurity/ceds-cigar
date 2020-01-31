@@ -118,7 +118,7 @@ class PVDevice(BaseDevice):
             self.y2.append(self.y1[-1]**2)
             self.y3.append(1/self.LPF2z[1,-1]*(np.sum(-self.LPF2z[1,0:-1]*self.y3) + np.sum(self.LPF2z[0,:]*self.y2)))
 
-            self.y = 1e6*self.y3[-1]
+            self.y = 1e5*self.y3[-1]
 
         T = self.delta_t
         lpf_m = self.low_pass_filter_measure

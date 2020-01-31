@@ -96,9 +96,10 @@ if __name__ == "__main__":
         "gamma": 0.5,
         'lr': 5e-04,
         'sample_batch_size': 50,
+        'train_batch_size': 500,
         'lr_schedule': [[0, 5e-04], [50000, 5e-05]],
         #worker
-        'num_workers': 2,
+        'num_workers': 3,
         'num_gpus': 0,
         'num_cpus_per_worker': 1,
         'num_gpus_per_worker': 0,

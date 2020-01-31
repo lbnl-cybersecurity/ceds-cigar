@@ -36,7 +36,7 @@ ACTION_STEP = 0.05
 DISCRETIZE_RELATIVE = int((ACTION_RANGE/ACTION_STEP))*2 + 1
 
 # number of frames to keep
-NUM_FRAMES = 5
+NUM_FRAMES = 14
 
 """
 In the original multiagent environment (the detail implementation is in pycigar/envs/multiagent/base.py and pycigar/envs/base.py),
@@ -1399,11 +1399,11 @@ class CentralGlobalRewardWrapper(CentralRewardWrapper):
                 roa = 0
             else:
                 roa = 1
-            if (action == self.INIT_ACTION[key]).all():
-                ria = 0
-            else:
-                ria = 1
-            r += -(5*y**2 + 0.005*roa + 0.5*ria)
+            #if (action == self.INIT_ACTION[key]).all():
+            #    ria = 0
+            #else:
+            #    ria = 1
+            r += -(5*y + 0.1*roa + np.linalg.norm(action-INIT_ACTION))
             #r += -((M2*y**2 + P2*np.sum(np.abs(action-old_action)) + N2*np.sum(np.abs(action-INIT_ACTION))))/100
             global_reward += r
         global_reward = global_reward / len(list(info.keys()))
