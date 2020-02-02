@@ -6,9 +6,9 @@ import argparse
 from ray.tune.registry import register_env
 from pycigar.utils.registry import make_create_env
 import yaml
+import time
 
-
-SAVE_RATE = 5
+SAVE_RATE = 2
 
 """
 Parser to pass argument from terminal command
@@ -75,12 +75,18 @@ def coop_train_fn(config, reporter):
         if i != 0 and (i+1) % SAVE_RATE == 0:
             state = agent1.save('~/ray_results/checkpoint')
             done = False
+            start_time = time.time()
             obs = test_env.reset()
             while not done:
                 # for each observation, let the policy decides what to do
                 act = agent1.compute_action(obs)
                 # forward 1 step with agent action
                 obs, _, done, _ = test_env.step(act)
+            end_time = time.time()
+            ep_time = end_time-start_time
+            print("\n Episode time is ")
+            print(ep_time)
+            print("\n")
             # plot the result. This will be saved in ./results
             test_env.plot(pycigar_params['exp_tag'], env_name, i+1)
     # save the params of agent
@@ -97,7 +103,7 @@ if __name__ == "__main__":
         'lr': 5e-04,
         'sample_batch_size': 50,
         'train_batch_size': 500,
-        'lr_schedule': [[0, 5e-04], [50000, 5e-05]],
+        #'lr_schedule': [[0, 5e-04], [50000, 5e-05]],
         #worker
         'num_workers': 3,
         'num_gpus': 0,
