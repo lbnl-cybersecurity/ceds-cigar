@@ -67,6 +67,11 @@ class CentralEnv(gym.Env):
         # save the tracking ids, we will keep track the history of agents who have the ids in this list.
         self.tracking_ids = tracking_ids
 
+        self.INIT_ACTION = {}
+        pv_device_ids = self.k.device.get_pv_device_ids()
+        for device_id in pv_device_ids:
+            self.INIT_ACTION[device_id] = np.array(k.device.get_control_setting(device_id))
+
     def restart_simulation(self, sim_params, render=None):
         """Not in use.
         """
@@ -94,6 +99,7 @@ class CentralEnv(gym.Env):
             done: bool
         """
         
+        print(self.INIT_ACTION)
         next_observation = None
         self.old_actions = None
         rl_id = self.k.device.get_rl_device_ids()[0]

@@ -138,7 +138,7 @@ class CentralizedCriticModel(TFModelV2):
             obs_space, action_space, num_outputs, model_config, name)
 
         self.action_model = FullyConnectedNetwork(
-            Box(low=-float('inf'), high=float('inf'), shape=(int(obs_space.shape[0]/12-DISCRETIZE_RELATIVE), )),  # own_obs
+            Box(low=-float('inf'), high=float('inf'), shape=(int(20), )),  # own_obs
             action_space,
             num_outputs,
             model_config,

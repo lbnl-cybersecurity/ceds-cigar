@@ -382,14 +382,24 @@ class GlobalObservationWrapper(ObservationWrapper):
             shpact = acts.shape
             
         observation_space = Dict({
-                        "own_obs": Box(low=-float('inf'), high=float('inf'), shape=(shpobs[0],), dtype=np.float32),
-                        "opponent_obs": Box(low=-float('inf'), high=float('inf'), shape=(12*shpobs[0],), dtype=np.float32),
+                        "own_obs": Box(low=-float('inf'), high=float('inf'), shape=(shpobs[0] + 13,), dtype=np.float32),
+                        "opponent_obs": Box(low=-float('inf'), high=float('inf'), shape=(12*(shpobs[0] + 13), ), dtype=np.float32),
                         "opponent_action": Box(low=-float('inf'), high=float('inf'), shape=(12*DISCRETIZE_RELATIVE,), dtype=np.float32),
                         })
         return observation_space
 
     def observation(self, observation, info):
         global_obs = {}
+        rl_ids = list(observation.keys())
+        rl_ids.sort()
+
+
+        for rl_id in observation.keys():
+            onehot_ids = [0.]*len(rl_ids)
+            index_id = rl_ids.index(rl_id)
+            onehot_ids[index_id] = 1.
+            observation[rl_id] = list(observation[rl_id]) + list(onehot_ids)
+
         for rl_id in observation.keys():
             other_rl_ids = list(observation.keys())
             other_rl_ids.remove(rl_id)
@@ -967,7 +977,7 @@ class SecondStageGlobalRewardWrapper(RewardWrapper):
                 ria = 0
             else:
                 ria = 1
-            r += -(5*y**2 + 0.005*roa + 0.5*ria)
+            r += -(2*y + 0.1*roa + np.linalg.norm(action-self.INIT_ACTION[key]))
             #r += -((M2*y**2 + P2*np.sum(np.abs(action-old_action)) + N2*np.sum(np.abs(action-INIT_ACTION))))/100
             global_reward += r
         global_reward = global_reward / len(list(info.keys()))
