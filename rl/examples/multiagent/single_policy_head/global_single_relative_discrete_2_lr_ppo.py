@@ -16,7 +16,7 @@ import numpy as np
 
 from pycigar.envs.multiagent.wrappers import DISCRETIZE_RELATIVE
 
-SAVE_RATE = 5
+SAVE_RATE = 2
 
 tf = try_import_tf()
 
@@ -168,6 +168,7 @@ if __name__ == "__main__":
         "gamma": 0.5,
         'lr': 5e-04,
         'sample_batch_size': 50,
+        'train_batch_size': 500,
         #'lr_schedule': [[0, 5e-04], [50000, 5e-05]],
         "batch_mode": "complete_episodes",
         "callbacks": {

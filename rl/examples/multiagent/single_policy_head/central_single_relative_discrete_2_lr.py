@@ -103,7 +103,7 @@ if __name__ == "__main__":
         'lr': 5e-04,
         'sample_batch_size': 50,
         'train_batch_size': 500,
-        #'lr_schedule': [[0, 5e-04], [50000, 5e-05]],
+        'lr_schedule': [[0, 5e-04], [13000, 5e-04], [13500, 5e-05]],
         #worker
         'num_workers': 3,
         'num_gpus': 0,
@@ -119,7 +119,7 @@ if __name__ == "__main__":
         'evaluation_num_episodes': 1,
         #model
         'model': {'conv_filters': None, 'conv_activation': 'tanh',
-                  'fcnet_activation': 'tanh', 'fcnet_hiddens': [256, 256, 128, 64, 32],
+                  'fcnet_activation': 'tanh', 'fcnet_hiddens': [128, 64, 32],
                   'free_log_std': False, 'no_final_linear': False, 'vf_share_layers': True,
                   'use_lstm': False, 'max_seq_len': 20, 'lstm_cell_size': 256,
                   'lstm_use_prev_action_reward': False, 'state_shape': None,

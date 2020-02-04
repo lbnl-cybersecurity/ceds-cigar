@@ -6,7 +6,7 @@ from collections import deque
 # action space discretization
 DISCRETIZE = 30
 # the initial action for inverter
-INIT_ACTION = np.array([0.98, 1.01, 1.01, 1.04, 1.08])
+#INIT_ACTION = np.array([0.98, 1.01, 1.01, 1.04, 1.08])
 
 A = 0       # weight for voltage in reward function
 B = 100     # weight for y-value in reward function
@@ -1231,12 +1231,12 @@ class CentralLocalObservationWrapper(CentralObservationWrapper):
         # at reset time, old_action is empty, we set the old_action to init_action.
         key = self.get_kernel().device.get_rl_device_ids()[0]
         if info is None or info[key]['old_action'] is None:
-            old_action = INIT_ACTION
+            old_action = self.INIT_ACTION[key]
         else:
             old_action = info[key]['old_action']
 
         # tranform back the initial action to the action form of RLlib
-        a = int((old_action[1]-INIT_ACTION[1]+ACTION_RANGE)/ACTION_STEP)
+        a = int((old_action[1]-self.INIT_ACTION[key][1]+ACTION_RANGE)/ACTION_STEP)
         old_action = np.zeros(DISCRETIZE_RELATIVE)
         old_action[a] = 1
 
@@ -1366,7 +1366,7 @@ class CentralSingleRelativeInitDiscreteActionWrapper(CentralActionWrapper):
         dict
             Action value for each agent with a valid form to feed into the environment.
         """
-        act = INIT_ACTION - ACTION_RANGE + ACTION_STEP*action
+        act = action
         return act
 
 class CentralGlobalRewardWrapper(CentralRewardWrapper):
@@ -1398,10 +1398,10 @@ class CentralGlobalRewardWrapper(CentralRewardWrapper):
         for key in info.keys():
             action = info[key]['current_action']
             if action is None:
-                action = INIT_ACTION
+                action = self.INIT_ACTION[key]
             old_action = info[key]['old_action']
             if old_action is None:
-                old_action = INIT_ACTION
+                old_action = self.INIT_ACTION[key]
 
             r = 0
 
@@ -1413,7 +1413,7 @@ class CentralGlobalRewardWrapper(CentralRewardWrapper):
             #    ria = 0
             #else:
             #    ria = 1
-            r += -(2*y + 0.1*roa + np.linalg.norm(action-INIT_ACTION))
+            r += -(2*y + 0.1*roa + np.linalg.norm(action-self.INIT_ACTION[key]))
             #r += -((M2*y**2 + P2*np.sum(np.abs(action-old_action)) + N2*np.sum(np.abs(action-INIT_ACTION))))/100
             global_reward += r
         global_reward = global_reward / len(list(info.keys()))

@@ -10,6 +10,9 @@ import pycigar.config as config
 import os
 from scipy import signal
 
+ACTION_RANGE = 0.1
+ACTION_STEP = 0.05
+
 class CentralEnv(gym.Env):
 
     """Base environment for PyCIGAR, only have 1 agent.
@@ -67,6 +70,12 @@ class CentralEnv(gym.Env):
         # save the tracking ids, we will keep track the history of agents who have the ids in this list.
         self.tracking_ids = tracking_ids
 
+        self.INIT_ACTION = {}
+        pv_device_ids = self.k.device.get_pv_device_ids()
+        for device_id in pv_device_ids:
+            self.INIT_ACTION[device_id] = np.array(self.k.device.get_control_setting(device_id))
+
+
     def restart_simulation(self, sim_params, render=None):
         """Not in use.
         """
@@ -94,10 +103,12 @@ class CentralEnv(gym.Env):
             done: bool
         """
         
+        rl_actions = self.action_mapping(rl_actions)
+
         next_observation = None
-        self.old_actions = None
-        rl_id = self.k.device.get_rl_device_ids()[0]
-        self.old_actions = self.k.device.get_control_setting(rl_id)
+        self.old_actions = {}
+        for rl_id in self.k.device.get_rl_device_ids():
+            self.old_actions[rl_id] = self.k.device.get_control_setting(rl_id)
         randomize_rl_update = {}
         if rl_actions is not None:
             for rl_id in self.k.device.get_rl_device_ids():
@@ -130,7 +141,7 @@ class CentralEnv(gym.Env):
 
             temp_rl_actions = {}
             for rl_id in self.k.device.get_rl_device_ids():
-                temp_rl_actions[rl_id] = rl_actions.copy()
+                temp_rl_actions[rl_id] = rl_actions[rl_id]  
 
             # perform action update for PV inverter device controlled by RL control
             rl_dict = {}
@@ -191,11 +202,11 @@ class CentralEnv(gym.Env):
 
         for key in self.k.device.get_rl_device_ids():
             if self.old_actions is not None:
-                infos[key]['old_action'] = self.old_actions
+                infos[key]['old_action'] = self.old_actions[key]
             else:
                 infos[key]['old_action'] = None
             if rl_actions is not None:
-                infos[key]['current_action'] = rl_actions
+                infos[key]['current_action'] = rl_actions[key]
             else:
                 infos[key]['current_action'] = None
 
@@ -353,3 +364,12 @@ class CentralEnv(gym.Env):
 
         f.savefig(save_path)
         plt.close(f)
+
+    def action_mapping(self, rl_actions):
+        if rl_actions is None:
+            return None
+        new_rl_actions = {}
+        for rl_id in self.INIT_ACTION.keys():
+            new_rl_actions[rl_id] =  self.INIT_ACTION[rl_id] - ACTION_RANGE + ACTION_STEP*rl_actions
+
+        return new_rl_actions
