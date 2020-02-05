@@ -22,8 +22,8 @@ class Wrapper(MultiEnv):
     def reset(self):
         return self.env.reset()
 
-    def plot(self, exp_tag='', env_name='', iteration=0):
-        return self.env.plot(exp_tag, env_name, iteration)
+    def plot(self, exp_tag='', env_name='', iteration=0, reward=0):
+        return self.env.plot(exp_tag, env_name, iteration, reward)
 
     def get_kernel(self):
         return self.env.get_kernel()
@@ -98,8 +98,8 @@ class CentralWrapper(CentralEnv):
     def reset(self):
         return self.env.reset()
 
-    def plot(self, exp_tag='', env_name='', iteration=0):
-        return self.env.plot(exp_tag, env_name, iteration)
+    def plot(self, exp_tag='', env_name='', iteration=0, reward=0):
+        return self.env.plot(exp_tag, env_name, iteration, reward)
 
     def get_kernel(self):
         return self.env.get_kernel()

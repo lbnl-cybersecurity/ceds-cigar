@@ -307,7 +307,7 @@ class CentralEnv(gym.Env):
             self.tracking_infos[tracking_id]['q_val'].append(self.k.device.get_device_q_injection(tracking_id))
             self.tracking_infos[tracking_id]['a_val'].append(list(self.k.device.get_control_setting(tracking_id)))
 
-    def plot(self, exp_tag='', env_name='', iteration=0):
+    def plot(self, exp_tag='', env_name='', iteration=0, reward=0):
         """Plot the result of tracking ids after the simulation.
 
         Parameters
@@ -324,7 +324,7 @@ class CentralEnv(gym.Env):
             f, ax = plt.subplots(3, num_col, figsize=(25, 20))
             for col in range(num_col):
                 tracking_id = list(self.tracking_infos.keys())[col]
-                ax[0, col].set_title(tracking_id)
+                ax[0, col].set_title(tracking_id + " -- total reward: " + str(reward))
                 ax[0, col].plot(self.tracking_infos[tracking_id]['v_val'])
                 ax[0, col].set_ylabel('voltage')
                 ax[1, col].plot(self.tracking_infos[tracking_id]['y_val'])
@@ -339,7 +339,7 @@ class CentralEnv(gym.Env):
             f, ax = plt.subplots(4, figsize=(25, 25))
             for col in range(num_col):
                 tracking_id = list(self.tracking_infos.keys())[col]
-                ax[0].set_title(tracking_id)
+                ax[0].set_title(tracking_id + " -- total reward: " + str(reward))
                 ax[0].plot(self.tracking_infos[tracking_id]['v_val'])
                 ax[0].set_ylabel('voltage')
                 ax[0].grid(b=True, which='both')

@@ -78,18 +78,20 @@ def coop_train_fn(config, reporter):
             done = False
             start_time = time.time()
             obs = test_env.reset()
+            reward = 0
             while not done:
                 # for each observation, let the policy decides what to do
                 act = agent1.compute_action(obs)
                 # forward 1 step with agent action
-                obs, _, done, _ = test_env.step(act)
+                obs, r, done, _ = test_env.step(act)
+                reward += r
             end_time = time.time()
             ep_time = end_time-start_time
             print("\n Episode time is ")
             print(ep_time)
             print("\n")
             # plot the result. This will be saved in ./results
-            test_env.plot(pycigar_params['exp_tag'], env_name, i+1)
+            test_env.plot(pycigar_params['exp_tag'], env_name, i+1, reward)
     # save the params of agent
     # state = agent1.save()
     # stop the agent

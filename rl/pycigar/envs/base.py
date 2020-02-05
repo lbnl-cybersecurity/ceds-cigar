@@ -220,7 +220,7 @@ class Env(gym.Env):
             self.tracking_infos[tracking_id]['q_val'].append(self.k.device.get_device_q_injection(tracking_id))
             self.tracking_infos[tracking_id]['a_val'].append(list(self.k.device.get_control_setting(tracking_id)))
 
-    def plot(self, exp_tag='', env_name='', iteration=0):
+    def plot(self, exp_tag='', env_name='', iteration=0, reward=0):
         """Plot the result of tracking ids after the simulation.
 
         Parameters
