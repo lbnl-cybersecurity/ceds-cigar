@@ -60,7 +60,7 @@ Define training process. Ray/Tune will call this function with config params.
 def coop_train_fn(config, reporter):
 
     # initialize PPO agent on environment. This may create 1 or more workers.
-    agent1 = PPOTrainer(env=env_name, config=config)
+    agent1 = APPOTrainer(env=env_name, config=config)
 
     # begin train iteration
     for i in range(100):
@@ -73,7 +73,7 @@ def coop_train_fn(config, reporter):
 
         # for every SAVE_RATE training iterations, we test the agent on the test environment to see how it performs.
         if i != 0 and (i+1) % SAVE_RATE == 0:
-            agent1.get_policy().export_model('/Users/toanngo/policy/' + str(i+1))
+            #agent1.get_policy().export_model('/Users/toanngo/policy/' + str(i+1))
             state = agent1.save('~/ray_results/checkpoint')
             done = False
             start_time = time.time()
@@ -100,11 +100,13 @@ if __name__ == "__main__":
     ray.init()
     #config for RLlib - PPO agent
     config = {
-        "gamma": 0.5,
+        'vtrace': True,
+        "gamma": 0.99,
         'lr': 5e-04,
+        'lambda': 0.99,
         'sample_batch_size': 50,
-        'train_batch_size': 500,
-        'lr_schedule': [[0, 5e-04], [12000, 5e-04], [13500, 5e-05]],
+        'train_batch_size': 256,
+        #'lr_schedule': [[0, 5e-04], [12000, 5e-04], [13500, 5e-05]],
         #worker
         'num_workers': 3,
         'num_gpus': 0,
