@@ -9,7 +9,7 @@ from datetime import datetime
 import pycigar.config as config
 import os
 from scipy import signal
-
+import random
 ACTION_RANGE = 0.1
 ACTION_STEP = 0.05
 
@@ -49,7 +49,6 @@ class CentralEnv(gym.Env):
         tracking_ids : list
             A list of agent ids we want to keep track.
         """
-        self.sim_params = sim_params
         self.state = None
         self.simulator = simulator
 
@@ -62,19 +61,15 @@ class CentralEnv(gym.Env):
         # pass the API to all sub-kernels
         self.k.pass_api(kernel_api)
         # start the corresponding scenario
-        self.k.scenario.start_scenario()
+        #self.k.scenario.start_scenario()
+
+        #INIT_ACTION template
 
         # when exit the environment, trigger function terminate to clear all attached processes.
         atexit.register(self.terminate)
 
         # save the tracking ids, we will keep track the history of agents who have the ids in this list.
         self.tracking_ids = tracking_ids
-
-        self.INIT_ACTION = {}
-        pv_device_ids = self.k.device.get_pv_device_ids()
-        for device_id in pv_device_ids:
-            self.INIT_ACTION[device_id] = np.array(self.k.device.get_control_setting(device_id))
-
 
     def restart_simulation(self, sim_params, render=None):
         """Not in use.
@@ -102,7 +97,7 @@ class CentralEnv(gym.Env):
             reward: a dictionary of reward received by agents.
             done: bool
         """
-        
+        #print(self.k.time)
         rl_actions = self.action_mapping(rl_actions)
 
         next_observation = None
@@ -221,12 +216,16 @@ class CentralEnv(gym.Env):
 
     def reset(self):
         self.env_time = 0
-        self.k.update(reset=True)
+        self.sim_params = self.k.update(reset=True)  # hotfix: return new sim_params sample in kernel?
         states = self.get_state()
         # tracking
         if self.tracking_ids is not None:
             self.pycigar_tracking()
 
+        self.INIT_ACTION = {}
+        pv_device_ids = self.k.device.get_pv_device_ids()
+        for device_id in pv_device_ids:
+            self.INIT_ACTION[device_id] = np.array(self.k.device.get_control_setting(device_id))
         return states
 
     def additional_command(self):

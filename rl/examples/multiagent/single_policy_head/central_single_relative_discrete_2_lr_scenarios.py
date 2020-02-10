@@ -25,8 +25,24 @@ parser.add_argument("--stop", type=int, default=0)
 Load the scenarios configuration file. This file contains the scenario information
 for the experiment.
 """
-stream = open("../rl_config_scenarios.yaml", "r")
-sim_params = yaml.safe_load(stream)
+import os
+import copy 
+directory = '/Users/toanngo/Documents/GitHub/ceds-cigar/rl/result/bad_scenarios/train/' 
+files = os.listdir('/Users/toanngo/Documents/GitHub/ceds-cigar/rl/result/bad_scenarios/train/')[-10:]
+sim_params = []
+
+for file in files:
+    stream = open(directory + file, "r")
+    sim_param = yaml.safe_load(stream)
+    sim_param['scenario_config']['start_end_time'] = [37900, 38600]
+    sim_param['env_config']['sims_per_step'] = 20
+    for node in sim_param['scenario_config']['nodes']:
+        if 'devices' in node.keys():
+            device = node['devices'][0]
+            device['controller'] = 'rl_controller'
+            device['custom_configs']['default_control_setting'] = [0.98, 1.01, 1.01, 1.04, 1.06]
+            device['hack'] = [300, 0.4]
+    sim_params.append(copy.deepcopy(sim_param))
 
 """
 Register the environment to OpenGymAI. This is necessary, RLlib can find the new environment
@@ -63,7 +79,7 @@ def coop_train_fn(config, reporter):
     agent1 = PPOTrainer(env=env_name, config=config)
 
     # begin train iteration
-    for i in range(100):
+    for i in range(300):
         # this function will collect samples and train agent with the samples.
         # result is the summerization of training progress.
         result = agent1.train()
@@ -103,10 +119,10 @@ if __name__ == "__main__":
     #config for RLlib - PPO agent
     config = {
         "gamma": 0.5,
-        'lr': 5e-04,
+        'lr': 1e-04,
         'sample_batch_size': 50,
         'train_batch_size': 500,
-        'lr_schedule': [[0, 5e-04], [12000, 5e-04], [13500, 5e-05]],
+        #'lr_schedule': [[0, 5e-04], [12000, 5e-04], [13500, 5e-05]],
         #worker
         'num_workers': 3,
         'num_gpus': 0,

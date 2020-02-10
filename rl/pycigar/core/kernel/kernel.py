@@ -5,7 +5,7 @@ from pycigar.core.kernel.device import OpenDSSDevice
 
 from pycigar.utils.exeptions import FatalPyCIGARError
 import numpy as np
-
+import random
 
 class Kernel(object):
     """Kernel for abstract function calling across grid simulator APIs.
@@ -56,7 +56,12 @@ class Kernel(object):
             The simulator is unkown.
         """
         self.kernel_api = None
-        self.sim_params = sim_params
+        if type(sim_params) is not list:
+            self.sim_params = sim_params
+            self.multi_config = False
+        else:
+            self.list_sim_params = sim_params
+            self.multi_config = True
         self.time = 0
 
         if simulator == "opendss":
@@ -85,15 +90,40 @@ class Kernel(object):
             step.
         """
         if reset is True:
-            start_time, end_time = self.sim_params['scenario_config']['start_end_time']
-            self.t = end_time - start_time
-            self.time = 0
-            self.device.update(reset)
-            self.scenario.change_load_profile(start_time, end_time)
-            self.node.update(reset)
-            self.simulation.update(reset)
-            self.scenario.update(reset)
-            self.warm_up_v()
+            if self.multi_config is False:
+                start_time, end_time = self.sim_params['scenario_config']['start_end_time']
+                self.t = end_time - start_time
+                self.time = 0
+                self.device.start_device()
+                self.scenario.start_scenario()
+                
+                self.device.update(reset)
+                self.scenario.change_load_profile(start_time, end_time)
+                self.node.update(reset)
+                self.simulation.update(reset)
+                self.scenario.update(reset)
+
+                self.warm_up_v()
+                return self.sim_params
+            else:
+                
+                self.sim_params = random.choice(self.list_sim_params)
+                #print(self.sim_params['scenario_config']['start_end_time'])
+                start_time, end_time = self.sim_params['scenario_config']['start_end_time']
+                self.t = end_time - start_time
+                self.time = 0
+
+                self.device.start_device()
+                self.scenario.start_scenario()
+
+                self.device.update(reset)
+                self.scenario.change_load_profile(start_time, end_time)
+                self.node.update(reset)
+                self.simulation.update(reset)
+                self.scenario.update(reset)
+
+                self.warm_up_v()
+                return self.sim_params
 
         else:
             self.device.update(reset)  # calculate new PQ with new VBP, then push PV to node

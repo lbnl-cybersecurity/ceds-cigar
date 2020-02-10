@@ -79,6 +79,29 @@ class OpenDSSDevice(KernelDevice):
         self.adversary_fixed_device_ids = []
         self.num_adversary_fixed_devices = 0
 
+    def start_device(self):
+        self.opendss_proc = None  # depricated, not in use
+        self.devices = {}
+
+        self.all_device_ids = []
+        self.num_devices = 0
+        self.pv_device_ids = []
+        self.num_pv_devices = 0
+
+        self.rl_device_ids = []
+        self.num_rl_devices = 0
+        self.adaptive_device_ids = []
+        self.num_adaptive_devices = 0
+        self.fixed_device_ids = []
+        self.num_fixed_devices = 0
+
+        self.adversary_rl_device_ids = []
+        self.num_adversary_rl_devices = 0
+        self.adversary_adaptive_device_ids = []
+        self.num_adversary_adaptive_devices = 0
+        self.adversary_fixed_device_ids = []
+        self.num_adversary_fixed_devices = 0
+        
     def pass_api(self, kernel_api):
         """See parent class."""
         self.kernel_api = kernel_api

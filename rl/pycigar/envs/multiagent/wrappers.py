@@ -1218,7 +1218,6 @@ class CentralLocalObservationWrapper(CentralObservationWrapper):
         dict
             new observation we want to feed into the RLlib.
         """
-
         # tranform back the initial action to the action form of RLlib
         a = int(ACTION_RANGE/ACTION_STEP)
         # creating an array of zero everywhere
@@ -1295,6 +1294,7 @@ class CentralFramestackObservationWrapper(CentralObservationWrapper):
         self.frames = deque([], maxlen=self.num_frames)
         observation = self.env.reset()
         # add the observation into frames
+        self.INIT_ACTION = self.env.INIT_ACTION
         self.frames.append(observation)
         # forward enviroment num_frames time to fill the frames. (rl action is null).
         return self._get_ob()
@@ -1337,7 +1337,8 @@ class CentralFramestackObservationWrapper(CentralObservationWrapper):
                     y_mean = y_mean/len(list(self.frames[1].keys()))
                     y_value_max = max([y_mean, y_value_max])
             i = list(self.frames[1].keys())[0]
-            obs = np.concatenate((y_value_max.reshape(1, 1), self.frames[-1][i]['y'].reshape(1, 1), np.array(self.frames[-1][i]['old_action']).reshape(shp[0]-1, 1)), axis=0).reshape(shp[0]+1, )
+            
+            obs = np.concatenate((np.array(y_value_max).reshape(1, 1), np.array(self.frames[-1][i]['y']).reshape(1, 1), np.array(self.frames[-1][i]['old_action']).reshape(shp[0]-1, 1)), axis=0).reshape(shp[0]+1, )
             
         return obs
 
