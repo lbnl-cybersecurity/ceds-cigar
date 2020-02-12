@@ -211,13 +211,18 @@ class CentralEnv(gym.Env):
             reward = self.compute_reward(rl_clipped, fail=not converged)
         else:
             reward = self.compute_reward(rl_actions, fail=not converged)
-
+        
+        # tracking
+        if self.tracking_ids is not None:
+            self.pycigar_tracking()
+        
         return next_observation, reward, done, infos
 
     def reset(self):
         self.env_time = 0
         self.sim_params = self.k.update(reset=True)  # hotfix: return new sim_params sample in kernel?
         states = self.get_state()
+        
         # tracking
         if self.tracking_ids is not None:
             self.pycigar_tracking()
