@@ -71,6 +71,12 @@ class PyCIGAROpenDSSAPI(object):
             output = np.mean(voltage)
         return output
 
+    def get_total_power(self):
+        return np.array(dss.Circuit.TotalPower())
+
+    def get_losses(self):
+        return np.array(dss.Circuit.Losses())
+
     def set_node_kw(self, node_id, value):
         """Set node kW."""
         dss.Loads.Name(node_id)
@@ -84,3 +90,4 @@ class PyCIGAROpenDSSAPI(object):
     def set_slack_bus_voltage(self, value):
         """Set slack bus voltage."""
         dss.Vsources.PU(value)
+

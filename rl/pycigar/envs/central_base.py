@@ -216,6 +216,9 @@ class CentralEnv(gym.Env):
         if self.tracking_ids is not None:
             self.pycigar_tracking()
         
+        # tracking pycigar_output_spec
+        self.pycigar_output_specs(reset=False)
+        
         return next_observation, reward, done, infos
 
     def reset(self):
@@ -226,6 +229,9 @@ class CentralEnv(gym.Env):
         # tracking
         if self.tracking_ids is not None:
             self.pycigar_tracking()
+
+        # tracking pycigar_output_spec
+        self.pycigar_output_specs(reset=True)
 
         self.INIT_ACTION = {}
         pv_device_ids = self.k.device.get_pv_device_ids()
@@ -377,3 +383,41 @@ class CentralEnv(gym.Env):
             new_rl_actions[rl_id] =  self.INIT_ACTION[rl_id] - ACTION_RANGE + ACTION_STEP*rl_actions
 
         return new_rl_actions
+
+    def pycigar_output_specs(self, reset=True):
+        if reset == True:
+            self.output_specs = {}
+            self.output_specs['allMeterVoltages'] = {}
+            self.output_specs['allMeterVoltages']['Min'] = []
+            self.output_specs['allMeterVoltages']['Mean'] = []
+            self.output_specs['allMeterVoltages']['StdDev'] = []
+            self.output_specs['allMeterVoltages']['Max'] = []
+            self.output_specs['Consumption'] = {}
+            self.output_specs['Consumption']['Power Substation (W)'] = []
+            self.output_specs['Consumption']['Losses Total (W)'] = []
+            self.output_specs['Consumption']['DG Output (W)'] = []
+            self.output_specs['Substation Power Factor (%)'] = []
+        node_ids = self.k.node.get_node_ids()
+        node_voltages = []
+        for node_id in node_ids:
+            node_voltages.append(self.k.node.get_node_voltage(node_id))
+        node_voltages = np.array(node_voltages)
+        
+        self.output_specs['allMeterVoltages']['Min'].append(np.min(node_voltages))
+        self.output_specs['allMeterVoltages']['Mean'].append(np.mean(node_voltages))
+        self.output_specs['allMeterVoltages']['StdDev'].append(np.std(node_voltages))
+        self.output_specs['allMeterVoltages']['Max'].append(np.max(node_voltages))
+
+        sub_P, sub_Q = self.k.power_substation
+        self.output_specs['Consumption']['Power Substation (W)'].append(sub_P)
+        sub_loss_P, sub_loss_Q = self.k.losses_total
+        self.output_specs['Consumption']['Losses Total (W)'].append(sub_loss_P)
+        self.output_specs['Consumption']['DG Output (W)'].append(self.k.dg_output)
+        self.output_specs['Substation Power Factor (%)'].append(sub_P/np.sqrt(sub_P**2 + sub_Q**2))
+
+        self.k.power_substation = np.array([0., 0.])
+        self.k.losses_total = np.array([0., 0.])
+        self.k.dg_output = 0.
+
+    def get_pycigar_output_specs(self):
+        return self.output_specs

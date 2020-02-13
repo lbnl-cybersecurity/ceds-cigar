@@ -45,6 +45,8 @@ class OpenDSSNode(KernelNode):
                                               [self.master_kernel.time]*pf_converted +
                                               self.nodes[node]["PQ_injection"]['Q'])
 
+                self.total_power_inject += self.nodes[node]["PQ_injection"]['P']
+
     def get_node_ids(self):
         """Return all nodes' ids.
 

@@ -90,6 +90,7 @@ class Kernel(object):
             step.
         """
         if reset is True:
+            # track substation, output specs
             if self.multi_config is False:
                 start_time, end_time = self.sim_params['scenario_config']['start_end_time']
                 self.t = end_time - start_time
@@ -106,7 +107,6 @@ class Kernel(object):
                 self.warm_up_v()
                 return self.sim_params
             else:
-                
                 self.sim_params = random.choice(self.list_sim_params)
                 #print(self.sim_params['scenario_config']['start_end_time'])
                 start_time, end_time = self.sim_params['scenario_config']['start_end_time']
@@ -123,13 +123,24 @@ class Kernel(object):
                 self.scenario.update(reset)
 
                 self.warm_up_v()
+                
+                self.power_substation = self.kernel_api.get_total_power()
+                self.losses_total = self.kernel_api.get_losses()
+                
+                
                 return self.sim_params
 
         else:
             self.device.update(reset)  # calculate new PQ with new VBP, then push PV to node
             self.node.update(reset)  # with the load, update the load-pq to simulator
             self.simulation.update(reset)  # run a simulation step
+            self.dg_output += self.node.total_power_inject
             self.scenario.update(reset)  # update voltage on node
+            
+            self.power_substation += self.kernel_api.get_total_power()
+            self.losses_total += self.kernel_api.get_losses()
+            
+
         self.time += 1
 
     def close(self):
@@ -151,6 +162,7 @@ class Kernel(object):
             self.device.update(reset=False)
             self.node.update(reset=False)
             self.simulation.update(reset=False)
+            self.dg_output = self.node.total_power_inject
             self.scenario.update(reset=False)
 
     def warm_up_y(self):

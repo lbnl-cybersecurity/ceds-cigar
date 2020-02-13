@@ -107,6 +107,7 @@ class OpenDSSScenario(KernelScenario):
                                                                                       get_node_voltage(node)
             self.master_kernel.node.nodes[node]['PQ_injection']['P'] = 0
             self.master_kernel.node.nodes[node]['PQ_injection']['Q'] = 0
+            self.master_kernel.node.total_power_inject = 0
 
         # hack happens here
         if self.master_kernel.time in self.hack_time:
