@@ -3,7 +3,7 @@ from pycigar.devices import PVDevice
 from pycigar.controllers import AdaptiveInverterController
 from pycigar.controllers import FixedController
 from pycigar.controllers import RLController
-
+import numpy as np
 
 class OpenDSSDevice(KernelDevice):
     """See parent class.
@@ -237,12 +237,17 @@ class OpenDSSDevice(KernelDevice):
                     self.devices[device_id]['controller'] = self.devices[device_id]['hack_controller']
                     self.devices[device_id]['hack_controller'] = temp
 
+            self.total_pv_device_inject = {}
+            for pv_device in self.pv_device_ids:
+                self.total_pv_device_inject[pv_device] = np.array([0., 0.])
+
         else:
             # get the injection here
             # get the new VBP, then push PV to node
             # update pv device
             for pv_device in self.pv_device_ids:
                 self.devices[pv_device]["device"].update(self.master_kernel)
+                self.total_pv_device_inject[pv_device] += [self.devices[pv_device]["device"].p_out[1], self.devices[pv_device]["device"].q_out[1]]
 
     def get_adaptive_device_ids(self):
         """Get all adaptive device ids, for both friendly adaptive device ids and adversarial adaptive device ids.

@@ -12,6 +12,7 @@ from scipy import signal
 import random
 ACTION_RANGE = 0.1
 ACTION_STEP = 0.05
+BASE_VOLTAGE = 120
 
 class CentralEnv(gym.Env):
 
@@ -387,6 +388,10 @@ class CentralEnv(gym.Env):
     def pycigar_output_specs(self, reset=True):
         if reset == True:
             self.output_specs = {}
+            self.output_specs['Start Time'] = self.k.sim_params['scenario_config']['start_end_time'][0]
+            self.output_specs['Time Steps'] = self.k.sim_params['env_config']['sims_per_step']
+            self.output_specs['Time Step Size (s)'] = 1 # TODO: current resolution
+
             self.output_specs['allMeterVoltages'] = {}
             self.output_specs['allMeterVoltages']['Min'] = []
             self.output_specs['allMeterVoltages']['Mean'] = []
@@ -397,16 +402,27 @@ class CentralEnv(gym.Env):
             self.output_specs['Consumption']['Losses Total (W)'] = []
             self.output_specs['Consumption']['DG Output (W)'] = []
             self.output_specs['Substation Power Factor (%)'] = []
+            
+            self.output_specs['Inverter Outputs'] = []
+
+            self.output_specs['Inverter Outputs'] = {}
+            for inverter_name in self.get_kernel().device.get_pv_device_ids():
+                self.output_specs['Inverter Outputs'][inverter_name] = {}
+                self.output_specs['Inverter Outputs'][inverter_name]['Name'] = inverter_name
+                self.output_specs['Inverter Outputs'][inverter_name]['Voltage (V)'] = []
+                self.output_specs['Inverter Outputs'][inverter_name]['Power Output (W)'] = []
+                self.output_specs['Inverter Outputs'][inverter_name]['Reactive Power Output (VAR)'] = []
+
         node_ids = self.k.node.get_node_ids()
         node_voltages = []
         for node_id in node_ids:
             node_voltages.append(self.k.node.get_node_voltage(node_id))
         node_voltages = np.array(node_voltages)
         
-        self.output_specs['allMeterVoltages']['Min'].append(np.min(node_voltages))
-        self.output_specs['allMeterVoltages']['Mean'].append(np.mean(node_voltages))
-        self.output_specs['allMeterVoltages']['StdDev'].append(np.std(node_voltages))
-        self.output_specs['allMeterVoltages']['Max'].append(np.max(node_voltages))
+        self.output_specs['allMeterVoltages']['Min'].append(np.min(node_voltages)*BASE_VOLTAGE)
+        self.output_specs['allMeterVoltages']['Mean'].append(np.mean(node_voltages)*BASE_VOLTAGE)
+        self.output_specs['allMeterVoltages']['StdDev'].append(np.std(node_voltages)*BASE_VOLTAGE)
+        self.output_specs['allMeterVoltages']['Max'].append(np.max(node_voltages)*BASE_VOLTAGE)
 
         sub_P, sub_Q = self.k.power_substation
         self.output_specs['Consumption']['Power Substation (W)'].append(sub_P)
@@ -415,9 +431,25 @@ class CentralEnv(gym.Env):
         self.output_specs['Consumption']['DG Output (W)'].append(self.k.dg_output)
         self.output_specs['Substation Power Factor (%)'].append(sub_P/np.sqrt(sub_P**2 + sub_Q**2))
 
+        for inverter_name in self.output_specs['Inverter Outputs'].keys():
+            node_id = self.get_kernel().device.get_node_connected_to(inverter_name)
+            self.output_specs['Inverter Outputs'][inverter_name]['Voltage (V)'].append(self.k.node.get_node_voltage(node_id)*BASE_VOLTAGE) #done
+            self.output_specs['Inverter Outputs'][inverter_name]['Power Output (W)'].append(self.k.device.total_pv_device_inject[inverter_name][0])
+            self.output_specs['Inverter Outputs'][inverter_name]['Reactive Power Output (VAR)'].append(self.k.device.total_pv_device_inject[inverter_name][0])
+        
         self.k.power_substation = np.array([0., 0.])
         self.k.losses_total = np.array([0., 0.])
         self.k.dg_output = 0.
+        self.k.device.total_pv_device_inject = {}
+        for pv_device in self.k.device.pv_device_ids:
+            self.k.device.total_pv_device_inject[pv_device] = np.array([0., 0.])
+
 
     def get_pycigar_output_specs(self):
+        # refine the output a bit
+        inverter_outputs = []
+        for inverter_name in self.output_specs['Inverter Outputs'].keys():
+            inverter_outputs.append(self.output_specs['Inverter Outputs'][inverter_name])
+        self.output_specs['Inverter Outputs'] = inverter_outputs
+        
         return self.output_specs
