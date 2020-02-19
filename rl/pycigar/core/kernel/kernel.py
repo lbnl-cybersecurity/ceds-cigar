@@ -105,6 +105,10 @@ class Kernel(object):
                 self.scenario.update(reset)
 
                 self.warm_up_v()
+                
+                self.power_substation = self.kernel_api.get_total_power()
+                self.losses_total = self.kernel_api.get_losses()
+
                 return self.sim_params
             else:
                 self.sim_params = random.choice(self.list_sim_params)
