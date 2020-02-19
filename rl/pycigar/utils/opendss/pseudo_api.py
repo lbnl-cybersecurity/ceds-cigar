@@ -62,7 +62,17 @@ class PyCIGAROpenDSSAPI(object):
         """Get node voltage given node id."""
         dss.Loads.Name(node_id)
         voltage = dss.CktElement.VoltagesMagAng()
-        voltage = (voltage[0]+voltage[2]+voltage[4])/(dss.CktElement.NumPhases()*(dss.Loads.kV()*1000/(3**0.5)))
+        #print(voltage, node_id, dss.CktElement.NumPhases())
+        if len(voltage) == 6:
+            voltage = (voltage[0]+voltage[2]+voltage[4])/(dss.CktElement.NumPhases()*(dss.Loads.kV()*1000/(3**0.5)))
+        else:
+            if node_id[-1] == 'a':
+                voltage = (voltage[0])/(dss.CktElement.NumPhases()*(dss.Loads.kV()*1000/(3**0.5)))
+            elif node_id[-1] == 'b':
+                voltage = (voltage[0])/(dss.CktElement.NumPhases()*(dss.Loads.kV()*1000/(3**0.5)))
+            else:
+                voltage = (voltage[0])/(dss.CktElement.NumPhases()*(dss.Loads.kV()*1000/(3**0.5)))
+         
         # get the pu information directly
         if np.isnan(voltage) or np.isinf(voltage):
             raise ValueError('Voltage Output {} from OpenDSS for Load {} at Bus {} is not appropriate.'.

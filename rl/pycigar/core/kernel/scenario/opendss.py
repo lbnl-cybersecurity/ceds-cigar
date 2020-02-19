@@ -8,7 +8,7 @@ import numpy as np
 import random
 from scipy.interpolate import interp1d
 import pycigar.config as config
-
+import pandas as pd
 
 class OpenDSSScenario(KernelScenario):
 
@@ -22,11 +22,17 @@ class OpenDSSScenario(KernelScenario):
 
     def start_scenario(self):
         """Initialize the scenario."""
-        start_time, end_time = self.master_kernel.sim_params['scenario_config']['start_end_time']
+        try:
+            start_time, end_time = self.master_kernel.sim_params['scenario_config']['start_end_time']
+            direct_yaml = True
+        except: 
+            direct_yaml = False
+
         sim_params = self.master_kernel.sim_params
 
         # load simulation and opendss file
-        network_model_directory_path = os.path.join(config.DATA_DIR, sim_params['simulation_config']['network_model_directory'])
+        #network_model_directory_path = os.path.join(config.DATA_DIR, sim_params['simulation_config']['network_model_directory'])
+        network_model_directory_path = sim_params['simulation_config']['network_model_directory']
         self.kernel_api.simulation_command('Redirect ' + network_model_directory_path)
 
         if 'solution_mode' in sim_params['simulation_config']:
@@ -98,8 +104,10 @@ class OpenDSSScenario(KernelScenario):
                     else:
                         self.hack_time[device['hack'][0]] = [adversary_id]
 
-        self.change_load_profile(start_time, end_time)
-
+        if direct_yaml is True:
+            self.change_load_profile(start_time, end_time)
+        else:
+            self.upload_load_solar_profile()
     def update(self, reset):
         """See parent class."""
         for node in self.master_kernel.node.nodes:
@@ -207,3 +215,34 @@ class OpenDSSScenario(KernelScenario):
         f = interp1d(range(len(data)), data, kind='cubic', fill_value="extrapolate")
         data_secs = f(t_seconds)
         return data_secs[start_time:end_time]
+
+
+    def upload_load_solar_profile(self):
+        sim_params = self.master_kernel.sim_params
+        load_scaling_factor = sim_params['scenario_config']['custom_configs']['load_scaling_factor']
+
+        network_data_directory_path = os.path.join(config.DATA_DIR, sim_params['scenario_config']['network_data_directory'])
+
+        profile = pd.read_csv(network_data_directory_path)
+        profile.columns = map(str.lower, profile.columns)
+        list_node = self.master_kernel.node.get_node_ids()
+
+        for node in sim_params['scenario_config']['nodes']:
+            node_id = node['name']
+            load = np.array(profile[node_id]) * load_scaling_factor
+            self.master_kernel.node.set_node_load(node_id, load)
+        solar_scaling_factor = sim_params['scenario_config']['custom_configs']['solar_scaling_factor']
+        list_pv_device_ids = self.master_kernel.device.get_pv_device_ids()
+
+        for device_id in list_pv_device_ids:
+            if 'adversary' not in device_id:
+                node_id = self.master_kernel.device.get_node_connected_to(device_id)
+                percentage_control = self.master_kernel.device.get_device(device_id).percentage_control
+                solar = profile[node_id + '_pv']*solar_scaling_factor*percentage_control
+                self.master_kernel.device.set_device_internal_scenario(device_id, solar)
+
+                device_id = 'adversary_' + device_id
+                node_id = self.master_kernel.device.get_node_connected_to(device_id)
+                percentage_control = self.master_kernel.device.get_device(device_id).percentage_control
+                solar = profile[node_id + '_pv']*solar_scaling_factor*percentage_control
+                self.master_kernel.device.set_device_internal_scenario(device_id, solar)

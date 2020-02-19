@@ -92,14 +92,21 @@ class Kernel(object):
         if reset is True:
             # track substation, output specs
             if self.multi_config is False:
-                start_time, end_time = self.sim_params['scenario_config']['start_end_time']
-                self.t = end_time - start_time
+                try:
+                    start_time, end_time = self.sim_params['scenario_config']['start_end_time']
+                    self.t = end_time - start_time
+                except:
+                    self.t = 3599
+
                 self.time = 0
                 self.device.start_device()
                 self.scenario.start_scenario()
                 
                 self.device.update(reset)
-                self.scenario.change_load_profile(start_time, end_time)
+                try:
+                    self.scenario.change_load_profile(start_time, end_time)
+                except:
+                    self.scenario.upload_load_solar_profile()
                 self.node.update(reset)
                 self.simulation.update(reset)
                 self.scenario.update(reset)
@@ -112,16 +119,22 @@ class Kernel(object):
                 return self.sim_params
             else:
                 self.sim_params = random.choice(self.list_sim_params)
-                #print(self.sim_params['scenario_config']['start_end_time'])
-                start_time, end_time = self.sim_params['scenario_config']['start_end_time']
-                self.t = end_time - start_time
+                try:
+                    start_time, end_time = self.sim_params['scenario_config']['start_end_time']
+                    self.t = end_time - start_time
+                except:
+                    self.t = 3599
+                
                 self.time = 0
 
                 self.device.start_device()
                 self.scenario.start_scenario()
 
                 self.device.update(reset)
-                self.scenario.change_load_profile(start_time, end_time)
+                try:
+                    self.scenario.change_load_profile(start_time, end_time)
+                except: 
+                    self.scenario.upload_load_solar_profile()
                 self.node.update(reset)
                 self.simulation.update(reset)
                 self.scenario.update(reset)
@@ -160,7 +173,7 @@ class Kernel(object):
         self.node.update(reset=False)
         self.simulation.update(reset=False)
         self.scenario.update(reset=False)
-        while any(abs(deltaV) > 1e-5 for deltaV in np.array(self.node.get_all_nodes_voltage()) - np.array(voltages)):
+        while any(abs(deltaV) > 7e-4 for deltaV in np.array(self.node.get_all_nodes_voltage()) - np.array(voltages)):
             voltages = self.node.get_all_nodes_voltage()
             self.time += 1
             self.device.update(reset=False)

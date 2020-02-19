@@ -388,7 +388,10 @@ class CentralEnv(gym.Env):
     def pycigar_output_specs(self, reset=True):
         if reset == True:
             self.output_specs = {}
-            self.output_specs['Start Time'] = self.k.sim_params['scenario_config']['start_end_time'][0]
+            try:
+                self.output_specs['Start Time'] = self.k.sim_params['scenario_config']['start_end_time'][0]
+            except:
+                pass
             self.output_specs['Time Steps'] = self.k.sim_params['env_config']['sims_per_step']
             self.output_specs['Time Step Size (s)'] = 1 # TODO: current resolution
 
