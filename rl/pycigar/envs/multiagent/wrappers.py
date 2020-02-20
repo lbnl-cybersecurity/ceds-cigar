@@ -1201,7 +1201,7 @@ class CentralLocalObservationWrapper(CentralObservationWrapper):
             A valid observation is an array have range from -inf to inf. y-value is scalar, init_action_onehot
             and last_action_onehot have a size of DISCRETIZE_RELATIVE, therefore the shape is (1+2*DISCRETIZE_RELATIVE, ).
         """
-        return Box(low=-float('inf'), high=float('inf'), shape=(1 + DISCRETIZE_RELATIVE, ), dtype=np.float32)
+        return Box(low=-float('inf'), high=float('inf'), shape=(2 + DISCRETIZE_RELATIVE, ), dtype=np.float32)
 
     def observation(self, observation, info):
         """Modifying the original observation into the observation that we want.
@@ -1231,8 +1231,10 @@ class CentralLocalObservationWrapper(CentralObservationWrapper):
         key = self.get_kernel().device.get_rl_device_ids()[0]
         if info is None or info[key]['old_action'] is None:
             old_action = self.INIT_ACTION[key]
+            p_set = 0
         else:
             old_action = info[key]['old_action']
+            p_set = info[key]['p_set']
 
         # tranform back the initial action to the action form of RLlib
         a = int((old_action[1]-self.INIT_ACTION[key][1]+ACTION_RANGE)/ACTION_STEP)
@@ -1240,7 +1242,7 @@ class CentralLocalObservationWrapper(CentralObservationWrapper):
         old_action[a] = 1
 
         # in the original observation, position 2 is the y-value. We concatenate it with init_action and old_action
-        observation = np.concatenate((np.array([observation[2]]), old_action))
+        observation = np.concatenate((np.array([observation[2]]), np.array([p_set]), old_action))
 
         return observation
 
@@ -1323,7 +1325,6 @@ class CentralFramestackObservationWrapper(CentralObservationWrapper):
         #get the y_value_max for each observation 
         y_value_max = 0
 
-
         if type(self.frames[0]) is not dict:
             y_value_max = self.frames[0][0]
         if len(self.frames) == 1:
@@ -1338,7 +1339,7 @@ class CentralFramestackObservationWrapper(CentralObservationWrapper):
                     y_value_max = max([y_mean, y_value_max])
             i = list(self.frames[1].keys())[0]
             
-            obs = np.concatenate((np.array(y_value_max).reshape(1, 1), np.array(self.frames[-1][i]['y']).reshape(1, 1), np.array(self.frames[-1][i]['old_action']).reshape(shp[0]-1, 1)), axis=0).reshape(shp[0]+1, )
+            obs = np.concatenate((np.array(y_value_max).reshape(1, 1), np.array(self.frames[-1][i]['y']).reshape(1, 1), np.array(self.frames[-1][i]['p_set']).reshape(1, 1), np.array(self.frames[-1][i]['old_action']).reshape(shp[0]-2, 1)), axis=0).reshape(shp[0]+1, )
             
         return obs
 

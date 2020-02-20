@@ -194,6 +194,7 @@ class CentralEnv(gym.Env):
                        'p_inject': self.k.device.get_device_p_injection(key),
                        'p_max': self.k.device.get_device_q_injection(key),
                        'env_time': self.env_time,
+                       'p_set': self.k.device.get_device_p_set_relative(key)
                        } for key in self.k.device.get_rl_device_ids()}
 
         for key in self.k.device.get_rl_device_ids():
