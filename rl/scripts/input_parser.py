@@ -42,7 +42,6 @@ def input_parser(folder_name):
                               'power_factor': 0.9},
         },
         'scenario_config': {
-          'multi_config': True,
           'start_end_time': 500,
           'network_data_directory': file_load_solar_path,
           'custom_configs': {'load_scaling_factor': 1.5,

@@ -22,11 +22,12 @@ class OpenDSSScenario(KernelScenario):
 
     def start_scenario(self):
         """Initialize the scenario."""
-        try:
-            start_time, end_time = self.master_kernel.sim_params['scenario_config']['start_end_time']
+        if self.master_kernel.sim_params['scenario_config']['start_end_time'] is list:
             direct_yaml = True
-        except: 
+        else: 
             direct_yaml = False
+        start_time = self.master_kernel.sim_params['scenario_config']['start_time']
+        end_time = self.master_kernel.sim_params['scenario_config']['end_time'] 
 
         sim_params = self.master_kernel.sim_params
 
@@ -107,7 +108,8 @@ class OpenDSSScenario(KernelScenario):
         if direct_yaml is True:
             self.change_load_profile(start_time, end_time)
         else:
-            self.upload_load_solar_profile()
+            self.change_load_profile_new(start_time, end_time)
+    
     def update(self, reset):
         """See parent class."""
         for node in self.master_kernel.node.nodes:
@@ -216,8 +218,7 @@ class OpenDSSScenario(KernelScenario):
         data_secs = f(t_seconds)
         return data_secs[start_time:end_time]
 
-
-    def upload_load_solar_profile(self):
+    def change_load_profile_new(self, start_time, end_time):
         sim_params = self.master_kernel.sim_params
         load_scaling_factor = sim_params['scenario_config']['custom_configs']['load_scaling_factor']
 
@@ -229,7 +230,7 @@ class OpenDSSScenario(KernelScenario):
 
         for node in sim_params['scenario_config']['nodes']:
             node_id = node['name']
-            load = np.array(profile[node_id]) * load_scaling_factor
+            load = np.array(profile[node_id])[start_time:end_time] * load_scaling_factor
             self.master_kernel.node.set_node_load(node_id, load)
         solar_scaling_factor = sim_params['scenario_config']['custom_configs']['solar_scaling_factor']
         list_pv_device_ids = self.master_kernel.device.get_pv_device_ids()
@@ -238,11 +239,11 @@ class OpenDSSScenario(KernelScenario):
             if 'adversary' not in device_id:
                 node_id = self.master_kernel.device.get_node_connected_to(device_id)
                 percentage_control = self.master_kernel.device.get_device(device_id).percentage_control
-                solar = profile[node_id + '_pv']*solar_scaling_factor*percentage_control
+                solar = np.array(profile[node_id + '_pv'])[start_time:end_time]*solar_scaling_factor*percentage_control
                 self.master_kernel.device.set_device_internal_scenario(device_id, solar)
 
                 device_id = 'adversary_' + device_id
                 node_id = self.master_kernel.device.get_node_connected_to(device_id)
                 percentage_control = self.master_kernel.device.get_device(device_id).percentage_control
-                solar = profile[node_id + '_pv']*solar_scaling_factor*percentage_control
+                solar = np.array(profile[node_id + '_pv'])[start_time:end_time]*solar_scaling_factor*percentage_control
                 self.master_kernel.device.set_device_internal_scenario(device_id, solar)

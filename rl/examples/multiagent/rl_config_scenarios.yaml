@@ -28,6 +28,7 @@ simulation_config:
 
 scenario_config:
   network_data_directory: 'testpvnum10'
+  multi_config: True
   start_end_time: [37900, 38600]
   custom_configs: {load_scaling_factor: 1.5,
                    solar_scaling_factor: 3,

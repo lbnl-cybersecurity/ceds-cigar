@@ -56,12 +56,8 @@ class Kernel(object):
             The simulator is unkown.
         """
         self.kernel_api = None
-        if type(sim_params) is not list:
-            self.sim_params = sim_params
-            self.multi_config = False
-        else:
-            self.list_sim_params = sim_params
-            self.multi_config = True
+        self.sim_params = sim_params
+        self.multi_config = self.sim_params['scenario_config']['multi_config'] 
         self.time = 0
 
         if simulator == "opendss":
@@ -92,55 +88,63 @@ class Kernel(object):
         if reset is True:
             # track substation, output specs
             if self.multi_config is False:
-                try:
+                if self.sim_params['scenario_config']['start_end_time'] is list:
                     start_time, end_time = self.sim_params['scenario_config']['start_end_time']
                     self.t = end_time - start_time
-                except:
-                    self.t = 3599
+                else:
+                    self.t = self.sim_params['scenario_config']['start_end_time']
+                    if 'start_time' not in self.sim_params['scenario_config']:
+                        start_time = random.randint(0, 3599-self.t)
+                        end_time = start_time + self.t
+                    else:
+                        start_time = self.sim_params['scenario_config']['start_time']
+                        end_time = self.sim_params['scenario_config']['end_time']
 
+                self.sim_params['scenario_config']['start_time'] = start_time
+                self.sim_params['scenario_config']['end_time'] = end_time
+                
                 self.time = 0
                 self.device.start_device()
                 self.scenario.start_scenario()
-                
                 self.device.update(reset)
-                try:
+                
+                if self.sim_params['scenario_config']['start_end_time'] is list:
                     self.scenario.change_load_profile(start_time, end_time)
-                except:
-                    self.scenario.upload_load_solar_profile()
+                else:
+                    self.scenario.change_load_profile_new(start_time, end_time)  
+                
                 self.node.update(reset)
                 self.simulation.update(reset)
                 self.scenario.update(reset)
-
                 self.warm_up_v()
-                
                 self.power_substation = self.kernel_api.get_total_power()
                 self.losses_total = self.kernel_api.get_losses()
-
                 return self.sim_params
+
             else:
-                self.sim_params = random.choice(self.list_sim_params)
-                try:
+                if self.sim_params['scenario_config']['start_end_time'] is list:
                     start_time, end_time = self.sim_params['scenario_config']['start_end_time']
                     self.t = end_time - start_time
-                except:
-                    self.t = 3599
-                
-                self.time = 0
+                else:
+                    self.t = self.sim_params['scenario_config']['start_end_time']
+                    start_time = random.randint(0, 3599-self.t)
+                    end_time = start_time + self.t
+                self.sim_params['scenario_config']['start_time'] = start_time
+                self.sim_params['scenario_config']['end_time'] = end_time
 
+                self.time = 0
                 self.device.start_device()
                 self.scenario.start_scenario()
-
                 self.device.update(reset)
-                try:
+                if self.sim_params['scenario_config']['start_end_time'] is list:
                     self.scenario.change_load_profile(start_time, end_time)
-                except: 
-                    self.scenario.upload_load_solar_profile()
+                else: 
+                    self.scenario.change_load_profile_new(start_time, end_time)
+                
                 self.node.update(reset)
                 self.simulation.update(reset)
                 self.scenario.update(reset)
-
                 self.warm_up_v()
-                
                 self.power_substation = self.kernel_api.get_total_power()
                 self.losses_total = self.kernel_api.get_losses()
                 
@@ -153,7 +157,6 @@ class Kernel(object):
             self.simulation.update(reset)  # run a simulation step
             self.dg_output += self.node.total_power_inject
             self.scenario.update(reset)  # update voltage on node
-            
             self.power_substation += self.kernel_api.get_total_power()
             self.losses_total += self.kernel_api.get_losses()
             
