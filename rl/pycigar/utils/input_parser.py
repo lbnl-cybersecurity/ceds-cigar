@@ -21,9 +21,9 @@ def input_parser(folder_name):
     file_breakpoints_path = os.path.join(folder_path, file_breakpoints_name)
 
     json_query = {
-        'M2': 50,  # weight for y-value in reward function
-        'N2': 10,  # weight for taking different action from the initial action
-        'P2': 10,  # weight for taking different action from last timestep action
+        'M': 50,  # weight for y-value in reward function
+        'N': 10,  # weight for taking different action from the initial action
+        'P': 10,  # weight for taking different action from last timestep action
 
         'tune_search': False,
         'hack_setting': {'default_control_setting': [1.039, 1.04, 1.04, 1.041, 1.042]},
@@ -63,12 +63,20 @@ def input_parser(folder_name):
     misc_inputs_data.columns = new_header #set the header row as the df header
     misc_inputs_data = misc_inputs_data.to_dict()
 
-    M2 = misc_inputs_data['Oscillation Penalty'][1]
-    N2 = misc_inputs_data['Action Penalty'][1]
-    P2 = misc_inputs_data['Deviation from Optimal Penalty'][1]
+    M = misc_inputs_data['Oscillation Penalty'][1]
+    N = misc_inputs_data['Action Penalty'][1]
+    P = misc_inputs_data['Deviation from Optimal Penalty'][1]
     power_factor = misc_inputs_data['power_factor'][1]
     load_scaling_factor = misc_inputs_data['load scaling factor'][1]
     solar_scaling_factor = misc_inputs_data['solar scaling factor'][1]
+    
+    json_query['M'] =  M
+    json_query['N'] = N
+    json_query['P'] = P
+    json_query['scenario_config']['custom_configs']['load_scaling_factor'] = load_scaling_factor
+    json_query['scenario_config']['custom_configs']['solar_scaling_factor'] = solar_scaling_factor
+    json_query['scenario_config']['custom_configs']['power_factor'] = power_factor
+
     low_pass_filter_measure_mean = misc_inputs_data['measurement filter time constant mean'][1]
     low_pass_filter_measure_std = misc_inputs_data['measurement filter time constant std'][1]
     low_pass_filter_output_mean = misc_inputs_data['output filter time constant mean'][1]

@@ -1391,6 +1391,10 @@ class CentralGlobalRewardWrapper(CentralRewardWrapper):
     """
 
     def reward(self, reward, info):
+        M = self.env.get_kernel().sim_params['M']
+        N = self.env.get_kernel().sim_params['N']
+        P = self.env.get_kernel().sim_params['P']
+
         global_reward = 0
         # we accumulate agents reward into global_reward and devide it with the number of agents.
         y = 0
@@ -1415,7 +1419,7 @@ class CentralGlobalRewardWrapper(CentralRewardWrapper):
             #    ria = 0
             #else:
             #    ria = 1
-            r += -(2*y + 0.1*roa + np.linalg.norm(action-self.INIT_ACTION[key]))
+            r += -(M*y + N*roa + P*np.linalg.norm(action-self.INIT_ACTION[key]))
             #r += -((M2*y**2 + P2*np.sum(np.abs(action-old_action)) + N2*np.sum(np.abs(action-INIT_ACTION))))/100
             global_reward += r
         global_reward = global_reward / len(list(info.keys()))
