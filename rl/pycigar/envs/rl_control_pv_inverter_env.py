@@ -26,21 +26,19 @@ class RLControlPVInverterEnv(CentralEnv):
 
     def get_state(self):
         obs = {}
-        sample_id = self.k.device.get_rl_device_ids()[0]
         for rl_id in self.k.device.get_rl_device_ids():
             connected_node = self.k.device.get_node_connected_to(rl_id)
-
             voltage = self.k.node.get_node_voltage(connected_node)
             solar_generation = self.k.device.get_solar_generation(rl_id)
             y = self.k.device.get_device_y(rl_id)
-
             p_inject = self.k.device.get_device_p_injection(rl_id)
-            q_inject = self.k.device.get_device_q_injection(rl_id)
-
-            observation = np.array([voltage, solar_generation, y, p_inject, q_inject])
-
+            p_set = self.k.device.get_device_p_set_relative(rl_id)
+            observation = np.array([voltage, solar_generation, y, p_inject, p_set])
             obs.update({rl_id: observation})
-        return obs[sample_id]
+        
+        obs = np.mean(np.array(list(obs.values())), axis=0) 
+
+        return obs
 
     def compute_reward(self, rl_actions, **kwargs):
         return 0

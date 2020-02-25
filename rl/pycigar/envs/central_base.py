@@ -190,11 +190,11 @@ class CentralEnv(gym.Env):
         #               'env_time': self.env_time,
         #               } for key in states.keys()}
         infos = {key: {'voltage': self.k.node.get_node_voltage(self.k.device.get_node_connected_to(key)),
-                       'y': self.k.device.get_device_y(key),
+                       'y': next_observation[2],
                        'p_inject': self.k.device.get_device_p_injection(key),
-                       'p_max': self.k.device.get_device_q_injection(key),
+                       'p_max': self.k.device.get_device_p_injection(key),
                        'env_time': self.env_time,
-                       'p_set': self.k.device.get_device_p_set_relative(key)
+                       'p_set': next_observation[4],
                        } for key in self.k.device.get_rl_device_ids()}
 
         for key in self.k.device.get_rl_device_ids():
