@@ -2,6 +2,7 @@ import json
 import os
 import pycigar.config as config 
 import pandas as pd 
+import numpy as np 
 
 def input_parser(folder_name):
     folder_name = folder_name
@@ -68,8 +69,10 @@ def input_parser(folder_name):
     power_factor = misc_inputs_data['power_factor'][1]
     load_scaling_factor = misc_inputs_data['load scaling factor'][1]
     solar_scaling_factor = misc_inputs_data['solar scaling factor'][1]
-    low_pass_filter_measure = misc_inputs_data['measurement filter time constant mean'][1]
-    low_pass_filter_output = misc_inputs_data['output filter time constant mean'][1]
+    low_pass_filter_measure_mean = misc_inputs_data['measurement filter time constant mean'][1]
+    low_pass_filter_measure_std = misc_inputs_data['measurement filter time constant std'][1]
+    low_pass_filter_output_mean = misc_inputs_data['output filter time constant mean'][1]
+    low_pass_filter_output_std = misc_inputs_data['output filter time constant std'][1]
     default_control_setting = [misc_inputs_data['bp1 default'][1],
                                misc_inputs_data['bp2 default'][1],
                                misc_inputs_data['bp3 default'][1],
@@ -91,7 +94,6 @@ def input_parser(folder_name):
         node_description['load_profile'] = None
         node_description['devices'] = []
         device = {}
-        device
         device['name'] = 'inverter_' + node.lower()
         device['type'] = 'pv_device'
         device['controller'] = 'rl_controller'
@@ -100,8 +102,8 @@ def input_parser(folder_name):
         device['custom_configs']['delay_timer'] = 60
         device['custom_configs']['threshold'] = 0.05
         device['custom_configs']['adaptive_gain'] = 20
-        device['custom_configs']['low_pass_filter_measure'] = low_pass_filter_measure
-        device['custom_configs']['low_pass_filter_output'] = low_pass_filter_output
+        device['custom_configs']['low_pass_filter_measure'] = low_pass_filter_measure_std*np.random.randn() + low_pass_filter_measure_mean
+        device['custom_configs']['low_pass_filter_output'] = low_pass_filter_output_std*np.random.randn() + low_pass_filter_output_mean
         device['adversary_controller'] = 'fixed_controller'
         device['adversary_custom_configs'] = {}
         device['adversary_custom_configs']['default_control_setting'] = [1.014, 1.015, 1.015, 1.016, 1.017]
