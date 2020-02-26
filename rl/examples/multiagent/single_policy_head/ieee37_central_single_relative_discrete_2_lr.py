@@ -47,9 +47,11 @@ call function make_create_env() to register the new environment to OpenGymAI.
 create_env() is a function to create new instance of the environment.
 env_name: the registered name of the new environment.
 """
-create_env, env_name = make_create_env(params=pycigar_params, version=0)
+create_env, env_name, create_test_env, test_env_name = make_create_env(params=pycigar_params, version=0)
 register_env(env_name, create_env)
-test_env = create_env()
+register_env(test_env_name, create_test_env)
+
+test_env = create_test_env()
 obs_space = test_env.observation_space  # get the observation space, we need this to construct our agent(s) observation input
 act_space = test_env.action_space  # get the action space, we need this to construct our agent(s) action output
 
@@ -83,7 +85,7 @@ def coop_train_fn(config, reporter):
                 # for each observation, let the policy decides what to do
                 act = agent1.compute_action(obs)
                 # forward 1 step with agent action
-                obs, r, done, _ = test_env.step(act)
+                obs, r, done, _ = test_env.step(3)
                 reward += r
             end_time = time.time()
             ep_time = end_time-start_time
@@ -91,7 +93,7 @@ def coop_train_fn(config, reporter):
             print(ep_time)
             print("\n")
             # plot the result. This will be saved in ./results
-            test_env.plot(pycigar_params['exp_tag'], env_name, i+1, reward)
+            test_env.plot(pycigar_params['exp_tag'], test_env_name, i+1, reward)
     # save the params of agent
     # state = agent1.save()
     # stop the agent

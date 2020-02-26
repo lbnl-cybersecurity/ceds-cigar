@@ -64,8 +64,6 @@ class CentralEnv(gym.Env):
         # start the corresponding scenario
         #self.k.scenario.start_scenario()
 
-        #INIT_ACTION template
-
         # when exit the environment, trigger function terminate to clear all attached processes.
         atexit.register(self.terminate)
 

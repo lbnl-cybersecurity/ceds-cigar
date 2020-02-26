@@ -76,7 +76,7 @@ class Kernel(object):
         self.node.pass_api(kernel_api)
         self.device.pass_api(kernel_api)
 
-    def update(self, reset):
+    def update(self, reset, test_mode=False):
         """Call update for each simulator step.
 
         Parameters
@@ -87,7 +87,7 @@ class Kernel(object):
         """
         if reset is True:
             # track substation, output specs
-            if self.multi_config is False:
+            if test_mode is True or self.multi_config is False:
                 if self.sim_params['scenario_config']['start_end_time'] is list:
                     start_time, end_time = self.sim_params['scenario_config']['start_end_time']
                     self.t = end_time - start_time
