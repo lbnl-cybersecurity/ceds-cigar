@@ -250,26 +250,25 @@ class Env(gym.Env):
                 plt.legend([a1, a2, a3, a4, a5], labels, loc=1)
         else:
             f, ax = plt.subplots(4, figsize=(25, 25))
-            for col in range(num_col):
-                tracking_id = list(self.tracking_infos.keys())[col]
-                ax[0].set_title(tracking_id)
-                ax[0].plot(self.tracking_infos[tracking_id]['v_val'])
-                ax[0].set_ylabel('voltage')
-                ax[0].grid(b=True, which='both')
-                ax[1].plot(self.tracking_infos[tracking_id]['y_val'])
-                ax[1].set_ylabel('oscillation observer')
-                ax[1].grid(b=True, which='both')
-                ax[2].plot(self.tracking_infos[tracking_id]['q_set'])
-                ax[2].plot(self.tracking_infos[tracking_id]['q_val'])
-                ax[2].set_ylabel('reactive power')
-                ax[2].grid(b=True, which='both')
-                labels = ['a1', 'a2', 'a3', 'a4', 'a5']
-                [a1, a2, a3, a4, a5] = ax[3].plot(self.tracking_infos[tracking_id]['a_val'])
-                ax[3].set_ylabel('action')
-                ax[3].grid(b=True, which='both')
-                plt.legend([a1, a2, a3, a4, a5], labels, loc=1)
+            tracking_id = list(self.tracking_infos.keys())[0]
+            ax[0].set_title(tracking_id)
+            ax[0].plot(self.tracking_infos[tracking_id]['v_val'])
+            ax[0].set_ylabel('voltage')
+            ax[0].grid(b=True, which='both')
+            ax[1].plot(self.tracking_infos[tracking_id]['y_val'])
+            ax[1].set_ylabel('oscillation observer')
+            ax[1].grid(b=True, which='both')
+            ax[2].plot(self.tracking_infos[tracking_id]['q_set'])
+            ax[2].plot(self.tracking_infos[tracking_id]['q_val'])
+            ax[2].set_ylabel('reactive power')
+            ax[2].grid(b=True, which='both')
+            labels = ['a1', 'a2', 'a3', 'a4', 'a5']
+            [a1, a2, a3, a4, a5] = ax[3].plot(self.tracking_infos[tracking_id]['a_val'])
+            ax[3].set_ylabel('action')
+            ax[3].grid(b=True, which='both')
+            plt.legend([a1, a2, a3, a4, a5], labels, loc=1)
 
-                np.savetxt(os.path.join(os.path.join(config.LOG_DIR, exp_tag), 'voltage_profile.txt'), self.tracking_infos[tracking_id]['v_val'])
+            np.savetxt(os.path.join(os.path.join(config.LOG_DIR, exp_tag), 'voltage_profile.txt'), self.tracking_infos[tracking_id]['v_val'])
 
         if not os.path.exists(os.path.join(config.LOG_DIR, exp_tag)):
             os.makedirs(os.path.join(config.LOG_DIR, exp_tag))
