@@ -85,7 +85,7 @@ def coop_train_fn(config, reporter):
                 # for each observation, let the policy decides what to do
                 act = agent1.compute_action(obs)
                 # forward 1 step with agent action
-                obs, r, done, _ = test_env.step(3)
+                obs, r, done, _ = test_env.step(act)
                 reward += r
             end_time = time.time()
             ep_time = end_time-start_time
