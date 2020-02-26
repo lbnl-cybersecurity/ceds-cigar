@@ -4,7 +4,8 @@ import pycigar.utils.signal_processing as signal_processing
 from collections import deque 
 
 DEFAULT_CONTROL_SETTING = np.array([0.98, 1.01, 1.02, 1.05, 1.07])
-step_buffer=4
+step_buffer = 4
+
 
 class PVDevice(BaseDevice):
     def __init__(self, device_id, additional_params):
@@ -16,44 +17,14 @@ class PVDevice(BaseDevice):
             )
         self.solar_generation = None
 
-        if "default_control_setting" in additional_params:
-            self.control_setting = additional_params["default_control_setting"]
-        else:
-            self.control_setting = DEFAULT_CONTROL_SETTING
-
-        if "low_pass_filter_measure" in additional_params:
-            self.low_pass_filter_measure = additional_params["low_pass_filter_measure"]
-        else:
-            self.low_pass_filter_measure = 1
-        if "low_pass_filter_output" in additional_params:
-            self.low_pass_filter_output = additional_params["low_pass_filter_output"]
-        else:
-            self.low_pass_filter_output = 0.1
-
-        if 'low_pass_filter' in additional_params:
-            self.low_pass_filter = additional_params['low_pass_filter']
-        else:
-            self.low_pass_filter = 0.1
-
-        if 'high_pass_filter' in additional_params:
-            self.high_pass_filter = additional_params['high_pass_filter']
-        else:
-            self.high_pass_filter = 1
-
-        if 'gain' in additional_params:
-            self.gain = additional_params['gain']
-        else:
-            self.gain = 1e5
-
-        if "delta_t" in additional_params:
-            self.delta_t = additional_params["delta_t"]
-        else:
-            self.delta_t = 1
-
-        if "solar_min_value" in additional_params:
-            self.solar_min_value = additional_params["solar_min_value"]
-        else:
-            self.solar_min_value = 5
+        self.control_setting = additional_params.get('default_control_setting', DEFAULT_CONTROL_SETTING)
+        self.low_pass_filter_measure = additional_params.get('low_pass_filter_measure', 1)
+        self.low_pass_filter_output = additional_params.get('low_pass_filter_output', 0.1)
+        self.low_pass_filter = additional_params.get('low_pass_filter', 0.1)
+        self.high_pass_filter = additional_params.get('high_pass_filter', 1)
+        self.gain = additional_params.get('gain', 1e5)
+        self.delta_t = additional_params.get('delta_t', 1)
+        self.solar_min_value = additional_params.get('solar_min_value', 5)
 
         self.p_set = np.zeros(2)
         self.q_set = np.zeros(2)
@@ -79,12 +50,11 @@ class PVDevice(BaseDevice):
         self.nbp1 = self.BP1z.shape[1]-1
         self.nlpf2 = self.LPF2z.shape[1]-1
 
-        self.y1 = deque([0]*len(self.BP1z[1,0:-1]), maxlen=len(self.BP1z[1,0:-1]))
-        self.y2 = deque([0]*len(self.LPF2z[0,:]), maxlen=len(self.LPF2z[0,:]))
-        self.y3 = deque([0]*len(self.LPF2z[1,0:-1]), maxlen=len(self.LPF2z[1,0:-1]))
-        self.x = deque([0]*(len(self.BP1z[0,:])+step_buffer*2), maxlen=(len(self.BP1z[0,:])+step_buffer*2))
-        #print(" \n X Length \n")
-        #print(self.x)
+        self.y1 = deque([0]*len(self.BP1z[1, 0:-1]), maxlen=len(self.BP1z[1, 0:-1]))
+        self.y2 = deque([0]*len(self.LPF2z[0, :]), maxlen=len(self.LPF2z[0, :]))
+        self.y3 = deque([0]*len(self.LPF2z[1, 0:-1]), maxlen=len(self.LPF2z[1, 0:-1]))
+        self.x = deque([0]*(len(self.BP1z[0, :])+step_buffer*2), maxlen=(len(self.BP1z[0, :])+step_buffer*2))
+
     def update(self, k):
         """See parent class."""
         # TODO: eliminate this magic number
@@ -191,51 +161,9 @@ class PVDevice(BaseDevice):
         k.node.nodes[node_id]['PQ_injection']['P'] += self.p_out[1]
         k.node.nodes[node_id]['PQ_injection']['Q'] += self.q_out[1]
 
-
     def reset(self):
         """See parent class."""
-        self.solar_generation = None
-        additional_params = self.init_params
-
-        if "default_control_setting" in additional_params:
-            self.control_setting = additional_params["default_control_setting"]
-        else:
-            self.control_setting = DEFAULT_CONTROL_SETTING
-
-        if "low_pass_filter_measure" in additional_params:
-            self.low_pass_filter_measure = additional_params["low_pass_filter_measure"]
-        else:
-            self.low_pass_filter_measure = 1
-
-        if "low_pass_filter_output" in additional_params:
-            self.low_pass_filter_output = additional_params["low_pass_filter_output"]
-        else:
-            self.low_pass_filter_output = 0.1
-
-        if "delta_t" in additional_params:
-            self.delta_t = additional_params["delta_t"]
-        else:
-            self.delta_t = 1
-
-        if "solar_min_value" in additional_params:
-            self.solar_min_value = additional_params["solar_min_value"]
-        else:
-            self.solar_min_value = 5
-
-        self.p_set = np.zeros(2)
-        self.q_set = np.zeros(2)
-        self.p_out = np.zeros(2)
-        self.q_out = np.zeros(2)
-        self.low_pass_filter_v = np.zeros(2)
-
-        self.psi = 0
-        self.epsilon = 0
-        self.y = 0
-
-        self.y1 = deque([0]*len(self.BP1z[1,0:-1]), maxlen=len(self.BP1z[1,0:-1]))
-        self.y2 = deque([0]*len(self.LPF2z[0,:]), maxlen=len(self.LPF2z[0,:]))
-        self.y3 = deque([0]*len(self.LPF2z[1,0:-1]), maxlen=len(self.LPF2z[1,0:-1]))
-        self.x = deque([0]*(len(self.BP1z[0,:])+step_buffer*2), maxlen=(len(self.BP1z[0,:])+step_buffer*2))
+        self.__init__(self.device_id, self.init_params)
 
     def set_control_setting(self, control_setting):
         """See parent class."""
