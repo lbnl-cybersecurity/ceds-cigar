@@ -66,7 +66,7 @@ def input_parser(folder_name):
     M = misc_inputs_data['Oscillation Penalty'][1]
     N = misc_inputs_data['Action Penalty'][1]
     P = misc_inputs_data['Deviation from Optimal Penalty'][1]
-    power_factor = misc_inputs_data['power_factor'][1]
+    power_factor = misc_inputs_data['power factor'][1]
     load_scaling_factor = misc_inputs_data['load scaling factor'][1]
     solar_scaling_factor = misc_inputs_data['solar scaling factor'][1]
     
