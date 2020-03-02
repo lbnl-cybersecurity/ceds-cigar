@@ -48,40 +48,13 @@ class AdaptiveInverterController(BaseController):
         self.time_counter = 0
         self.init_params = copy.deepcopy(additional_params)
 
-        if 'delay_timer' in additional_params:
-            self.delay_timer = additional_params['delay_timer']
-        else:
-            self.delay_timer = 0
-
-        if 'threshold' in additional_params:
-            self.threshold = additional_params['threshold']
-        else:
-            self.threshold = 0.25
-
-        if 'adaptive_gain' in additional_params:
-            self.adaptive_gain = additional_params['adaptive_gain']
-        else:
-            self.adaptive_gain = 20
-
-        if 'delta_t' in additional_params:
-            self.delta_t = additional_params['delta_t']
-        else:
-            self.delta_t = 1
-
-        if 'low_pass_filter' in additional_params:
-            self.low_pass_filter = additional_params['low_pass_filter']
-        else:
-            self.low_pass_filter = 0.1
-
-        if 'high_pass_filter' in additional_params:
-            self.high_pass_filter = additional_params['high_pass_filter']
-        else:
-            self.high_pass_filter = 1
-
-        if 'gain' in additional_params:
-            self.gain = additional_params['gain']
-        else:
-            self.gain = 1e5
+        self.delay_timer = additional_params.get('delay_timer', 0)
+        self.threshold = additional_params.get('threshold', 0.25)
+        self.adaptive_gain = additional_params.get('adaptive_gain', 20)
+        self.delta_t = additional_params.get('delta_t', 1)
+        self.low_pass_filter = additional_params.get('low_pass_filter', 0.1)
+        self.high_pass_filter = additional_params.get('high_pass_filter', 1)
+        self.gain = additional_params.get('gain', 1e5)
 
         # internal observer of the controller
         self.up = np.zeros(2)
@@ -156,7 +129,7 @@ class AdaptiveInverterController(BaseController):
             Description
         """
         delay = self.delay_timer
-        if (yk > thresh):
+        if yk > thresh:
             uk = delay / 2 * adaptive_gain * (vk ** 2 + vkmdelay ** 2) + ukmdelay
         else:
             uk = ukmdelay
@@ -164,48 +137,4 @@ class AdaptiveInverterController(BaseController):
 
     def reset(self):
         """See parent class."""
-        self.time_counter = 0
-        additional_params = self.init_params
-        self.init_params = copy.deepcopy(additional_params)
-
-        if 'delay_timer' in additional_params:
-            self.delay_timer = additional_params['delay_timer']
-        else:
-            self.delay_timer = 0
-
-        if 'threshold' in additional_params:
-            self.threshold = additional_params['threshold']
-        else:
-            self.threshold = 0.25
-
-        if 'adaptive_gain' in additional_params:
-            self.adaptive_gain = additional_params['adaptive_gain']
-        else:
-            self.adaptive_gain = 20
-
-        if 'delta_t' in additional_params:
-            self.delta_t = additional_params['delta_t']
-        else:
-            self.delta_t = 1
-
-        if 'low_pass_filter' in additional_params:
-            self.low_pass_filter = additional_params['low_pass_filter']
-        else:
-            self.low_pass_filter = 0.1
-
-        if 'high_pass_filter' in additional_params:
-            self.high_pass_filter = additional_params['high_pass_filter']
-        else:
-            self.high_pass_filter = 1
-
-        if 'gain' in additional_params:
-            self.gain = additional_params['gain']
-        else:
-            self.gain = 1e5
-
-        # internal observer of the controller
-        self.up = np.zeros(2)
-        self.uq = np.zeros(2)
-        self.psi = np.zeros(self.delay_timer+1) if self.delay_timer != 0 else np.zeros(1)
-        self.epsilon = np.zeros(self.delay_timer+1) if self.delay_timer != 0 else np.zeros(1)
-        self.y = np.zeros(self.delay_timer+1) if self.delay_timer != 0 else np.zeros(1)
+        self.__init__(self.device_id, self.init_params)
