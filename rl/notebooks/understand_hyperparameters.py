@@ -9,16 +9,21 @@ from ray import tune
 from ray.rllib.agents.ppo import PPOTrainer
 from ray.tune.registry import register_env
 from tqdm import tqdm
+import matplotlib.pyplot as plt
+from collections import namedtuple
 
 from pycigar.utils.input_parser import input_parser
 from pycigar.utils.registry import make_create_env
 
+ActionTuple = namedtuple('Action', ['action', 'timestep'])
+
 
 def parse_cli_args():
     parser = argparse.ArgumentParser(description='Run distributed runs to better understand PyCIGAR hyperparameters')
-    parser.add_argument('--epochs', type=int, default=1, help='number of epochs per run')
+    parser.add_argument('--epochs', type=int, default=1, help='number of epochs per trial')
+    parser.add_argument('--save-path', type=str, default='~/hp_exp', help='where to save the results')
     parser.add_argument('--workers', type=int, default=3, help='number of cpu workers per run')
-    parser.add_argument('--eval-rounds', type=int, default=4,
+    parser.add_argument('--eval-rounds', type=int, default=2,
                         help='number of evaluation rounds to run to smooth random results')
 
     return parser.parse_args()
@@ -36,29 +41,28 @@ class EpochStats:
             'earliest_action': None,
             'latest_action': None,
             'avg_entropy': None,
+            'avg_magnitude': None
         }
-        self.last_action = 2  # 2 is the init action
         self.rewards = []
+        self.true_actions = [ActionTuple(2, -1)]  # 2 is the init action
         self.step = 0
 
     def update_sim_step(self, action, reward):
         """ Called after each simulation step """
-        if self.stats['earliest_action'] is None and action != self.last_action:
-            self.stats['earliest_action'] = self.step
-
-        if action != self.last_action:
-            self.stats['latest_action'] = self.step
-
-        if action != self.last_action:
-            self.last_action = action
-            self.stats['num_actions_taken'] += 1
+        if action != self.true_actions[-1].action:
+            self.true_actions.append(ActionTuple(action, self.step))
 
         self.rewards.append(reward)
         self.step += 1
 
     def update_sim_end(self, agent, env):
         """Called at the end of the simulation"""
-        self.stats['total_reward'] = sum(self.rewards)
+        self['total_reward'] = sum(self.rewards)
+        self['avg_magnitude'] = (np.array([t.action for t in self.true_actions[1:]]) - 2).mean()
+        self['num_actions_taken'] = len(self.true_actions) - 1
+        if len(self.true_actions) > 1:
+            self['latest_action'] = self.true_actions[-1].timestep
+            self['earliest_action'] = self.true_actions[1].timestep
 
     @staticmethod
     def average(stats_list):
@@ -76,7 +80,7 @@ class EpochStats:
         return self.stats[key]
 
 
-def run_eval(agent, test_env):
+def run_eval(agent, test_env, save_plot=None):
     """ Run one run of evaluation and return the stats """
     curr_stat = EpochStats()
     done = False
@@ -87,6 +91,17 @@ def run_eval(agent, test_env):
         curr_stat.update_sim_step(act, r)
 
     curr_stat.update_sim_end(agent, test_env)
+
+    if save_plot:
+        f = test_env.plot(reward=curr_stat.stats['total_reward'])
+        ax = f.axes
+        ax[0].set_ylim([0.93, 1.07])
+        ax[1].set_ylim([0, 5])
+        ax[2].set_ylim([-280, 280])
+        ax[3].set_ylim([0.91, 1.19])
+
+        f.savefig(save_plot + '.png')
+
     return curr_stat
 
 
@@ -100,10 +115,19 @@ def run_train(config, reporter):
 
     agent = PPOTrainer(env=env_name, config=config['model_config'])
 
-    for _ in tqdm(range(config['epochs'])):
+    for epoch in tqdm(range(config['epochs'])):
         result = agent.train()
         print(f'Running {config["eval_rounds"]} evaluation rounds')
-        eval_stat = EpochStats.average([run_eval(agent, test_env) for _ in range(config['eval_rounds'])])
+        evals = []
+        for i in range(config['eval_rounds']):
+            if i == 0:
+                res = run_eval(agent, test_env, save_plot=os.path.join(reporter.logdir, f'epoch{epoch}-test'))
+            else:
+                res = run_eval(agent, test_env)
+            evals.append(res)
+
+        eval_stat = EpochStats.average(evals)
+        run_eval(agent, test_env, save_plot=os.path.join(reporter.logdir, f'epoch{epoch}-test'))
         reporter(**eval_stat.stats, **result)
 
     agent.stop()
@@ -114,10 +138,10 @@ def run_hp_experiment(full_config, name):
     res = tune.run(run_train,
                    config=full_config,
                    resources_per_trial={'cpu': 1, 'gpu': 0, 'extra_cpu': full_config['model_config']['num_workers']},
-                   local_dir='/home/alexandre/hp_exp/' + name
+                   local_dir=os.path.join(os.path.expanduser(full_config['save_path']), name)
                    )
-    #with open('/home/alex/hp_exp/' + str(name) + '.pickle', 'wb') as f:
-    #    pickle.dump(res.trial_dataframes, f)
+    with open(os.path.join(os.path.expanduser(full_config['save_path']), str(name) + '.pickle'), 'wb') as f:
+        pickle.dump(res.trial_dataframes, f)
 
 
 sim_params = input_parser('ieee37busdata')
@@ -162,14 +186,26 @@ if __name__ == '__main__':
         'model_config': base_config,
         'pycigar_params': pycigar_params,
         'epochs': args.epochs,
-        'eval_rounds': args.eval_rounds
+        'eval_rounds': args.eval_rounds,
+        'save_path': args.save_path
     }
 
-
     config = deepcopy(full_config)
-    config['pycigar_params']['N'] = ray.tune.grid_search([0, 1, 2, 4, 8])
+    config['pycigar_params']['sim_params']['N'] = ray.tune.grid_search([0, 1, 2, 4, 8])
     run_hp_experiment(config, 'action_penalty')
 
     config = deepcopy(full_config)
-    config['pycigar_params']['P'] = ray.tune.grid_search([0, 1, 2, 4, 8])
+    config['pycigar_params']['sim_params']['P'] = ray.tune.grid_search([0, 1, 2, 4, 8])
     run_hp_experiment(config, 'init_penalty')
+
+    config = deepcopy(full_config)
+    config['model_config']['gamma'] = ray.tune.grid_search([0, 0.2, 0.5, 0.9, 1])
+    run_hp_experiment(config, 'gamma')
+
+    config = deepcopy(full_config)
+    config['model_config']['lambda'] = ray.tune.grid_search([0, 0.2, 0.5, 0.9, 1])
+    run_hp_experiment(config, 'lambda')
+
+    config = deepcopy(full_config)
+    config['model_config']['entropy_coeff'] = ray.tune.grid_search([0, 0.05, 0.1, 0.2, 0.5])
+    run_hp_experiment(config, 'entropy_coeff')
