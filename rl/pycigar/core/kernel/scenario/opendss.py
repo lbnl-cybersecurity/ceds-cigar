@@ -1,5 +1,7 @@
 from pycigar.core.kernel.scenario import KernelScenario
 from pycigar.devices import PVDevice
+from pycigar.devices import RegulatorDevice
+
 from pycigar.controllers import AdaptiveInverterController
 from pycigar.controllers import FixedController
 from pycigar.controllers import RLController
@@ -104,6 +106,18 @@ class OpenDSSScenario(KernelScenario):
                         self.hack_time[device['hack'][0]].append(adversary_id)
                     else:
                         self.hack_time[device['hack'][0]] = [adversary_id]
+
+        # adding regulator, hotfix
+        regulator_names = self.kernel_api.get_all_regulator_names()
+        device_configs = sim_params['scenario_config']['regulators']
+        device_configs['kernel_api'] = self.kernel_api
+        for regulator_id in regulator_names:
+            self.master_kernel.device.add(name=regulator_id,
+                                         connect_to=None,
+                                         device=(RegulatorDevice, device_configs),
+                                         controller=None, 
+                                         adversary_controller=None, 
+                                         hack=None)
 
         if direct_yaml is True:
             self.change_load_profile(start_time, end_time)

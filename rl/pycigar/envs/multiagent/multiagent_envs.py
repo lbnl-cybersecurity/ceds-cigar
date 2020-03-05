@@ -220,3 +220,5 @@ class SingleDiscreteComaEnv(Wrapper):
 class CentralControlPVInverterEnv(CentralWrapper):
     def __init__(self, **kwargs):
         self.env = CentralFramestackObservationWrapper(CentralLocalObservationWrapper(CentralGlobalRewardWrapper(CentralSingleRelativeInitDiscreteActionWrapper(RLControlPVInverterEnv(**kwargs)))))
+        #self.env = RLControlPVInverterEnv(**kwargs)
+        

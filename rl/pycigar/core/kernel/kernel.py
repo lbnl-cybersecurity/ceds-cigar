@@ -106,6 +106,7 @@ class Kernel(object):
                 self.time = 0
                 self.device.start_device()
                 self.scenario.start_scenario()
+                
                 self.device.update(reset)
                 
                 if self.sim_params['scenario_config']['start_end_time'] is list:

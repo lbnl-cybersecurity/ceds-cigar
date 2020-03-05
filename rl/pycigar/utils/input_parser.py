@@ -51,7 +51,13 @@ def input_parser(folder_name):
                              'slack_bus_voltage': 1.04,
                              'load_generation_noise': False,
                              'power_factor': 0.9},
-          'nodes': []
+          'nodes': [],
+          'regulators': {
+            'max_tap_change': 30,
+            'forward_band': 16,
+            'tap_number': 2,
+            'tap_delay': 0
+          }
         }
     }
 
@@ -119,5 +125,15 @@ def input_parser(folder_name):
         node_description['devices'].append(device)
 
         json_query['scenario_config']['nodes'].append(node_description)
+
+    max_tap_change = misc_inputs_data['max tap change default'][1]
+    forward_band = misc_inputs_data['forward band default'][1]
+    tap_number = misc_inputs_data['tap number default'][1]
+    tap_delay = misc_inputs_data['tap delay default'][1]
+
+    json_query['scenario_config']['regulators']['max_tap_change'] = max_tap_change
+    json_query['scenario_config']['regulators']['forward_band'] = forward_band
+    json_query['scenario_config']['regulators']['tap_number'] = tap_number
+    json_query['scenario_config']['regulators']['tap_delay'] = tap_delay
 
     return json_query

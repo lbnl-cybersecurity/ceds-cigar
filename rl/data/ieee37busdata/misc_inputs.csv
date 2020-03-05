@@ -14,3 +14,7 @@ bp2 default,1.01
 bp3 default,1.01
 bp4 default,1.04
 bp5 default,1.07
+max tap change default,30
+forward band default,16
+tap number default,2
+tap delay default,0

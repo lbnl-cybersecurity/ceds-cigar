@@ -1,5 +1,7 @@
 from pycigar.core.kernel.device import KernelDevice
 from pycigar.devices import PVDevice
+from pycigar.devices import RegulatorDevice
+
 from pycigar.controllers import AdaptiveInverterController
 from pycigar.controllers import FixedController
 from pycigar.controllers import RLController
@@ -79,6 +81,9 @@ class OpenDSSDevice(KernelDevice):
         self.adversary_fixed_device_ids = []
         self.num_adversary_fixed_devices = 0
 
+        self.regulator_device_ids = []
+        self.num_regulator_device_ids = 0
+
     def start_device(self):
         self.opendss_proc = None  # depricated, not in use
         self.devices = {}
@@ -101,6 +106,9 @@ class OpenDSSDevice(KernelDevice):
         self.num_adversary_adaptive_devices = 0
         self.adversary_fixed_device_ids = []
         self.num_adversary_fixed_devices = 0
+
+        self.regulator_device_ids = []
+        self.num_regulator_device_ids = 0
         
     def pass_api(self, kernel_api):
         """See parent class."""
@@ -139,6 +147,15 @@ class OpenDSSDevice(KernelDevice):
             Adversarial device id, ad-hoc return need to be fixed
         """
         device_id = name
+
+        if device[0] == RegulatorDevice:
+            device_obj = device[0](device_id, device[1])
+            self.devices[device_id] = {"device": device_obj}
+            self.regulator_device_ids.append(device_id)
+            self.num_regulator_device_ids += 1
+            self.all_device_ids.extend(device_id)
+            self.num_devices += 1
+            return None
 
         # create ally device
         if hack is None:
@@ -228,14 +245,18 @@ class OpenDSSDevice(KernelDevice):
         if reset is True:
             # reset device and controller
             for device_id in self.devices.keys():
-                self.devices[device_id]['device'].reset()
-                self.devices[device_id]['controller'].reset()
-                if 'hack_controller' in self.devices[device_id]:
-                    self.devices[device_id]['hack_controller'].reset()
+                if isinstance(self.devices[device_id]['device'], PVDevice):
+                    
+                    self.devices[device_id]['device'].reset()
+                    self.devices[device_id]['controller'].reset()
+                    if 'hack_controller' in self.devices[device_id]:
+                        self.devices[device_id]['hack_controller'].reset()
 
-                    temp = self.devices[device_id]['controller']
-                    self.devices[device_id]['controller'] = self.devices[device_id]['hack_controller']
-                    self.devices[device_id]['hack_controller'] = temp
+                        temp = self.devices[device_id]['controller']
+                        self.devices[device_id]['controller'] = self.devices[device_id]['hack_controller']
+                        self.devices[device_id]['hack_controller'] = temp
+                elif isinstance(self.devices[device_id]['device'], RegulatorDevice):
+                    self.devices[device_id]['device'].reset()
 
             self.total_pv_device_inject = {}
             for pv_device in self.pv_device_ids:
@@ -248,6 +269,9 @@ class OpenDSSDevice(KernelDevice):
             for pv_device in self.pv_device_ids:
                 self.devices[pv_device]["device"].update(self.master_kernel)
                 self.total_pv_device_inject[pv_device] += [self.devices[pv_device]["device"].p_out[1], self.devices[pv_device]["device"].q_out[1]]
+
+    def get_regulator_device_ids(self):
+        return self.regulator_device_ids
 
     def get_adaptive_device_ids(self):
         """Get all adaptive device ids, for both friendly adaptive device ids and adversarial adaptive device ids.
