@@ -1,0 +1,60 @@
+Clear
+
+! Note that this is a 3-wire delta system. 
+! Node voltages in OpenDSS are normally line-ground and may give strange-looking results
+! Be careful if you put line-neutral connected loads or other devices on this circuit.
+
+New object=circuit.03node_multiphase_balanced_notransformer
+~ basekv=5  pu=1.00
+
+! Substation Transformer
+! New Transformer.SubXF Phases=3 Windings=2 Xhl=8
+! ~ wdg=1 bus=sourcebus conn=Delta kv=230   kva=2500   %r=1
+! ~ wdg=2 bus=799       conn=Delta kv=4.8   kva=2500   %r=1
+
+! Load Transformer
+! New Transformer.XFM1  Phases=3 Windings=2 Xhl=1.81
+! ~ wdg=1 bus=709       conn=Delta kv=4.80  kva=500    %r=0.045
+! ~ wdg=2 bus=775       conn=Delta kv=0.48  kva=500    %r=0.045
+
+! import line codes with phase impedance matrices
+! Redirect        IEEELineCodes.dss
+
+! Linecodes
+New linecode.721bal nphases=3 BaseFreq=60
+~ rmatrix = [0.05 | 0.0  0.05 | 0.0  0.0  0.05]
+~ xmatrix = [0.03 | -0.0  0.03 | -0.0  -0.0  0.03]
+~ cmatrix = [80.0 | 0  80.0 | 0  0  80.0]
+
+New linecode.722bal nphases=3 BaseFreq=60
+~ rmatrix = [0.08 | 0.0  0.08 | 0.0  0.0  0.08]
+~ xmatrix = [0.05 | -0.0  0.05 | -0.0  -0.0  0.05]
+~ cmatrix = [60.0 | 0  60.0 | 0  0  60.0]
+
+! Lines
+New Line.line_sb_A1    Phases=3 Bus1=sourcebus.1.2.3 Bus2=A1.1.2.3  LineCode=721bal  Length=2.00
+New Line.line_A1_A2    Phases=3 Bus1=A1.1.2.3 Bus2=A2.1.2.3  LineCode=721bal  Length=4.00
+New Line.line_A2_A3    Phases=3 Bus1=A2.1.2.3  Bus2=A3.1.2.3  LineCode=722bal  Length=4.00
+
+! Spot loads
+New Load.load_A2a      Bus1=A2.1 Phases=1 Conn=Wye Model=1 kV=5.00 kW=250.0 kVAR=75.0
+New Load.load_A2b      Bus1=A2.2 Phases=1 Conn=Wye Model=1 kV=5.00 kW=250.0 kVAR=75.0
+New Load.load_A2c      Bus1=A2.3 Phases=1 Conn=Wye Model=1 kV=5.00 kW=250.0 kVAR=75.0
+
+New Load.load_A3a      Bus1=A3.1 Phases=1 Conn=Wye Model=1 kV=5.00 kW=500.0 kVAR=75.0
+New Load.load_A3b      Bus1=A3.2 Phases=1 Conn=Wye Model=1 kV=5.00 kW=500.0 kVAR=75.0
+New Load.load_A3c      Bus1=A3.3 Phases=1 Conn=Wye Model=1 kV=5.00 kW=500.0 kVAR=75.0
+
+
+Set VoltageBases = "5.0"
+CalcVoltageBases
+! BusCoords IEEE37_BusXY.csv
+
+! solve mode=direct
+set maxiterations=100
+solve
+
+! show voltages LL Nodes
+! show currents residual=y elements
+! show powers kva elements
+! show taps
