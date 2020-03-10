@@ -421,7 +421,17 @@ class CentralEnv(gym.Env):
             self.output_specs['Consumption']['DG Output (W)'] = []
             self.output_specs['Substation Power Factor (%)'] = []
             
-            self.output_specs['Inverter Outputs'] = []
+            self.output_specs['Regulator_testReg'] = {}
+            reg_phases = ''
+            for regulator_name in self.get_kernel().device.get_regulator_device_ids():
+                self.output_specs['Regulator_testReg'][regulator_name] = []
+                reg_phases += regulator_name[-1] 
+            self.output_specs['Regulator_testReg']['RegPhases'] = reg_phases.upper()
+
+            self.output_specs['Substation Top Voltage(V)'] = []
+            self.output_specs['Substation Bottom Voltage(V)'] = []
+            self.output_specs['Substation Regulator Minimum Voltage(V)'] = []
+            self.output_specs['Substation Regulator Maximum Voltage(V)'] = []
 
             self.output_specs['Inverter Outputs'] = {}
             for inverter_name in self.get_kernel().device.get_pv_device_ids():
@@ -430,11 +440,6 @@ class CentralEnv(gym.Env):
                 self.output_specs['Inverter Outputs'][inverter_name]['Voltage (V)'] = []
                 self.output_specs['Inverter Outputs'][inverter_name]['Power Output (W)'] = []
                 self.output_specs['Inverter Outputs'][inverter_name]['Reactive Power Output (VAR)'] = []
-
-            self.output_specs['Regulator_testReg'] = {}
-            for regulator_name in self.get_kernel().device.get_regulator_device_ids():
-                self.output_specs['Regulator_testReg'][regulator_name] = []
-                self.output_specs['Regulator_testReg'][regulator_name] = []
 
         node_ids = self.k.node.get_node_ids()
         node_voltages = []
@@ -454,6 +459,23 @@ class CentralEnv(gym.Env):
         self.output_specs['Consumption']['DG Output (W)'].append(self.k.dg_output)
         self.output_specs['Substation Power Factor (%)'].append(sub_P/np.sqrt(sub_P**2 + sub_Q**2))
 
+        self.output_specs['Substation Top Voltage(V)'].append(self.k.kernel_api.get_substation_top_voltage())
+        self.output_specs['Substation Bottom Voltage(V)']    # add a function to get the voltage bottom here
+        
+        if self.output_specs['Substation Regulator Minimum Voltage(V)'] == []:
+            val_max = None
+            val_min = None
+            for regulator_name in self.output_specs['Regulator_testReg'].keys():
+                if regulator_name != 'RegPhases':
+                    vreg = self.k.kernel_api.get_regulator_forwardvreg(regulator_name)
+                    band = self.k.kernel_api.get_regulator_forwardband(regulator_name)
+                    val_upper = vreg + band
+                    val_lower = vreg - band
+                    val_max = val_upper if val_max is None or val_max < val_upper else val_max
+                    val_min = val_lower if val_min is None or val_min > val_lower else val_min
+            print(val_max, val_min)
+            self.output_specs['Substation Regulator Minimum Voltage(V)'].append(val_min)
+            self.output_specs['Substation Regulator Maximum Voltage(V)'].append(val_max)
         for inverter_name in self.output_specs['Inverter Outputs'].keys():
             node_id = self.get_kernel().device.get_node_connected_to(inverter_name)
             self.output_specs['Inverter Outputs'][inverter_name]['Voltage (V)'].append(self.k.node.get_node_voltage(node_id)*BASE_VOLTAGE) #done
@@ -468,7 +490,8 @@ class CentralEnv(gym.Env):
             self.k.device.total_pv_device_inject[pv_device] = np.array([0., 0.])
 
         for regulator_name in self.output_specs['Regulator_testReg'].keys():
-            self.output_specs['Regulator_testReg'][regulator_name].append(self.k.kernel_api.get_regulator_tap())
+            if regulator_name != 'RegPhases':
+                self.output_specs['Regulator_testReg'][regulator_name].append(self.k.kernel_api.get_regulator_tap(regulator_name))
 
     def get_pycigar_output_specs(self):
         # refine the output a bit

@@ -251,10 +251,10 @@ class OpenDSSDevice(KernelDevice):
                     self.devices[device_id]['controller'].reset()
                     if 'hack_controller' in self.devices[device_id]:
                         self.devices[device_id]['hack_controller'].reset()
-
                         temp = self.devices[device_id]['controller']
                         self.devices[device_id]['controller'] = self.devices[device_id]['hack_controller']
                         self.devices[device_id]['hack_controller'] = temp
+                        
                 elif isinstance(self.devices[device_id]['device'], RegulatorDevice):
                     self.devices[device_id]['device'].reset()
 
