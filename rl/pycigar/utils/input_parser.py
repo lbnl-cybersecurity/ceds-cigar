@@ -32,6 +32,9 @@ def input_parser(folder_name):
           'clip_actions': True,
           'sims_per_step': 20
         },
+        'attack_randomization': {
+          'generator': 'AttackDefinitionGenerator'
+        },
         'simulation_config': {
           'network_model_directory': file_dss_path,
           'custom_configs':  {'solution_mode': 1,

@@ -11,13 +11,19 @@ import random
 from scipy.interpolate import interp1d
 import pycigar.config as config
 import pandas as pd
+from pycigar.envs.attack_definition import AttackDefinitionGenerator
 
 class OpenDSSScenario(KernelScenario):
 
     def __init__(self, master_kernel):
         """See parent class."""
         KernelScenario.__init__(self, master_kernel)
+        self.hack_start_times = None
+        self.hack_end_times = None
 
+        # take the first snapshot of randomization function if multi_config False
+        self.snapshot_randomization = {}
+        
     def pass_api(self, kernel_api):
         """See parent class."""
         self.kernel_api = kernel_api
@@ -32,6 +38,13 @@ class OpenDSSScenario(KernelScenario):
         end_time = self.master_kernel.sim_params['scenario_config']['end_time'] 
 
         sim_params = self.master_kernel.sim_params
+
+        # loading attack def generator
+        if 'attack_randomization' in sim_params:
+            if sim_params['attack_randomization']['generator'] == 'AttackDefinitionGenerator':
+                attack_def_gen = AttackDefinitionGenerator(start_time, end_time)
+        else:
+            attack_def_gen = None
 
         # load simulation and opendss file
         #network_model_directory_path = os.path.join(config.DATA_DIR, sim_params['simulation_config']['network_model_directory'])
@@ -59,7 +72,8 @@ class OpenDSSScenario(KernelScenario):
         self.master_kernel.node.start_nodes()
 
         # create dict for hack
-        self.hack_time = {}
+        self.hack_start_times = {}
+        self.hack_end_times = {}
 
         # load device, load node and internal value for device
         for node in sim_params['scenario_config']['nodes']:
@@ -93,19 +107,38 @@ class OpenDSSScenario(KernelScenario):
                         adversary_device_controller = FixedController
                         adversary_device_configs = {}
 
+                    if attack_def_gen:
+                        dev_hack_info = attack_def_gen.new_dev_hack_info()
+                    else:
+                        dev_hack_info = device['hack']
+
+                    if sim_params['scenario_config']['multi_config']  is False:
+                        if device['name'] not in self.snapshot_randomization.keys():
+                            self.snapshot_randomization[device['name']] = dev_hack_info 
+                        else:
+                            dev_hack_info = self.snapshot_randomization[device['name']]
+
                     adversary_id = self.master_kernel.device.add(name=device['name'],
                                                                  connect_to=node['name'],
                                                                  device=(device_type, device_configs),
                                                                  controller=(device_controller, device_configs),
                                                                  adversary_controller=(adversary_device_controller,
                                                                                        adversary_device_configs),
-                                                                 hack=device['hack'])
+                                                                 hack=dev_hack_info)
 
-                    # at hack timestep, add the adversary_controller id
-                    if device['hack'][0] in self.hack_time:
-                        self.hack_time[device['hack'][0]].append(adversary_id)
+                    # at hack start timestep, add the adversary_controller id
+                    if dev_hack_info[0] in self.hack_start_times:
+                        self.hack_start_times[dev_hack_info[0]].append(adversary_id)
                     else:
-                        self.hack_time[device['hack'][0]] = [adversary_id]
+                        self.hack_start_times[dev_hack_info[0]] = [adversary_id]
+
+                    # at hack end timestep, remove the adversary_controller id. See self.update()
+                    # if dev_hack_info contains end_time, it's at index 2
+                    if len(dev_hack_info) == 3:
+                        if dev_hack_info[2] in self.hack_end_times:
+                            self.hack_end_times[dev_hack_info[2]].append(adversary_id)
+                        else:
+                            self.hack_end_times[dev_hack_info[2]] = [adversary_id]
 
         # adding regulator, hotfix
         regulator_names = self.kernel_api.get_all_regulator_names()
@@ -134,11 +167,21 @@ class OpenDSSScenario(KernelScenario):
             self.master_kernel.node.total_power_inject = 0
 
         # hack happens here
-        if self.master_kernel.time in self.hack_time:
-            adversary_ids = self.hack_time[self.master_kernel.time]
+        if self.master_kernel.time in self.hack_start_times:
+            adversary_ids = self.hack_start_times[self.master_kernel.time]
             for adversary_id in adversary_ids:
                 device = self.master_kernel.device.devices[adversary_id]
 
+                temp = device['controller']
+                device['controller'] = device['hack_controller']
+                device['hack_controller'] = temp
+
+        # hack stops here
+        if self.master_kernel.time in self.hack_end_times:
+            adversary_ids = self.hack_end_times[self.master_kernel.time]
+            for adversary_id in adversary_ids:
+                device = self.master_kernel.device.devices[adversary_id]
+                # swapping it back
                 temp = device['controller']
                 device['controller'] = device['hack_controller']
                 device['hack_controller'] = temp

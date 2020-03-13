@@ -131,9 +131,8 @@ class PyCIGAROpenDSSAPI(object):
     def get_regulator_forwardvreg(self, reg_id):
         dss.RegControls.Name(reg_id)
         return dss.RegControls.ForwardVreg()
-        
+
     def get_substation_top_voltage(self):
         sourcebus = dss.Bus.Name()
-        print(sourcebus)
         return dss.Bus.Voltages()[0]
 

@@ -473,7 +473,7 @@ class CentralEnv(gym.Env):
                     val_lower = vreg - band
                     val_max = val_upper if val_max is None or val_max < val_upper else val_max
                     val_min = val_lower if val_min is None or val_min > val_lower else val_min
-            print(val_max, val_min)
+                    
             self.output_specs['Substation Regulator Minimum Voltage(V)'].append(val_min)
             self.output_specs['Substation Regulator Maximum Voltage(V)'].append(val_max)
         for inverter_name in self.output_specs['Inverter Outputs'].keys():
