@@ -156,10 +156,9 @@ pycigar_params = {"exp_tag": "cooperative_multiagent_ppo",
 
 base_config = {
     "gamma": 0.5,
-    'lr': 2e-04,
+    'lr': 2e-3,
     'sample_batch_size': 50,
     'train_batch_size': 500,
-    # 'lr_schedule': [[0, 5e-04], [12000, 5e-04], [13500, 5e-05]],
 
     'num_workers': 3,
     'num_cpus_per_worker': 1,
