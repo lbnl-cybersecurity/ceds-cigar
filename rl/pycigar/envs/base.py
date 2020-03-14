@@ -276,3 +276,4 @@ class Env(gym.Env):
 
         f.savefig(save_path)
         plt.close(f)
+        return f

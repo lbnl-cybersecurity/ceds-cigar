@@ -53,7 +53,7 @@ the details for observation , action and reward are as following:
       a right observation.
 
       The observation space is:
-        Box(low=-float('inf'), high=float('inf'), shape=(5, ), dtype=np.float32),
+        Box(low=-float('inf'), high=float('inf'), shape=(5, ), dtype=np.float64),
       which describe an array of 5, each value can range from -infinity to infinity.
 
     - Reward: a dictionary of reward for each agent, in the form of {'id_1': reward1, 'id_2': reward2,...}
@@ -102,7 +102,7 @@ class LocalObservationWrapper(ObservationWrapper):
         Box
             A valid observation is an array of 5 values which have range from -inf to inf.
         """
-        return Box(low=-float('inf'), high=float('inf'), shape=(5,), dtype=np.float32)
+        return Box(low=-float('inf'), high=float('inf'), shape=(5,), dtype=np.float64)
 
     def observation(self, observation, info):
         """Modifying the original observation into the observation that we want.
@@ -149,7 +149,7 @@ class LocalObservationV2Wrapper(ObservationWrapper):
             A valid observation is an array have range from -inf to inf. y-value is scalar, init_action_onehot
             and last_action_onehot have a size of DISCRETIZE, therefore the shape is (1+2*DISCRETIZE, ).
         """
-        return Box(low=-float('inf'), high=float('inf'), shape=(1 + 2*DISCRETIZE, ), dtype=np.float32)
+        return Box(low=-float('inf'), high=float('inf'), shape=(1 + 2*DISCRETIZE, ), dtype=np.float64)
 
     def observation(self, observation, info):
         """Modifying the original observation into the observation that we want.
@@ -225,7 +225,7 @@ class LocalObservationV3Wrapper(ObservationWrapper):
             A valid observation is an array have range from -inf to inf. y-value is scalar, init_action_onehot
             and last_action_onehot have a size of DISCRETIZE_RELATIVE, therefore the shape is (1+2*DISCRETIZE_RELATIVE, ).
         """
-        return Box(low=-float('inf'), high=float('inf'), shape=(2 + 2*DISCRETIZE_RELATIVE, ), dtype=np.float32)
+        return Box(low=-float('inf'), high=float('inf'), shape=(2 + 2*DISCRETIZE_RELATIVE, ), dtype=np.float64)
 
     def observation(self, observation, info):
         """Modifying the original observation into the observation that we want.
@@ -304,7 +304,7 @@ class LocalObservationV4Wrapper(ObservationWrapper):
             A valid observation is an array have range from -inf to inf. y-value is scalar, init_action_onehot
             and last_action_onehot have a size of DISCRETIZE_RELATIVE, therefore the shape is (1+2*DISCRETIZE_RELATIVE, ).
         """
-        return Box(low=-float('inf'), high=float('inf'), shape=(1 + DISCRETIZE_RELATIVE, ), dtype=np.float32)
+        return Box(low=-float('inf'), high=float('inf'), shape=(1 + DISCRETIZE_RELATIVE, ), dtype=np.float64)
 
     def observation(self, observation, info):
         """Modifying the original observation into the observation that we want.
@@ -382,9 +382,9 @@ class GlobalObservationWrapper(ObservationWrapper):
             shpact = acts.shape
             
         observation_space = Dict({
-                        "own_obs": Box(low=-float('inf'), high=float('inf'), shape=(shpobs[0] + 13,), dtype=np.float32),
-                        "opponent_obs": Box(low=-float('inf'), high=float('inf'), shape=(12*(shpobs[0] + 13), ), dtype=np.float32),
-                        "opponent_action": Box(low=-float('inf'), high=float('inf'), shape=(12*DISCRETIZE_RELATIVE,), dtype=np.float32),
+                        "own_obs": Box(low=-float('inf'), high=float('inf'), shape=(shpobs[0] + 13,), dtype=np.float64),
+                        "opponent_obs": Box(low=-float('inf'), high=float('inf'), shape=(12*(shpobs[0] + 13), ), dtype=np.float64),
+                        "opponent_action": Box(low=-float('inf'), high=float('inf'), shape=(12*DISCRETIZE_RELATIVE,), dtype=np.float64),
                         })
         return observation_space
 
@@ -458,7 +458,7 @@ class FramestackObservationWrapper(ObservationWrapper):
                 low=-float('inf'),
                 high=float('inf'),
                 shape=(shp[0], self.num_frames),
-                dtype=np.float32)
+                dtype=np.float64)
 
         return obss
 
@@ -556,7 +556,7 @@ class FramestackObservationV2Wrapper(ObservationWrapper):
                 low=-float('inf'),
                 high=float('inf'),
                 shape=(shp[0]+1, ),
-                dtype=np.float32)
+                dtype=np.float64)
         return obss
 
     def reset(self):
@@ -658,7 +658,7 @@ class FramestackObservationV3Wrapper(ObservationWrapper):
                 low=-float('inf'),
                 high=float('inf'),
                 shape=(shp[0]+2, ),
-                dtype=np.float32)
+                dtype=np.float64)
         return obss
 
     def reset(self):
@@ -767,7 +767,7 @@ class FramestackObservationV4Wrapper(ObservationWrapper):
                 low=-float('inf'),
                 high=float('inf'),
                 shape=(shp[0]+1, ),
-                dtype=np.float32)
+                dtype=np.float64)
         return obss
 
     def reset(self):
@@ -1162,7 +1162,7 @@ class SingleContinuousActionWrapper(ActionWrapper):
 
     @property
     def action_space(self):
-        return Box(low=0.8, high=1.1, shape=(1,), dtype=np.float32)
+        return Box(low=0.8, high=1.1, shape=(1,), dtype=np.float64)
 
     def action(self, action):
         new_action = {}
@@ -1201,7 +1201,7 @@ class CentralLocalObservationWrapper(CentralObservationWrapper):
             A valid observation is an array have range from -inf to inf. y-value is scalar, init_action_onehot
             and last_action_onehot have a size of DISCRETIZE_RELATIVE, therefore the shape is (1+2*DISCRETIZE_RELATIVE, ).
         """
-        return Box(low=-float('inf'), high=float('inf'), shape=(2 + DISCRETIZE_RELATIVE, ), dtype=np.float32)
+        return Box(low=-float('inf'), high=float('inf'), shape=(2 + DISCRETIZE_RELATIVE, ), dtype=np.float64)
 
     def observation(self, observation, info):
         """Modifying the original observation into the observation that we want.
@@ -1279,7 +1279,7 @@ class CentralFramestackObservationWrapper(CentralObservationWrapper):
                 low=-float('inf'),
                 high=float('inf'),
                 shape=(shp[0]+1, ),
-                dtype=np.float32)
+                dtype=np.float64)
         return obss
 
     def reset(self):

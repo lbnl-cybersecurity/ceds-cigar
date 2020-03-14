@@ -390,6 +390,7 @@ class CentralEnv(gym.Env):
 
         f.savefig(save_path)
         plt.close(f)
+        return f
 
     def action_mapping(self, rl_actions):
         if rl_actions is None:
