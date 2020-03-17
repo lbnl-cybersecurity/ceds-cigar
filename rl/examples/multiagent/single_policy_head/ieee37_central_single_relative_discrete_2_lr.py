@@ -106,7 +106,7 @@ if __name__ == "__main__":
     #config for RLlib - PPO agent
     config = {
         "gamma": 0.5,
-        'lr': 5e-04,
+        'lr': 2e-04,
         'sample_batch_size': 50,
         'train_batch_size': 500,
         #'lr_schedule': [[0, 5e-04], [12000, 5e-04], [13500, 5e-05]],

@@ -32,12 +32,12 @@ class AttackDefinitionGenerator:
         """
         duration = self.end_time - self.start_time
         # relative to self.start_time, anything from 0 to end - start
-        hack_start = random.randint(int(duration*2/5), int(duration*2/5)+10)
+        hack_start = random.randint(250, 250+10) #random.randint(int(duration*2/5), int(duration*2/5)+10)
         #hack_duration = random.randint(int(duration*4/5), )
         # hack end is relative to start time, can be greater than duration,
         # in this we assume that it's hacked during the whole lenth of the episode
         #hack_end = hack_start + hack_duration
-        hack_end = random.randint(int(duration*4/5), int(duration*4/5)+10) 
+        hack_end = random.randint(500, 500+10) #random.randint(int(duration*4/5), int(duration*4/5)+10) 
         # percentage can be 0.1, 0.2, ..., 0.9
         percentage = random.randint(4, 5) / 10
         res = [
