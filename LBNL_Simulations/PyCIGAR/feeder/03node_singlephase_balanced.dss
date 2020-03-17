@@ -8,7 +8,7 @@ New object=circuit.ieee37
 ~ basekv=230 Angle=0 pu=1.00 MVAsc3=200000 MVAsc1=210000
 
 ! Substation Transformer
-New Transformer.SubXF Phases=3 Windings=2 Xhl=8
+New Transformer.SubXF Phases=1 Windings=2 Xhl=8
 ~ wdg=1 bus=sourcebus conn=Wye kv=230  kva=2500  %r=1
 ~ wdg=2 bus=799    conn=Wye kv=4.8  kva=2500  %r=1
 
@@ -34,37 +34,38 @@ New Transformer.Reg3 phases=1 bank=reg3 XHL=0.01 kVAs=[2500 2500]
 new regcontrol.Reg3 transformer=Reg3 winding=2 vreg=138 band=2 ptratio=20 ctprim=700 !R=1  X=3
 */
 
-New Transformer.Reg1 phases=3 bank=reg1 XHL=0.01 kVAs=[2500 2500]
-~ Buses=[799.1.2.3 799r.1.2.3] kVs=[2.77128129 2.77128129] %LoadLoss=0.01
+New Transformer.Reg1 phases=1 bank=reg1 XHL=0.01 kVAs=[2500 2500]
+~ Buses=[799.1 799r.1] kVs=[2.77128129 2.77128129] %LoadLoss=0.01
 new regcontrol.Reg1 transformer=Reg1 bus=799r.1 winding=2 vreg=138 band=2 ptratio=20 !ctprim=700 !R=1  X=3
 
-New linecode.721bal nphases=3 BaseFreq=60
-~ rmatrix = [0.1 | 0.0 0.1 | 0.0 0.0 0.1]
-~ xmatrix = [0.1 | -0.0 0.5 | -0.0 -0.0 0.5]
-~ cmatrix = [80.0 | 0 80.0 | 0 0 80.0]
+New linecode.721bal nphases=1 BaseFreq=60
+~ rmatrix = [0.1 | 0.0 0.0 | 0.0 0.0 0.0]
+~ xmatrix = [0.2 | -0.0 0.0 | -0.0 -0.0 0.0]
+!~ cmatrix = [80.0 | 0 0.0 | 0 0 0.0]
 
-New linecode.722bal nphases=3 BaseFreq=60
-~ rmatrix = [0.1 | 0.0 0.1 | 0.0 0.0 0.1]
-~ xmatrix = [0.5 | -0.0 0.5 | -0.0 -0.0 0.5]
-~ cmatrix = [60.0 | 0 60.0 | 0 0 60.0]
+New linecode.722bal nphases=1 BaseFreq=60
+~ rmatrix = [0.1 | 0.0 0.0 | 0.0 0.0 0.0]
+~ xmatrix = [0.2 | -0.0 0.0 | -0.0 -0.0 0.0]
+!~ cmatrix = [60.0 | 0 0.0 | 0 0 0.0]
 
 ! Lines
-New Line.line_799r_701  Phases=3 Bus1=799r.1.2.3 Bus2=701.1.2.3 LineCode=721bal Length=1.00
-New Line.line_701_702  Phases=3 Bus1=701.1.2.3 Bus2=702.1.2.3 LineCode=722bal Length=1.00
+New Line.line_799r_701  Phases=1 Bus1=799r.1 Bus2=701.1 LineCode=721bal Length=1.00
+New Line.line_701_702  Phases=1 Bus1=701.1 Bus2=702.1 LineCode=722bal Length=1.00
+New Line.line_702_703  Phases=1 Bus1=702.1 Bus2=703.1 LineCode=722bal Length=1.00
 !New Line.line_702_703  Phases=3 Bus1=702.1.2.3 Bus2=703.1.2.3 LineCode=722bal Length=1.00
 !New Line.line_702_704  Phases=3 Bus1=702.1.2.3 Bus2=704.1.2.3 LineCode=722bal Length=1.00
 !New Line.line_704_705  Phases=3 Bus1=704.1.2.3 Bus2=705.1.2.3 LineCode=722bal Length=1.00
 
 ! spot loads
-New Load.S701a Bus1=701.1 Phases=1 Conn=Wye Model=1 kV=2.7712812921102037 kW=250.0 kVAR=50.0
-New Load.S701b Bus1=701.2 Phases=1 Conn=Wye Model=1 kV=2.7712812921102037 kW=250.0 kVAR=50.0
-New Load.S701c Bus1=701.3 Phases=1 Conn=Wye Model=1 kV=2.7712812921102037 kW=250.0 kVAR=50.0
+New Load.S701a Bus1=701.1 Phases=1 Conn=Wye Model=1 kV=2.7712812921102037 kW=200.0 kVAR=50.0
+!New Load.S701b Bus1=701.2 Phases=1 Conn=Wye Model=1 kV=2.7712812921102037 kW=250.0 kVAR=50.0
+!New Load.S701c Bus1=701.3 Phases=1 Conn=Wye Model=1 kV=2.7712812921102037 kW=250.0 kVAR=50.0
 
-New Load.S702a Bus1=702.1 Phases=1 Conn=Wye Model=1 kV=2.7712812921102037 kW=500.0 kVAR=100.0
-New Load.S702b Bus1=702.2 Phases=1 Conn=Wye Model=1 kV=2.7712812921102037 kW=500.0 kVAR=100.0
-New Load.S702c Bus1=702.3 Phases=1 Conn=Wye Model=1 kV=2.7712812921102037 kW=500.0 kVAR=100.0
+New Load.S702a Bus1=702.1 Phases=1 Conn=Wye Model=1 kV=2.7712812921102037 kW=400.0 kVAR=100.0
+!New Load.S702b Bus1=702.2 Phases=1 Conn=Wye Model=1 kV=2.7712812921102037 kW=500.0 kVAR=100.0
+!New Load.S702c Bus1=702.3 Phases=1 Conn=Wye Model=1 kV=2.7712812921102037 kW=500.0 kVAR=100.0
 
-!New Load.S703a   Bus1=703.1 Phases=1 Conn=Wye Model=1 kV= 4.800 kW= 300.0 kVAR= 100.0
+New Load.S703a   Bus1=703.1 Phases=1 Conn=Wye Model=1 kV=2.7712812921102037 kW= 100.0 kVAR=50.0
 !New Load.S703b   Bus1=703.2 Phases=1 Conn=Wye Model=1 kV= 4.800 kW= 300.0 kVAR= 100.0
 !New Load.S703c   Bus1=703.3 Phases=1 Conn=Wye Model=1 kV= 4.800 kW= 300.0 kVAR= 100.0
 
