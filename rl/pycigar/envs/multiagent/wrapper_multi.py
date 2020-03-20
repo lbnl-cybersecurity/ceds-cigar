@@ -99,6 +99,9 @@ class CentralWrapper(CentralEnv):
     def plot(self, exp_tag='', env_name='', iteration=0, reward=0):
         return self.env.plot(exp_tag, env_name, iteration, reward)
 
+    def plot_unbalance(self, exp_tag='', env_name='', iteration=0, reward=0):
+        return self.env.plot_unbalance(exp_tag, env_name, iteration, reward)
+        
     def get_pycigar_output_specs(self):
         return self.env.get_pycigar_output_specs()
     def get_kernel(self):

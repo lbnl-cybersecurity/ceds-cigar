@@ -311,10 +311,30 @@ class CentralEnv(gym.Env):
                                                         a_val=[],
                                                         reg_val=[])
 
+                if not tracking_id[-1].isdigit(): 
+                    if tracking_id[:-1] + 'a' in inverter_ids and tracking_id[:-1] + 'a' != tracking_id:
+                        self.tracking_infos[tracking_id[:-1] + 'a'] = []
+                    if tracking_id[:-1] + 'b' in inverter_ids and tracking_id[:-1] + 'b' != tracking_id:
+                        self.tracking_infos[tracking_id[:-1] + 'b'] = []
+                    if tracking_id[:-1] + 'c' in inverter_ids and tracking_id[:-1] + 'c' != tracking_id:
+                        self.tracking_infos[tracking_id[:-1] + 'c'] = []
+                        
         for tracking_id in self.tracking_ids:
             if tracking_id in inverter_ids:
                 node_id = self.k.device.get_node_connected_to(tracking_id)
-                self.tracking_infos[tracking_id]['v_val'].append(self.k.node.get_node_voltage(node_id))
+                if tracking_id[-1].isdigit():    
+                    self.tracking_infos[tracking_id]['v_val'].append(self.k.node.get_node_voltage(node_id))
+                else:
+                    if tracking_id[:-1] + 'a' in self.tracking_infos.keys() and tracking_id[:-1] + 'a' != tracking_id:
+                        node_id_a = self.k.device.get_node_connected_to(tracking_id[:-1] + 'a')
+                        self.tracking_infos[tracking_id[:-1] + 'a'].append(self.k.node.get_node_voltage(node_id_a))
+                    if tracking_id[:-1] + 'b' in self.tracking_infos.keys() and tracking_id[:-1] + 'b' != tracking_id:
+                        node_id_b = self.k.device.get_node_connected_to(tracking_id[:-1] + 'b')
+                        self.tracking_infos[tracking_id[:-1] + 'b'].append(self.k.node.get_node_voltage(node_id_b))
+                    if tracking_id[:-1] + 'c' in self.tracking_infos.keys() and tracking_id[:-1] + 'c' != tracking_id:
+                        node_id_c = self.k.device.get_node_connected_to(tracking_id[:-1] + 'c')
+                        self.tracking_infos[tracking_id[:-1] + 'c'].append(self.k.node.get_node_voltage(node_id_c))
+
                 self.tracking_infos[tracking_id]['y_val'].append(self.k.device.get_device_y(tracking_id))
                 #p_max = self.k.device.get_solar_generation(tracking_id)
                 #p_inject = self.k.device.get_device_p_injection(tracking_id)
@@ -390,6 +410,102 @@ class CentralEnv(gym.Env):
 
         f.savefig(save_path)
         plt.close(f)
+
+    def plot_unbalance(self, exp_tag='', env_name='', iteration=0, reward=0):
+        """Plot the result of tracking ids after the simulation.
+
+        Parameters
+        ----------
+        exp_tag : str, optional
+            The experiment tag, this will be used as a folder name created under /result/.
+        env_name : str, optional
+            Name of the environment which we run the simulation.
+        iteration : int, optional
+            The number of training iteration taken place before this plot.
+        """
+        #num_col = len(self.tracking_infos.keys())
+        #if num_col != 1:
+        #    f, ax = plt.subplots(3, num_col, figsize=(25, 20))
+        #    for col in range(num_col):
+        #        tracking_id = list(self.tracking_infos.keys())[col]
+        #        ax[0, col].set_title(tracking_id + " -- total reward: " + str(reward))
+        #        ax[0, col].plot(self.tracking_infos[tracking_id]['v_val'])
+        #        ax[0, col].set_ylabel('voltage')
+        #        ax[1, col].plot(self.tracking_infos[tracking_id]['y_val'])
+        #        ax[1, col].set_ylabel('oscillation observer')
+                #ax[2, col].plot(self.tracking_infos[tracking_id]['p_val'])
+                #ax[2, col].set_ylabel('(1 + p_inject/p_max)**2')
+        #        labels = ['a1', 'a2', 'a3', 'a4', 'a5']
+        #        [a1, a2, a3, a4, a5] = ax[2, col].plot(self.tracking_infos[tracking_id]['a_val'])
+        #        ax[2, col].set_ylabel('action')
+        #        plt.legend([a1, a2, a3, a4, a5], labels, loc=1)
+        #else:
+        f, ax = plt.subplots(6, figsize=(25, 25))
+        tracking_id = list(self.tracking_infos.keys())[0]
+        ax[0].set_title(tracking_id + " -- total reward: " + str(reward))
+        
+        plot_v_list = []
+        plot_v_label = []
+        v = ax[0].plot(self.tracking_infos[tracking_id]['v_val'])
+        plot_v_list.append(v[0])
+        if tracking_id[-1].isdigit():
+            plot_v_label.append('all')
+        elif tracking_id[-1] == 'a':
+            plot_v_label.append('a')
+        elif tracking_id[-1] == 'b':
+            plot_v_label.append('b')
+        elif tracking_id[-1] == 'c':
+            plot_v_label.append('c')
+
+        if tracking_id[:-1] + 'a' in self.tracking_infos.keys() and tracking_id[:-1] + 'a' != tracking_id:
+            v = ax[0].plot(self.tracking_infos[tracking_id[:-1] + 'a'])
+            plot_v_list.append(v[0])
+            plot_v_label.append('a')
+        if tracking_id[:-1] + 'b' in self.tracking_infos.keys() and tracking_id[:-1] + 'b' != tracking_id:
+            v = ax[0].plot(self.tracking_infos[tracking_id[:-1] + 'b'])        
+            plot_v_list.append(v[0])
+            plot_v_label.append('b')   
+        if tracking_id[:-1] + 'c' in self.tracking_infos.keys() and tracking_id[:-1] + 'c' != tracking_id:
+            v = ax[0].plot(self.tracking_infos[tracking_id[:-1] + 'c']) 
+            plot_v_list.append(v[0])
+            plot_v_label.append('c')
+
+        ax[0].legend(plot_v_list, plot_v_label, loc=1)
+        
+        ax[0].set_ylabel('voltage')
+        ax[0].grid(b=True, which='both')
+        ax[1].plot(self.tracking_infos[tracking_id]['y_val'])
+        ax[1].set_ylabel('oscillation observer')
+        ax[1].grid(b=True, which='both')
+        ax[2].plot(self.tracking_infos[tracking_id]['q_set'])
+        ax[2].plot(self.tracking_infos[tracking_id]['q_val'])
+        ax[2].set_ylabel('reactive power')
+        ax[2].grid(b=True, which='both')
+        labels = ['a1', 'a2', 'a3', 'a4', 'a5']
+        [a1, a2, a3, a4, a5] = ax[3].plot(self.tracking_infos[tracking_id]['a_val'])
+        ax[3].set_ylabel('action')
+        ax[3].grid(b=True, which='both')
+        ax[3].legend([a1, a2, a3, a4, a5], labels, loc=1)
+        
+        tracking_id = 'creg1a'#list(self.tracking_infos.keys())[1]
+        ax[4].plot(self.tracking_infos[tracking_id]['reg_val'])
+        ax[4].set_ylabel('reg_val' + tracking_id)
+
+        tracking_id = 'creg1c'#list(self.tracking_infos.keys())[2]
+        ax[5].plot(self.tracking_infos[tracking_id]['reg_val'])
+        ax[5].set_ylabel('reg_val' + tracking_id)
+
+        
+
+            #np.savetxt(os.path.join(os.path.join(config.LOG_DIR, exp_tag), 'voltage_profile.txt'), self.tracking_infos[tracking_id]['v_val'])
+
+        if not os.path.exists(os.path.join(config.LOG_DIR, exp_tag)):
+            os.makedirs(os.path.join(config.LOG_DIR, exp_tag))
+        save_path = os.path.join(os.path.join(config.LOG_DIR, exp_tag), '{}_{}_result_{}.png'.format(exp_tag, env_name, iteration))#, datetime.now().strftime("%H:%M:%S.%f_%d-%m-%Y")))
+
+        f.savefig(save_path)
+        plt.close(f)
+
 
     def action_mapping(self, rl_actions):
         if rl_actions is None:
