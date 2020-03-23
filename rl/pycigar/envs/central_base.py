@@ -371,14 +371,15 @@ class CentralEnv(gym.Env):
         ax[3].set_ylabel('action')
         ax[3].grid(b=True, which='both')
         plt.legend([a1, a2, a3, a4, a5], labels, loc=1)
-        
-        tracking_id = list(self.tracking_infos.keys())[1]
-        ax[4].plot(self.tracking_infos[tracking_id]['reg_val'])
-        ax[4].set_ylabel('reg_val' + tracking_id)
 
-        tracking_id = list(self.tracking_infos.keys())[2]
-        ax[5].plot(self.tracking_infos[tracking_id]['reg_val'])
-        ax[5].set_ylabel('reg_val' + tracking_id)
+        if len(self.tracking_infos) > 1:  # todo: check better
+            tracking_id = list(self.tracking_infos.keys())[1]
+            ax[4].plot(self.tracking_infos[tracking_id]['reg_val'])
+            ax[4].set_ylabel('reg_val' + tracking_id)
+
+            tracking_id = list(self.tracking_infos.keys())[2]
+            ax[5].plot(self.tracking_infos[tracking_id]['reg_val'])
+            ax[5].set_ylabel('reg_val' + tracking_id)
 
         
 
@@ -502,3 +503,7 @@ class CentralEnv(gym.Env):
         self.output_specs['Inverter Outputs'] = inverter_outputs
         
         return self.output_specs
+
+    @property
+    def base_env(self):
+        return self

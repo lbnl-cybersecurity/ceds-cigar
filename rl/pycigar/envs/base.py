@@ -277,3 +277,7 @@ class Env(gym.Env):
         f.savefig(save_path)
         plt.close(f)
         return f
+
+    @property
+    def base_env(self):
+        return self
