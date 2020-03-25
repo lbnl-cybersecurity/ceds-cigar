@@ -107,18 +107,20 @@ class PyCIGAROpenDSSAPI(object):
 
     def set_regulator_property(self, reg_id, prop):
         dss.RegControls.Name(reg_id)
-        for k, v in prop.items():
-            v = int(v)
-            if k == 'max_tap_change':
-                dss.RegControls.MaxTapChange(v)
-            elif k == "forward_band":
-                dss.RegControls.ForwardBand(v)
-            elif k == 'tap_number':
-                dss.RegControls.TapNumber(v)
-            elif k == 'tap_delay':
-                dss.RegControls.TapDelay(v)
-            else:
-                print('Regulator Parameters unknown by PyCIGAR. Checkout pycigar/utils/opendss/pseudo_api.py')
+        """for k, v in prop.items():
+                                    if v is not None:
+                                        v = int(v)
+                                        if k == 'max_tap_change':
+                                            dss.RegControls.MaxTapChange(v)
+                                        elif k == "forward_band":
+                                            dss.RegControls.ForwardBand(v)
+                                        elif k == 'tap_number':
+                                            dss.RegControls.TapNumber(v)
+                                        elif k == 'tap_delay':
+                                            dss.RegControls.TapDelay(v)
+                                        else:
+                                            print('Regulator Parameters unknown by PyCIGAR. Checkout pycigar/utils/opendss/pseudo_api.py')"""
+        pass
 
     def get_regulator_tap(self, reg_id):
         dss.RegControls.Name(reg_id)

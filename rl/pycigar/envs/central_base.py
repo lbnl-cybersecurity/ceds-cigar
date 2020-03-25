@@ -301,6 +301,7 @@ class CentralEnv(gym.Env):
         inverter_ids = self.k.device.get_pv_device_ids()
         regultor_ids = self.k.device.get_regulator_device_ids()
 
+        print(self.k.device.devices['adversary_inverter_s701a']['device'].q_set)
         if self.env_time == 0:
             self.tracking_infos = {}
             for tracking_id in self.tracking_ids:
@@ -322,9 +323,7 @@ class CentralEnv(gym.Env):
         for tracking_id in self.tracking_ids:
             if tracking_id in inverter_ids:
                 node_id = self.k.device.get_node_connected_to(tracking_id)
-                if tracking_id[-1].isdigit():    
-                    self.tracking_infos[tracking_id]['v_val'].append(self.k.node.get_node_voltage(node_id))
-                else:
+                if not tracking_id[-1].isdigit():    
                     if tracking_id[:-1] + 'a' in self.tracking_infos.keys() and tracking_id[:-1] + 'a' != tracking_id:
                         node_id_a = self.k.device.get_node_connected_to(tracking_id[:-1] + 'a')
                         self.tracking_infos[tracking_id[:-1] + 'a'].append(self.k.node.get_node_voltage(node_id_a))
@@ -335,6 +334,7 @@ class CentralEnv(gym.Env):
                         node_id_c = self.k.device.get_node_connected_to(tracking_id[:-1] + 'c')
                         self.tracking_infos[tracking_id[:-1] + 'c'].append(self.k.node.get_node_voltage(node_id_c))
 
+                self.tracking_infos[tracking_id]['v_val'].append(self.k.node.get_node_voltage(node_id))
                 self.tracking_infos[tracking_id]['y_val'].append(self.k.device.get_device_y(tracking_id))
                 #p_max = self.k.device.get_solar_generation(tracking_id)
                 #p_inject = self.k.device.get_device_p_injection(tracking_id)
@@ -487,13 +487,13 @@ class CentralEnv(gym.Env):
         ax[3].grid(b=True, which='both')
         ax[3].legend([a1, a2, a3, a4, a5], labels, loc=1)
         
-        tracking_id = 'creg1a'#list(self.tracking_infos.keys())[1]
+        tracking_id = 'reg1'#list(self.tracking_infos.keys())[1]
         ax[4].plot(self.tracking_infos[tracking_id]['reg_val'])
         ax[4].set_ylabel('reg_val' + tracking_id)
-
-        tracking_id = 'creg1c'#list(self.tracking_infos.keys())[2]
-        ax[5].plot(self.tracking_infos[tracking_id]['reg_val'])
-        ax[5].set_ylabel('reg_val' + tracking_id)
+        #ax[4].set_ylim(-10, 5)
+        #tracking_id = 'creg1c'#list(self.tracking_infos.keys())[2]
+        #ax[5].plot(self.tracking_infos[tracking_id]['reg_val'])
+        #ax[5].set_ylabel('reg_val' + tracking_id)
 
         
 
