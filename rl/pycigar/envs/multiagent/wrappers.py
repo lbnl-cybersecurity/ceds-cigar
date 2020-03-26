@@ -35,6 +35,12 @@ ACTION_RANGE = 0.1
 ACTION_STEP = 0.05
 DISCRETIZE_RELATIVE = int((ACTION_RANGE/ACTION_STEP))*2 + 1
 
+ACTION_MIN_SLOPE = 0.02 #actually the slope is stepper when value is small
+ACTION_MAX_SLOPE = 0.07
+
+ACTION_COMBINATION = [[x, y] for x in range(DISCRETIZE_RELATIVE) for y in range(DISCRETIZE_RELATIVE)]
+ACTION_MAP = {k: a for k,a in enumerate(ACTION_COMBINATION)}
+
 # number of frames to keep
 NUM_FRAMES = 25
 
@@ -1201,7 +1207,7 @@ class CentralLocalObservationWrapper(CentralObservationWrapper):
             A valid observation is an array have range from -inf to inf. y-value is scalar, init_action_onehot
             and last_action_onehot have a size of DISCRETIZE_RELATIVE, therefore the shape is (1+2*DISCRETIZE_RELATIVE, ).
         """
-        return Box(low=-float('inf'), high=float('inf'), shape=(2 + DISCRETIZE_RELATIVE, ), dtype=np.float32)
+        return Box(low=-float('inf'), high=float('inf'), shape=(2 + DISCRETIZE_RELATIVE*DISCRETIZE_RELATIVE, ), dtype=np.float32)
 
     def observation(self, observation, info):
         """Modifying the original observation into the observation that we want.
@@ -1221,7 +1227,7 @@ class CentralLocalObservationWrapper(CentralObservationWrapper):
         # tranform back the initial action to the action form of RLlib
         a = int(ACTION_RANGE/ACTION_STEP)
         # creating an array of zero everywhere
-        init_action = np.zeros(DISCRETIZE_RELATIVE)
+        init_action = np.zeros(DISCRETIZE_RELATIVE*DISCRETIZE_RELATIVE)
         # set value 1 at the executed action, at this step, we have the init_action_onehot.
         init_action[a] = 1
 
@@ -1237,8 +1243,10 @@ class CentralLocalObservationWrapper(CentralObservationWrapper):
             p_set = info[key]['p_set']
 
         # tranform back the initial action to the action form of RLlib
-        a = int((old_action[1]-self.INIT_ACTION[key][1]+ACTION_RANGE)/ACTION_STEP)
-        old_action = np.zeros(DISCRETIZE_RELATIVE)
+        a1 = int((old_action[1]-self.INIT_ACTION[key][1]+ACTION_RANGE)/ACTION_STEP)
+        a2 = int((old_action[1]-old_action[0])/((ACTION_MAX_SLOPE-ACTION_MIN_SLOPE)/DISCRETIZE_RELATIVE))
+        a = ACTION_COMBINATION.index([a1, a2])
+        old_action = np.zeros(DISCRETIZE_RELATIVE*DISCRETIZE_RELATIVE)
         old_action[a] = 1
 
         # in the original observation, position 2 is the y-value. We concatenate it with init_action and old_action
@@ -1338,8 +1346,19 @@ class CentralFramestackObservationWrapper(CentralObservationWrapper):
                     y_mean = y_mean/len(list(self.frames[1].keys()))
                     y_value_max = max([y_mean, y_value_max])
             i = list(self.frames[1].keys())[0]
-            
-            obs = np.concatenate((np.array(y_value_max).reshape(1, 1), np.array(self.frames[-1][i]['y']).reshape(1, 1), np.array(self.frames[-1][i]['p_set']).reshape(1, 1), np.array(self.frames[-1][i]['old_action']).reshape(shp[0]-2, 1)), axis=0).reshape(shp[0]+1, )
+
+            # tranform back the initial action to the action form of RLlib
+            old_action = self.frames[-1][i]['old_action']
+            a1 = int((old_action[1]-self.INIT_ACTION[i][1]+ACTION_RANGE)/ACTION_STEP)
+            a2 = int((old_action[1]-old_action[0])/((ACTION_MAX_SLOPE-ACTION_MIN_SLOPE)/DISCRETIZE_RELATIVE))
+            a = ACTION_COMBINATION.index([a1, a2])
+            old_action = np.zeros(DISCRETIZE_RELATIVE*DISCRETIZE_RELATIVE)
+            old_action[a] = 1
+
+            obs = np.concatenate((np.array(y_value_max).reshape(1, 1), 
+                                  np.array(self.frames[-1][i]['y']).reshape(1, 1), 
+                                  np.array(self.frames[-1][i]['p_set']).reshape(1, 1), 
+                                  np.array(old_action).reshape(shp[0]-2, 1)), axis=0).reshape(shp[0]+1, )
             
         return obs
 
@@ -1353,7 +1372,7 @@ class CentralSingleRelativeInitDiscreteActionWrapper(CentralActionWrapper):
     """
     @property
     def action_space(self):
-        return Discrete(DISCRETIZE_RELATIVE)
+        return Discrete(DISCRETIZE_RELATIVE*DISCRETIZE_RELATIVE)
 
     def action(self, action):
         """Modify action before feed into the simulation.

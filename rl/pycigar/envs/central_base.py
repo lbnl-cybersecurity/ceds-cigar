@@ -12,6 +12,14 @@ from scipy import signal
 import random
 ACTION_RANGE = 0.1
 ACTION_STEP = 0.05
+DISCRETIZE_RELATIVE = int((ACTION_RANGE/ACTION_STEP))*2 + 1
+
+ACTION_MIN_SLOPE = 0.02 #actually the slope is stepper when value is small
+ACTION_MAX_SLOPE = 0.07
+
+ACTION_COMBINATION = [[x, y] for x in range(DISCRETIZE_RELATIVE) for y in range(DISCRETIZE_RELATIVE)]
+ACTION_MAP = {k: a for k,a in enumerate(ACTION_COMBINATION)}
+
 BASE_VOLTAGE = 120
 
 class CentralEnv(gym.Env):
@@ -97,7 +105,7 @@ class CentralEnv(gym.Env):
             done: bool
         """
         #print(self.k.time)
-        rl_actions = self.action_mapping(rl_actions)
+        rl_actions = self.action_mapping_new(rl_actions)
 
         next_observation = None
         self.old_actions = {}
@@ -514,6 +522,17 @@ class CentralEnv(gym.Env):
         for rl_id in self.INIT_ACTION.keys():
             new_rl_actions[rl_id] =  self.INIT_ACTION[rl_id] - ACTION_RANGE + ACTION_STEP*rl_actions
 
+        return new_rl_actions
+
+    def action_mapping_new(self, rl_actions):
+        if rl_actions is None:
+            return None
+        new_rl_actions = {}
+        rl_actions = ACTION_MAP[rl_actions]
+        for rl_id in self.INIT_ACTION.keys():
+            new_rl_actions[rl_id] =  self.INIT_ACTION[rl_id] - ACTION_RANGE + ACTION_STEP*rl_actions[0]
+            new_rl_actions[rl_id][0] =  new_rl_actions[rl_id][1] - (ACTION_MAX_SLOPE-ACTION_MIN_SLOPE)/DISCRETIZE_RELATIVE*rl_actions[1]
+            new_rl_actions[rl_id][3] =  new_rl_actions[rl_id][1] + (ACTION_MAX_SLOPE-ACTION_MIN_SLOPE)/DISCRETIZE_RELATIVE*rl_actions[1]
         return new_rl_actions
 
     def pycigar_output_specs(self, reset=True):
