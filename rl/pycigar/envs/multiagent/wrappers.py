@@ -1338,8 +1338,16 @@ class CentralFramestackObservationWrapper(CentralObservationWrapper):
                     y_mean = y_mean/len(list(self.frames[1].keys()))
                     y_value_max = max([y_mean, y_value_max])
             i = list(self.frames[1].keys())[0]
-            
-            obs = np.concatenate((np.array(y_value_max).reshape(1, 1), np.array(self.frames[-1][i]['y']).reshape(1, 1), np.array(self.frames[-1][i]['p_set']).reshape(1, 1), np.array(self.frames[-1][i]['old_action']).reshape(shp[0]-2, 1)), axis=0).reshape(shp[0]+1, )
+
+            old_action = self.frames[-1][i]['old_action']
+            a = int((old_action[1]-self.INIT_ACTION[i][1]+ACTION_RANGE)/ACTION_STEP)
+            old_action = np.zeros(DISCRETIZE_RELATIVE)
+            old_action[a] = 1
+
+            obs = np.concatenate((np.array(y_value_max).reshape(1, 1), 
+                                  np.array(self.frames[-1][i]['y']).reshape(1, 1), 
+                                  np.array(self.frames[-1][i]['p_set']).reshape(1, 1), 
+                                  np.array(old_action).reshape(shp[0]-2, 1)), axis=0).reshape(shp[0]+1, )
             
         return obs
 
