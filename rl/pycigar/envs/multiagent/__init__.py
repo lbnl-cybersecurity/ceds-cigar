@@ -9,10 +9,10 @@ from pycigar.envs.multiagent.multiagent_envs import SingleDiscreteComaEnv
 from pycigar.envs.multiagent.multiagent_envs import SingleRelativeDiscreteCoopEnv
 from pycigar.envs.multiagent.multiagent_envs import SecondStageSingleDiscreteCoopEnv
 from pycigar.envs.multiagent.multiagent_envs import CentralControlPVInverterEnv
-
+from pycigar.envs.multiagent.multiagent_envs import NewCentralControlPVInverterEnv
 __all__ = ['MultiEnv',
            'ARDiscreteIACEnv', 'SingleDiscreteIACEnv',
            'ARDiscreteCoopEnv', 'SingleDiscreteCoopEnv', 'FramestackSingleDiscreteCoopEnv', 'SingleRelativeDiscreteCoopEnv',
            'SecondStageSingleDiscreteCoopEnv',
            'ARDiscreteComaEnv', 'SingleDiscreteComaEnv',
-           'CentralControlPVInverterEnv']
+           'CentralControlPVInverterEnv', 'NewCentralControlPVInverterEnv']

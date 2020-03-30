@@ -52,8 +52,10 @@ env_name: the registered name of the new environment.
 create_env, env_name = make_create_env(pycigar_params, version=0)
 register_env(env_name, create_env)
 eval_start = random.randint(0, 3599-500)
+
 eval_params = deepcopy(sim_params)
 eval_params['scenario_config']['start_end_time'] = [eval_start, eval_start+500]
+
 test_env = create_env(eval_params)
 obs_space = test_env.observation_space  # get the observation space, we need this to construct our agent(s) observation input
 act_space = test_env.action_space  # get the action space, we need this to construct our agent(s) action output
@@ -110,7 +112,7 @@ if __name__ == "__main__":
         'env': env_name,
         'env_config': deepcopy(sim_params),
         "gamma": 0.5,
-        'lr': 5e-04,
+        'lr': 2e-04,
         'sample_batch_size': 50,
         'train_batch_size': 500,
         #'lr_schedule': [[0, 5e-04], [12000, 5e-04], [13500, 5e-05]],

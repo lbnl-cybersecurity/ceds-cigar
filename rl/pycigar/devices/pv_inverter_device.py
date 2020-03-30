@@ -67,6 +67,7 @@ class PVDevice(BaseDevice):
         node_id = k.device.get_node_connected_to(self.device_id)
         Sbar = self.Sbar
         solar_irr = self.solar_generation[k.time]
+        self.solar_irr = solar_irr
         solar_minval = self.solar_min_value
         step = np.hstack((1 * np.ones(11), np.linspace(1, -1, 7), -1 * np.ones(11)))
         if k.time > 1:
