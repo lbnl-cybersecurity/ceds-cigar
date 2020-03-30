@@ -36,6 +36,9 @@ class Wrapper(MultiEnv):
     def observation_space(self):
         return self.env.observation_space
 
+    @property
+    def base_env(self):
+        return self.env.base_env
 
 class ObservationWrapper(Wrapper):
     def reset(self):
@@ -115,7 +118,10 @@ class CentralWrapper(CentralEnv):
     def observation_space(self):
         return self.env.observation_space
 
-
+    @property
+    def base_env(self):
+        return self.env.base_env
+        
 class CentralObservationWrapper(CentralWrapper):
     def reset(self):
         observation = self.env.reset()

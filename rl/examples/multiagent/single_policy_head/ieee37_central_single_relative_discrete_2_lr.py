@@ -3,6 +3,8 @@ from ray import tune
 from ray.rllib.agents.ppo import PPOTrainer
 from ray.rllib.agents.ppo import APPOTrainer
 from ray.rllib.agents.dqn import DQNTrainer
+import random
+from copy import deepcopy
 import argparse
 from ray.tune.registry import register_env
 from pycigar.utils.registry import make_create_env
@@ -40,7 +42,6 @@ tracking_ids: list of ids of devices being tracked during the experiment.
 
 pycigar_params = {"exp_tag": "cooperative_multiagent_ppo",
                   "env_name": "CentralControlPVInverterEnv",
-                  "sim_params": sim_params,
                   "simulator": "opendss",
                   "tracking_ids": ['inverter_s701a', 'creg1a', 'creg1c']}
 """
@@ -48,11 +49,13 @@ call function make_create_env() to register the new environment to OpenGymAI.
 create_env() is a function to create new instance of the environment.
 env_name: the registered name of the new environment.
 """
-create_env, env_name, create_test_env, test_env_name = make_create_env(params=pycigar_params, version=0)
+create_env, env_name = make_create_env(pycigar_params, version=0)
 register_env(env_name, create_env)
-register_env(test_env_name, create_test_env)
+eval_start = random.randint(0, 3599-500)
+eval_params = deepcopy(sim_params)   
+eval_params['scenario_config']['start_end_time'] = [eval_start, eval_start+500]
 
-test_env = create_test_env()
+test_env = create_env(eval_params)
 obs_space = test_env.observation_space  # get the observation space, we need this to construct our agent(s) observation input
 act_space = test_env.action_space  # get the action space, we need this to construct our agent(s) action output
 
@@ -94,7 +97,7 @@ def coop_train_fn(config, reporter):
             print(ep_time)
             print("\n")
             # plot the result. This will be saved in ./results
-            test_env.plot(pycigar_params['exp_tag'], test_env_name, i+1, reward)
+            test_env.plot(pycigar_params['exp_tag'], env_name, i+1, reward)
     # save the params of agent
     # state = agent1.save()
     # stop the agent
@@ -105,6 +108,8 @@ if __name__ == "__main__":
     ray.init()
     #config for RLlib - PPO agent
     config = {
+        'env': env_name,
+        'env_config': deepcopy(sim_params),
         "gamma": 0.5,
         'lr': 2e-04,
         'sample_batch_size': 50,
@@ -141,6 +146,8 @@ if __name__ == "__main__":
     ray.init()
     #config for RLlib - PPO agent
     config = {
+        'env': env_name,
+        'env_config': deepcopy(sim_params),
         'vtrace': True,
         "gamma": 0.5,
         'lr': 5e-04,
@@ -178,6 +185,8 @@ if __name__ == "__main__":
     ray.init()
     #config for RLlib - PPO agent
     config = {
+        'env': env_name,
+        'env_config': deepcopy(sim_params),
         # === Model ===
         # Number of atoms for representing the distribution of return. When
         # this is greater than 1, distributional Q-learning is used.

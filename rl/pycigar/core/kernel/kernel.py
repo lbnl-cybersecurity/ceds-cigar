@@ -88,7 +88,7 @@ class Kernel(object):
         if reset is True:
             # track substation, output specs
             if self.multi_config is False:
-                if self.sim_params['scenario_config']['start_end_time'] is list:
+                if isinstance(self.sim_params['scenario_config']['start_end_time'], list):
                     start_time, end_time = self.sim_params['scenario_config']['start_end_time']
                     self.t = end_time - start_time
                 else:
@@ -109,10 +109,7 @@ class Kernel(object):
                 
                 self.device.update(reset)
                 
-                if self.sim_params['scenario_config']['start_end_time'] is list:
-                    self.scenario.change_load_profile(start_time, end_time)
-                else:
-                    self.scenario.change_load_profile_new(start_time, end_time)  
+                self.scenario.change_load_profile_new(start_time, end_time)  
                 
                 self.node.update(reset)
                 self.simulation.update(reset)
@@ -126,7 +123,7 @@ class Kernel(object):
                 return self.sim_params
 
             else:
-                if self.sim_params['scenario_config']['start_end_time'] is list:
+                if isinstance(self.sim_params['scenario_config']['start_end_time'], list):
                     start_time, end_time = self.sim_params['scenario_config']['start_end_time']
                     self.t = end_time - start_time
                 else:
@@ -140,10 +137,8 @@ class Kernel(object):
                 self.device.start_device()
                 self.scenario.start_scenario()
                 self.device.update(reset)
-                if self.sim_params['scenario_config']['start_end_time'] is list:
-                    self.scenario.change_load_profile(start_time, end_time)
-                else: 
-                    self.scenario.change_load_profile_new(start_time, end_time)
+                
+                self.scenario.change_load_profile_new(start_time, end_time)
                 
                 self.node.update(reset)
                 self.simulation.update(reset)

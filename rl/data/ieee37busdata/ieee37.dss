@@ -4,8 +4,11 @@ Clear
 ! Node voltages in OpenDSS are normally line-ground and may give strange-looking results
 ! Be careful if you put line-neutral connected loads or other devices on this circuit.
 
+
 New object=circuit.ieee37
 ~ basekv=230 pu=1.00 MVAsc3=200000 MVAsc1=210000
+
+set ControlMode=OFF
 
 ! Substation Transformer
 New Transformer.SubXF Phases=3 Windings=2 Xhl=8

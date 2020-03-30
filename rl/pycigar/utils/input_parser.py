@@ -121,7 +121,7 @@ def input_parser(folder_name):
         device['custom_configs']['adaptive_gain'] = 20
         device['custom_configs']['low_pass_filter_measure'] = low_pass_filter_measure_std*np.random.randn() + low_pass_filter_measure_mean
         device['custom_configs']['low_pass_filter_output'] = low_pass_filter_output_std*np.random.randn() + low_pass_filter_output_mean
-        device['adversary_controller'] = 'unbalanced_fixed_controller'
+        device['adversary_controller'] = 'adaptive_fixed_controller'
         device['adversary_custom_configs'] = {}
         device['adversary_custom_configs']['default_control_setting'] = [1.014, 1.015, 1.015, 1.016, 1.017]
         device['hack'] = [300, 0.4]

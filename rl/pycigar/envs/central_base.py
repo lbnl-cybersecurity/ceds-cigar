@@ -105,7 +105,7 @@ class CentralEnv(gym.Env):
             done: bool
         """
         #print(self.k.time)
-        rl_actions = self.action_mapping_new(rl_actions)
+        rl_actions = self.action_mapping(rl_actions)
 
         next_observation = None
         self.old_actions = {}
@@ -201,6 +201,7 @@ class CentralEnv(gym.Env):
                        'p_max': self.k.device.get_device_p_injection(key),
                        'env_time': self.env_time,
                        'p_set': next_observation[4],
+                       'p_set_p_max': next_observation[3],
                        } for key in self.k.device.get_rl_device_ids()}
 
         for key in self.k.device.get_rl_device_ids():
@@ -330,9 +331,7 @@ class CentralEnv(gym.Env):
         for tracking_id in self.tracking_ids:
             if tracking_id in inverter_ids:
                 node_id = self.k.device.get_node_connected_to(tracking_id)
-                if tracking_id[-1].isdigit():    
-                    self.tracking_infos[tracking_id]['v_val'].append(self.k.node.get_node_voltage(node_id))
-                else:
+                if not tracking_id[-1].isdigit():    
                     if tracking_id[:-1] + 'a' in self.tracking_infos.keys() and tracking_id[:-1] + 'a' != tracking_id:
                         node_id_a = self.k.device.get_node_connected_to(tracking_id[:-1] + 'a')
                         self.tracking_infos[tracking_id[:-1] + 'a'].append(self.k.node.get_node_voltage(node_id_a))
@@ -343,6 +342,7 @@ class CentralEnv(gym.Env):
                         node_id_c = self.k.device.get_node_connected_to(tracking_id[:-1] + 'c')
                         self.tracking_infos[tracking_id[:-1] + 'c'].append(self.k.node.get_node_voltage(node_id_c))
 
+                self.tracking_infos[tracking_id]['v_val'].append(self.k.node.get_node_voltage(node_id))
                 self.tracking_infos[tracking_id]['y_val'].append(self.k.device.get_device_y(tracking_id))
                 #p_max = self.k.device.get_solar_generation(tracking_id)
                 #p_inject = self.k.device.get_device_p_injection(tracking_id)
@@ -382,7 +382,7 @@ class CentralEnv(gym.Env):
         #        plt.legend([a1, a2, a3, a4, a5], labels, loc=1)
         #else:
         f, ax = plt.subplots(6, figsize=(25, 25))
-        tracking_id = list(self.tracking_infos.keys())[0]
+        tracking_id = 'inverter_s701a'#list(self.tracking_infos.keys())[0]
         ax[0].set_title(tracking_id + " -- total reward: " + str(reward))
         ax[0].plot(self.tracking_infos[tracking_id]['v_val'])
         ax[0].set_ylabel('voltage')
@@ -400,13 +400,15 @@ class CentralEnv(gym.Env):
         ax[3].grid(b=True, which='both')
         plt.legend([a1, a2, a3, a4, a5], labels, loc=1)
         
-        tracking_id = list(self.tracking_infos.keys())[1]
-        ax[4].plot(self.tracking_infos[tracking_id]['reg_val'])
-        ax[4].set_ylabel('reg_val' + tracking_id)
+        if 'creg1a' in self.tracking_infos.keys():
+            tracking_id = 'creg1a'
+            ax[4].plot(self.tracking_infos[tracking_id]['reg_val'])
+            ax[4].set_ylabel('reg_val' + tracking_id)
 
-        tracking_id = list(self.tracking_infos.keys())[2]
-        ax[5].plot(self.tracking_infos[tracking_id]['reg_val'])
-        ax[5].set_ylabel('reg_val' + tracking_id)
+        if 'creg1c' in self.tracking_infos.keys():
+            tracking_id = 'creg1c'
+            ax[5].plot(self.tracking_infos[tracking_id]['reg_val'])
+            ax[5].set_ylabel('reg_val' + tracking_id)
 
         
 
@@ -531,8 +533,8 @@ class CentralEnv(gym.Env):
         rl_actions = ACTION_MAP[rl_actions]
         for rl_id in self.INIT_ACTION.keys():
             new_rl_actions[rl_id] =  self.INIT_ACTION[rl_id] - ACTION_RANGE + ACTION_STEP*rl_actions[0]
-            new_rl_actions[rl_id][0] =  new_rl_actions[rl_id][1] - (ACTION_MAX_SLOPE-ACTION_MIN_SLOPE)/DISCRETIZE_RELATIVE*rl_actions[1]
-            new_rl_actions[rl_id][3] =  new_rl_actions[rl_id][1] + (ACTION_MAX_SLOPE-ACTION_MIN_SLOPE)/DISCRETIZE_RELATIVE*rl_actions[1]
+            new_rl_actions[rl_id][0] =  new_rl_actions[rl_id][1] - (ACTION_MAX_SLOPE-ACTION_MIN_SLOPE)/DISCRETIZE_RELATIVE*rl_actions[1] - ACTION_MIN_SLOPE
+            new_rl_actions[rl_id][3] =  new_rl_actions[rl_id][1] + (ACTION_MAX_SLOPE-ACTION_MIN_SLOPE)/DISCRETIZE_RELATIVE*rl_actions[1] + ACTION_MIN_SLOPE
         return new_rl_actions
 
     def pycigar_output_specs(self, reset=True):
@@ -636,3 +638,7 @@ class CentralEnv(gym.Env):
         self.output_specs['Inverter Outputs'] = inverter_outputs
         
         return self.output_specs
+
+    @property
+    def base_env(self):
+        return self 
