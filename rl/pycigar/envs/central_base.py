@@ -420,6 +420,7 @@ class CentralEnv(gym.Env):
 
         f.savefig(save_path)
         plt.close(f)
+        return f
 
     def plot_unbalance(self, exp_tag='', env_name='', iteration=0, reward=0):
         """Plot the result of tracking ids after the simulation.
@@ -505,8 +506,6 @@ class CentralEnv(gym.Env):
         ax[5].plot(self.tracking_infos[tracking_id]['reg_val'])
         ax[5].set_ylabel('reg_val' + tracking_id)
 
-        
-
             #np.savetxt(os.path.join(os.path.join(config.LOG_DIR, exp_tag), 'voltage_profile.txt'), self.tracking_infos[tracking_id]['v_val'])
 
         if not os.path.exists(os.path.join(config.LOG_DIR, exp_tag)):
@@ -515,6 +514,7 @@ class CentralEnv(gym.Env):
 
         f.savefig(save_path)
         plt.close(f)
+        return f
 
 
     def action_mapping(self, rl_actions):
@@ -641,4 +641,4 @@ class CentralEnv(gym.Env):
 
     @property
     def base_env(self):
-        return self 
+        return self

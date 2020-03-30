@@ -121,7 +121,7 @@ class CentralWrapper(CentralEnv):
     @property
     def base_env(self):
         return self.env.base_env
-        
+
 class CentralObservationWrapper(CentralWrapper):
     def reset(self):
         observation = self.env.reset()

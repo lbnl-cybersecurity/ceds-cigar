@@ -110,6 +110,7 @@ class Kernel(object):
                 self.device.update(reset)
                 
                 self.scenario.change_load_profile_new(start_time, end_time)  
+
                 
                 self.node.update(reset)
                 self.simulation.update(reset)

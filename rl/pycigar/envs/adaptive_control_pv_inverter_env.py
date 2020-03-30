@@ -14,11 +14,11 @@ class AdaptiveControlPVInverterEnv(Env):
     @property
     def observation_space(self):
         return Box(low=-float('inf'), high=float('inf'),
-                   shape=(5,), dtype=np.float32)
+                   shape=(5,), dtype=np.float64)
 
     @property
     def action_space(self):
-        return Box(low=0.5, high=1.5, shape=(5,), dtype=np.float32)
+        return Box(low=0.5, high=1.5, shape=(5,), dtype=np.float64)
 
     def _apply_rl_actions(self, rl_actions):
         if rl_actions:

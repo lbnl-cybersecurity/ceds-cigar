@@ -13,7 +13,7 @@ class MultiEnv(MultiAgentEnv, Env):
 
     @property
     def observation_space(self):
-        return Box(low=-float('inf'), high=float('inf'), shape=(5,), dtype=np.float32)
+        return Box(low=-float('inf'), high=float('inf'), shape=(5,), dtype=np.float64)
 
     def step(self, rl_actions):
         """Perform 1 step forward in the environment.

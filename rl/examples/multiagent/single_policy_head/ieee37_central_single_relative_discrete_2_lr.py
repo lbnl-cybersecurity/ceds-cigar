@@ -52,7 +52,8 @@ env_name: the registered name of the new environment.
 create_env, env_name = make_create_env(pycigar_params, version=0)
 register_env(env_name, create_env)
 eval_start = random.randint(0, 3599-500)
-eval_params = deepcopy(sim_params)   
+
+eval_params = deepcopy(sim_params)
 eval_params['scenario_config']['start_end_time'] = [eval_start, eval_start+500]
 
 test_env = create_env(eval_params)
