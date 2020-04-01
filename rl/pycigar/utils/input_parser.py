@@ -51,7 +51,7 @@ def input_parser(folder_name):
           'network_data_directory': file_load_solar_path,
           'custom_configs': {'load_scaling_factor': 1.5,
                              'solar_scaling_factor': 3,
-                             'slack_bus_voltage': 0.92,  # default 1.04
+                             'slack_bus_voltage': 1.02,  # default 1.04
                              'load_generation_noise': False,
                              'power_factor': 0.9},
           'nodes': [],
