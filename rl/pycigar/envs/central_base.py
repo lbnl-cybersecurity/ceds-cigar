@@ -540,6 +540,14 @@ class CentralEnv(gym.Env):
             new_rl_actions[rl_id][3] =  new_rl_actions[rl_id][1] + (ACTION_MAX_SLOPE-ACTION_MIN_SLOPE)/DISCRETIZE_RELATIVE*rl_actions[1] + ACTION_MIN_SLOPE
         return new_rl_actions
 
+    def action_mapping_continuous(self, rl_actions):
+        if rl_actions is None:
+            return None
+        new_rl_actions = {}
+        for rl_id in self.INIT_ACTION.keys():
+            new_rl_actions[rl_id] =  self.INIT_ACTION[rl_id] + rl_actions
+       return new_rl_actions
+
     def pycigar_output_specs(self, reset=True):
         if reset == True:
             self.output_specs = {}
