@@ -8,6 +8,7 @@ from copy import deepcopy
 
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
 import ray
 from ray import tune
 from ray.rllib.agents.ppo import PPOTrainer, APPOTrainer
@@ -79,6 +80,15 @@ def custom_eval_function(trainer, eval_workers):
     ax[2].set_ylim([-280, 280])
     ax[3].set_ylim([0.91, 1.19])
     f.savefig(trainer.global_vars['reporter_dir'] + 'eval-epoch-' + str(trainer.iteration) + '.png')
+
+    ep_hist = pd.DataFrame(dict(v=ep.hist_data['v_val'], y=ep.hist_data['y_val'],
+                                q_set=ep.hist_data['q_set'], q_val=ep.hist_data['q_val']))
+
+    a_hist = pd.DataFrame(ep.hist_data['a_val'], columns=['a1', 'a2', 'a3', 'a4', 'a5'])
+    df = ep_hist.join(a_hist, how='outer')
+    start = ep.custom_metrics["hack_start"]
+    end = ep.custom_metrics["hack_end"]
+    df.to_csv(trainer.global_vars['reporter_dir'] + 'last_eval_hists' + str(start) + '_' + str(end) + '.csv')
     return metrics
 
 
@@ -121,7 +131,12 @@ def on_episode_end(info):
     episode.custom_metrics["num_actions_taken"] = num_actions
 
     env = info['env'].vector_env.envs[0]
-    episode.hist_data.update(env.base_env.tracking_infos[env.base_env.tracking_ids[0]])
+    t_id = env.base_env.tracking_ids[0]
+    episode.hist_data.update(env.base_env.tracking_infos[t_id])
+    hack_start = int([k for k, v in env.base_env.k.scenario.hack_start_times.items() if 'adversary_' + t_id in v][0])
+    hack_end = int([k for k, v in env.base_env.k.scenario.hack_end_times.items() if 'adversary_' + t_id in v][0])
+    episode.custom_metrics["hack_start"] = hack_start
+    episode.custom_metrics["hack_end"] = hack_end
 
 
 # ==== ====
