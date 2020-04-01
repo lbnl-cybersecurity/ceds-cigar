@@ -1422,7 +1422,7 @@ class CentralGlobalRewardWrapper(CentralRewardWrapper):
             #    ria = 0
             #else:
             #    ria = 1
-            r += -(M*y + N*roa + P*np.linalg.norm(action-self.INIT_ACTION[key]) + (1-abs(info[key]['p_set_p_max']))**2) 
+            r += -(M*y + N*roa + P*np.linalg.norm(action-self.INIT_ACTION[key]) + 0.5*(1-abs(info[key]['p_set_p_max']))**2) 
             #r += -((M2*y**2 + P2*np.sum(np.abs(action-old_action)) + N2*np.sum(np.abs(action-INIT_ACTION))))/100
             global_reward += r
         global_reward = global_reward / len(list(info.keys()))
