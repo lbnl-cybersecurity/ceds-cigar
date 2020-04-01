@@ -31,9 +31,9 @@ class RLControlPVInverterEnv(CentralEnv):
             voltage = self.k.node.get_node_voltage(connected_node)
             solar_generation = self.k.device.get_solar_generation(rl_id)
             y = self.k.device.get_device_y(rl_id)
-            p_inject = self.k.device.get_device_p_injection(rl_id)
+            p_set_p_max = self.k.device.get_device_p_set_p_max(rl_id)
             p_set = self.k.device.get_device_p_set_relative(rl_id)
-            observation = np.array([voltage, solar_generation, y, p_inject, p_set])
+            observation = np.array([voltage, solar_generation, y, p_set_p_max, p_set])
             obs.update({rl_id: observation})
         
         obs = np.mean(np.array(list(obs.values())), axis=0) 

@@ -94,7 +94,7 @@ class Kernel(object):
                 else:
                     self.t = self.sim_params['scenario_config']['start_end_time']
                     if 'start_time' not in self.sim_params['scenario_config']:
-                        start_time = random.randint(0, 3599-self.t)
+                        start_time = random.randint(0, 14399-self.t)
                         end_time = start_time + self.t
                     else:
                         start_time = self.sim_params['scenario_config']['start_time']
@@ -108,8 +108,9 @@ class Kernel(object):
                 self.scenario.start_scenario()
                 
                 self.device.update(reset)
+                
+                self.scenario.change_load_profile_new(start_time, end_time)  
 
-                self.scenario.change_load_profile_new(start_time, end_time)
                 
                 self.node.update(reset)
                 self.simulation.update(reset)
@@ -128,7 +129,7 @@ class Kernel(object):
                     self.t = end_time - start_time
                 else:
                     self.t = self.sim_params['scenario_config']['start_end_time']
-                    start_time = random.randint(0, 3599-self.t)
+                    start_time = random.randint(0, 14399-self.t)
                     end_time = start_time + self.t
                 self.sim_params['scenario_config']['start_time'] = start_time
                 self.sim_params['scenario_config']['end_time'] = end_time
@@ -137,7 +138,7 @@ class Kernel(object):
                 self.device.start_device()
                 self.scenario.start_scenario()
                 self.device.update(reset)
-
+                
                 self.scenario.change_load_profile_new(start_time, end_time)
                 
                 self.node.update(reset)

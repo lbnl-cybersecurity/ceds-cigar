@@ -4,6 +4,9 @@ from pycigar.devices import RegulatorDevice
 
 from pycigar.controllers import AdaptiveInverterController
 from pycigar.controllers import FixedController
+from pycigar.controllers import AdaptiveFixedController
+from pycigar.controllers import UnbalancedFixedController
+
 from pycigar.controllers import RLController
 import numpy as np
 
@@ -172,7 +175,7 @@ class OpenDSSDevice(KernelDevice):
         if controller[0] == AdaptiveInverterController:
             self.adaptive_device_ids.append(device_id)
             self.num_adaptive_devices += 1
-        elif controller[0] == FixedController:
+        elif controller[0] == FixedController or controller[0] == AdaptiveFixedController or controller[0] == UnbalancedFixedController:
             self.fixed_device_ids.append(device_id)
             self.num_fixed_devices += 1
         elif controller[0] == RLController:
@@ -202,7 +205,7 @@ class OpenDSSDevice(KernelDevice):
             if adversary_controller[0] == AdaptiveInverterController:
                 self.adversary_adaptive_device_ids.append(adversary_device_id)
                 self.num_adversary_adaptive_devices += 1
-            if adversary_controller[0] == FixedController:
+            if adversary_controller[0] == FixedController or adversary_controller[0] == AdaptiveFixedController or adversary_controller[0] == UnbalancedFixedController:
                 self.adversary_fixed_device_ids.append(adversary_device_id)
                 self.num_adversary_fixed_devices += 1
             if adversary_controller[0] == RLController:
@@ -358,7 +361,22 @@ class OpenDSSDevice(KernelDevice):
             The relative power set
         """
         return self.devices[device_id]['device'].p_set[1]/self.devices[device_id]['device'].Sbar
-    
+
+    def get_device_p_set_p_max(self, device_id):
+        """Return the device's power set relative to Sbar at the current timestep.
+
+        Parameters
+        ----------
+        device_id : string
+            The device id
+
+        Returns
+        -------
+        float
+            The relative power set
+        """
+        return self.devices[device_id]['device'].p_set[1]/max(10, self.devices[device_id]['device'].solar_irr)
+
     def get_device_p_injection(self, device_id):
         """Return the device's power injection at the current timestep.
 

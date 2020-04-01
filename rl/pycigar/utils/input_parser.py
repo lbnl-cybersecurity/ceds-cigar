@@ -47,11 +47,11 @@ def input_parser(folder_name):
         },
         'scenario_config': {
           'multi_config': True,
-          'start_end_time': 500,
+          'start_end_time': 750,
           'network_data_directory': file_load_solar_path,
           'custom_configs': {'load_scaling_factor': 1.5,
                              'solar_scaling_factor': 3,
-                             'slack_bus_voltage': 1.04,
+                             'slack_bus_voltage': 0.92,  # default 1.04
                              'load_generation_noise': False,
                              'power_factor': 0.9},
           'nodes': [],
@@ -121,7 +121,7 @@ def input_parser(folder_name):
         device['custom_configs']['adaptive_gain'] = 20
         device['custom_configs']['low_pass_filter_measure'] = low_pass_filter_measure_std*np.random.randn() + low_pass_filter_measure_mean
         device['custom_configs']['low_pass_filter_output'] = low_pass_filter_output_std*np.random.randn() + low_pass_filter_output_mean
-        device['adversary_controller'] = 'fixed_controller'
+        device['adversary_controller'] = 'adaptive_fixed_controller'
         device['adversary_custom_configs'] = {}
         device['adversary_custom_configs']['default_control_setting'] = [1.014, 1.015, 1.015, 1.016, 1.017]
         device['hack'] = [300, 0.4]
