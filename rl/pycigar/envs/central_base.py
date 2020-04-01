@@ -546,7 +546,7 @@ class CentralEnv(gym.Env):
         new_rl_actions = {}
         for rl_id in self.INIT_ACTION.keys():
             new_rl_actions[rl_id] =  self.INIT_ACTION[rl_id] + rl_actions
-       return new_rl_actions
+        return new_rl_actions
 
     def pycigar_output_specs(self, reset=True):
         if reset == True:
