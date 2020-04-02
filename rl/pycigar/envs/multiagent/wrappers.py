@@ -1696,10 +1696,10 @@ class CentralLocalContinuousObservationWrapper(CentralObservationWrapper):
             p_set = info[key]['p_set']
 
         # tranform back the initial action to the action form of RLlib
-        a = old_action[1]-self.INIT_ACTION[key][1]
+        old_action = old_action[1]-self.INIT_ACTION[key][1]
 
         # in the original observation, position 2 is the y-value. We concatenate it with init_action and old_action
-        observation = np.concatenate((np.array([observation[2]]), np.array([p_set]), old_action))
+        observation = np.concatenate((np.array([observation[2]]), np.array([p_set]), np.array([old_action])))
 
         return observation
 
@@ -1792,7 +1792,7 @@ class CentralFramestackContinuousObservationWrapper(CentralObservationWrapper):
             i = list(self.frames[1].keys())[0]
 
             old_action = self.frames[-1][i]['old_action']
-            a = old_action[1]-self.INIT_ACTION[i][1]
+            old_action = old_action[1]-self.INIT_ACTION[i][1]
 
             obs = np.concatenate((np.array(y_value_max).reshape(1, 1), 
                                   np.array(self.frames[-1][i]['y']).reshape(1, 1), 

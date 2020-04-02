@@ -33,6 +33,10 @@ from pycigar.envs.multiagent.wrappers import NewCentralFramestackObservationWrap
 from pycigar.envs.multiagent.wrappers import NewCentralLocalObservationWrapper
 from pycigar.envs.multiagent.wrappers import NewCentralSingleRelativeInitDiscreteActionWrapper
 
+from pycigar.envs.multiagent.wrappers import CentralLocalContinuousObservationWrapper
+from pycigar.envs.multiagent.wrappers import CentralFramestackContinuousObservationWrapper
+from pycigar.envs.multiagent.wrappers import CentralSingleRelativeInitContinuousActionWrapper
+
 from pycigar.envs.multiagent.wrapper_multi import CentralWrapper
 """
 Tutorial to add new environment:
@@ -230,3 +234,6 @@ class NewCentralControlPVInverterEnv(CentralWrapper):
     def __init__(self, **kwargs):
         self.env = NewCentralFramestackObservationWrapper(NewCentralLocalObservationWrapper(CentralGlobalRewardWrapper(NewCentralSingleRelativeInitDiscreteActionWrapper(RLControlPVInverterEnv(**kwargs)))))
 
+class CentralControlPVInverterContinuousEnv(CentralWrapper):
+    def __init__(self, **kwargs):
+        self.env = CentralFramestackContinuousObservationWrapper(CentralLocalContinuousObservationWrapper(CentralGlobalRewardWrapper(CentralSingleRelativeInitContinuousActionWrapper(RLControlPVInverterEnv(**kwargs)))))
