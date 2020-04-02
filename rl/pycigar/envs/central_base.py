@@ -121,8 +121,7 @@ class CentralEnv(gym.Env):
         count = 0 
 
         for _ in range(self.sim_params['env_config']["sims_per_step"]):
-            if self.tracking_ids is not None:
-                self.pycigar_tracking()
+
             self.env_time += 1
 
             # perform action update for PV inverter device
@@ -174,6 +173,10 @@ class CentralEnv(gym.Env):
                     next_observation += states
                 count += 1
 
+            # tracking
+            if self.tracking_ids is not None:
+                self.pycigar_tracking()
+            
             if self.k.time >= self.k.t:
                 break
 
@@ -220,10 +223,6 @@ class CentralEnv(gym.Env):
             reward = self.compute_reward(rl_clipped, fail=not converged)
         else:
             reward = self.compute_reward(rl_actions, fail=not converged)
-        
-        # tracking
-        if self.tracking_ids is not None:
-            self.pycigar_tracking()
         
         # tracking pycigar_output_spec
         self.pycigar_output_specs(reset=False)
@@ -382,7 +381,7 @@ class CentralEnv(gym.Env):
         #        plt.legend([a1, a2, a3, a4, a5], labels, loc=1)
         #else:
         f, ax = plt.subplots(6, figsize=(25, 25))
-        tracking_id = 'inverter_s701a'#list(self.tracking_infos.keys())[0]
+        tracking_id = list(self.tracking_infos.keys())[0] #'inverter_s701a'#
         ax[0].set_title(tracking_id + " -- total reward: " + str(reward))
         ax[0].plot(self.tracking_infos[tracking_id]['v_val'])
         ax[0].set_ylabel('voltage')
