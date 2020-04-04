@@ -4,6 +4,7 @@ from pycigar.devices import RegulatorDevice
 
 from pycigar.controllers import AdaptiveInverterController
 from pycigar.controllers import FixedController
+from pycigar.controllers import MimicController
 from pycigar.controllers import AdaptiveFixedController
 from pycigar.controllers import UnbalancedFixedController
 
@@ -216,7 +217,7 @@ class OpenDSSDevice(KernelDevice):
                 "device": adversary_device_obj,
                 "controller": adversary_controller_obj,
                 "node_id": connect_to,
-                "hack_controller": AdaptiveInverterController(adversary_device_id, controller[1])
+                "hack_controller": MimicController(adversary_device_id, device_id)    #AdaptiveInverterController(adversary_device_id, controller[1])
             }
         else:
             adversary_device_id = "adversary_%i" % name
@@ -235,7 +236,7 @@ class OpenDSSDevice(KernelDevice):
                 "device": adversary_device_obj,
                 "controller": adversary_controller_obj,
                 "node_id": connect_to,
-                "hack_controller": AdaptiveInverterController(adversary_device_id, controller[1])
+                "hack_controller": MimicController(adversary_device_id, device_id)    #AdaptiveInverterController(adversary_device_id, controller[1])
             }
 
         self.all_device_ids.extend((device_id, adversary_device_id))

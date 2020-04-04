@@ -4,6 +4,7 @@ from pycigar.devices import RegulatorDevice
 
 from pycigar.controllers import AdaptiveInverterController
 from pycigar.controllers import FixedController
+from pycigar.controllers import MimicController
 from pycigar.controllers import AdaptiveFixedController
 from pycigar.controllers import UnbalancedFixedController
 

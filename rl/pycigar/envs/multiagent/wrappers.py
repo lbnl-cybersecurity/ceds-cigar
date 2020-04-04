@@ -1418,6 +1418,11 @@ class CentralGlobalRewardWrapper(CentralRewardWrapper):
                 roa = 0
             else:
                 roa = 1
+
+            #if (action[1] - old_action[1]) < 0.0005:
+            #    roa = 0
+            #else:
+            #    roa = 1
             #if (action == self.INIT_ACTION[key]).all():
             #    ria = 0
             #else:
