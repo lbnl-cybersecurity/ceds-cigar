@@ -2,6 +2,8 @@ import argparse
 import math
 import os
 import pickle
+import json
+import shutil
 import random
 from collections import namedtuple
 from copy import deepcopy
@@ -45,50 +47,17 @@ def custom_eval_function(trainer, eval_workers):
     else:
         num_rounds = int(math.ceil(trainer.config["evaluation_num_episodes"] /
                                    trainer.config["evaluation_num_workers"]))
-
         for i in range(num_rounds):
-            ray.get([
-                w.sample.remote()
-                for w in eval_workers.remote_workers()
-            ])
+            ray.get([w.sample.remote() for w in eval_workers.remote_workers()])
 
     episodes, _ = collect_episodes(eval_workers.local_worker(), eval_workers.remote_workers())
     metrics = summarize_episodes(episodes)
 
-    # save the plot of the last evaluation episode
-    ep = episodes[-1]
-    f, ax = plt.subplots(4, figsize=(25, 25))
-    ax[0].set_title("total reward: " + str(ep.episode_reward))
-    ax[0].plot(ep.hist_data['v_val'])
-    ax[0].set_ylabel('voltage')
-    ax[0].grid(b=True, which='both')
-    ax[1].plot(ep.hist_data['y_val'])
-    ax[1].set_ylabel('oscillation observer')
-    ax[1].grid(b=True, which='both')
-    ax[2].plot(ep.hist_data['q_set'])
-    ax[2].plot(ep.hist_data['q_val'])
-    ax[2].set_ylabel('reactive power')
-    ax[2].grid(b=True, which='both')
-    labels = ['a1', 'a2', 'a3', 'a4', 'a5']
-    [a1, a2, a3, a4, a5] = ax[3].plot(ep.hist_data['a_val'])
-    ax[3].set_ylabel('action')
-    ax[3].grid(b=True, which='both')
-    plt.legend([a1, a2, a3, a4, a5], labels, loc=1)
-
-    ax[0].set_ylim([0.93, 1.07])
-    ax[1].set_ylim([0, 5])
-    ax[2].set_ylim([-280, 280])
-    ax[3].set_ylim([0.91, 1.19])
+    f = plot_episode(episodes[-1])
     f.savefig(trainer.global_vars['reporter_dir'] + 'eval-epoch-' + str(trainer.iteration) + '.png')
 
-    ep_hist = pd.DataFrame(dict(v=ep.hist_data['v_val'], y=ep.hist_data['y_val'],
-                                q_set=ep.hist_data['q_set'], q_val=ep.hist_data['q_val']))
+    save_best_policy(trainer, episodes)
 
-    a_hist = pd.DataFrame(ep.hist_data['a_val'], columns=['a1', 'a2', 'a3', 'a4', 'a5'])
-    df = ep_hist.join(a_hist, how='outer')
-    start = ep.custom_metrics["hack_start"]
-    end = ep.custom_metrics["hack_end"]
-    df.to_csv(trainer.global_vars['reporter_dir'] + 'last_eval_hists' + str(start) + '_' + str(end) + '.csv')
     return metrics
 
 
@@ -133,6 +102,7 @@ def on_episode_end(info):
     env = info['env'].vector_env.envs[0]
     t_id = env.base_env.tracking_ids[0]
     episode.hist_data.update(env.base_env.tracking_infos[t_id])
+    episode.hist_data['adversary_a_val'] = env.base_env.tracking_infos['adversary_' + t_id]['a_val']
     hack_start = int([k for k, v in env.base_env.k.scenario.hack_start_times.items() if 'adversary_' + t_id in v][0])
     hack_end = int([k for k, v in env.base_env.k.scenario.hack_end_times.items() if 'adversary_' + t_id in v][0])
     episode.custom_metrics["hack_start"] = hack_start
@@ -140,6 +110,69 @@ def on_episode_end(info):
 
 
 # ==== ====
+
+def plot_episode(ep):
+    f, ax = plt.subplots(5, figsize=(25, 28))
+    ax[0].set_title("total reward: " + str(ep.episode_reward))
+    ax[0].plot(ep.hist_data['v_val'])
+    ax[0].set_ylabel('voltage')
+    ax[0].grid(b=True, which='both')
+    ax[1].plot(ep.hist_data['y_val'])
+    ax[1].set_ylabel('oscillation observer')
+    ax[1].grid(b=True, which='both')
+    ax[2].plot(ep.hist_data['q_set'])
+    ax[2].plot(ep.hist_data['q_val'])
+    ax[2].legend(['q_set', 'q_val'], loc=1)
+    ax[2].set_ylabel('reactive power')
+    ax[2].grid(b=True, which='both')
+    labels = ['a1', 'a2', 'a3', 'a4', 'a5']
+    [a1, a2, a3, a4, a5] = ax[3].plot(ep.hist_data['a_val'])
+    ax[3].set_ylabel('action')
+    ax[3].grid(b=True, which='both')
+    ax[3].legend([a1, a2, a3, a4, a5], labels, loc=1)
+    [a1, a2, a3, a4, a5] = ax[4].plot(ep.hist_data['adversary_a_val'])
+    ax[4].set_ylabel('hacked inverter action')
+    ax[4].grid(b=True, which='both')
+    ax[4].legend([a1, a2, a3, a4, a5], labels, loc=1)
+    ax[0].set_ylim([0.93, 1.07])
+    ax[1].set_ylim([0, 1])
+    ax[2].set_ylim([-280, 280])
+    ax[3].set_ylim([0.91, 1.19])
+    ax[4].set_ylim([0.91, 1.19])
+    return f
+
+
+def save_best_policy(trainer, episodes):
+    mean_r = np.array([ep.episode_reward for ep in episodes]).mean()
+    if 'best_eval_reward' not in trainer.global_vars or trainer.global_vars['best_eval_reward'] < mean_r:
+        os.makedirs(os.path.join(trainer.global_vars['reporter_dir'], 'best'), exist_ok=True)
+        trainer.global_vars['best_eval_reward'] = mean_r
+        # save policy
+        shutil.rmtree(os.path.join(trainer.global_vars['reporter_dir'], 'best', 'policy'), ignore_errors=True)
+        trainer.get_policy().export_model(os.path.join(trainer.global_vars['reporter_dir'], 'best', 'policy'))
+        # save plots
+        ep = episodes[-1]
+        f = plot_episode(ep)
+        f.savefig(os.path.join(trainer.global_vars['reporter_dir'], 'best', 'eval.png'))
+
+        # save CSV
+        ep_hist = pd.DataFrame(dict(v=ep.hist_data['v_val'], y=ep.hist_data['y_val'],
+                                    q_set=ep.hist_data['q_set'], q_val=ep.hist_data['q_val']))
+        a_hist = pd.DataFrame(ep.hist_data['a_val'], columns=['a1', 'a2', 'a3', 'a4', 'a5'])
+        df = ep_hist.join(a_hist, how='outer')
+        df.to_csv(os.path.join(trainer.global_vars['reporter_dir'], 'best', 'last_eval_hists.csv'))
+
+        # save info
+        start = ep.custom_metrics["hack_start"]
+        end = ep.custom_metrics["hack_end"]
+        info = {
+            'epoch': trainer.iteration,
+            'hack_start': start,
+            'hack_end': end,
+            'reward': mean_r
+        }
+        with open(os.path.join(trainer.global_vars['reporter_dir'], 'best', 'info.json'), 'w', encoding='utf-8') as f:
+            json.dump(info, f, ensure_ascii=False, indent=4)
 
 
 def run_train(config, reporter):
@@ -171,7 +204,7 @@ def run_hp_experiment(full_config, name):
 pycigar_params = {'exp_tag': 'cooperative_multiagent_ppo',
                   'env_name': 'CentralControlPVInverterEnv',
                   'simulator': 'opendss',
-                  'tracking_ids': ['inverter_s701a']}
+                  'tracking_ids': ['inverter_s701a', 'adversary_inverter_s701a']}
 
 create_env, env_name = make_create_env(pycigar_params, version=0)
 register_env(env_name, create_env)
@@ -210,10 +243,10 @@ base_config = {
     },
 
     # ==== EVALUATION ====
-    "evaluation_num_workers": 1,
+    "evaluation_num_workers": 0,
     'evaluation_num_episodes': 2,
-    "evaluation_interval": 1,
-    "custom_eval_function": custom_eval_function,
+    "evaluation_interval": 5,
+    "custom_eval_function": tune.function(custom_eval_function),
     'evaluation_config': {
         "seed": 42,
         # IMPORTANT NOTE: For policy gradients, this might not be the optimal policy
@@ -223,17 +256,17 @@ base_config = {
 
     # ==== CUSTOM METRICS ====
     "callbacks": {
-        "on_episode_start": on_episode_start,
-        "on_episode_step": on_episode_step,
-        "on_episode_end": on_episode_end,
+        "on_episode_start": tune.function(on_episode_start),
+        "on_episode_step": tune.function(on_episode_step),
+        "on_episode_end": tune.function(on_episode_end),
     },
 }
 # eval environment should not be random across workers
-eval_start = random.randint(0, 3599 - 500)
-base_config['evaluation_config']['env_config']['scenario_config']['start_end_time'] = [eval_start, eval_start + 500]
+eval_start = 100  # random.randint(0, 3599 - 500)
+base_config['evaluation_config']['env_config']['scenario_config']['start_end_time'] = [eval_start, eval_start + 750]
 
 if __name__ == '__main__':
-    ray.init(local_mode=True)
+    ray.init(local_mode=False)
     args = parse_cli_args()
 
     base_config['num_workers'] = args.workers
@@ -281,3 +314,5 @@ if __name__ == '__main__':
     elif args.algo == 'appo':
         config = deepcopy(full_config)
         run_hp_experiment(config, 'appo')
+
+    ray.shutdown()
