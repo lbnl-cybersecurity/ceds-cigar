@@ -1235,7 +1235,12 @@ class CentralLocalObservationWrapper(CentralObservationWrapper):
             p_set = 0
         else:
             old_action = info[key]['old_action']
-            p_set = info[key]['p_set']
+            p_set = 0
+            num = 0
+            for k in self.get_kernel().device.get_rl_device_ids():
+                p_set += info[k]['p_set']
+                num += 1
+            p_set /= num
 
         # tranform back the initial action to the action form of RLlib
         a = int((old_action[1]-self.INIT_ACTION[key][1]+ACTION_RANGE)/ACTION_STEP)
@@ -1498,7 +1503,12 @@ class NewCentralLocalObservationWrapper(CentralObservationWrapper):
             p_set = 0
         else:
             old_action = info[key]['old_action']
-            p_set = info[key]['p_set']
+            p_set = 0
+            num = 0
+            for k in self.get_kernel().device.get_rl_device_ids():
+                p_set += info[k]['p_set']
+                num += 1
+            p_set /= num
 
         # tranform back the initial action to the action form of RLlib
         a1 = int((old_action[1]-self.INIT_ACTION[key][1]+ACTION_RANGE)/ACTION_STEP)
@@ -1698,7 +1708,12 @@ class CentralLocalContinuousObservationWrapper(CentralObservationWrapper):
             p_set = 0
         else:
             old_action = info[key]['old_action']
-            p_set = info[key]['p_set']
+            p_set = 0
+            num = 0
+            for k in self.get_kernel().device.get_rl_device_ids():
+                p_set += info[k]['p_set']
+                num += 1
+            p_set /= num
 
         # tranform back the initial action to the action form of RLlib
         old_action = old_action[1]-self.INIT_ACTION[key][1]
