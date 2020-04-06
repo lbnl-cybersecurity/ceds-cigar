@@ -217,7 +217,7 @@ class OpenDSSDevice(KernelDevice):
                 "device": adversary_device_obj,
                 "controller": adversary_controller_obj,
                 "node_id": connect_to,
-                "hack_controller": MimicController(adversary_device_id, device_id)    #AdaptiveInverterController(adversary_device_id, controller[1])
+                "hack_controller": FixedController(adversary_device_id, controller[1])#MimicController(adversary_device_id, device_id)    #AdaptiveInverterController(adversary_device_id, controller[1])
             }
         else:
             adversary_device_id = "adversary_%i" % name
@@ -236,7 +236,7 @@ class OpenDSSDevice(KernelDevice):
                 "device": adversary_device_obj,
                 "controller": adversary_controller_obj,
                 "node_id": connect_to,
-                "hack_controller": MimicController(adversary_device_id, device_id)    #AdaptiveInverterController(adversary_device_id, controller[1])
+                "hack_controller": FixedController(adversary_device_id, controller[1])#MimicController(adversary_device_id, device_id)    #AdaptiveInverterController(adversary_device_id, controller[1])
             }
 
         self.all_device_ids.extend((device_id, adversary_device_id))
