@@ -87,7 +87,7 @@ New Load.spot_a1_a_01 Bus1=A1.1 Phases=1 Conn=Wye Model=1 kV=2.7712812921102037 
 New Load.spot_a1_b_01 Bus1=A1.2 Phases=1 Conn=Wye Model=1 kV=2.7712812921102037 kW=250.0 kVAR=50.0
 New Load.spot_a1_c_01 Bus1=A1.3 Phases=1 Conn=Wye Model=1 kV=2.7712812921102037 kW=250.0 kVAR=50.0
 
-New Load.spot_a2_ab_01 Bus1=A2.1.3 Phases=2 Conn=Delta Model=1 kV=4.8 kW=20.0 kVAR=10.0
+New Load.spot_a2_ac_01 Bus1=A2.1.3 Phases=2 Conn=Delta Model=1 kV=4.8 kW=50.0 kVAR=10.0
 !New Load.spot_a2_bc_01 Bus1=A2.2.3 Phases=2 Conn=Delta Model=1 kV=4.8 kW=20.0 kVAR=10.0
 !New Load.spot_a2_ca_01 Bus1=A2.3.1 Phases=2 Conn=Delta Model=1 kV=4.8 kW=20.0 kVAR=10.0
 
