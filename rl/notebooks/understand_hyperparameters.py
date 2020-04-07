@@ -54,7 +54,7 @@ def custom_eval_function(trainer, eval_workers):
     metrics = summarize_episodes(episodes)
 
     f = plot_episode(episodes[-1])
-    f.savefig(trainer.global_vars['reporter_dir'] + 'eval-epoch-' + str(trainer.iteration) + '.png')
+    f.savefig(trainer.global_vars['reporter_dir'] + 'eval-epoch-' + str(trainer.iteration) + '.png', bbox_inches='tight')
 
     save_best_policy(trainer, episodes)
 
@@ -213,10 +213,13 @@ sim_params = input_parser('ieee37busdata')
 base_config = {
     "env": env_name,
     "gamma": 0.5,
-    'lr': 2e-3,
+    'lr': 2e-4,
     'env_config': deepcopy(sim_params),
     'sample_batch_size': 50,
     'train_batch_size': 500,
+    'clip_param': 0.1,
+    'lambda': 0.95,
+    'vf_clip_param': 100,
 
     'num_workers': 3,
     'num_cpus_per_worker': 1,
