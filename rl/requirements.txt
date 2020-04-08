@@ -2,7 +2,7 @@ pyglet<=1.3.2,>=1.2.0
 setuptools>=41.0.0
 protobuf
 opencv-python
-ray
+ray==0.8.2
 gym
 numpy
 scipy
@@ -26,3 +26,4 @@ psutil
 pandas
 opendssdirect.py
 PyYAML
+tqdm
