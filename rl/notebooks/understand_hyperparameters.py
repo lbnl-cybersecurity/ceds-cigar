@@ -110,52 +110,46 @@ def on_episode_end(info):
 
 
 # ==== ====
+def get_translation_and_slope(a_val):
+    points = np.array(a_val)
+    slope = points[:, 1] - points[:, 0]
+    og_point = points[0, 2]
+    translation = points[:, 2] - og_point
+    return translation, slope
+
 
 def plot_episode(ep, epoch=None):
-    plt.rc('font', size=25)
-    plt.rc('xtick', labelsize=15)
-    plt.rc('ytick', labelsize=15)
-    plt.rc('figure', titlesize=30)
-    f, ax = plt.subplots(5, figsize=(25, 28))
+    plt.rc('font', size=15)
+    plt.rc('figure', titlesize=35)
+    f, ax = plt.subplots(5, figsize=(25, 20))
     title = '[epoch {}] total reward: {:.2f}'.format(epoch, ep.episode_reward)
     f.suptitle(title)
-    ax[0].plot(ep.hist_data['v_val'])
-    ax[0].grid(b=True, which='both')
-    ax[0].set_title('voltage')
+    ax[0].plot(ep.hist_data['v_val'], color='tab:blue', label='voltage')
 
-    ax[1].plot(ep.hist_data['y_val'])
-    ax[1].grid(b=True, which='both')
-    ax[1].set_title('oscillation observer')
+    ax[1].plot(ep.hist_data['y_val'], color='tab:blue', label='oscillation observer')
 
-    ax[2].plot(ep.hist_data['q_set'])
-    ax[2].plot(ep.hist_data['q_val'])
-    ax[2].legend(['q_set', 'q_val'], loc=1)
-    ax[2].grid(b=True, which='both')
-    ax[2].set_title('reactive power')
+    ax[2].plot(ep.hist_data['q_set'], color='tab:blue', label='q_set')
+    ax[2].plot(ep.hist_data['q_val'], color='tab:orange', label='q_val')
 
-    points = np.array(ep.hist_data['a_val'])
-    og_point = points[0, 2]
+    translation, slope = get_translation_and_slope(ep.hist_data['a_val'])
+    ax[3].plot(translation, color='tab:blue', label='RL translation')
+    ax[3].plot(slope, color='tab:purple', label='RL slope (a2-a1)')
 
-    points = np.array(ep.hist_data['a_val'])
-    slope = points[:, 0] - points[:, 1]
-    translation = points[:, 2] - og_point
-    ax[3].plot(translation)
-    ax[3].plot(-slope)
-    ax[3].grid(b=True, which='both')
-    ax[3].legend(['translation', '-slope'], loc=1)
-    ax[3].set_title('RL inverter')
-
-    points = np.array(ep.hist_data['adversary_a_val'])
-    slope = points[:, 0] - points[:, 1]
-    ax[4].plot(-slope)
-    ax[4].grid(b=True, which='both')
-    ax[4].legend(['-slope'], loc=1)
-    ax[4].set_title('hacked inverter')
+    translation, slope = get_translation_and_slope(ep.hist_data['adversary_a_val'])
+    ax[4].plot(translation, color='tab:orange', label='hacked translation')
+    ax[4].plot(slope, color='tab:red', label='hacked slope (a2-a1)')
     ax[0].set_ylim([0.93, 1.07])
-    ax[1].set_ylim([0, 1])
+    ax[1].set_ylim([0, 0.8])
     ax[2].set_ylim([-280, 280])
+    ax[3].set_ylim([-0.055, 0.055])
+    ax[4].set_ylim([-0.055, 0.055])
+
+    for a in ax:
+        a.grid(b=True, which='both')
+        a.legend(loc=1, ncol=2)
+
     plt.tight_layout()
-    plt.subplots_adjust(top=0.90)
+    plt.subplots_adjust(top=0.95)
     return f
 
 
@@ -169,14 +163,22 @@ def save_best_policy(trainer, episodes):
         trainer.get_policy().export_model(os.path.join(trainer.global_vars['reporter_dir'], 'best', 'policy'))
         # save plots
         ep = episodes[-1]
-        f = plot_episode(ep)
+        f = plot_episode(ep, trainer.iteration)
         f.savefig(os.path.join(trainer.global_vars['reporter_dir'], 'best', 'eval.png'))
 
         # save CSV
         ep_hist = pd.DataFrame(dict(v=ep.hist_data['v_val'], y=ep.hist_data['y_val'],
                                     q_set=ep.hist_data['q_set'], q_val=ep.hist_data['q_val']))
         a_hist = pd.DataFrame(ep.hist_data['a_val'], columns=['a1', 'a2', 'a3', 'a4', 'a5'])
+        adv_a_hist = pd.DataFrame(ep.hist_data['a_val'], columns=['adv_a1', 'adv_a2', 'adv_a3', 'adv_a4', 'adv_a5'])
+        translation, slope = get_translation_and_slope(ep.hist_data['a_val'])
+        adv_translation, adv_slope = get_translation_and_slope(ep.hist_data['adversary_a_val'])
+        trans_slope_hist = pd.DataFrame(dict(translation=translation, slope=slope,
+                                             adv_translation=adv_translation, adv_slope=adv_slope))
+
         df = ep_hist.join(a_hist, how='outer')
+        df = df.join(adv_a_hist, how='outer')
+        df = df.join(trans_slope_hist, how='outer')
         df.to_csv(os.path.join(trainer.global_vars['reporter_dir'], 'best', 'last_eval_hists.csv'))
 
         # save info
