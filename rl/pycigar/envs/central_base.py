@@ -309,6 +309,7 @@ class CentralEnv(gym.Env):
         inverter_ids = self.k.device.get_pv_device_ids()
         regultor_ids = self.k.device.get_regulator_device_ids()
 
+        print(self.k.device.devices['adversary_inverter_s701a']['device'].q_set)
         if self.env_time == 0:
             self.tracking_infos = {}
             for tracking_id in self.tracking_ids:
@@ -500,13 +501,13 @@ class CentralEnv(gym.Env):
         ax[3].grid(b=True, which='both')
         ax[3].legend([a1, a2, a3, a4, a5], labels, loc=1)
         
-        tracking_id = 'creg1a'#list(self.tracking_infos.keys())[1]
+        tracking_id = 'reg1'#list(self.tracking_infos.keys())[1]
         ax[4].plot(self.tracking_infos[tracking_id]['reg_val'])
         ax[4].set_ylabel('reg_val' + tracking_id)
-
-        tracking_id = 'creg1c'#list(self.tracking_infos.keys())[2]
-        ax[5].plot(self.tracking_infos[tracking_id]['reg_val'])
-        ax[5].set_ylabel('reg_val' + tracking_id)
+        #ax[4].set_ylim(-10, 5)
+        #tracking_id = 'creg1c'#list(self.tracking_infos.keys())[2]
+        #ax[5].plot(self.tracking_infos[tracking_id]['reg_val'])
+        #ax[5].set_ylabel('reg_val' + tracking_id)
 
             #np.savetxt(os.path.join(os.path.join(config.LOG_DIR, exp_tag), 'voltage_profile.txt'), self.tracking_infos[tracking_id]['v_val'])
 
