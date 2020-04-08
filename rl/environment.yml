@@ -10,6 +10,7 @@ dependencies:
     - cloudpickle==1.2.1
     - setuptools==41.0.0
     - pip:
+        - ray==0.8.2
         - tensorflow==2.0.0
         - gym==0.14.0
         - pyprind==2.11.2
