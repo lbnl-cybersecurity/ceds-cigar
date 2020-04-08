@@ -53,7 +53,7 @@ def custom_eval_function(trainer, eval_workers):
     episodes, _ = collect_episodes(eval_workers.local_worker(), eval_workers.remote_workers())
     metrics = summarize_episodes(episodes)
 
-    f = plot_episode(episodes[-1])
+    f = plot_episode(episodes[-1], trainer.iteration)
     f.savefig(trainer.global_vars['reporter_dir'] + 'eval-epoch-' + str(trainer.iteration) + '.png', bbox_inches='tight')
 
     save_best_policy(trainer, episodes)
@@ -111,34 +111,51 @@ def on_episode_end(info):
 
 # ==== ====
 
-def plot_episode(ep):
+def plot_episode(ep, epoch=None):
+    plt.rc('font', size=25)
+    plt.rc('xtick', labelsize=15)
+    plt.rc('ytick', labelsize=15)
+    plt.rc('figure', titlesize=30)
     f, ax = plt.subplots(5, figsize=(25, 28))
-    ax[0].set_title("total reward: " + str(ep.episode_reward))
+    title = '[epoch {}] total reward: {:.2f}'.format(epoch, ep.episode_reward)
+    f.suptitle(title)
     ax[0].plot(ep.hist_data['v_val'])
-    ax[0].set_ylabel('voltage')
     ax[0].grid(b=True, which='both')
+    ax[0].set_title('voltage')
+
     ax[1].plot(ep.hist_data['y_val'])
-    ax[1].set_ylabel('oscillation observer')
     ax[1].grid(b=True, which='both')
+    ax[1].set_title('oscillation observer')
+
     ax[2].plot(ep.hist_data['q_set'])
     ax[2].plot(ep.hist_data['q_val'])
     ax[2].legend(['q_set', 'q_val'], loc=1)
-    ax[2].set_ylabel('reactive power')
     ax[2].grid(b=True, which='both')
-    labels = ['a1', 'a2', 'a3', 'a4', 'a5']
-    [a1, a2, a3, a4, a5] = ax[3].plot(ep.hist_data['a_val'])
-    ax[3].set_ylabel('action')
+    ax[2].set_title('reactive power')
+
+    points = np.array(ep.hist_data['a_val'])
+    og_point = points[0, 2]
+
+    points = np.array(ep.hist_data['a_val'])
+    slope = points[:, 0] - points[:, 1]
+    translation = points[:, 2] - og_point
+    ax[3].plot(translation)
+    ax[3].plot(-slope)
     ax[3].grid(b=True, which='both')
-    ax[3].legend([a1, a2, a3, a4, a5], labels, loc=1)
-    [a1, a2, a3, a4, a5] = ax[4].plot(ep.hist_data['adversary_a_val'])
-    ax[4].set_ylabel('hacked inverter action')
+    ax[3].legend(['translation', '-slope'], loc=1)
+    ax[3].set_title('RL inverter')
+
+    points = np.array(ep.hist_data['adversary_a_val'])
+    slope = points[:, 0] - points[:, 1]
+    ax[4].plot(-slope)
     ax[4].grid(b=True, which='both')
-    ax[4].legend([a1, a2, a3, a4, a5], labels, loc=1)
+    ax[4].legend(['-slope'], loc=1)
+    ax[4].set_title('hacked inverter')
     ax[0].set_ylim([0.93, 1.07])
     ax[1].set_ylim([0, 1])
     ax[2].set_ylim([-280, 280])
-    ax[3].set_ylim([0.91, 1.19])
-    ax[4].set_ylim([0.91, 1.19])
+    plt.tight_layout()
+    plt.subplots_adjust(top=0.90)
     return f
 
 
@@ -248,7 +265,7 @@ base_config = {
     # ==== EVALUATION ====
     "evaluation_num_workers": 0,
     'evaluation_num_episodes': 2,
-    "evaluation_interval": 5,
+    "evaluation_interval": 1,
     "custom_eval_function": tune.function(custom_eval_function),
     'evaluation_config': {
         "seed": 42,
