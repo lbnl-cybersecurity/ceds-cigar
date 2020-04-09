@@ -286,7 +286,7 @@ base_config = {
 # eval environment should not be random across workers
 eval_start = 100  # random.randint(0, 3599 - 500)
 base_config['evaluation_config']['env_config']['scenario_config']['start_end_time'] = [eval_start, eval_start + 750]
-
+del base_config['evaluation_config']['env_config']['attack_randomization']
 if __name__ == '__main__':
     ray.init(local_mode=False)
     args = parse_cli_args()
@@ -301,6 +301,7 @@ if __name__ == '__main__':
     }
 
     if args.algo == 'ppo':
+        
         config = deepcopy(full_config)
         config['config']['env_config']['N'] = ray.tune.grid_search([0, 1, 2, 4, 8])
         run_hp_experiment(config, 'action_penalty')
