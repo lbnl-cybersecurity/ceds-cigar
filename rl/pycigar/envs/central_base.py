@@ -309,7 +309,6 @@ class CentralEnv(gym.Env):
         inverter_ids = self.k.device.get_pv_device_ids()
         regultor_ids = self.k.device.get_regulator_device_ids()
 
-        print(self.k.device.devices['adversary_inverter_s701a']['device'].q_set)
         if self.env_time == 0:
             self.tracking_infos = {}
             for tracking_id in self.tracking_ids:
