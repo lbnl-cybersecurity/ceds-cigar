@@ -146,7 +146,8 @@ class Kernel(object):
                 self.scenario.update(reset)
                 
                 #self.warm_up_v()
-                self.warm_up_1_step()
+                #self.warm_up_1_step()
+                self.warm_up_k_step(50)
 
                 self.power_substation = self.kernel_api.get_total_power()
                 self.losses_total = self.kernel_api.get_losses()
@@ -177,6 +178,15 @@ class Kernel(object):
         self.simulation.update(reset=False)
         self.dg_output = self.node.total_power_inject
         self.scenario.update(reset=False)
+
+    def warm_up_k_step(self, k):
+        for _ in range(k):
+            self.time += 1
+            self.device.update(reset=False)
+            self.node.update(reset=False)
+            self.simulation.update(reset=False)
+            self.dg_output = self.node.total_power_inject
+            self.scenario.update(reset=False)
 
     def warm_up_v(self):
         """Run the simulation until the voltage is stablized."""
