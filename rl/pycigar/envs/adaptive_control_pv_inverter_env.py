@@ -1,7 +1,7 @@
-from pycigar.envs.base import Env
 import numpy as np
 from gym.spaces.box import Box
-import numpy as numpy
+
+from pycigar.envs.base import Env
 
 A = 0
 B = 100
@@ -38,6 +38,6 @@ class AdaptiveControlPVInverterEnv(Env):
             y = self.k.device.get_device_y(measure_id)
             p_inject = self.k.device.get_device_p_injection(measure_id)
             p_max = self.k.device.get_solar_generation(measure_id)
-            r = -(np.sqrt(A*(1-voltage)**2 + B*y**2 + C*(1+p_inject/p_max)**2))
+            r = -(np.sqrt(A * (1 - voltage) ** 2 + B * y ** 2 + C * (1 + p_inject / p_max) ** 2))
             rewards.update({measure_id: r})
         return rewards
