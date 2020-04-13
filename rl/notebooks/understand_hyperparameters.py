@@ -287,6 +287,8 @@ base_config = {
 eval_start = 100  # random.randint(0, 3599 - 500)
 base_config['evaluation_config']['env_config']['scenario_config']['start_end_time'] = [eval_start, eval_start + 750]
 del base_config['evaluation_config']['env_config']['attack_randomization']
+base_config['evaluation_config']['env_config']['scenario_config']['multi_config'] = False
+
 if __name__ == '__main__':
     ray.init(local_mode=False)
     args = parse_cli_args()

@@ -87,73 +87,49 @@ class Kernel(object):
         """
         if reset is True:
             # track substation, output specs
-            if self.multi_config is False:
-                if isinstance(self.sim_params['scenario_config']['start_end_time'], list):
-                    start_time, end_time = self.sim_params['scenario_config']['start_end_time']
-                    self.t = end_time - start_time
-                else:
-                    self.t = self.sim_params['scenario_config']['start_end_time']
-                    if 'start_time' not in self.sim_params['scenario_config']:
-                        start_time = random.randint(0, 14399-self.t)
-                        end_time = start_time + self.t
-                    else:
-                        start_time = self.sim_params['scenario_config']['start_time']
-                        end_time = self.sim_params['scenario_config']['end_time']
 
-                self.sim_params['scenario_config']['start_time'] = start_time
-                self.sim_params['scenario_config']['end_time'] = end_time
+            # start and end times are given
+            if isinstance(self.sim_params['scenario_config']['start_end_time'], list):
+                start_time, end_time = self.sim_params['scenario_config']['start_end_time']
+                self.t = end_time - start_time
 
-                self.time = 0
-                self.device.start_device()
-                self.scenario.start_scenario()
-                
-                self.device.update(reset)
-                
-                self.scenario.change_load_profile_new(start_time, end_time)  
-
-                
-                self.node.update(reset)
-                self.simulation.update(reset)
-                self.scenario.update(reset)
-                
-                #self.warm_up_v()
-                self.warm_up_1_step()
-                
-                self.power_substation = self.kernel_api.get_total_power()
-                self.losses_total = self.kernel_api.get_losses()
-                return self.sim_params
-
-            else:
-                if isinstance(self.sim_params['scenario_config']['start_end_time'], list):
-                    start_time, end_time = self.sim_params['scenario_config']['start_end_time']
-                    self.t = end_time - start_time
-                else:
-                    self.t = self.sim_params['scenario_config']['start_end_time']
+            elif self.multi_config is False:
+                self.t = self.sim_params['scenario_config']['start_end_time']
+                if 'start_time' not in self.sim_params['scenario_config']:
+                    # generate random times (once)
                     start_time = random.randint(0, 14399-self.t)
                     end_time = start_time + self.t
-                self.sim_params['scenario_config']['start_time'] = start_time
-                self.sim_params['scenario_config']['end_time'] = end_time
-                
-                self.time = 0
-                self.device.start_device()
-                self.scenario.start_scenario()
-                self.device.update(reset)
-                
-                self.scenario.change_load_profile_new(start_time, end_time)
-                
-                self.node.update(reset)
-                self.simulation.update(reset)
-                self.scenario.update(reset)
-                
-                #self.warm_up_v()
-                #self.warm_up_1_step()
-                self.warm_up_k_step(50)
+                else:
+                    # restore previous times
+                    start_time = self.sim_params['scenario_config']['start_time']
+                    end_time = self.sim_params['scenario_config']['end_time']
 
-                self.power_substation = self.kernel_api.get_total_power()
-                self.losses_total = self.kernel_api.get_losses()
-                
-                
-                return self.sim_params
+            else:
+                # generate random times (everytimes)
+                self.t = self.sim_params['scenario_config']['start_end_time']
+                start_time = random.randint(0, 14399 - self.t)
+                end_time = start_time + self.t
+
+            self.sim_params['scenario_config']['start_time'] = start_time
+            self.sim_params['scenario_config']['end_time'] = end_time
+
+            self.time = 0
+            self.device.start_device()
+            self.scenario.start_scenario()
+            self.device.update(reset)
+
+            self.scenario.change_load_profile_new(start_time, end_time)
+
+            self.node.update(reset)
+            self.simulation.update(reset)
+            self.scenario.update(reset)
+
+            #self.warm_up_v()
+            self.warm_up_k_step(50)
+
+            self.power_substation = self.kernel_api.get_total_power()
+            self.losses_total = self.kernel_api.get_losses()
+            return self.sim_params
 
         else:
             self.device.update(reset)  # calculate new PQ with new VBP, then push PV to node
