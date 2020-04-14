@@ -63,7 +63,7 @@ class OpenDSSDevice(KernelDevice):
     def __init__(self, master_kernel):
         """See parent class."""
         KernelDevice.__init__(self, master_kernel)
-        self.start_device(self)
+        self.start_device()
 
     def start_device(self):
         self.opendss_proc = None  # depricated, not in use
@@ -235,7 +235,7 @@ class OpenDSSDevice(KernelDevice):
                         temp = self.devices[device_id]['controller']
                         self.devices[device_id]['controller'] = self.devices[device_id]['hack_controller']
                         self.devices[device_id]['hack_controller'] = temp
-                        
+                      
                 elif isinstance(self.devices[device_id]['device'], RegulatorDevice):
                     self.devices[device_id]['device'].reset()
 
