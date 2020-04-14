@@ -63,30 +63,7 @@ class OpenDSSDevice(KernelDevice):
     def __init__(self, master_kernel):
         """See parent class."""
         KernelDevice.__init__(self, master_kernel)
-        self.opendss_proc = None  # depricated, not in use
-        self.devices = {}
-
-        self.all_device_ids = []
-        self.num_devices = 0
-        self.pv_device_ids = []
-        self.num_pv_devices = 0
-
-        self.rl_device_ids = []
-        self.num_rl_devices = 0
-        self.adaptive_device_ids = []
-        self.num_adaptive_devices = 0
-        self.fixed_device_ids = []
-        self.num_fixed_devices = 0
-
-        self.adversary_rl_device_ids = []
-        self.num_adversary_rl_devices = 0
-        self.adversary_adaptive_device_ids = []
-        self.num_adversary_adaptive_devices = 0
-        self.adversary_fixed_device_ids = []
-        self.num_adversary_fixed_devices = 0
-
-        self.regulator_device_ids = []
-        self.num_regulator_device_ids = 0
+        self.start_device(self)
 
     def start_device(self):
         self.opendss_proc = None  # depricated, not in use
