@@ -107,7 +107,7 @@ class CentralEnv(gym.Env):
             done: bool
         """
         #print(self.k.time)
-        rl_actions = self.action_mapping_new(rl_actions)
+        rl_actions = self.action_mapping(rl_actions)
 
         next_observation = None
         self.old_actions = {}
