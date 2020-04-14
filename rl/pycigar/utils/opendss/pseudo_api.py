@@ -135,6 +135,17 @@ class PyCIGAROpenDSSAPI(object):
         return dss.RegControls.ForwardVreg()
 
     def get_substation_top_voltage(self):
-        sourcebus = dss.Bus.Name()
-        return dss.Bus.Voltages()[0]
+        dss.Bus.Name()
+        voltage = dss.Bus.VMagAngle()
+        voltage = (voltage[0]+voltage[2]+voltage[4])/(dss.CktElement.NumPhases()*(dss.Loads.kV()*1000/(3**0.5)))
+        return voltage
 
+    def get_substation_bottom_voltage(self):
+        dss.Loads.Name('S701a')
+        voltage_a = dss.CktElement.VoltagesMagAng()
+        dss.Loads.Name('S701b')
+        voltage_b = dss.CktElement.VoltagesMagAng()
+        dss.Loads.Name('S701c')
+        voltage_c = dss.CktElement.VoltagesMagAng()
+        voltage = (voltage_a[0]+voltage_b[0]+voltage_c[0])/(3*(dss.Loads.kV()*1000/(3**0.5)))
+        return voltage

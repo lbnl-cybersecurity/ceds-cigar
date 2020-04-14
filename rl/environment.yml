@@ -28,3 +28,4 @@ dependencies:
         - redis~=3.3.2
         - git+https://github.com/plotly/plotly.py.git@2594076e29584ede2d09f2aa40a8a195b3f3fc66#egg=plotly
         - opendssdirect.py==0.3.7
+        - tqdm
