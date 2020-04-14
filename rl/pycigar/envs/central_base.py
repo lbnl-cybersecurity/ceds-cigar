@@ -78,6 +78,8 @@ class CentralEnv(gym.Env):
         # save the tracking ids, we will keep track the history of agents who have the ids in this list.
         self.tracking_ids = tracking_ids
 
+        self.post_process_output_specs = False 
+
     def restart_simulation(self, sim_params, render=None):
         """Not in use.
         """
@@ -105,7 +107,7 @@ class CentralEnv(gym.Env):
             done: bool
         """
         #print(self.k.time)
-        rl_actions = self.action_mapping(rl_actions)
+        rl_actions = self.action_mapping_new(rl_actions)
 
         next_observation = None
         self.old_actions = {}
@@ -176,7 +178,8 @@ class CentralEnv(gym.Env):
             # tracking
             if self.tracking_ids is not None:
                 self.pycigar_tracking()
-            
+            # tracking pycigar_output_spec
+            self.pycigar_output_specs(reset=False)
             if self.k.time >= self.k.t:
                 break
 
@@ -223,9 +226,6 @@ class CentralEnv(gym.Env):
             reward = self.compute_reward(rl_clipped, fail=not converged)
         else:
             reward = self.compute_reward(rl_actions, fail=not converged)
-        
-        # tracking pycigar_output_spec
-        self.pycigar_output_specs(reset=False)
         
         return next_observation, reward, done, infos
 
@@ -606,8 +606,8 @@ class CentralEnv(gym.Env):
         self.output_specs['Consumption']['DG Output (W)'].append(self.k.dg_output)
         self.output_specs['Substation Power Factor (%)'].append(sub_P/np.sqrt(sub_P**2 + sub_Q**2))
 
-        self.output_specs['Substation Top Voltage(V)'].append(self.k.kernel_api.get_substation_top_voltage())
-        self.output_specs['Substation Bottom Voltage(V)']    # add a function to get the voltage bottom here
+        self.output_specs['Substation Top Voltage(V)'].append(self.k.kernel_api.get_substation_top_voltage()*BASE_VOLTAGE)
+        self.output_specs['Substation Bottom Voltage(V)'].append(self.k.kernel_api.get_substation_bottom_voltage()*BASE_VOLTAGE)    # add a function to get the voltage bottom here
         
         if self.output_specs['Substation Regulator Minimum Voltage(V)'] == []:
             val_max = None
@@ -641,11 +641,14 @@ class CentralEnv(gym.Env):
                 self.output_specs['Regulator_testReg'][regulator_name].append(self.k.kernel_api.get_regulator_tap(regulator_name))
 
     def get_pycigar_output_specs(self):
-        # refine the output a bit
-        inverter_outputs = []
-        for inverter_name in self.output_specs['Inverter Outputs'].keys():
-            inverter_outputs.append(self.output_specs['Inverter Outputs'][inverter_name])
-        self.output_specs['Inverter Outputs'] = inverter_outputs
+        
+        if not self.post_process_output_specs:
+            self.post_process_output_specs = True
+            # refine the output a bit
+            inverter_outputs = []
+            for inverter_name in self.output_specs['Inverter Outputs'].keys():
+                inverter_outputs.append(self.output_specs['Inverter Outputs'][inverter_name])
+            self.output_specs['Inverter Outputs'] = inverter_outputs
         
         return self.output_specs
 
