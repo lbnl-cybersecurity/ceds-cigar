@@ -1,46 +1,12 @@
-from pycigar.envs.multiagent.wrappers import LocalObservationWrapper
-from pycigar.envs.multiagent.wrappers import LocalObservationV2Wrapper
-from pycigar.envs.multiagent.wrappers import LocalObservationV3Wrapper
-from pycigar.envs.multiagent.wrappers import LocalObservationV4Wrapper
-
-from pycigar.envs.multiagent.wrappers import GlobalObservationWrapper
-
-from pycigar.envs.multiagent.wrappers import FramestackObservationWrapper
-from pycigar.envs.multiagent.wrappers import FramestackObservationV2Wrapper
-from pycigar.envs.multiagent.wrappers import FramestackObservationV3Wrapper
-from pycigar.envs.multiagent.wrappers import FramestackObservationV4Wrapper
-
-from pycigar.envs.multiagent.wrappers import LocalRewardWrapper
-from pycigar.envs.multiagent.wrappers import GlobalRewardWrapper
-from pycigar.envs.multiagent.wrappers import SearchGlobalRewardWrapper
-
-from pycigar.envs.multiagent.wrappers import SingleDiscreteActionWrapper
-from pycigar.envs.multiagent.wrappers import SingleRelativeInitDiscreteActionWrapper
-from pycigar.envs.multiagent.wrappers import SecondStageGlobalRewardWrapper
-# from pycigar.envs.multiagent.wrappers import SingleContinuousActionWrapper
-from pycigar.envs.multiagent.wrappers import ARDiscreteActionWrapper
-# from pycigar.envs.multiagent.wrappers import ARContinuousActionWrapper
 from pycigar.envs.multiagent import MultiEnv
-from pycigar.envs.multiagent.wrapper_multi import Wrapper
+from pycigar.envs.wrappers.action_wrappers import *
+from pycigar.envs.wrappers.observation_wrappers import *
+from pycigar.envs.wrappers.reward_wrappers import *
+from pycigar.envs.wrappers.wrapper import Wrapper
 
-from pycigar.envs.rl_control_pv_inverter_env import RLControlPVInverterEnv
-from pycigar.envs.multiagent.wrappers import CentralFramestackObservationWrapper
-from pycigar.envs.multiagent.wrappers import CentralLocalObservationWrapper
-from pycigar.envs.multiagent.wrappers import CentralSingleRelativeInitDiscreteActionWrapper
-from pycigar.envs.multiagent.wrappers import CentralGlobalRewardWrapper
-
-from pycigar.envs.multiagent.wrappers import NewCentralFramestackObservationWrapper
-from pycigar.envs.multiagent.wrappers import NewCentralLocalObservationWrapper
-from pycigar.envs.multiagent.wrappers import NewCentralSingleRelativeInitDiscreteActionWrapper
-
-from pycigar.envs.multiagent.wrappers import CentralLocalContinuousObservationWrapper
-from pycigar.envs.multiagent.wrappers import CentralFramestackContinuousObservationWrapper
-from pycigar.envs.multiagent.wrappers import CentralSingleRelativeInitContinuousActionWrapper
-
-from pycigar.envs.multiagent.wrapper_multi import CentralWrapper
 """
 Tutorial to add new environment:
-    - Import your custom wrappers from pycigar/envs/multiagent/wrappers.py
+    - Import your custom wrappers from pycigar/envs/multiagent/*_wrappers.py
     - Create the environment as same as the following examples below.
     - Go to pycigar/envs/multiagent/__init__.py,
        import your new environment and add the envinroment string name into the list.
@@ -51,7 +17,7 @@ Tutorial to add new environment:
 #             Independent Actor-Critic (IAC) environment                  #
 ###########################################################################
 """
-Environment for Indepedent Actor-Critic experiment. In this experiment, each
+Environment for Independent Actor-Critic experiment. In this experiment, each
 agent will receive its local observation (without knowing other agents' observations and actions)
 and the reward is the local reward (the reward of the agent is the reward at the devices, and it is
 independent of other agents' rewards).
@@ -60,7 +26,6 @@ We have different environments for different action head experiments.
 
 
 class ARDiscreteIACEnv(Wrapper):
-
     """Observation: local observation
        Reward: local reward
        Action: auto-regressive action head (control all breakpoints,
@@ -79,7 +44,6 @@ class ARDiscreteIACEnv(Wrapper):
 
 
 class SingleDiscreteIACEnv(Wrapper):
-
     """Observation: local observation
        Reward: local reward
        Action: control only one breakpoint (other breakpoints are functions of controlled breakpoints).
@@ -92,6 +56,7 @@ class SingleDiscreteIACEnv(Wrapper):
     env : Wrapper
         The environment object.
     """
+
     def __init__(self, **kwargs):
         self.env = LocalObservationWrapper(SingleDiscreteActionWrapper(LocalRewardWrapper(MultiEnv(**kwargs))))
 
@@ -109,7 +74,6 @@ We have different environments for different action head experiments.
 
 
 class ARDiscreteCoopEnv(Wrapper):
-
     """Observation: local observation
        Reward: global reward
        Action: auto-regressive action head (control all breakpoints,
@@ -129,7 +93,6 @@ class ARDiscreteCoopEnv(Wrapper):
 
 
 class SingleDiscreteCoopEnv(Wrapper):
-
     """Observation: local observation
        Reward: global reward (change the reward function in GlobalRewardWrapper().
                               For now, the reward is to encourage the agent not to take other actions
@@ -144,12 +107,12 @@ class SingleDiscreteCoopEnv(Wrapper):
     env : Wrapper
         The environment object.
     """
+
     def __init__(self, **kwargs):
         self.env = LocalObservationWrapper(SingleDiscreteActionWrapper(GlobalRewardWrapper(MultiEnv(**kwargs))))
 
 
 class SecondStageSingleDiscreteCoopEnv(Wrapper):
-
     """Observation: local observation
        Reward: global reward (change the reward function in SecondStageGlobalRewardWrapper().
                               For now, the reward is much complicated, require the agent to damp the oscillation
@@ -170,12 +133,12 @@ class SecondStageSingleDiscreteCoopEnv(Wrapper):
     env : Wrapper
         The environment object.
     """
+
     def __init__(self, **kwargs):
         self.env = SingleDiscreteActionWrapper(SecondStageGlobalRewardWrapper(MultiEnv(**kwargs)))
 
 
 class FramestackSingleDiscreteCoopEnv(Wrapper):
-
     """Observation: stack of local observations in n timesteps.
        Reward: global reward (change the reward function in GlobalRewardWrapper().
                               For now, the reward is to encourage the agent not to take other actions
@@ -190,8 +153,14 @@ class FramestackSingleDiscreteCoopEnv(Wrapper):
     env : Wrapper
         The environment object.
     """
+
     def __init__(self, **kwargs):
-        self.env = FramestackObservationWrapper(LocalObservationWrapper(SingleDiscreteActionWrapper(GlobalRewardWrapper(MultiEnv(**kwargs)))))
+        env = MultiEnv(**kwargs)
+        env = GlobalRewardWrapper(env)
+        env = SingleDiscreteActionWrapper(env)
+        env = LocalObservationWrapper(env)
+        env = FramestackObservationWrapper(env)
+        self.env = env
 
 
 class SingleRelativeDiscreteCoopEnv(Wrapper):
@@ -204,36 +173,33 @@ class SingleRelativeDiscreteCoopEnv(Wrapper):
                discretize breakpoint value into n bins.
 
        For further information, please read the description of wrappers in pycigar/envs/multiagent/wrapper_wrappers.py
-    Attributes
-    ----------
-    env : Wrapper
-        The environment object.
     """
+
     def __init__(self, **kwargs):
-        self.env = GlobalObservationWrapper(FramestackObservationV4Wrapper(LocalObservationV4Wrapper(SingleRelativeInitDiscreteActionWrapper(SecondStageGlobalRewardWrapper(MultiEnv(**kwargs))))))
+        env = MultiEnv(**kwargs)
+        env = SecondStageGlobalRewardWrapper(env)
+        env = SingleRelativeInitDiscreteActionWrapper(env)
+        env = LocalObservationV4Wrapper(env)
+        env = FramestackObservationV4Wrapper(env)
+        env = GlobalObservationWrapper(env)
+        self.env = env
 
 
 # Coma environment
 # Not in use
 class ARDiscreteComaEnv(Wrapper):
     def __init__(self, **kwargs):
-        self.env = GlobalObservationWrapper(ARDiscreteActionWrapper(LocalRewardWrapper(MultiEnv(**kwargs))))
+        env = MultiEnv(**kwargs)
+        env = LocalRewardWrapper(env)
+        env = ARDiscreteActionWrapper(env)
+        env = GlobalObservationWrapper(env)
+        self.env = env
 
 
 class SingleDiscreteComaEnv(Wrapper):
     def __init__(self, **kwargs):
-        self.env = GlobalObservationWrapper(SingleDiscreteActionWrapper(GlobalRewardWrapper(MultiEnv(**kwargs))))
-
-
-###########################################################
-class CentralControlPVInverterEnv(CentralWrapper):
-    def __init__(self, **kwargs):
-        self.env = CentralFramestackObservationWrapper(CentralLocalObservationWrapper(CentralGlobalRewardWrapper(CentralSingleRelativeInitDiscreteActionWrapper(RLControlPVInverterEnv(**kwargs)))))
-     
-class NewCentralControlPVInverterEnv(CentralWrapper):
-    def __init__(self, **kwargs):
-        self.env = NewCentralFramestackObservationWrapper(NewCentralLocalObservationWrapper(CentralGlobalRewardWrapper(NewCentralSingleRelativeInitDiscreteActionWrapper(RLControlPVInverterEnv(**kwargs)))))
-
-class CentralControlPVInverterContinuousEnv(CentralWrapper):
-    def __init__(self, **kwargs):
-        self.env = CentralFramestackContinuousObservationWrapper(CentralLocalContinuousObservationWrapper(CentralGlobalRewardWrapper(CentralSingleRelativeInitContinuousActionWrapper(RLControlPVInverterEnv(**kwargs)))))
+        env = MultiEnv(**kwargs)
+        env = GlobalRewardWrapper(env)
+        env = SingleDiscreteActionWrapper(env)
+        env = GlobalObservationWrapper(env)
+        self.env = env

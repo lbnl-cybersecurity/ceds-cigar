@@ -1,8 +1,6 @@
 import ray
 from ray import tune
 from ray.rllib.agents.ppo import PPOTrainer
-from ray.rllib.agents.dqn import DQNTrainer
-import argparse
 from ray.tune.registry import register_env
 from pycigar.utils.registry import make_create_env
 import yaml
@@ -10,11 +8,11 @@ from ray.rllib.policy.sample_batch import SampleBatch
 from ray.rllib.models import ModelCatalog
 from ray.rllib.models.tf.tf_modelv2 import TFModelV2
 from ray.rllib.models.tf.fcnet_v2 import FullyConnectedNetwork 
-from gym.spaces import Box, Dict, Discrete
+from gym.spaces import Box, Discrete
 from ray.rllib.utils import try_import_tf
 import numpy as np 
 
-from pycigar.envs.multiagent.wrappers import DISCRETIZE_RELATIVE
+from pycigar.envs.wrappers.wrappers_constants import DISCRETIZE_RELATIVE
 
 SAVE_RATE = 2
 

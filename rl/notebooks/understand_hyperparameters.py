@@ -28,7 +28,7 @@ def parse_cli_args():
     parser = argparse.ArgumentParser(description='Run distributed runs to better understand PyCIGAR hyperparameters')
     parser.add_argument('--epochs', type=int, default=2, help='number of epochs per trial')
     parser.add_argument('--save-path', type=str, default='~/hp_experiment3', help='where to save the results')
-    parser.add_argument('--workers', type=int, default=2, help='number of cpu workers per run')
+    parser.add_argument('--workers', type=int, default=3, help='number of cpu workers per run')
     parser.add_argument('--eval-rounds', type=int, default=2,
                         help='number of evaluation rounds to run to smooth random results')
     parser.add_argument("--algo", help="use PPO or APPO", choices=['ppo', 'appo'],
@@ -100,11 +100,11 @@ def on_episode_end(info):
     episode.custom_metrics["num_actions_taken"] = num_actions
 
     env = info['env'].vector_env.envs[0]
-    t_id = env.base_env.tracking_ids[0]
-    episode.hist_data.update(env.base_env.tracking_infos[t_id])
-    episode.hist_data['adversary_a_val'] = env.base_env.tracking_infos['adversary_' + t_id]['a_val']
-    hack_start = int([k for k, v in env.base_env.k.scenario.hack_start_times.items() if 'adversary_' + t_id in v][0])
-    hack_end = int([k for k, v in env.base_env.k.scenario.hack_end_times.items() if 'adversary_' + t_id in v][0])
+    t_id = env.unwrapped.tracking_ids[0]
+    episode.hist_data.update(env.unwrapped.tracking_infos[t_id])
+    episode.hist_data['adversary_a_val'] = env.unwrapped.tracking_infos['adversary_' + t_id]['a_val']
+    hack_start = int([k for k, v in env.unwrapped.k.scenario.hack_start_times.items() if 'adversary_' + t_id in v][0])
+    hack_end = int([k for k, v in env.unwrapped.k.scenario.hack_end_times.items() if 'adversary_' + t_id in v][0])
     episode.custom_metrics["hack_start"] = hack_start
     episode.custom_metrics["hack_end"] = hack_end
 
@@ -221,7 +221,7 @@ def run_hp_experiment(full_config, name):
 
 
 pycigar_params = {'exp_tag': 'cooperative_multiagent_ppo',
-                  'env_name': 'CentralControlPVInverterEnv',
+                  'env_name': 'CentralControlPVInverterContinuousEnv',
                   'simulator': 'opendss',
                   'tracking_ids': ['inverter_s701a', 'adversary_inverter_s701a']}
 
@@ -265,9 +265,9 @@ base_config = {
     },
 
     # ==== EVALUATION ====
-    "evaluation_num_workers": 0,
+    "evaluation_num_workers": 1,
     'evaluation_num_episodes': 2,
-    "evaluation_interval": 1,
+    "evaluation_interval": 5,
     "custom_eval_function": tune.function(custom_eval_function),
     'evaluation_config': {
         "seed": 42,

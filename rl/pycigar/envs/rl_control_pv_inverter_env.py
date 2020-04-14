@@ -1,18 +1,20 @@
-from pycigar.envs.central_base import CentralEnv
 import numpy as np
 from gym.spaces.box import Box
-import numpy as numpy
+
+from pycigar.envs.central_base import CentralEnv
 
 NUM_FRAMES = 5
 
+
 class RLControlPVInverterEnv(CentralEnv):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.num_frames = NUM_FRAMES
 
     @property
     def observation_space(self):
-        self.num_frames = NUM_FRAMES
-
         return Box(low=-float('inf'), high=float('inf'),
-                   shape=(5, ), dtype=np.float64)
+                   shape=(5,), dtype=np.float64)
 
     @property
     def action_space(self):
@@ -35,8 +37,8 @@ class RLControlPVInverterEnv(CentralEnv):
             p_set = self.k.device.get_device_p_set_relative(rl_id)
             observation = np.array([voltage, solar_generation, y, p_set_p_max, p_set])
             obs.update({rl_id: observation})
-        
-        obs = np.mean(np.array(list(obs.values())), axis=0) 
+
+        obs = np.mean(np.array(list(obs.values())), axis=0)
 
         return obs
 

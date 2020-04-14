@@ -106,9 +106,6 @@ class CentralEnv(gym.Env):
             reward: a dictionary of reward received by agents.
             done: bool
         """
-        #print(self.k.time)
-        rl_actions = self.action_mapping(rl_actions)
-
         next_observation = None
         self.old_actions = {}
         for rl_id in self.k.device.get_rl_device_ids():
@@ -459,7 +456,9 @@ class CentralEnv(gym.Env):
         
         plot_v_list = []
         plot_v_label = []
+        all_v = []
         v = ax[0].plot(self.tracking_infos[tracking_id]['v_val'])
+        all_v.append(self.tracking_infos[tracking_id]['v_val'])
         plot_v_list.append(v[0])
         if tracking_id[-1].isdigit():
             plot_v_label.append('all')
@@ -474,21 +473,28 @@ class CentralEnv(gym.Env):
             v = ax[0].plot(self.tracking_infos[tracking_id[:-1] + 'a'])
             plot_v_list.append(v[0])
             plot_v_label.append('a')
+            all_v.append(self.tracking_infos[tracking_id[:-1] + 'a'])
         if tracking_id[:-1] + 'b' in self.tracking_infos.keys() and tracking_id[:-1] + 'b' != tracking_id:
             v = ax[0].plot(self.tracking_infos[tracking_id[:-1] + 'b'])        
             plot_v_list.append(v[0])
-            plot_v_label.append('b')   
+            plot_v_label.append('b')
+            all_v.append(self.tracking_infos[tracking_id[:-1] + 'b'])
         if tracking_id[:-1] + 'c' in self.tracking_infos.keys() and tracking_id[:-1] + 'c' != tracking_id:
             v = ax[0].plot(self.tracking_infos[tracking_id[:-1] + 'c']) 
             plot_v_list.append(v[0])
             plot_v_label.append('c')
+            all_v.append(self.tracking_infos[tracking_id[:-1] + 'c'])
+
+        all_v = np.stack(all_v)
+        mean_v = all_v.mean(axis=0)
+        max_dev_v = (all_v - mean_v).max(axis=0) / mean_v
 
         ax[0].legend(plot_v_list, plot_v_label, loc=1)
         
         ax[0].set_ylabel('voltage')
         ax[0].grid(b=True, which='both')
-        ax[1].plot(self.tracking_infos[tracking_id]['y_val'])
-        ax[1].set_ylabel('oscillation observer')
+        ax[1].plot(max_dev_v)
+        ax[1].set_ylabel('unbalance observer')
         ax[1].grid(b=True, which='both')
         ax[2].plot(self.tracking_infos[tracking_id]['q_set'])
         ax[2].plot(self.tracking_infos[tracking_id]['q_val'])
@@ -518,34 +524,6 @@ class CentralEnv(gym.Env):
         plt.close(f)
         return f
 
-
-    def action_mapping(self, rl_actions):
-        if rl_actions is None:
-            return None
-        new_rl_actions = {}
-        for rl_id in self.INIT_ACTION.keys():
-            new_rl_actions[rl_id] =  self.INIT_ACTION[rl_id] - ACTION_RANGE + ACTION_STEP*rl_actions
-
-        return new_rl_actions
-
-    def action_mapping_new(self, rl_actions):
-        if rl_actions is None:
-            return None
-        new_rl_actions = {}
-        rl_actions = ACTION_MAP[rl_actions]
-        for rl_id in self.INIT_ACTION.keys():
-            new_rl_actions[rl_id] =  self.INIT_ACTION[rl_id] - ACTION_RANGE + ACTION_STEP*rl_actions[0]
-            new_rl_actions[rl_id][0] =  new_rl_actions[rl_id][1] - (ACTION_MAX_SLOPE-ACTION_MIN_SLOPE)/DISCRETIZE_RELATIVE*rl_actions[1] - ACTION_MIN_SLOPE
-            new_rl_actions[rl_id][3] =  new_rl_actions[rl_id][1] + (ACTION_MAX_SLOPE-ACTION_MIN_SLOPE)/DISCRETIZE_RELATIVE*rl_actions[1] + ACTION_MIN_SLOPE
-        return new_rl_actions
-
-    def action_mapping_continuous(self, rl_actions):
-        if rl_actions is None:
-            return None
-        new_rl_actions = {}
-        for rl_id in self.INIT_ACTION.keys():
-            new_rl_actions[rl_id] =  self.INIT_ACTION[rl_id] + rl_actions
-        return new_rl_actions
 
     def pycigar_output_specs(self, reset=True):
         if reset == True:

@@ -1,17 +1,17 @@
-import traceback
-import numpy as np
 import atexit
-import gym
-from gym.spaces import Box
-from pycigar.core.kernel.kernel import Kernel
-import matplotlib.pyplot as plt
-from datetime import datetime
-import pycigar.config as config
 import os
-from scipy import signal
+import traceback
+
+import gym
+import matplotlib.pyplot as plt
+import numpy as np
+from gym.spaces import Box
+
+import pycigar.config as config
+from pycigar.core.kernel.kernel import Kernel
+
 
 class Env(gym.Env):
-
     """Base environment for PyCIGAR, only have 1 agent.
 
     Attributes
@@ -214,8 +214,8 @@ class Env(gym.Env):
             node_id = self.k.device.get_node_connected_to(tracking_id)
             self.tracking_infos[tracking_id]['v_val'].append(self.k.node.get_node_voltage(node_id))
             self.tracking_infos[tracking_id]['y_val'].append(self.k.device.get_device_y(tracking_id))
-            #p_max = self.k.device.get_solar_generation(tracking_id)
-            #p_inject = self.k.device.get_device_p_injection(tracking_id)
+            # p_max = self.k.device.get_solar_generation(tracking_id)
+            # p_inject = self.k.device.get_device_p_injection(tracking_id)
             self.tracking_infos[tracking_id]['q_set'].append(self.k.device.get_device_q_set(tracking_id))
             self.tracking_infos[tracking_id]['q_val'].append(self.k.device.get_device_q_injection(tracking_id))
             self.tracking_infos[tracking_id]['a_val'].append(list(self.k.device.get_control_setting(tracking_id)))
@@ -242,8 +242,8 @@ class Env(gym.Env):
                 ax[0, col].set_ylabel('voltage')
                 ax[1, col].plot(self.tracking_infos[tracking_id]['y_val'])
                 ax[1, col].set_ylabel('oscillation observer')
-                #ax[2, col].plot(self.tracking_infos[tracking_id]['p_val'])
-                #ax[2, col].set_ylabel('(1 + p_inject/p_max)**2')
+                # ax[2, col].plot(self.tracking_infos[tracking_id]['p_val'])
+                # ax[2, col].set_ylabel('(1 + p_inject/p_max)**2')
                 labels = ['a1', 'a2', 'a3', 'a4', 'a5']
                 [a1, a2, a3, a4, a5] = ax[2, col].plot(self.tracking_infos[tracking_id]['a_val'])
                 ax[2, col].set_ylabel('action')
@@ -268,11 +268,13 @@ class Env(gym.Env):
             ax[3].grid(b=True, which='both')
             plt.legend([a1, a2, a3, a4, a5], labels, loc=1)
 
-            np.savetxt(os.path.join(os.path.join(config.LOG_DIR, exp_tag), 'voltage_profile.txt'), self.tracking_infos[tracking_id]['v_val'])
+            np.savetxt(os.path.join(os.path.join(config.LOG_DIR, exp_tag), 'voltage_profile.txt'),
+                       self.tracking_infos[tracking_id]['v_val'])
 
         if not os.path.exists(os.path.join(config.LOG_DIR, exp_tag)):
             os.makedirs(os.path.join(config.LOG_DIR, exp_tag))
-        save_path = os.path.join(os.path.join(config.LOG_DIR, exp_tag), '{}_{}_result_{}.png'.format(exp_tag, env_name, iteration))#, datetime.now().strftime("%H:%M:%S.%f_%d-%m-%Y")))
+        save_path = os.path.join(os.path.join(config.LOG_DIR, exp_tag), '{}_{}_result_{}.png'.format(exp_tag, env_name,
+                                                                                                     iteration))  # , datetime.now().strftime("%H:%M:%S.%f_%d-%m-%Y")))
 
         f.savefig(save_path)
         plt.close(f)
