@@ -1,4 +1,5 @@
-from gym.spaces import Tuple, Discrete, Box, MultiDiscrete
+from gym.spaces import Tuple, Discrete, Box
+from ray.tune.utils import merge_dicts
 
 from pycigar.envs.wrappers.wrapper import Wrapper
 from pycigar.envs.wrappers.wrappers_constants import *
@@ -7,18 +8,20 @@ from pycigar.envs.wrappers.wrappers_constants import *
 class ActionWrapper(Wrapper):
     def step(self, action):
         rl_actions = {}
+        info_update = {}
         if isinstance(action, dict):
             # multi-agent env
             for i, a in action.items():
-                rl_actions[i] = self.action(a, i)
+                rl_actions[i] = self.action(a, i, info_update)
         else:
             # central env
             for i in self.INIT_ACTION:
-                rl_actions[i] = self.action(action, i)
+                rl_actions[i] = self.action(action, i, info_update)
 
-        return self.env.step(rl_actions)
+        observation, reward, done, info = self.env.step(rl_actions)
+        return observation, reward, done, merge_dicts(info, info_update)
 
-    def action(self, action, rl_id):
+    def action(self, action, rl_id, info_update):
         """Modify action before feed into the simulation.
 
         Parameters
@@ -50,7 +53,7 @@ class SingleDiscreteActionWrapper(ActionWrapper):
     def action_space(self):
         return Discrete(DISCRETIZE)
 
-    def action(self, action, rl_id):
+    def action(self, action, rl_id, *_):
         t = ACTION_LOWER_BOUND + (ACTION_UPPER_BOUND - ACTION_LOWER_BOUND) / DISCRETIZE * action
         return ACTION_CURVE + t
 
@@ -67,7 +70,7 @@ class SingleRelativeInitDiscreteActionWrapper(ActionWrapper):
     def action_space(self):
         return Discrete(DISCRETIZE_RELATIVE)
 
-    def action(self, action, rl_id):
+    def action(self, action, rl_id, *_):
         return self.INIT_ACTION[rl_id] - ACTION_RANGE + ACTION_STEP * action
 
 
@@ -84,7 +87,7 @@ class NewSingleRelativeInitDiscreteActionWrapper(ActionWrapper):
     def action_space(self):
         return Discrete(DISCRETIZE_RELATIVE * DISCRETIZE_RELATIVE)
 
-    def action(self, action, rl_id):
+    def action(self, action, rl_id, *_):
         rl_actions = ACTION_MAP[action]
         act = self.INIT_ACTION[rl_id] - ACTION_RANGE + ACTION_STEP * rl_actions[0]
         act[0] = act[1] - (ACTION_MAX_SLOPE - ACTION_MIN_SLOPE) / DISCRETIZE_RELATIVE * rl_actions[1] - ACTION_MIN_SLOPE
@@ -104,9 +107,8 @@ class SingleRelativeInitContinuousActionWrapper(ActionWrapper):
     def action_space(self):
         return Box(-1.0, 1.0, (1,), dtype=np.float32)
 
-    def action(self, action, rl_id):
+    def action(self, action, rl_id, *_):
         return self.INIT_ACTION[rl_id] + action
-
 
 
 #########################
@@ -126,7 +128,7 @@ class ARDiscreteActionWrapper(ActionWrapper):
                       Discrete(DISCRETIZE), Discrete(DISCRETIZE),
                       Discrete(DISCRETIZE)])
 
-    def action(self, action, rl_id):
+    def action(self, action, rl_id, *_):
         # This is used to form the discretized value into the valid action before feed into the environment.
         act = ACTION_LOWER_BOUND + (ACTION_UPPER_BOUND - ACTION_LOWER_BOUND) / DISCRETIZE * np.array(action, np.float32)
         # if the action returned by the agent violate the constraint (the next point is >= the current point),
