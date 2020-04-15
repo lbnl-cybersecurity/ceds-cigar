@@ -1,7 +1,7 @@
 import gym
 from gym.envs.registration import register
-
 import pycigar.envs
+
 
 def make_create_env(pycigar_params, version=0):
     env_name = pycigar_params["env_name"] + '-v{}'.format(version)

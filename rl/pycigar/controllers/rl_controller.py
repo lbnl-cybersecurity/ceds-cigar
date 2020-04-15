@@ -13,7 +13,7 @@ class RLController(BaseController):
         BaseController.__init__(
             self,
             device_id
-            )
+        )
 
     def get_action(self, env):
         """See parent class."""

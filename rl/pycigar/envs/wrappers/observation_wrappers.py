@@ -664,7 +664,7 @@ class CentralLocalObservationWrapper(ObservationWrapper):
 
     def observation(self, observation, info):
         # at reset time, old_action is empty, we set the old_action to init_action.
-        key = self.get_kernel().device.get_rl_device_ids()[0]
+        key = self.unwrapped.k.device.get_rl_device_ids()[0]
         if info is None or info[key]['old_action'] is None:
             old_action = self.INIT_ACTION[key]
             p_set = 0
@@ -672,7 +672,7 @@ class CentralLocalObservationWrapper(ObservationWrapper):
             old_action = info[key]['old_action']
             p_set = 0
             num = 0
-            for k in self.get_kernel().device.get_rl_device_ids():
+            for k in self.unwrapped.k.device.get_rl_device_ids():
                 p_set += info[k]['p_set']
                 num += 1
             p_set /= num
@@ -808,7 +808,7 @@ class NewCentralLocalObservationWrapper(ObservationWrapper):
         # get the old action of last timestep of the agents.
 
         # at reset time, old_action is empty, we set the old_action to init_action.
-        key = self.get_kernel().device.get_rl_device_ids()[0]
+        key = self.unwrapped.k.device.get_rl_device_ids()[0]
         if info is None or info[key]['old_action'] is None:
             old_action = self.INIT_ACTION[key]
             p_set = 0
@@ -816,7 +816,7 @@ class NewCentralLocalObservationWrapper(ObservationWrapper):
             old_action = info[key]['old_action']
             p_set = 0
             num = 0
-            for k in self.get_kernel().device.get_rl_device_ids():
+            for k in self.unwrapped.k.device.get_rl_device_ids():
                 p_set += info[k]['p_set']
                 num += 1
             p_set /= num
@@ -948,7 +948,7 @@ class CentralLocalContinuousObservationWrapper(ObservationWrapper):
 
     def observation(self, observation, info):
         # at reset time, old_action is empty, we set the old_action to init_action.
-        key = self.get_kernel().device.get_rl_device_ids()[0]
+        key = self.unwrapped.k.device.get_rl_device_ids()[0]
         if info is None or info[key]['old_action'] is None:
             old_action = self.INIT_ACTION[key]
             p_set = 0
@@ -956,7 +956,7 @@ class CentralLocalContinuousObservationWrapper(ObservationWrapper):
             old_action = info[key]['old_action']
             p_set = 0
             num = 0
-            for k in self.get_kernel().device.get_rl_device_ids():
+            for k in self.unwrapped.k.device.get_rl_device_ids():
                 p_set += info[k]['p_set']
                 num += 1
             p_set /= num
@@ -1062,21 +1062,6 @@ class CentralFramestackContinuousObservationWrapper(ObservationWrapper):
         return obs
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 class CentralLocalPhaseSpecificObservationWrapper(ObservationWrapper):
     """ ATTENTION: this wrapper is only used with single head RELATIVE ACTION wrappers (control only 1 breakpoint).
     Observation: a dictionary of local observation for each agent, in the form of {'id_1': obs1, 'id_2': obs2,...}.
@@ -1095,7 +1080,7 @@ class CentralLocalPhaseSpecificObservationWrapper(ObservationWrapper):
 
     def observation(self, observation, info):
         # at reset time, old_action is empty, we set the old_action to init_action.
-        key = self.get_kernel().device.get_rl_device_ids()[0]
+        key = self.unwrapped.k.device.get_rl_device_ids()[0]
         if info is None or info[key]['old_action'] is None:
             old_action = self.INIT_ACTION[key]
             p_set = 0
@@ -1103,7 +1088,7 @@ class CentralLocalPhaseSpecificObservationWrapper(ObservationWrapper):
             old_action = info[key]['old_action']
             p_set = 0
             num = 0
-            for k in self.get_kernel().device.get_rl_device_ids():
+            for k in self.unwrapped.k.device.get_rl_device_ids():
                 p_set += info[k]['p_set']
                 num += 1
             p_set /= num

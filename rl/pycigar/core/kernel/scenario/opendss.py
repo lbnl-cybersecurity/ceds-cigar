@@ -10,11 +10,11 @@ from pycigar.controllers import UnbalancedFixedController
 from pycigar.controllers import RLController
 import os
 import numpy as np
-import random
-from scipy.interpolate import interp1d
 import pycigar.config as config
 import pandas as pd
 from pycigar.envs.attack_definition import AttackDefinitionGenerator
+from pycigar.utils.logging import logger
+
 
 class OpenDSSScenario(KernelScenario):
 
@@ -26,19 +26,15 @@ class OpenDSSScenario(KernelScenario):
 
         # take the first snapshot of randomization function if multi_config False
         self.snapshot_randomization = {}
-        
+
     def pass_api(self, kernel_api):
         """See parent class."""
         self.kernel_api = kernel_api
 
     def start_scenario(self):
         """Initialize the scenario."""
-        if self.master_kernel.sim_params['scenario_config']['start_end_time'] is list:
-            direct_yaml = True
-        else: 
-            direct_yaml = False
         start_time = self.master_kernel.sim_params['scenario_config']['start_time']
-        end_time = self.master_kernel.sim_params['scenario_config']['end_time'] 
+        end_time = self.master_kernel.sim_params['scenario_config']['end_time']
 
         sim_params = self.master_kernel.sim_params
 
@@ -50,7 +46,7 @@ class OpenDSSScenario(KernelScenario):
             attack_def_gen = None
 
         # load simulation and opendss file
-        #network_model_directory_path = os.path.join(config.DATA_DIR, sim_params['simulation_config']['network_model_directory'])
+        # network_model_directory_path = os.path.join(config.DATA_DIR, sim_params['simulation_config']['network_model_directory'])
         network_model_directory_path = sim_params['simulation_config']['network_model_directory']
         self.kernel_api.simulation_command('Redirect ' + network_model_directory_path)
 
@@ -63,8 +59,7 @@ class OpenDSSScenario(KernelScenario):
         if 'solution_control_mode' in sim_params['simulation_config']:
             self.kernel_api.set_solution_control_mode(sim_params['simulation_config']['solution_control_mode'])
         if 'solution_max_control_iterations' in sim_params['simulation_config']:
-            self.kernel_api.\
-             set_solution_max_control_iterations(sim_params['simulation_config']['solution_max_control_iterations'])
+            self.kernel_api.set_solution_max_control_iterations(sim_params['simulation_config']['solution_max_control_iterations'])
 
         if 'solution_max_iterations' in sim_params['simulation_config']:
             self.kernel_api.set_solution_max_iterations(sim_params['simulation_config']['solution_max_iterations'])
@@ -112,7 +107,7 @@ class OpenDSSScenario(KernelScenario):
                             adversary_device_controller = AdaptiveFixedController
                         elif device['adversary_controller'] == 'unbalanced_fixed_controller':
                             adversary_device_controller = UnbalancedFixedController
-                            
+
                         adversary_device_configs = device['adversary_custom_configs']
                         if sim_params['tune_search'] is True:
                             adversary_device_configs = sim_params['hack_setting']
@@ -125,9 +120,9 @@ class OpenDSSScenario(KernelScenario):
                     else:
                         dev_hack_info = device['hack']
 
-                    if sim_params['scenario_config']['multi_config']  is False:
+                    if sim_params['scenario_config']['multi_config'] is False:
                         if device['name'] not in self.snapshot_randomization.keys():
-                            self.snapshot_randomization[device['name']] = dev_hack_info 
+                            self.snapshot_randomization[device['name']] = dev_hack_info
                         else:
                             dev_hack_info = self.snapshot_randomization[device['name']]
 
@@ -161,20 +156,20 @@ class OpenDSSScenario(KernelScenario):
             self.master_kernel.device.add(name=regulator_id,
                                          connect_to=None,
                                          device=(RegulatorDevice, device_configs),
-                                         controller=None, 
-                                         adversary_controller=None, 
+                                         controller=None,
+                                         adversary_controller=None,
                                          hack=None)
 
-        if direct_yaml is True:
-            self.change_load_profile(start_time, end_time)
-        else:
-            self.change_load_profile_new(start_time, end_time)
-    
+        self.change_load_profile(start_time, end_time)
+
     def update(self, reset):
         """See parent class."""
         for node in self.master_kernel.node.nodes:
             self.master_kernel.node.nodes[node]['voltage'][self.master_kernel.time] = self.kernel_api.\
-                                                                                      get_node_voltage(node)
+                get_node_voltage(node)
+            Logger = logger()
+            Logger.log(node, 'voltage', self.master_kernel.node.nodes[node]['voltage'][self.master_kernel.time])
+
             self.master_kernel.node.nodes[node]['PQ_injection']['P'] = 0
             self.master_kernel.node.nodes[node]['PQ_injection']['Q'] = 0
             self.master_kernel.node.total_power_inject = 0
@@ -200,95 +195,6 @@ class OpenDSSScenario(KernelScenario):
                 device['hack_controller'] = temp
 
     def change_load_profile(self, start_time, end_time):
-        """Change load, solar generation at each node.
-
-        This method is used at scenario reset.
-
-        In the simulation configuration file, if a node has a specific
-        load profile name (e.g. node_22_pv_10_minute), it will be used for
-        all episodes, otherwise the load profile of the node will be set to
-        a random load profile in the load profile pool.
-
-        The solar generation profile of the node will be set to a random
-        solar generation profile in the solar generation profile pool.
-        """
-        # scenario load profile
-        sim_params = self.master_kernel.sim_params
-        load_scaling_factor = sim_params['scenario_config']['custom_configs']['load_scaling_factor']
-
-        network_data_directory_path = os.path.join(config.DATA_DIR, sim_params['scenario_config']['network_data_directory'])
-        scenario_profile = [file[:-4] for file in os.listdir(network_data_directory_path) if file.endswith('.csv')]
-
-        profile = {}
-        for file in scenario_profile:
-            profile[file] = np.genfromtxt(os.path.join(
-                            network_data_directory_path, file + '.csv'), delimiter=',')
-
-        list_node = self.master_kernel.node.get_node_ids()
-        map_node_profile = {}
-        for node in sim_params['scenario_config']['nodes']:
-            node_id = node['name']
-            if 'load_profile' in node and node['load_profile'] is not None:
-                map_node_profile[node_id] = node['load_profile']
-
-                load = self.interpolate_data(
-                    profile[node['load_profile']][:, 3] * load_scaling_factor, start_time, end_time)
-                self.master_kernel.node.set_node_load(node_id, load)
-                list_node.remove(node_id)
-
-        for node_id in list_node:
-            load = self.interpolate_data(
-                    random.choice(list(profile.items()))[1][:, 3]*load_scaling_factor, start_time, end_time)
-            self.master_kernel.node.set_node_load(node_id, load)
-
-        # scenario solar generation profile for PV Device
-        solar_scaling_factor = sim_params['scenario_config']['custom_configs']['solar_scaling_factor']
-
-        list_pv_device_ids = self.master_kernel.device.get_pv_device_ids()
-
-        for device_id in list_pv_device_ids:
-            if 'adversary' not in device_id:
-                node_id = self.master_kernel.device.get_node_connected_to(device_id)
-                percentage_control = self.master_kernel.device.get_device(device_id).percentage_control
-                solar = self.interpolate_data(profile[map_node_profile[node_id]][:, 1] *
-                                              solar_scaling_factor, start_time, end_time)*percentage_control
-                self.master_kernel.device.set_device_internal_scenario(device_id, solar)
-
-                device_id = 'adversary_' + device_id
-                node_id = self.master_kernel.device.get_node_connected_to(device_id)
-                percentage_control = self.master_kernel.device.get_device(device_id).percentage_control
-                solar = self.interpolate_data(profile[map_node_profile[node_id]][:, 1] *
-                                              solar_scaling_factor, start_time, end_time) * percentage_control
-                self.master_kernel.device.set_device_internal_scenario(device_id, solar)
-
-    def interpolate_data(self, data, start_time, end_time):
-        """Interpolate data.
-
-        This is used to interpolate load and solar generation to have more
-        data points between start time and end time
-        (from minute resolution to second resolution).
-
-        Parameters
-        ----------
-        data : list
-            The raw data, load data with minute resolution.
-        start_time : int
-            The second of the day which we want to start
-        end_time : int
-            The second of the day which we want to stop, end_time > start_time
-
-        Returns
-        -------
-        list
-            The data after interpolating.
-        """
-        # Interpolate to get minutes to seconds
-        t_seconds = np.linspace(1, len(data), int(3600*24/1))
-        f = interp1d(range(len(data)), data, kind='cubic', fill_value="extrapolate")
-        data_secs = f(t_seconds)
-        return data_secs[start_time:end_time]
-
-    def change_load_profile_new(self, start_time, end_time):
         sim_params = self.master_kernel.sim_params
         load_scaling_factor = sim_params['scenario_config']['custom_configs']['load_scaling_factor']
 
@@ -296,7 +202,6 @@ class OpenDSSScenario(KernelScenario):
 
         profile = pd.read_csv(network_data_directory_path)
         profile.columns = map(str.lower, profile.columns)
-        list_node = self.master_kernel.node.get_node_ids()
 
         for node in sim_params['scenario_config']['nodes']:
             node_id = node['name']
@@ -309,11 +214,11 @@ class OpenDSSScenario(KernelScenario):
             if 'adversary' not in device_id:
                 node_id = self.master_kernel.device.get_node_connected_to(device_id)
                 percentage_control = self.master_kernel.device.get_device(device_id).percentage_control
-                solar = np.array(profile[node_id + '_pv'])[start_time:end_time]*solar_scaling_factor*percentage_control
+                solar = np.array(profile[node_id + '_pv'])[start_time:end_time] * solar_scaling_factor * percentage_control
                 self.master_kernel.device.set_device_internal_scenario(device_id, solar)
 
                 device_id = 'adversary_' + device_id
                 node_id = self.master_kernel.device.get_node_connected_to(device_id)
                 percentage_control = self.master_kernel.device.get_device(device_id).percentage_control
-                solar = np.array(profile[node_id + '_pv'])[start_time:end_time]*solar_scaling_factor*percentage_control
+                solar = np.array(profile[node_id + '_pv'])[start_time:end_time] * solar_scaling_factor * percentage_control
                 self.master_kernel.device.set_device_internal_scenario(device_id, solar)

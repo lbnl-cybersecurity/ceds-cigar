@@ -66,3 +66,6 @@ class BaseDevice:
         """Reset the device.
         """
         raise NotImplementedError
+
+    def log(self):
+        pass

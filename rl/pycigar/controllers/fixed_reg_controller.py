@@ -17,7 +17,7 @@ class FixedController(BaseController):
         BaseController.__init__(
             self,
             device_id
-            )
+        )
         self.additional_params = additional_params
 
     def get_action(self, env):
