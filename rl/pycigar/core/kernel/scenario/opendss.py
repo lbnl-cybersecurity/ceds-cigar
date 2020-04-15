@@ -165,14 +165,12 @@ class OpenDSSScenario(KernelScenario):
     def update(self, reset):
         """See parent class."""
         for node in self.master_kernel.node.nodes:
-            self.master_kernel.node.nodes[node]['voltage'][self.master_kernel.time] = self.kernel_api.\
-                get_node_voltage(node)
+            self.master_kernel.node.nodes[node]['voltage'][self.master_kernel.time] = self.kernel_api.get_node_voltage(node)
             Logger = logger()
             Logger.log(node, 'voltage', self.master_kernel.node.nodes[node]['voltage'][self.master_kernel.time])
 
             self.master_kernel.node.nodes[node]['PQ_injection']['P'] = 0
             self.master_kernel.node.nodes[node]['PQ_injection']['Q'] = 0
-            self.master_kernel.node.total_power_inject = 0
 
         # hack happens here
         if self.master_kernel.time in self.hack_start_times:

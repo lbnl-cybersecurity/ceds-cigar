@@ -130,7 +130,6 @@ class Kernel(object):
             self.simulation.update(reset)
             self.scenario.update(reset)
 
-            # self.warm_up_v()
             self.warm_up_k_step(50)
 
             Logger = logger()
@@ -156,7 +155,6 @@ class Kernel(object):
         self.device.update(reset=False)
         self.node.update(reset=False)
         self.simulation.update(reset=False)
-        self.dg_output = self.node.total_power_inject
         self.scenario.update(reset=False)
 
     def warm_up_k_step(self, k):
@@ -185,7 +183,6 @@ class Kernel(object):
             self.device.update(reset=False)
             self.node.update(reset=False)
             self.simulation.update(reset=False)
-            self.dg_output = self.node.total_power_inject
             self.scenario.update(reset=False)
 
     def warm_up_y(self):
