@@ -60,9 +60,9 @@ class LocalRewardWrapper(RewardWrapper):
 
 class GlobalRewardWrapper(RewardWrapper):
     def reward(self, reward, info):
-        M = 0  # weight for y-value in reward function
-        N = 10  # weight for taking different action from the initial action
-        P = 0  # weight for taking different action from last timestep action
+        M = self.env.unwrapped.k.sim_params['M']
+        N = self.env.unwrapped.k.sim_params['N']
+        P = self.env.unwrapped.k.sim_params['P']
 
         rewards = {}
         global_reward = 0
@@ -76,7 +76,7 @@ class GlobalRewardWrapper(RewardWrapper):
                 old_action = self.INIT_ACTION[key]
             y = info[key]['y']
             r = 0
-            r = -((M * y ** 2 + P * np.sum((action - old_action) ** 2) + N * np.sum(
+            r = -((M * y ** 2 + N * np.sum((action - old_action) ** 2) + P * np.sum(
                 (action - self.INIT_ACTION[key]) ** 2))) / 100
             global_reward += r
         global_reward = global_reward / len(list(info.keys()))
@@ -123,6 +123,9 @@ class SecondStageGlobalRewardWrapper(RewardWrapper):
 
 class SearchGlobalRewardWrapper(RewardWrapper):
     def reward(self, reward, info):
+        M = self.env.unwrapped.k.sim_params['M']
+        N = self.env.unwrapped.k.sim_params['N']
+        P = self.env.unwrapped.k.sim_params['P']
         rewards = {}
         global_reward = 0
         # we accumulate agents reward into global_reward and divide it with the number of agents.
@@ -138,9 +141,7 @@ class SearchGlobalRewardWrapper(RewardWrapper):
             r = 0
             # if y > 0.025:
             #    r = -500
-            r += -((self.k.sim_params['M2'] * y ** 2 + self.k.sim_params['P2'] * np.sum(
-                (action - old_action) ** 2) + self.k.sim_params['N2'] * np.sum(
-                (action - self.INIT_ACTION[key]) ** 2))) / 100
+            r += -((M * y ** 2 + N * np.sum((action - old_action) ** 2) + P * np.sum((action - self.INIT_ACTION[key]) ** 2))) / 100
             global_reward += r
         global_reward = global_reward / len(list(info.keys()))
         for key in info.keys():
@@ -198,9 +199,7 @@ class CentralGlobalRewardWrapper(RewardWrapper):
             else:
                 roa = 1
 
-            r += -(M * y_or_u + N * roa + P * np.linalg.norm(action - self.INIT_ACTION[key]) + 0.5 * (
-                    1 - abs(info[key]['p_set_p_max'])) ** 2)
-            # r += -((M2*y**2 + P2*np.sum(np.abs(action-old_action)) + N2*np.sum(np.abs(action-INIT_ACTION))))/100
+            r += -(M * info[key]['y'] + N * roa + P * np.linalg.norm(action - self.INIT_ACTION[key]) + 0.5 * (1 - abs(info[key]['p_set_p_max'])) ** 2)
             global_reward += r
         global_reward = global_reward / len(list(info.keys()))
 

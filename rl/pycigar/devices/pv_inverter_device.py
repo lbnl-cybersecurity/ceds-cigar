@@ -5,6 +5,8 @@ import numpy as np
 import pycigar.utils.signal_processing as signal_processing
 from pycigar.devices.base_device import BaseDevice
 
+from pycigar.utils.logging import logger
+
 DEFAULT_CONTROL_SETTING = np.array([0.98, 1.01, 1.02, 1.05, 1.07])
 step_buffer = 4
 
@@ -34,6 +36,7 @@ class PVDevice(BaseDevice):
         self.q_out = np.zeros(2)
         self.low_pass_filter_v = np.zeros(2)
 
+        self.solar_irr = 0
         self.psi = 0
         self.epsilon = 0
         self.y = 0
@@ -80,17 +83,17 @@ class PVDevice(BaseDevice):
             # print(" \n X \n")
             # print(self.x)
             output = np.array(self.x).copy()
-            #if k.time > 12:
-            if np.max(output[step_buffer:-step_buffer])-np.min(output[step_buffer:-step_buffer]) > 0.004:
-                norm_data = -1+2*(list(output)-np.min(list(output)))/(np.max(list(output))-np.min(list(output)))
+            # if k.time > 12:
+            if np.max(output[step_buffer:-step_buffer]) - np.min(output[step_buffer:-step_buffer]) > 0.004:
+                norm_data = -1 + 2 * (list(output) - np.min(list(output))) / (np.max(list(output)) - np.min(list(output)))
                 step_corr = np.convolve(norm_data, step, mode='valid')
                 if np.max(abs(step_corr)) > 10:
                     output = np.ones(15)
             filter_data = output[step_buffer:-step_buffer]
 
-            self.y1.append(1/self.BP1z[1,-1]*(np.sum(-self.BP1z[1,0:-1]*self.y1) + np.sum(self.BP1z[0,:]*filter_data))) 
+            self.y1.append(1 / self.BP1z[1, -1] * (np.sum(-self.BP1z[1, 0:-1] * self.y1) + np.sum(self.BP1z[0, :] * filter_data)))
             self.y2.append(self.y1[-1]**2)
-            self.y3.append(1/self.LPF2z[1,-1]*(np.sum(-self.LPF2z[1,0:-1]*self.y3) + np.sum(self.LPF2z[0,:]*self.y2)))
+            self.y3.append(1 / self.LPF2z[1, -1] * (np.sum(-self.LPF2z[1, 0:-1] * self.y3) + np.sum(self.LPF2z[0, :] * self.y2)))
 
             self.y = 1e4 * self.y3[-1]
 
@@ -167,10 +170,25 @@ class PVDevice(BaseDevice):
         k.node.nodes[node_id]['PQ_injection']['P'] += self.p_out[1]
         k.node.nodes[node_id]['PQ_injection']['Q'] += self.q_out[1]
 
+        # log necessary info
+        self.log()
+
     def reset(self):
         """See parent class."""
         self.__init__(self.device_id, self.init_params)
+        self.log()
 
     def set_control_setting(self, control_setting):
         """See parent class."""
         self.control_setting = control_setting
+
+    def log(self):
+        # log history
+        Logger = logger()
+        Logger.log(self.device_id, 'y', self.y)
+        Logger.log(self.device_id, 'p_set', value=self.p_set[1])
+        Logger.log(self.device_id, 'q_set', self.q_set[1])
+        Logger.log(self.device_id, 'p_out', self.p_out[1])
+        Logger.log(self.device_id, 'q_out', self.q_out[1])
+        Logger.log(self.device_id, 'control_setting', self.control_setting)
+        Logger.log(self.device_id, 'solar_irr', self.solar_irr)

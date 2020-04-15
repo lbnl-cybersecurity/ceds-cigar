@@ -108,7 +108,7 @@ class SingleRelativeInitContinuousActionWrapper(ActionWrapper):
 
     @property
     def action_space(self):
-        return Box(-1.0, 1.0, (1,), dtype=np.float32)
+        return Box(-1.0, 1.0, (1,), dtype=np.float64)
 
     def action(self, action, rl_id, *_):
         return self.INIT_ACTION[rl_id] + action

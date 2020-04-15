@@ -43,7 +43,7 @@ class AdaptiveInverterController(BaseController):
         BaseController.__init__(
             self,
             device_id
-            )
+        )
 
         self.time_counter = 0
         self.init_params = copy.deepcopy(additional_params)
@@ -59,9 +59,9 @@ class AdaptiveInverterController(BaseController):
         # internal observer of the controller
         self.up = np.zeros(2)
         self.uq = np.zeros(2)
-        self.psi = np.zeros(self.delay_timer+1) if self.delay_timer != 0 else np.zeros(1)
-        self.epsilon = np.zeros(self.delay_timer+1) if self.delay_timer != 0 else np.zeros(1)
-        self.y = np.zeros(self.delay_timer+1) if self.delay_timer != 0 else np.zeros(1)
+        self.psi = np.zeros(self.delay_timer + 1) if self.delay_timer != 0 else np.zeros(1)
+        self.epsilon = np.zeros(self.delay_timer + 1) if self.delay_timer != 0 else np.zeros(1)
+        self.y = np.zeros(self.delay_timer + 1) if self.delay_timer != 0 else np.zeros(1)
 
     def get_action(self, env):
         """See parent class."""
@@ -69,11 +69,11 @@ class AdaptiveInverterController(BaseController):
 
             # observer
             node_id = env.k.device.devices[self.device_id]['node_id']
-            vk = np.abs(env.k.node.nodes[node_id]['voltage'][env.k.time-1])
-            vkm1 = np.abs(env.k.node.nodes[node_id]['voltage'][env.k.time-2])
-            psikm1 = self.psi[self.time_counter-1]
-            epsilonkm1 = self.epsilon[self.time_counter-1]
-            ykm1 = self.y[self.time_counter-1]
+            vk = np.abs(env.k.node.nodes[node_id]['voltage'][env.k.time - 1])
+            vkm1 = np.abs(env.k.node.nodes[node_id]['voltage'][env.k.time - 2])
+            psikm1 = self.psi[self.time_counter - 1]
+            epsilonkm1 = self.epsilon[self.time_counter - 1]
+            ykm1 = self.y[self.time_counter - 1]
             self.psi[self.time_counter] = psik = (vk - vkm1 - (self.high_pass_filter * self.delta_t / 2 - 1) *
                                                   psikm1) / (1 + self.high_pass_filter * self.delta_t / 2)
             self.epsilon[self.time_counter] = epsilonk = self.gain * (psik ** 2)
@@ -81,7 +81,7 @@ class AdaptiveInverterController(BaseController):
                                               (self.delta_t * self.low_pass_filter - 2) * ykm1) / \
                                              (2 + self.delta_t * self.low_pass_filter)
 
-            if (self.delay_timer != 0 and self.time_counter+1 == self.delay_timer) or self.delay_timer == 0:
+            if (self.delay_timer != 0 and self.time_counter + 1 == self.delay_timer) or self.delay_timer == 0:
                 yk = self.y[self.time_counter]
                 vk = self.psi[self.time_counter]
                 vkmdelay = self.psi[0]

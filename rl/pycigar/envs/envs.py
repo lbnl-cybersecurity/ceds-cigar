@@ -1,10 +1,10 @@
-from pycigar.envs.rl_control_pv_inverter_env import RLControlPVInverterEnv
+from pycigar.envs.central_env import CentralEnv
 from pycigar.envs.wrappers import *
 
 
 class CentralControlPVInverterEnv(Wrapper):
     def __init__(self, **kwargs):
-        env = RLControlPVInverterEnv(**kwargs)
+        env = CentralEnv(**kwargs)
         env = SingleRelativeInitDiscreteActionWrapper(env)
         env = CentralGlobalRewardWrapper(env)
         env = CentralLocalObservationWrapper(env)
@@ -14,7 +14,7 @@ class CentralControlPVInverterEnv(Wrapper):
 
 class NewCentralControlPVInverterEnv(Wrapper):
     def __init__(self, **kwargs):
-        env = RLControlPVInverterEnv(**kwargs)
+        env = CentralEnv(**kwargs)
         env = NewSingleRelativeInitDiscreteActionWrapper(env)
         env = CentralGlobalRewardWrapper(env)
         env = CentralLocalObservationWrapper(env)
@@ -24,7 +24,7 @@ class NewCentralControlPVInverterEnv(Wrapper):
 
 class CentralControlPVInverterContinuousEnv(Wrapper):
     def __init__(self, **kwargs):
-        env = RLControlPVInverterEnv(**kwargs)
+        env = CentralEnv(**kwargs)
         env = SingleRelativeInitContinuousActionWrapper(env)
         env = CentralGlobalRewardWrapper(env)
         env = CentralLocalObservationWrapper(env)

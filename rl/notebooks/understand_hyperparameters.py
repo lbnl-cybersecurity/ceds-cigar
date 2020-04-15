@@ -54,10 +54,10 @@ def custom_eval_function(trainer, eval_workers):
     episodes, _ = collect_episodes(eval_workers.local_worker(), eval_workers.remote_workers())
     metrics = summarize_episodes(episodes)
 
-    f = plot_episode(episodes[-1], trainer.iteration)
-    f.savefig(trainer.global_vars['reporter_dir'] + 'eval-epoch-' + str(trainer.iteration) + '.png', bbox_inches='tight')
+    #f = plot_episode(episodes[-1], trainer.iteration)
+    #f.savefig(trainer.global_vars['reporter_dir'] + 'eval-epoch-' + str(trainer.iteration) + '.png', bbox_inches='tight')
 
-    save_best_policy(trainer, episodes)
+    #save_best_policy(trainer, episodes)
 
     return metrics
 
@@ -102,12 +102,12 @@ def on_episode_end(info):
 
     env = info['env'].vector_env.envs[0]
     t_id = env.unwrapped.tracking_ids[0]
-    episode.hist_data['tracking'] = env.unwrapped.tracking_infos
+    # episode.hist_data['tracking'] = env.unwrapped.tracking_infos
     # episode.hist_data['adversary_a_val'] = env.unwrapped.tracking_infos['adversary_' + t_id]['a_val']
-    hack_start = int([k for k, v in env.unwrapped.k.scenario.hack_start_times.items() if 'adversary_' + t_id in v][0])
-    hack_end = int([k for k, v in env.unwrapped.k.scenario.hack_end_times.items() if 'adversary_' + t_id in v][0])
-    episode.custom_metrics["hack_start"] = hack_start
-    episode.custom_metrics["hack_end"] = hack_end
+    #hack_start = int([k for k, v in env.unwrapped.k.scenario.hack_start_times.items() if 'adversary_' + t_id in v][0])
+    #hack_end = int([k for k, v in env.unwrapped.k.scenario.hack_end_times.items() if 'adversary_' + t_id in v][0])
+    #episode.custom_metrics["hack_start"] = hack_start
+    #episode.custom_metrics["hack_end"] = hack_end
 
 
 # ==== ====

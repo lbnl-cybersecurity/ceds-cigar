@@ -29,15 +29,15 @@ def input_parser(folder_name):
         'hack_setting': {'default_control_setting': [1.039, 1.04, 1.04, 1.041, 1.042]},
 
         'env_config': {
-          'clip_actions': True,
-          'sims_per_step': 20
+            'clip_actions': True,
+            'sims_per_step': 20
         },
         'attack_randomization': {
-          'generator': 'AttackDefinitionGenerator'
+            'generator': 'AttackDefinitionGenerator'
         },
         'simulation_config': {
-          'network_model_directory': file_dss_path,
-          'custom_configs':  {'solution_mode': 1,
+            'network_model_directory': file_dss_path,
+            'custom_configs': {'solution_mode': 1,
                               'solution_number': 1,
                               'solution_step_size': 1,
                               'solution_control_mode': -1,
@@ -46,30 +46,30 @@ def input_parser(folder_name):
                               'power_factor': 0.9},
         },
         'scenario_config': {
-          'multi_config': True,
-          'start_end_time': 750,
-          'network_data_directory': file_load_solar_path,
-          'custom_configs': {'load_scaling_factor': 1.5,
+            'multi_config': True,
+            'start_end_time': 750,
+            'network_data_directory': file_load_solar_path,
+            'custom_configs': {'load_scaling_factor': 1.5,
                              'solar_scaling_factor': 3,
                              'slack_bus_voltage': 1.02,  # default 1.04
                              'load_generation_noise': False,
                              'power_factor': 0.9},
-          'nodes': [],
-          'regulators': {
-            'max_tap_change': 30,
-            'forward_band': 16,
-            'tap_number': 2,
-            'tap_delay': 0
-          }
+            'nodes': [],
+            'regulators': {
+                'max_tap_change': 30,
+                'forward_band': 16,
+                'tap_number': 2,
+                'tap_delay': 0
+            }
         }
     }
 
     # read misc_input
     misc_inputs_data = pd.read_csv(file_misc_inputs_path, header=None)
     misc_inputs_data = misc_inputs_data.T
-    new_header = misc_inputs_data.iloc[0] #grab the first row for the header
-    misc_inputs_data = misc_inputs_data[1:] #take the data less the header row
-    misc_inputs_data.columns = new_header #set the header row as the df header
+    new_header = misc_inputs_data.iloc[0]  # grab the first row for the header
+    misc_inputs_data = misc_inputs_data[1:]  # take the data less the header row
+    misc_inputs_data.columns = new_header  # set the header row as the df header
     misc_inputs_data = misc_inputs_data.to_dict()
 
     M = misc_inputs_data['Oscillation Penalty'][1]
@@ -78,8 +78,8 @@ def input_parser(folder_name):
     power_factor = misc_inputs_data['power factor'][1]
     load_scaling_factor = misc_inputs_data['load scaling factor'][1]
     solar_scaling_factor = misc_inputs_data['solar scaling factor'][1]
-    
-    json_query['M'] =  M
+
+    json_query['M'] = M
     json_query['N'] = N
     json_query['P'] = P
     json_query['scenario_config']['custom_configs']['load_scaling_factor'] = load_scaling_factor
@@ -96,7 +96,7 @@ def input_parser(folder_name):
                                misc_inputs_data['bp4 default'][1],
                                misc_inputs_data['bp5 default'][1]]
 
-    # read load_solar_data & read 
+    # read load_solar_data & read
     load_solar_data = pd.read_csv(file_load_solar_path)
     node_names = [node for node in list(load_solar_data) if '_pv' not in node]
     breakpoints_data = pd.read_csv(file_breakpoints_path)
@@ -119,8 +119,8 @@ def input_parser(folder_name):
         device['custom_configs']['delay_timer'] = 60
         device['custom_configs']['threshold'] = 0.05
         device['custom_configs']['adaptive_gain'] = 20
-        device['custom_configs']['low_pass_filter_measure'] = low_pass_filter_measure_std*np.random.randn() + low_pass_filter_measure_mean
-        device['custom_configs']['low_pass_filter_output'] = low_pass_filter_output_std*np.random.randn() + low_pass_filter_output_mean
+        device['custom_configs']['low_pass_filter_measure'] = low_pass_filter_measure_std * np.random.randn() + low_pass_filter_measure_mean
+        device['custom_configs']['low_pass_filter_output'] = low_pass_filter_output_std * np.random.randn() + low_pass_filter_output_mean
         device['adversary_controller'] = 'adaptive_fixed_controller'
         device['adversary_custom_configs'] = {}
         device['adversary_custom_configs']['default_control_setting'] = [1.014, 1.015, 1.015, 1.016, 1.017]
