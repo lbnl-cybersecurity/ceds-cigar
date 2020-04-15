@@ -5,22 +5,22 @@ import gym
 from gym.spaces import Box
 from pycigar.core.kernel.kernel import Kernel
 import matplotlib.pyplot as plt
-from datetime import datetime
 import pycigar.config as config
 import os
-from scipy import signal
-import random
+from pycigar.utils.logging import logger
+
 ACTION_RANGE = 0.1
 ACTION_STEP = 0.05
-DISCRETIZE_RELATIVE = int((ACTION_RANGE/ACTION_STEP))*2 + 1
+DISCRETIZE_RELATIVE = int((ACTION_RANGE / ACTION_STEP)) * 2 + 1
 
-ACTION_MIN_SLOPE = 0.02 #actually the slope is stepper when value is small
+ACTION_MIN_SLOPE = 0.02  # actually the slope is stepper when value is small
 ACTION_MAX_SLOPE = 0.07
 
 ACTION_COMBINATION = [[x, y] for x in range(DISCRETIZE_RELATIVE) for y in range(DISCRETIZE_RELATIVE)]
-ACTION_MAP = {k: a for k,a in enumerate(ACTION_COMBINATION)}
+ACTION_MAP = {k: a for k, a in enumerate(ACTION_COMBINATION)}
 
 BASE_VOLTAGE = 120
+
 
 class CentralEnv(gym.Env):
 
@@ -70,7 +70,7 @@ class CentralEnv(gym.Env):
         # pass the API to all sub-kernels
         self.k.pass_api(kernel_api)
         # start the corresponding scenario
-        #self.k.scenario.start_scenario()
+        # self.k.scenario.start_scenario()
 
         # when exit the environment, trigger function terminate to clear all attached processes.
         atexit.register(self.terminate)
@@ -78,7 +78,7 @@ class CentralEnv(gym.Env):
         # save the tracking ids, we will keep track the history of agents who have the ids in this list.
         self.tracking_ids = tracking_ids
 
-        self.post_process_output_specs = False 
+        self.post_process_output_specs = False
 
     def restart_simulation(self, sim_params, render=None):
         """Not in use.
@@ -117,7 +117,7 @@ class CentralEnv(gym.Env):
         else:
             rl_actions = self.old_actions
 
-        count = 0 
+        count = 0
 
         for _ in range(self.sim_params['env_config']["sims_per_step"]):
 
@@ -126,17 +126,17 @@ class CentralEnv(gym.Env):
             # perform action update for PV inverter device controlled by RL control
             temp_rl_actions = {}
             for rl_id in self.k.device.get_rl_device_ids():
-                temp_rl_actions[rl_id] = rl_actions[rl_id]  
+                temp_rl_actions[rl_id] = rl_actions[rl_id]
             rl_dict = {}
             for rl_id in temp_rl_actions.keys():
                 if randomize_rl_update[rl_id] == 0:
                     rl_dict[rl_id] = temp_rl_actions[rl_id]
                 else:
-                    randomize_rl_update[rl_id] -=1
+                    randomize_rl_update[rl_id] -= 1
 
             for rl_id in rl_dict.keys():
                 del temp_rl_actions[rl_id]
-                
+
             self.apply_rl_actions(rl_dict)
 
             # perform action update for PV inverter device
@@ -156,7 +156,7 @@ class CentralEnv(gym.Env):
                 self.k.device.apply_control(self.k.device.get_fixed_device_ids(), control_setting)
 
             self.additional_command()
-            
+
             if self.k.time <= self.k.t:
                 self.k.update(reset=False)
 
@@ -180,9 +180,8 @@ class CentralEnv(gym.Env):
             if self.k.time >= self.k.t:
                 break
 
+        next_observation = next_observation / count
 
-        next_observation = next_observation/count 
-                
         # the episode will be finished if it is not converged.
         finish = not converged or (self.k.time == self.k.t)
 
@@ -192,7 +191,7 @@ class CentralEnv(gym.Env):
             done = False
 
         # we push the old action, current action, voltage, y, p_inject, p_max into additional info, which will return by the env after calling step.
-        #infos = {key: {'voltage': self.k.node.get_node_voltage(self.k.device.get_node_connected_to(key)),
+        # infos = {key: {'voltage': self.k.node.get_node_voltage(self.k.device.get_node_connected_to(key)),
         #               'y': self.k.device.get_device_y(key),
         #               'p_inject': self.k.device.get_device_p_injection(key),
         #               'p_max': self.k.device.get_solar_generation(key),
@@ -223,14 +222,14 @@ class CentralEnv(gym.Env):
             reward = self.compute_reward(rl_clipped, fail=not converged)
         else:
             reward = self.compute_reward(rl_actions, fail=not converged)
-        
+
         return next_observation, reward, done, infos
 
     def reset(self):
         self.env_time = 0
         self.sim_params = self.k.update(reset=True)  # hotfix: return new sim_params sample in kernel?
         states = self.get_state()
-        
+
         # tracking
         if self.tracking_ids is not None:
             self.pycigar_tracking()
@@ -260,9 +259,9 @@ class CentralEnv(gym.Env):
                         a_max=self.action_space.high)
             else:
                 rl_actions = np.clip(
-                        rl_actions,
-                        a_min=self.action_space.low,
-                        a_max=self.action_space.high)
+                    rl_actions,
+                    a_min=self.action_space.low,
+                    a_max=self.action_space.high)
         return rl_actions
 
     def apply_rl_actions(self, rl_actions=None):
@@ -316,18 +315,18 @@ class CentralEnv(gym.Env):
                                                         a_val=[],
                                                         reg_val=[])
 
-                if not tracking_id[-1].isdigit(): 
+                if not tracking_id[-1].isdigit():
                     if tracking_id[:-1] + 'a' in inverter_ids and tracking_id[:-1] + 'a' != tracking_id:
                         self.tracking_infos[tracking_id[:-1] + 'a'] = []
                     if tracking_id[:-1] + 'b' in inverter_ids and tracking_id[:-1] + 'b' != tracking_id:
                         self.tracking_infos[tracking_id[:-1] + 'b'] = []
                     if tracking_id[:-1] + 'c' in inverter_ids and tracking_id[:-1] + 'c' != tracking_id:
                         self.tracking_infos[tracking_id[:-1] + 'c'] = []
-                        
+
         for tracking_id in self.tracking_ids:
             if tracking_id in inverter_ids:
                 node_id = self.k.device.get_node_connected_to(tracking_id)
-                if not tracking_id[-1].isdigit():    
+                if not tracking_id[-1].isdigit():
                     if tracking_id[:-1] + 'a' in self.tracking_infos.keys() and tracking_id[:-1] + 'a' != tracking_id:
                         node_id_a = self.k.device.get_node_connected_to(tracking_id[:-1] + 'a')
                         self.tracking_infos[tracking_id[:-1] + 'a'].append(self.k.node.get_node_voltage(node_id_a))
@@ -340,86 +339,13 @@ class CentralEnv(gym.Env):
 
                 self.tracking_infos[tracking_id]['v_val'].append(self.k.node.get_node_voltage(node_id))
                 self.tracking_infos[tracking_id]['y_val'].append(self.k.device.get_device_y(tracking_id))
-                #p_max = self.k.device.get_solar_generation(tracking_id)
-                #p_inject = self.k.device.get_device_p_injection(tracking_id)
+                # p_max = self.k.device.get_solar_generation(tracking_id)
+                # p_inject = self.k.device.get_device_p_injection(tracking_id)
                 self.tracking_infos[tracking_id]['q_set'].append(self.k.device.get_device_q_set(tracking_id))
                 self.tracking_infos[tracking_id]['q_val'].append(self.k.device.get_device_q_injection(tracking_id))
                 self.tracking_infos[tracking_id]['a_val'].append(list(self.k.device.get_control_setting(tracking_id)))
             elif tracking_id in regultor_ids:
                 self.tracking_infos[tracking_id]['reg_val'].append(self.k.kernel_api.get_regulator_tap(tracking_id))
-
-    def plot(self, exp_tag='', env_name='', iteration=0, reward=0):
-        """Plot the result of tracking ids after the simulation.
-
-        Parameters
-        ----------
-        exp_tag : str, optional
-            The experiment tag, this will be used as a folder name created under /result/.
-        env_name : str, optional
-            Name of the environment which we run the simulation.
-        iteration : int, optional
-            The number of training iteration taken place before this plot.
-        """
-        #num_col = len(self.tracking_infos.keys())
-        #if num_col != 1:
-        #    f, ax = plt.subplots(3, num_col, figsize=(25, 20))
-        #    for col in range(num_col):
-        #        tracking_id = list(self.tracking_infos.keys())[col]
-        #        ax[0, col].set_title(tracking_id + " -- total reward: " + str(reward))
-        #        ax[0, col].plot(self.tracking_infos[tracking_id]['v_val'])
-        #        ax[0, col].set_ylabel('voltage')
-        #        ax[1, col].plot(self.tracking_infos[tracking_id]['y_val'])
-        #        ax[1, col].set_ylabel('oscillation observer')
-                #ax[2, col].plot(self.tracking_infos[tracking_id]['p_val'])
-                #ax[2, col].set_ylabel('(1 + p_inject/p_max)**2')
-        #        labels = ['a1', 'a2', 'a3', 'a4', 'a5']
-        #        [a1, a2, a3, a4, a5] = ax[2, col].plot(self.tracking_infos[tracking_id]['a_val'])
-        #        ax[2, col].set_ylabel('action')
-        #        plt.legend([a1, a2, a3, a4, a5], labels, loc=1)
-        #else:
-        f, ax = plt.subplots(6, figsize=(25, 25))
-        tracking_id = list(self.tracking_infos.keys())[0] #'inverter_s701a'#
-        ax[0].set_title(tracking_id + " -- total reward: " + str(reward))
-        ax[0].plot(self.tracking_infos[tracking_id]['v_val'])
-        ax[0].set_ylabel('voltage')
-        ax[0].set_ylim((0.925, 1.07))
-        #ax[0].axhline(1.03, color='r')
-        #ax[0].axhline(0.95, color='r')
-        ax[0].grid(b=True, which='both')
-        ax[1].plot(self.tracking_infos[tracking_id]['y_val'])
-        ax[1].set_ylabel('oscillation observer')
-        ax[1].grid(b=True, which='both')
-        ax[2].plot(self.tracking_infos[tracking_id]['q_set'])
-        ax[2].plot(self.tracking_infos[tracking_id]['q_val'])
-        ax[2].set_ylabel('reactive power')
-        ax[2].grid(b=True, which='both')
-        labels = ['a1', 'a2', 'a3', 'a4', 'a5']
-        [a1, a2, a3, a4, a5] = ax[3].plot(self.tracking_infos[tracking_id]['a_val'])
-        ax[3].set_ylabel('action')
-        ax[3].grid(b=True, which='both')
-        plt.legend([a1, a2, a3, a4, a5], labels, loc=1)
-        
-        if 'creg1a' in self.tracking_infos.keys():
-            tracking_id = 'creg1a'
-            ax[4].plot(self.tracking_infos[tracking_id]['reg_val'])
-            ax[4].set_ylabel('reg_val' + tracking_id)
-
-        if 'creg1c' in self.tracking_infos.keys():
-            tracking_id = 'creg1c'
-            ax[5].plot(self.tracking_infos[tracking_id]['reg_val'])
-            ax[5].set_ylabel('reg_val' + tracking_id)
-
-        
-
-            #np.savetxt(os.path.join(os.path.join(config.LOG_DIR, exp_tag), 'voltage_profile.txt'), self.tracking_infos[tracking_id]['v_val'])
-
-        if not os.path.exists(os.path.join(config.LOG_DIR, exp_tag)):
-            os.makedirs(os.path.join(config.LOG_DIR, exp_tag))
-        save_path = os.path.join(os.path.join(config.LOG_DIR, exp_tag), '{}_{}_result_{}.png'.format(exp_tag, env_name, iteration))#, datetime.now().strftime("%H:%M:%S.%f_%d-%m-%Y")))
-
-        f.savefig(save_path)
-        plt.close(f)
-        return f
 
     def plot_unbalance(self, exp_tag='', env_name='', iteration=0, reward=0):
         """Plot the result of tracking ids after the simulation.
@@ -433,8 +359,8 @@ class CentralEnv(gym.Env):
         iteration : int, optional
             The number of training iteration taken place before this plot.
         """
-        #num_col = len(self.tracking_infos.keys())
-        #if num_col != 1:
+        # num_col = len(self.tracking_infos.keys())
+        # if num_col != 1:
         #    f, ax = plt.subplots(3, num_col, figsize=(25, 20))
         #    for col in range(num_col):
         #        tracking_id = list(self.tracking_infos.keys())[col]
@@ -443,17 +369,17 @@ class CentralEnv(gym.Env):
         #        ax[0, col].set_ylabel('voltage')
         #        ax[1, col].plot(self.tracking_infos[tracking_id]['y_val'])
         #        ax[1, col].set_ylabel('oscillation observer')
-                #ax[2, col].plot(self.tracking_infos[tracking_id]['p_val'])
-                #ax[2, col].set_ylabel('(1 + p_inject/p_max)**2')
+        #        ax[2, col].plot(self.tracking_infos[tracking_id]['p_val'])
+        #        ax[2, col].set_ylabel('(1 + p_inject/p_max)**2')
         #        labels = ['a1', 'a2', 'a3', 'a4', 'a5']
         #        [a1, a2, a3, a4, a5] = ax[2, col].plot(self.tracking_infos[tracking_id]['a_val'])
         #        ax[2, col].set_ylabel('action')
         #        plt.legend([a1, a2, a3, a4, a5], labels, loc=1)
-        #else:
+        # else:
         f, ax = plt.subplots(6, figsize=(25, 25))
         tracking_id = list(self.tracking_infos.keys())[0]
         ax[0].set_title(tracking_id + " -- total reward: " + str(reward))
-        
+
         plot_v_list = []
         plot_v_label = []
         all_v = []
@@ -475,12 +401,12 @@ class CentralEnv(gym.Env):
             plot_v_label.append('a')
             all_v.append(self.tracking_infos[tracking_id[:-1] + 'a'])
         if tracking_id[:-1] + 'b' in self.tracking_infos.keys() and tracking_id[:-1] + 'b' != tracking_id:
-            v = ax[0].plot(self.tracking_infos[tracking_id[:-1] + 'b'])        
+            v = ax[0].plot(self.tracking_infos[tracking_id[:-1] + 'b'])
             plot_v_list.append(v[0])
             plot_v_label.append('b')
             all_v.append(self.tracking_infos[tracking_id[:-1] + 'b'])
         if tracking_id[:-1] + 'c' in self.tracking_infos.keys() and tracking_id[:-1] + 'c' != tracking_id:
-            v = ax[0].plot(self.tracking_infos[tracking_id[:-1] + 'c']) 
+            v = ax[0].plot(self.tracking_infos[tracking_id[:-1] + 'c'])
             plot_v_list.append(v[0])
             plot_v_label.append('c')
             all_v.append(self.tracking_infos[tracking_id[:-1] + 'c'])
@@ -490,7 +416,6 @@ class CentralEnv(gym.Env):
         max_dev_v = (all_v - mean_v).max(axis=0) / mean_v
 
         ax[0].legend(plot_v_list, plot_v_label, loc=1)
-        
         ax[0].set_ylabel('voltage')
         ax[0].grid(b=True, which='both')
         ax[1].plot(max_dev_v)
@@ -505,35 +430,34 @@ class CentralEnv(gym.Env):
         ax[3].set_ylabel('action')
         ax[3].grid(b=True, which='both')
         ax[3].legend([a1, a2, a3, a4, a5], labels, loc=1)
-        
-        tracking_id = 'reg1'#list(self.tracking_infos.keys())[1]
+
+        tracking_id = 'reg1'  # list(self.tracking_infos.keys())[1]
         ax[4].plot(self.tracking_infos[tracking_id]['reg_val'])
         ax[4].set_ylabel('reg_val' + tracking_id)
-        #ax[4].set_ylim(-10, 5)
-        #tracking_id = 'creg1c'#list(self.tracking_infos.keys())[2]
-        #ax[5].plot(self.tracking_infos[tracking_id]['reg_val'])
-        #ax[5].set_ylabel('reg_val' + tracking_id)
+        # ax[4].set_ylim(-10, 5)
+        # tracking_id = 'creg1c'#list(self.tracking_infos.keys())[2]
+        # ax[5].plot(self.tracking_infos[tracking_id]['reg_val'])
+        # ax[5].set_ylabel('reg_val' + tracking_id)
 
-            #np.savetxt(os.path.join(os.path.join(config.LOG_DIR, exp_tag), 'voltage_profile.txt'), self.tracking_infos[tracking_id]['v_val'])
+        # np.savetxt(os.path.join(os.path.join(config.LOG_DIR, exp_tag), 'voltage_profile.txt'), self.tracking_infos[tracking_id]['v_val'])
 
         if not os.path.exists(os.path.join(config.LOG_DIR, exp_tag)):
             os.makedirs(os.path.join(config.LOG_DIR, exp_tag))
-        save_path = os.path.join(os.path.join(config.LOG_DIR, exp_tag), '{}_{}_result_{}.png'.format(exp_tag, env_name, iteration))#, datetime.now().strftime("%H:%M:%S.%f_%d-%m-%Y")))
+        save_path = os.path.join(os.path.join(config.LOG_DIR, exp_tag), '{}_{}_result_{}.png'.format(exp_tag, env_name, iteration))  # , datetime.now().strftime("%H:%M:%S.%f_%d-%m-%Y")))
 
         f.savefig(save_path)
         plt.close(f)
         return f
 
-
     def pycigar_output_specs(self, reset=True):
-        if reset == True:
+        if reset is True:
             self.output_specs = {}
             try:
                 self.output_specs['Start Time'] = self.k.sim_params['scenario_config']['start_end_time'][0]
             except:
                 pass
             self.output_specs['Time Steps'] = self.k.sim_params['env_config']['sims_per_step']
-            self.output_specs['Time Step Size (s)'] = 1 # TODO: current resolution
+            self.output_specs['Time Step Size (s)'] = 1  # TODO: current resolution
 
             self.output_specs['allMeterVoltages'] = {}
             self.output_specs['allMeterVoltages']['Min'] = []
@@ -545,12 +469,12 @@ class CentralEnv(gym.Env):
             self.output_specs['Consumption']['Losses Total (W)'] = []
             self.output_specs['Consumption']['DG Output (W)'] = []
             self.output_specs['Substation Power Factor (%)'] = []
-            
+
             self.output_specs['Regulator_testReg'] = {}
             reg_phases = ''
             for regulator_name in self.get_kernel().device.get_regulator_device_ids():
                 self.output_specs['Regulator_testReg'][regulator_name] = []
-                reg_phases += regulator_name[-1] 
+                reg_phases += regulator_name[-1]
             self.output_specs['Regulator_testReg']['RegPhases'] = reg_phases.upper()
 
             self.output_specs['Substation Top Voltage(V)'] = []
@@ -571,22 +495,22 @@ class CentralEnv(gym.Env):
         for node_id in node_ids:
             node_voltages.append(self.k.node.get_node_voltage(node_id))
         node_voltages = np.array(node_voltages)
-        
-        self.output_specs['allMeterVoltages']['Min'].append(np.min(node_voltages)*BASE_VOLTAGE)
-        self.output_specs['allMeterVoltages']['Mean'].append(np.mean(node_voltages)*BASE_VOLTAGE)
-        self.output_specs['allMeterVoltages']['StdDev'].append(np.std(node_voltages)*BASE_VOLTAGE)
-        self.output_specs['allMeterVoltages']['Max'].append(np.max(node_voltages)*BASE_VOLTAGE)
+
+        self.output_specs['allMeterVoltages']['Min'].append(np.min(node_voltages) * BASE_VOLTAGE)
+        self.output_specs['allMeterVoltages']['Mean'].append(np.mean(node_voltages) * BASE_VOLTAGE)
+        self.output_specs['allMeterVoltages']['StdDev'].append(np.std(node_voltages) * BASE_VOLTAGE)
+        self.output_specs['allMeterVoltages']['Max'].append(np.max(node_voltages) * BASE_VOLTAGE)
 
         sub_P, sub_Q = self.k.power_substation
         self.output_specs['Consumption']['Power Substation (W)'].append(sub_P)
         sub_loss_P, sub_loss_Q = self.k.losses_total
         self.output_specs['Consumption']['Losses Total (W)'].append(sub_loss_P)
         self.output_specs['Consumption']['DG Output (W)'].append(self.k.dg_output)
-        self.output_specs['Substation Power Factor (%)'].append(sub_P/np.sqrt(sub_P**2 + sub_Q**2))
+        self.output_specs['Substation Power Factor (%)'].append(sub_P / np.sqrt(sub_P**2 + sub_Q**2))
 
-        self.output_specs['Substation Top Voltage(V)'].append(self.k.kernel_api.get_substation_top_voltage()*BASE_VOLTAGE)
-        self.output_specs['Substation Bottom Voltage(V)'].append(self.k.kernel_api.get_substation_bottom_voltage()*BASE_VOLTAGE)    # add a function to get the voltage bottom here
-        
+        self.output_specs['Substation Top Voltage(V)'].append(self.k.kernel_api.get_substation_top_voltage() * BASE_VOLTAGE)
+        self.output_specs['Substation Bottom Voltage(V)'].append(self.k.kernel_api.get_substation_bottom_voltage() * BASE_VOLTAGE)    # add a function to get the voltage bottom here
+
         if self.output_specs['Substation Regulator Minimum Voltage(V)'] == []:
             val_max = None
             val_min = None
@@ -598,7 +522,7 @@ class CentralEnv(gym.Env):
                     val_lower = vreg - band
                     val_max = val_upper if val_max is None or val_max < val_upper else val_max
                     val_min = val_lower if val_min is None or val_min > val_lower else val_min
-                    
+
             self.output_specs['Substation Regulator Minimum Voltage(V)'].append(val_min)
             self.output_specs['Substation Regulator Maximum Voltage(V)'].append(val_max)
         for inverter_name in self.output_specs['Inverter Outputs'].keys():
@@ -606,7 +530,7 @@ class CentralEnv(gym.Env):
             self.output_specs['Inverter Outputs'][inverter_name]['Voltage (V)'].append(self.k.node.get_node_voltage(node_id)*BASE_VOLTAGE) #done
             self.output_specs['Inverter Outputs'][inverter_name]['Power Output (W)'].append(self.k.device.total_pv_device_inject[inverter_name][0])
             self.output_specs['Inverter Outputs'][inverter_name]['Reactive Power Output (VAR)'].append(self.k.device.total_pv_device_inject[inverter_name][0])
-        
+
         self.k.power_substation = np.array([0., 0.])
         self.k.losses_total = np.array([0., 0.])
         self.k.dg_output = 0.
@@ -619,7 +543,7 @@ class CentralEnv(gym.Env):
                 self.output_specs['Regulator_testReg'][regulator_name].append(self.k.kernel_api.get_regulator_tap(regulator_name))
 
     def get_pycigar_output_specs(self):
-        
+
         if not self.post_process_output_specs:
             self.post_process_output_specs = True
             # refine the output a bit
@@ -627,7 +551,7 @@ class CentralEnv(gym.Env):
             for inverter_name in self.output_specs['Inverter Outputs'].keys():
                 inverter_outputs.append(self.output_specs['Inverter Outputs'][inverter_name])
             self.output_specs['Inverter Outputs'] = inverter_outputs
-        
+
         return self.output_specs
 
     @property

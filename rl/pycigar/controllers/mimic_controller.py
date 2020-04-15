@@ -17,7 +17,7 @@ class MimicController(BaseController):
         BaseController.__init__(
             self,
             device_id
-            )
+        )
         self.host_device_id = host_device_id
 
     def get_action(self, env):

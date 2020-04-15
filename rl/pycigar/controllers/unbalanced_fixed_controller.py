@@ -18,7 +18,7 @@ class UnbalancedFixedController(BaseController):
         BaseController.__init__(
             self,
             device_id
-            )
+        )
         self.additional_params = additional_params
         self.trigger = False
         self.hack_curve_all = np.array([1.01, 1.04, 1.04, 1.07, 1.09])
@@ -26,6 +26,7 @@ class UnbalancedFixedController(BaseController):
         self.hack_curve_b = np.array([0.95, 0.98, 0.98, 1.01, 1.04])
         self.hack_curve_c = np.array([0.95, 0.98, 0.98, 1.01, 1.04]) - 0.1
         self.action = None
+
     def get_action(self, env):
         """See parent class."""
         # nothing to do here, the setting in the device is as default
@@ -40,7 +41,7 @@ class UnbalancedFixedController(BaseController):
                 self.action = self.hack_curve_c
 
             self.trigger = True
-            return self.action 
+            return self.action
         else:
             return self.action
 

@@ -6,6 +6,7 @@ from pycigar.core.kernel.device import OpenDSSDevice
 from pycigar.utils.exeptions import FatalPyCIGARError
 import numpy as np
 import random
+from pycigar.utils.logging import logger
 
 class Kernel(object):
     """Kernel for abstract function calling across grid simulator APIs.
@@ -57,8 +58,10 @@ class Kernel(object):
         """
         self.kernel_api = None
         self.sim_params = sim_params
-        self.multi_config = self.sim_params['scenario_config']['multi_config'] 
+        self.multi_config = self.sim_params['scenario_config']['multi_config']
         self.time = 0
+        # initialize logger
+        logger()
 
         if simulator == "opendss":
             self.simulation = OpenDSSSimulation(self)
@@ -86,8 +89,10 @@ class Kernel(object):
             step.
         """
         if reset is True:
-            # track substation, output specs
+            # reset logger here
+            logger().reset()
 
+            # track substation, output specs
             # start and end times are given
             if isinstance(self.sim_params['scenario_config']['start_end_time'], list):
                 start_time, end_time = self.sim_params['scenario_config']['start_end_time']
@@ -97,7 +102,7 @@ class Kernel(object):
                 self.t = self.sim_params['scenario_config']['start_end_time']
                 if 'start_time' not in self.sim_params['scenario_config']:
                     # generate random times (once)
-                    start_time = random.randint(0, 14399-self.t)
+                    start_time = random.randint(0, 14399 - self.t)
                     end_time = start_time + self.t
                 else:
                     # restore previous times
@@ -118,13 +123,13 @@ class Kernel(object):
             self.scenario.start_scenario()
             self.device.update(reset)
 
-            self.scenario.change_load_profile_new(start_time, end_time)
+            self.scenario.change_load_profile(start_time, end_time)
 
             self.node.update(reset)
             self.simulation.update(reset)
             self.scenario.update(reset)
 
-            #self.warm_up_v()
+            # self.warm_up_v()
             self.warm_up_k_step(50)
 
             self.power_substation = self.kernel_api.get_total_power()
@@ -139,7 +144,6 @@ class Kernel(object):
             self.scenario.update(reset)  # update voltage on node
             self.power_substation += self.kernel_api.get_total_power()
             self.losses_total += self.kernel_api.get_losses()
-            
 
         self.time += 1
 
@@ -188,7 +192,7 @@ class Kernel(object):
         y = []
         for device_id in device_ids:
             y.append(self.device.get_device_y(device_id))
-        
+
         self.time += 1
         self.device.update(reset=False)
         self.node.update(reset=False)

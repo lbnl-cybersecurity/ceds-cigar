@@ -4,12 +4,13 @@ from pycigar.devices import RegulatorDevice
 
 from pycigar.controllers import AdaptiveInverterController
 from pycigar.controllers import FixedController
-from pycigar.controllers import MimicController
+# from pycigar.controllers import MimicController
 from pycigar.controllers import AdaptiveFixedController
 from pycigar.controllers import UnbalancedFixedController
 
 from pycigar.controllers import RLController
 import numpy as np
+
 
 class OpenDSSDevice(KernelDevice):
     """See parent class.
@@ -90,7 +91,7 @@ class OpenDSSDevice(KernelDevice):
 
         self.regulator_device_ids = []
         self.num_regulator_device_ids = 0
-        
+
     def pass_api(self, kernel_api):
         """See parent class."""
         self.kernel_api = kernel_api
@@ -194,7 +195,7 @@ class OpenDSSDevice(KernelDevice):
                 "device": adversary_device_obj,
                 "controller": adversary_controller_obj,
                 "node_id": connect_to,
-                "hack_controller": FixedController(adversary_device_id, controller[1])#MimicController(adversary_device_id, device_id)    #AdaptiveInverterController(adversary_device_id, controller[1])
+                "hack_controller": FixedController(adversary_device_id, controller[1])  # MimicController(adversary_device_id, device_id)    #AdaptiveInverterController(adversary_device_id, controller[1])
             }
         else:
             adversary_device_id = "adversary_%i" % name
@@ -213,7 +214,7 @@ class OpenDSSDevice(KernelDevice):
                 "device": adversary_device_obj,
                 "controller": adversary_controller_obj,
                 "node_id": connect_to,
-                "hack_controller": FixedController(adversary_device_id, controller[1])#MimicController(adversary_device_id, device_id)    #AdaptiveInverterController(adversary_device_id, controller[1])
+                "hack_controller": FixedController(adversary_device_id, controller[1])  # MimicController(adversary_device_id, device_id)    #AdaptiveInverterController(adversary_device_id, controller[1])
             }
 
         self.all_device_ids.extend((device_id, adversary_device_id))
@@ -227,7 +228,7 @@ class OpenDSSDevice(KernelDevice):
             # reset device and controller
             for device_id in self.devices.keys():
                 if isinstance(self.devices[device_id]['device'], PVDevice):
-                    
+
                     self.devices[device_id]['device'].reset()
                     self.devices[device_id]['controller'].reset()
                     if 'hack_controller' in self.devices[device_id]:
@@ -235,7 +236,7 @@ class OpenDSSDevice(KernelDevice):
                         temp = self.devices[device_id]['controller']
                         self.devices[device_id]['controller'] = self.devices[device_id]['hack_controller']
                         self.devices[device_id]['hack_controller'] = temp
-                      
+
                 elif isinstance(self.devices[device_id]['device'], RegulatorDevice):
                     self.devices[device_id]['device'].reset()
 
@@ -250,6 +251,9 @@ class OpenDSSDevice(KernelDevice):
             for pv_device in self.pv_device_ids:
                 self.devices[pv_device]["device"].update(self.master_kernel)
                 self.total_pv_device_inject[pv_device] += [self.devices[pv_device]["device"].p_out[1], self.devices[pv_device]["device"].q_out[1]]
+
+            for reg_device in self.regulator_device_ids:
+                self.devices[reg_device]["device"].update(self.master_kernel)
 
     def get_regulator_device_ids(self):
         return self.regulator_device_ids
@@ -308,7 +312,7 @@ class OpenDSSDevice(KernelDevice):
             The solar generation value
         """
         device = self.devices[device_id]['device']
-        return device.solar_generation[self.master_kernel.time-1]
+        return device.solar_generation[self.master_kernel.time - 1]
 
     def get_node_connected_to(self, device_id):
         """Return the node id that the device connects to.
@@ -338,7 +342,7 @@ class OpenDSSDevice(KernelDevice):
         float
             The relative power set
         """
-        return self.devices[device_id]['device'].p_set[1]/self.devices[device_id]['device'].Sbar
+        return self.devices[device_id]['device'].p_set[1] / self.devices[device_id]['device'].Sbar
 
     def get_device_p_set_p_max(self, device_id):
         """Return the device's power set relative to Sbar at the current timestep.
@@ -353,7 +357,7 @@ class OpenDSSDevice(KernelDevice):
         float
             The relative power set
         """
-        return self.devices[device_id]['device'].p_set[1]/max(10, self.devices[device_id]['device'].solar_irr)
+        return self.devices[device_id]['device'].p_set[1] / max(10, self.devices[device_id]['device'].solar_irr)
 
     def get_device_p_injection(self, device_id):
         """Return the device's power injection at the current timestep.

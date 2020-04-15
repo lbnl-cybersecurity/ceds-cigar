@@ -62,17 +62,17 @@ class PyCIGAROpenDSSAPI(object):
         """Get node voltage given node id."""
         dss.Loads.Name(node_id)
         voltage = dss.CktElement.VoltagesMagAng()
-        #print(voltage, node_id, dss.CktElement.NumPhases())
+        # print(voltage, node_id, dss.CktElement.NumPhases())
         if len(voltage) == 6:
-            voltage = (voltage[0]+voltage[2]+voltage[4])/(dss.CktElement.NumPhases()*(dss.Loads.kV()*1000/(3**0.5)))
+            voltage = (voltage[0] + voltage[2] + voltage[4]) / (dss.CktElement.NumPhases() * (dss.Loads.kV() * 1000 / (3**0.5)))
         else:
             if node_id[-1] == 'a':
-                voltage = (voltage[0])/(dss.CktElement.NumPhases()*(dss.Loads.kV()*1000/(3**0.5)))
+                voltage = (voltage[0]) / (dss.CktElement.NumPhases() * (dss.Loads.kV() * 1000 / (3**0.5)))
             elif node_id[-1] == 'b':
-                voltage = (voltage[0])/(dss.CktElement.NumPhases()*(dss.Loads.kV()*1000/(3**0.5)))
+                voltage = (voltage[0]) / (dss.CktElement.NumPhases() * (dss.Loads.kV() * 1000 / (3**0.5)))
             else:
-                voltage = (voltage[0])/(dss.CktElement.NumPhases()*(dss.Loads.kV()*1000/(3**0.5)))
-         
+                voltage = (voltage[0]) / (dss.CktElement.NumPhases() * (dss.Loads.kV() * 1000 / (3**0.5)))
+
         # get the pu information directly
         if np.isnan(voltage) or np.isinf(voltage):
             raise ValueError('Voltage Output {} from OpenDSS for Load {} at Bus {} is not appropriate.'.
@@ -101,7 +101,7 @@ class PyCIGAROpenDSSAPI(object):
         """Set slack bus voltage."""
         dss.Vsources.PU(value)
 
-    ######################### REGULATOR ############################
+    # ######################## REGULATOR ############################
     def get_all_regulator_names(self):
         return dss.RegControls.AllNames()
 
@@ -137,7 +137,7 @@ class PyCIGAROpenDSSAPI(object):
     def get_substation_top_voltage(self):
         dss.Bus.Name()
         voltage = dss.Bus.VMagAngle()
-        voltage = (voltage[0]+voltage[2]+voltage[4])/(dss.CktElement.NumPhases()*(dss.Loads.kV()*1000/(3**0.5)))
+        voltage = (voltage[0] + voltage[2] + voltage[4]) / (dss.CktElement.NumPhases() * (dss.Loads.kV() * 1000 / (3**0.5)))
         return voltage
 
     def get_substation_bottom_voltage(self):
@@ -147,5 +147,5 @@ class PyCIGAROpenDSSAPI(object):
         voltage_b = dss.CktElement.VoltagesMagAng()
         dss.Loads.Name('S701c')
         voltage_c = dss.CktElement.VoltagesMagAng()
-        voltage = (voltage_a[0]+voltage_b[0]+voltage_c[0])/(3*(dss.Loads.kV()*1000/(3**0.5)))
+        voltage = (voltage_a[0] + voltage_b[0] + voltage_c[0]) / (3 * (dss.Loads.kV() * 1000 / (3**0.5)))
         return voltage
