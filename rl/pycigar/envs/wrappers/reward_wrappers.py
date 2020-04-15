@@ -167,6 +167,10 @@ class CentralGlobalRewardWrapper(RewardWrapper):
         A dictionary of new rewards.
     """
 
+    def __init__(self, env, unbalance=False):
+        super().__init__(env)
+        self.unbalance = unbalance
+
     def reward(self, reward, info):
         M = self.k.sim_params['M']
         N = self.k.sim_params['N']
@@ -174,7 +178,10 @@ class CentralGlobalRewardWrapper(RewardWrapper):
 
         global_reward = 0
         # we accumulate agents reward into global_reward and divide it with the number of agents.
-        y = max([info[k]['y'] for k in info.keys()])
+        if self.unbalance:
+            y_or_u = max([info[k]['u'] for k in info.keys()])
+        else:
+            y_or_u = max([info[k]['y'] for k in info.keys()])
 
         for key in info.keys():
             action = info[key]['current_action']
@@ -191,7 +198,7 @@ class CentralGlobalRewardWrapper(RewardWrapper):
             else:
                 roa = 1
 
-            r += -(M * y + N * roa + P * np.linalg.norm(action - self.INIT_ACTION[key]) + 0.5 * (
+            r += -(M * y_or_u + N * roa + P * np.linalg.norm(action - self.INIT_ACTION[key]) + 0.5 * (
                     1 - abs(info[key]['p_set_p_max'])) ** 2)
             # r += -((M2*y**2 + P2*np.sum(np.abs(action-old_action)) + N2*np.sum(np.abs(action-INIT_ACTION))))/100
             global_reward += r

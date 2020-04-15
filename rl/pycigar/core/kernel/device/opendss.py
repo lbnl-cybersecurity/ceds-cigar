@@ -415,6 +415,21 @@ class OpenDSSDevice(KernelDevice):
         """
         return self.devices[device_id]['device'].y
 
+    def get_device_u(self, device_id):
+        """Return the device's u value at the current timestep.
+
+        Parameters
+        ----------
+        device_id : string
+            The device id
+
+        Returns
+        -------
+        float
+            The u value
+        """
+        return self.devices[device_id]['device'].u
+
     def get_device(self, device_id):
         """Return device object given the device id.
 

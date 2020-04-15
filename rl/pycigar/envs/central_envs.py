@@ -35,7 +35,7 @@ class CentralControlPhaseSpecificPVInverterEnv(Wrapper):
     def __init__(self, **kwargs):
         env = RLControlPVInverterEnv(**kwargs)
         env = SingleRelativeInitPhaseSpecificDiscreteActionWrapper(env)
-        env = CentralGlobalRewardWrapper(env)
-        env = CentralLocalObservationWrapper(env)
+        env = CentralGlobalRewardWrapper(env, unbalance=True)
+        env = CentralLocalObservationWrapper(env, unbalance=True)
         env = CentralFramestackObservationWrapper(env)
         self.env = env

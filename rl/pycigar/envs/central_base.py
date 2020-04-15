@@ -106,7 +106,7 @@ class CentralEnv(gym.Env):
             reward: a dictionary of reward received by agents.
             done: bool
         """
-        next_observation = None
+        observations = []
         self.old_actions = {}
         for rl_id in self.k.device.get_rl_device_ids():
             self.old_actions[rl_id] = self.k.device.get_control_setting(rl_id)
@@ -165,12 +165,7 @@ class CentralEnv(gym.Env):
                 if not converged:
                     break
 
-                states = self.get_state()
-                if next_observation is None:
-                    next_observation = states
-                else:
-                    next_observation += states
-                count += 1
+                observations.append(self.get_state())
 
             # tracking
             if self.tracking_ids is not None:
@@ -180,16 +175,10 @@ class CentralEnv(gym.Env):
             if self.k.time >= self.k.t:
                 break
 
-
-        next_observation = next_observation/count
+        obs = {k: np.mean([d[k] for d in observations]) for k in observations[0]}
 
         # the episode will be finished if it is not converged.
-        finish = not converged or (self.k.time == self.k.t)
-
-        if finish:
-            done = True
-        else:
-            done = False
+        done = not converged or (self.k.time == self.k.t)
 
         # we push the old action, current action, voltage, y, p_inject, p_max into additional info, which will return by the env after calling step.
         #infos = {key: {'voltage': self.k.node.get_node_voltage(self.k.device.get_node_connected_to(key)),
@@ -199,12 +188,13 @@ class CentralEnv(gym.Env):
         #               'env_time': self.env_time,
         #               } for key in states.keys()}
         infos = {key: {'voltage': self.k.node.get_node_voltage(self.k.device.get_node_connected_to(key)),
-                       'y': next_observation[2],
+                       'y': obs['y'],
+                       'u': obs['u'],
                        'p_inject': self.k.device.get_device_p_injection(key),
                        'p_max': self.k.device.get_device_p_injection(key),
                        'env_time': self.env_time,
-                       'p_set': next_observation[4],
-                       'p_set_p_max': next_observation[3],
+                       'p_set': obs['p_set'],
+                       'p_set_p_max': obs['p_set_p_max'],
                        } for key in self.k.device.get_rl_device_ids()}
 
         for key in self.k.device.get_rl_device_ids():
@@ -224,7 +214,7 @@ class CentralEnv(gym.Env):
         else:
             reward = self.compute_reward(rl_actions, fail=not converged)
 
-        return next_observation, reward, done, infos
+        return obs, reward, done, infos
 
     def reset(self):
         self.env_time = 0
@@ -318,6 +308,7 @@ class CentralEnv(gym.Env):
             for tracking_id in self.tracking_ids:
                 self.tracking_infos[tracking_id] = dict(v_val=[],
                                                         y_val=[],
+                                                        u_val=[],
                                                         q_set=[],
                                                         q_val=[],
                                                         a_val=[],
@@ -329,6 +320,7 @@ class CentralEnv(gym.Env):
 
                 self.tracking_infos[tracking_id]['v_val'].append(self.k.node.get_node_voltage(node_id))
                 self.tracking_infos[tracking_id]['y_val'].append(self.k.device.get_device_y(tracking_id))
+                self.tracking_infos[tracking_id]['u_val'].append(self.k.device.get_device_u(tracking_id))
                 #p_max = self.k.device.get_solar_generation(tracking_id)
                 #p_inject = self.k.device.get_device_p_injection(tracking_id)
                 self.tracking_infos[tracking_id]['q_set'].append(self.k.device.get_device_q_set(tracking_id))

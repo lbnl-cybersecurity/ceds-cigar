@@ -658,6 +658,10 @@ class CentralLocalObservationWrapper(ObservationWrapper):
                 RLlib is: 3. The one-hot encoding of the action is: np.array([0, 0, 0, 1, 0, 0, 0, 0, 0, 0])
     """
 
+    def __init__(self, env, unbalance=False):
+        super().__init__(env)
+        self.unbalance = unbalance
+
     @property
     def observation_space(self):
         a_space = self.action_space
@@ -698,8 +702,10 @@ class CentralLocalObservationWrapper(ObservationWrapper):
         elif isinstance(self.action_space, Box):
             old_a_encoded = old_actions.flatten()
 
-        # in the original observation, position 2 is the y-value
-        observation = np.array([observation[2], p_set, *old_a_encoded])
+        if self.unbalance:
+            observation = np.array([observation['u'], p_set, *old_a_encoded])
+        else:
+            observation = np.array([observation['y'], p_set, *old_a_encoded])
 
         return observation
 
