@@ -8,6 +8,7 @@ import numpy as np
 import random
 from pycigar.utils.logging import logger
 
+
 class Kernel(object):
     """Kernel for abstract function calling across grid simulator APIs.
 
@@ -132,18 +133,17 @@ class Kernel(object):
             # self.warm_up_v()
             self.warm_up_k_step(50)
 
-            self.power_substation = self.kernel_api.get_total_power()
-            self.losses_total = self.kernel_api.get_losses()
+            Logger = logger()
+            Logger.is_log()
+
             return self.sim_params
 
         else:
             self.device.update(reset)  # calculate new PQ with new VBP, then push PV to node
             self.node.update(reset)  # with the load, update the load-pq to simulator
             self.simulation.update(reset)  # run a simulation step
-            self.dg_output += self.node.total_power_inject
             self.scenario.update(reset)  # update voltage on node
-            self.power_substation += self.kernel_api.get_total_power()
-            self.losses_total += self.kernel_api.get_losses()
+            self.log()
 
         self.time += 1
 
@@ -160,12 +160,14 @@ class Kernel(object):
         self.scenario.update(reset=False)
 
     def warm_up_k_step(self, k):
+        Logger = logger()
+        Logger.is_log(False)
+
         for _ in range(k):
             self.time += 1
             self.device.update(reset=False)
             self.node.update(reset=False)
             self.simulation.update(reset=False)
-            self.dg_output = self.node.total_power_inject
             self.scenario.update(reset=False)
 
     def warm_up_v(self):
@@ -216,3 +218,10 @@ class Kernel(object):
                 newy.append(self.device.get_device_y(device_id))
 
             deltay = np.array(np.array(newy) - np.array(y))
+
+    def log(self):
+        Logger = logger()
+        Logger.log('network', 'substation_power', self.kernel_api.get_total_power())
+        Logger.log('network', 'loss', self.kernel_api.get_losses())
+        Logger.log('network', 'substation_top_voltage', self.kernel_api.get_substation_top_voltage())
+        Logger.log('network', 'substation_bottom_voltage', self.kernel_api.get_substation_bottom_voltage())

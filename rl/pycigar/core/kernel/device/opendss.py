@@ -240,17 +240,12 @@ class OpenDSSDevice(KernelDevice):
                 elif isinstance(self.devices[device_id]['device'], RegulatorDevice):
                     self.devices[device_id]['device'].reset()
 
-            self.total_pv_device_inject = {}
-            for pv_device in self.pv_device_ids:
-                self.total_pv_device_inject[pv_device] = np.array([0., 0.])
-
         else:
             # get the injection here
             # get the new VBP, then push PV to node
             # update pv device
             for pv_device in self.pv_device_ids:
                 self.devices[pv_device]["device"].update(self.master_kernel)
-                self.total_pv_device_inject[pv_device] += [self.devices[pv_device]["device"].p_out[1], self.devices[pv_device]["device"].q_out[1]]
 
             for reg_device in self.regulator_device_ids:
                 self.devices[reg_device]["device"].update(self.master_kernel)
