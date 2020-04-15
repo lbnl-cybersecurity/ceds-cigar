@@ -31,7 +31,8 @@ class AttackDefinitionGenerator:
         list
             a list ("hack_start": int, "percentage": float in (0, 1), "hack_end": int)
         """
-        duration = self.end_time - self.start_time
+
+        # duration = self.end_time - self.start_time
         # relative to self.start_time, anything from 0 to end - start
         hack_start = random.randint(250, 250 + 10)  # random.randint(int(duration*2/5), int(duration*2/5)+10)
         # hack_duration = random.randint(int(duration*4/5), )

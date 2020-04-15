@@ -47,7 +47,7 @@ class Wrapper:
 
     def __init__(self, env):
         self.env = env
-        k = self.unwrapped.get_kernel()
+        k = self.unwrapped.k
         self.INIT_ACTION = {}
         pv_device_ids = k.device.get_pv_device_ids()
         for device_id in pv_device_ids:
@@ -60,18 +60,6 @@ class Wrapper:
         observation = self.env.reset()
         self.INIT_ACTION = self.unwrapped.INIT_ACTION
         return observation
-
-    def plot(self, exp_tag='', env_name='', iteration=0, reward=0):
-        return self.env.plot(exp_tag, env_name, iteration, reward)
-
-    def plot_unbalance(self, exp_tag='', env_name='', iteration=0, reward=0):
-        return self.env.plot_unbalance(exp_tag, env_name, iteration, reward)
-
-    def get_pycigar_output_specs(self):
-        return self.env.get_pycigar_output_specs()
-
-    def get_kernel(self):
-        return self.env.get_kernel()
 
     @property
     def action_space(self):
