@@ -51,7 +51,6 @@ class OpenDSSNode(KernelNode):
                                               self.nodes[node]["load"]
                                               [self.master_kernel.time] * pf_converted +
                                               self.nodes[node]["PQ_injection"]['Q'])
-                self.total_power_inject += self.nodes[node]["PQ_injection"]['P']
 
                 self.log(node,
                          self.nodes[node]['PQ_injection']['P'],
