@@ -11,7 +11,6 @@ class RegulatorDevice(BaseDevice):
         self.forward_band = additional_params.get('forward_band', 2)
         self.tap_number = additional_params.get('tap_number', 16)
         self.tap_delay = additional_params.get('tap_delay', 2)
-
         self.kernel_api = additional_params.get('kernel_api')
         self.kernel_api.set_regulator_property(device_id, {'max_tap_change': self.max_tap_change,
                                                            'forward_band': self.forward_band,
@@ -32,6 +31,7 @@ class RegulatorDevice(BaseDevice):
     def log(self):
         Logger = logger()
         Logger.log(self.device_id, 'max_tap_change', self.max_tap_change)
-        Logger.log(self.device_id, 'forward_band', self.forward_band)
-        Logger.log(self.device_id, 'tap_number', self.tap_number)
+        Logger.log(self.device_id, 'forward_band', self.kernel_api.get_regulator_forwardband(self.device_id))
+        Logger.log(self.device_id, 'tap_number', self.kernel_api.get_regulator_tap(self.device_id))
         Logger.log(self.device_id, 'tap_delay', self.tap_delay)
+        Logger.log(self.device_id, 'regulator_forwardvreg', self.kernel_api.get_regulator_forwardvreg(self.device_id))

@@ -1,6 +1,9 @@
 from pycigar.utils.logging import logger
 import matplotlib.pyplot as plt
 import os
+import numpy as np
+
+BASE_VOLTAGE = 120
 
 
 def plot(env, tracking_id, save_dir=None, file_name=None):
@@ -88,3 +91,93 @@ def plot_unbalance(env, tracking_id, save_dir, file_name):
         f.savefig(os.path.join(save_dir, file_name))
     plt.close(f)
     return f
+
+
+def pycigar_output_specs(env):
+    log_dict = logger().log_dict
+    output_specs = {}
+    if isinstance(env.unwrapped.k.sim_params['scenario_config']['start_end_time'], list):
+        start_end_time = env.unwrapped.k.sim_params['scenario_config']['start_end_time']
+        output_specs['Start Time'] = start_end_time[0]
+        output_specs['Time Steps'] = start_end_time[1] - start_end_time[0]
+
+    output_specs['Time Step Size (s)'] = 1  # TODO: current resolution
+
+    output_specs['allMeterVoltages'] = {}
+    output_specs['allMeterVoltages']['Min'] = []
+    output_specs['allMeterVoltages']['Mean'] = []
+    output_specs['allMeterVoltages']['StdDev'] = []
+    output_specs['allMeterVoltages']['Max'] = []
+    output_specs['Consumption'] = {}
+    output_specs['Consumption']['Power Substation (W)'] = []
+    output_specs['Consumption']['Losses Total (W)'] = []
+    output_specs['Consumption']['DG Output (W)'] = []
+    output_specs['Substation Power Factor (%)'] = []
+    output_specs['Regulator_testReg'] = {}
+    reg_phases = ''
+    for regulator_name in env.unwrapped.k.device.get_regulator_device_ids():
+        output_specs['Regulator_testReg'][regulator_name] = []
+        reg_phases += regulator_name[-1]
+    output_specs['Regulator_testReg']['RegPhases'] = reg_phases.upper()
+
+    output_specs['Substation Top Voltage(V)'] = []
+    output_specs['Substation Bottom Voltage(V)'] = []
+    output_specs['Substation Regulator Minimum Voltage(V)'] = []
+    output_specs['Substation Regulator Maximum Voltage(V)'] = []
+
+    output_specs['Inverter Outputs'] = {}
+    for inverter_name in env.unwrapped.k.device.get_pv_device_ids():
+        output_specs['Inverter Outputs'][inverter_name] = {}
+        output_specs['Inverter Outputs'][inverter_name]['Name'] = inverter_name
+        output_specs['Inverter Outputs'][inverter_name]['Voltage (V)'] = []
+        output_specs['Inverter Outputs'][inverter_name]['Power Output (W)'] = []
+        output_specs['Inverter Outputs'][inverter_name]['Reactive Power Output (VAR)'] = []
+
+    node_ids = env.unwrapped.k.node.get_node_ids()
+    voltages = np.array([log_dict[node]['voltage'] for node in node_ids])
+
+    output_specs['allMeterVoltages']['Min'] = np.amin(voltages, axis=0) * BASE_VOLTAGE
+    output_specs['allMeterVoltages']['Max'] = np.amax(voltages, axis=0) * BASE_VOLTAGE
+    output_specs['allMeterVoltages']['Mean'] = np.mean(voltages, axis=0) * BASE_VOLTAGE
+    output_specs['allMeterVoltages']['StdDev'] = np.std(voltages, axis=0) * BASE_VOLTAGE
+
+    substation_p = np.array(log_dict['network']['substation_power'])[:, 0]
+    substation_q = np.array(log_dict['network']['substation_power'])[:, 1]
+    loss_p = np.array(log_dict['network']['loss'])[:, 0]
+    output_specs['Consumption']['Power Substation (W)'] = substation_p
+    output_specs['Consumption']['Losses Total (W)'] = loss_p
+    output_specs['Substation Power Factor (%)'] = substation_p / np.sqrt(substation_p**2 + substation_q**2)
+    output_specs['Consumption']['DG Output (W)'] = np.sum(np.array([log_dict[node]['p'] for node in node_ids]), axis=0)
+    output_specs['Substation Top Voltage(V)'] = np.array(log_dict['network']['substation_top_voltage'])
+    output_specs['Substation Bottom Voltage(V)'] = np.array(log_dict['network']['substation_bottom_voltage'])
+
+    for inverter_name in output_specs['Inverter Outputs'].keys():
+        node_id = env.unwrapped.k.device.get_node_connected_to(inverter_name)
+        output_specs['Inverter Outputs'][inverter_name]['Voltage (V)'] = np.array(log_dict[node_id]['voltage']) * BASE_VOLTAGE
+        output_specs['Inverter Outputs'][inverter_name]['Power Output (W)'] = np.array(log_dict[inverter_name]['p_out'])
+        output_specs['Inverter Outputs'][inverter_name]['Reactive Power Output (VAR)'] = np.array(log_dict[inverter_name]['q_out'])
+
+    for regulator_name in output_specs['Regulator_testReg'].keys():
+        if regulator_name != 'RegPhases':
+            output_specs['Regulator_testReg'][regulator_name] = np.array(log_dict[regulator_name]['tap_number'])
+
+        val_max = None
+        val_min = None
+        for regulator_name in output_specs['Regulator_testReg'].keys():
+            if regulator_name != 'RegPhases':
+                vreg = np.array(log_dict[regulator_name]['regulator_forwardvreg'])
+                band = np.array(log_dict[regulator_name]['forward_band'])
+                val_upper = vreg + band
+                val_lower = vreg - band
+                val_max = val_upper if val_max is None else np.amax([val_max, val_upper], axis=0)
+                val_min = val_lower if val_min is None else np.amax([val_min, val_lower], axis=0)
+
+        output_specs['Substation Regulator Minimum Voltage(V)'] = val_min
+        output_specs['Substation Regulator Maximum Voltage(V)'] = val_max
+
+    inverter_outputs = []
+    for inverter_name in output_specs['Inverter Outputs'].keys():
+        inverter_outputs.append(output_specs['Inverter Outputs'][inverter_name])
+    output_specs['Inverter Outputs'] = inverter_outputs
+
+    return output_specs

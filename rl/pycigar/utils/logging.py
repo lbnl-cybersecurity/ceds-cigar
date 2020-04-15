@@ -1,5 +1,5 @@
-from threading import Lock, Thread
-from typing import Optional
+from threading import Lock
+
 
 class Singleton(type):
     """
@@ -20,21 +20,27 @@ class Singleton(type):
 class logger(metaclass=Singleton):
     log_dict = {}
     custom_metrics = {}
+    flag = False
 
     def __init__(self):
         pass
 
     def log(self, object, params, value):
-        if object not in self.log_dict:
-            self.log_dict[object] = {}
-        if params not in self.log_dict[object]:
-            self.log_dict[object][params] = [value]
-        else:
-            self.log_dict[object][params].append(value)
+        if self.flag is True:
+            if object not in self.log_dict:
+                self.log_dict[object] = {}
+            if params not in self.log_dict[object]:
+                self.log_dict[object][params] = [value]
+            else:
+                self.log_dict[object][params].append(value)
 
     def reset(self):
         self.log_dict = {}
         self.custom_metrics = {}
+
+    def is_log(self, flag=True):
+        self.flag = flag
+        return self.flag
 
 
 def test_logger():

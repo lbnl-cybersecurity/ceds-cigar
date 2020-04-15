@@ -186,7 +186,7 @@ class PVDevice(BaseDevice):
         # log history
         Logger = logger()
         Logger.log(self.device_id, 'y', self.y)
-        Logger.log(self.device_id, 'p_set', value=self.p_set[1])
+        Logger.log(self.device_id, 'p_set', self.p_set[1])
         Logger.log(self.device_id, 'q_set', self.q_set[1])
         Logger.log(self.device_id, 'p_out', self.p_out[1])
         Logger.log(self.device_id, 'q_out', self.q_out[1])
