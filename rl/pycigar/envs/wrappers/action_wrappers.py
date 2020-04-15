@@ -12,16 +12,19 @@ class ActionWrapper(Wrapper):
         if isinstance(action, dict):
             # multi-agent env
             for i, a in action.items():
-                rl_actions[i] = self.action(a, i, info_update)
+                rl_actions[i] = self.action(a, i)
+                info_update[i] = {'raw_action': a}
         else:
             # central env
-            for i in self.INIT_ACTION:
-                rl_actions[i] = self.action(action, i, info_update)
+            for i in self.k.device.get_rl_device_ids():
+                if 'adversary' not in i:
+                    rl_actions[i] = self.action(action, i)
+                    info_update[i] = {'raw_action': action}
 
         observation, reward, done, info = self.env.step(rl_actions)
         return observation, reward, done, merge_dicts(info, info_update)
 
-    def action(self, action, rl_id, info_update):
+    def action(self, action, rl_id):
         """Modify action before feed into the simulation.
 
         Parameters
