@@ -17,8 +17,8 @@ class NewCentralControlPVInverterEnv(Wrapper):
         env = RLControlPVInverterEnv(**kwargs)
         env = NewSingleRelativeInitDiscreteActionWrapper(env)
         env = CentralGlobalRewardWrapper(env)
-        env = NewCentralLocalObservationWrapper(env)
-        env = NewCentralFramestackObservationWrapper(env)
+        env = CentralLocalObservationWrapper(env)
+        env = CentralFramestackObservationWrapper(env)
         self.env = env
 
 
@@ -27,6 +27,7 @@ class CentralControlPVInverterContinuousEnv(Wrapper):
         env = RLControlPVInverterEnv(**kwargs)
         env = SingleRelativeInitContinuousActionWrapper(env)
         env = CentralGlobalRewardWrapper(env)
-        env = CentralLocalContinuousObservationWrapper(env)
-        env = CentralFramestackContinuousObservationWrapper(env)
+        env = CentralLocalObservationWrapper(env)
+        env = CentralFramestackObservationWrapper(env)
+        self.env = env
         self.env = env
