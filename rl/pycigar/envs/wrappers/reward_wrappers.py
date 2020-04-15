@@ -138,8 +138,8 @@ class SearchGlobalRewardWrapper(RewardWrapper):
             r = 0
             # if y > 0.025:
             #    r = -500
-            r += -((self.env.get_kernel().sim_params['M2'] * y ** 2 + self.env.get_kernel().sim_params['P2'] * np.sum(
-                (action - old_action) ** 2) + self.env.get_kernel().sim_params['N2'] * np.sum(
+            r += -((self.k.sim_params['M2'] * y ** 2 + self.k.sim_params['P2'] * np.sum(
+                (action - old_action) ** 2) + self.k.sim_params['N2'] * np.sum(
                 (action - self.INIT_ACTION[key]) ** 2))) / 100
             global_reward += r
         global_reward = global_reward / len(list(info.keys()))
@@ -168,15 +168,13 @@ class CentralGlobalRewardWrapper(RewardWrapper):
     """
 
     def reward(self, reward, info):
-        M = self.env.get_kernel().sim_params['M']
-        N = self.env.get_kernel().sim_params['N']
-        P = self.env.get_kernel().sim_params['P']
+        M = self.k.sim_params['M']
+        N = self.k.sim_params['N']
+        P = self.k.sim_params['P']
 
         global_reward = 0
-        # we accumulate agents reward into global_reward and devide it with the number of agents.
-        y = 0
-        for key in info.keys():
-            y = max(y, info[key]['y'])
+        # we accumulate agents reward into global_reward and divide it with the number of agents.
+        y = max([info[k]['y'] for k in info.keys()])
 
         for key in info.keys():
             action = info[key]['current_action']
