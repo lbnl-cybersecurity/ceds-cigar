@@ -70,7 +70,7 @@ def on_episode_start(info):
 
     # get the base env
     env = info['env'].get_unwrapped()[0]
-    episode.user_data["tracking_id"] = env.tracking_ids[0]
+    episode.user_data["tracking_id"] = env.k.device.get_rl_device_ids()[0]
 
 
 def on_episode_step(info):
@@ -100,7 +100,7 @@ def on_episode_end(info):
     info['episode'].hist_data['tracking'] = tracking
 
     env = info['env'].vector_env.envs[0]
-    t_id = env.tracking_ids[0]
+    t_id = env.k.device.get_rl_device_ids()[0]
     hack_start = int([k for k, v in env.k.scenario.hack_start_times.items() if 'adversary_' + t_id in v][0])
     hack_end = int([k for k, v in env.k.scenario.hack_end_times.items() if 'adversary_' + t_id in v][0])
     episode.custom_metrics["hack_start"] = hack_start
@@ -170,7 +170,8 @@ def run_train(config, reporter):
     for _ in tqdm(range(config['epochs'])):
         results = trainer.train()
         del results['hist_stats']['tracking']  # don't send to tensorboard
-        del results['evaluation']['hist_stats']['tracking']
+        if 'evaluation' in results:
+            del results['evaluation']['hist_stats']['tracking']
         reporter(**results)
 
     trainer.stop()
@@ -195,13 +196,11 @@ if __name__ == '__main__':
     if args.unbalance:
         pycigar_params = {'exp_tag': 'cooperative_multiagent_ppo',
                           'env_name': 'CentralControlPVInverterContinuousEnv',
-                          'simulator': 'opendss',
-                          'tracking_ids': ['inverter_s701a', 'adversary_inverter_s701a', 'reg1']}
+                          'simulator': 'opendss'}
     else:
         pycigar_params = {'exp_tag': 'cooperative_multiagent_ppo',
                           'env_name': 'CentralControlPVInverterEnv',
-                          'simulator': 'opendss',
-                          'tracking_ids': ['inverter_s701a', 'adversary_inverter_s701a']}
+                          'simulator': 'opendss'}
 
     create_env, env_name = make_create_env(pycigar_params, version=0)
     register_env(env_name, create_env)
