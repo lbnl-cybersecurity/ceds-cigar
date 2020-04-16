@@ -23,8 +23,7 @@ def make_create_env(pycigar_params, version=0):
                 id=env_name,
                 entry_point=env_loc + ':{}'.format(pycigar_params["env_name"]),
                 kwargs={
-                    "simulator": pycigar_params['simulator'],
-                    "tracking_ids": pycigar_params['tracking_ids']
+                    "simulator": pycigar_params['simulator']
                 })
         except Exception:
             pass

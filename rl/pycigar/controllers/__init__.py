@@ -7,7 +7,7 @@ from pycigar.controllers.adaptive_fixed_controller import AdaptiveFixedControlle
 from pycigar.controllers.unbalanced_fixed_controller import UnbalancedFixedController
 
 __all__ = [
-    "RLController", "BaseController", 
+    "RLController", "BaseController",
     "FixedController", "MimicController", "AdaptiveFixedController",
     "AdaptiveInverterController", "UnbalancedFixedController"
 ]

@@ -31,6 +31,7 @@ class CentralControlPVInverterContinuousEnv(Wrapper):
         env = CentralFramestackObservationWrapper(env)
         self.env = env
 
+
 class CentralControlPhaseSpecificPVInverterEnv(Wrapper):
     def __init__(self, **kwargs):
         env = RLControlPVInverterEnv(**kwargs)
