@@ -92,7 +92,7 @@ class Kernel(object):
         if reset is True:
             # reset logger here
             logger().reset()
-
+            logger().set_active(False)
             # track substation, output specs
             # start and end times are given
             if isinstance(self.sim_params['scenario_config']['start_end_time'], list):
@@ -131,7 +131,8 @@ class Kernel(object):
             self.scenario.update(reset)
 
             self.warm_up_k_step(50)
-
+            logger().set_active()
+            
             return self.sim_params
 
         else:
@@ -155,8 +156,6 @@ class Kernel(object):
         self.scenario.update(reset=False)
 
     def warm_up_k_step(self, k):
-        Logger = logger()
-        Logger.set_active(False)
 
         for _ in range(k):
             self.time += 1
@@ -165,7 +164,7 @@ class Kernel(object):
             self.simulation.update(reset=False)
             self.scenario.update(reset=False)
 
-        Logger.set_active()
+        
 
     def warm_up_v(self):
         """Run the simulation until the voltage is stablized."""
