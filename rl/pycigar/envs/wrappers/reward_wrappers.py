@@ -60,9 +60,9 @@ class LocalRewardWrapper(RewardWrapper):
 
 class GlobalRewardWrapper(RewardWrapper):
     def reward(self, reward, info):
-        M = self.env.sim_params['M']
-        N = self.env.sim_params['N']
-        P = self.env.sim_params['P']
+        M = self.sim_params['M']
+        N = self.sim_params['N']
+        P = self.sim_params['P']
 
         rewards = {}
         global_reward = 0
@@ -124,9 +124,9 @@ class SecondStageGlobalRewardWrapper(RewardWrapper):
 
 class SearchGlobalRewardWrapper(RewardWrapper):
     def reward(self, reward, info):
-        M = self.env.sim_params['M']
-        N = self.env.sim_params['N']
-        P = self.env.sim_params['P']
+        M = self.sim_params['M']
+        N = self.sim_params['N']
+        P = self.sim_params['P']
         rewards = {}
         global_reward = 0
         # we accumulate agents reward into global_reward and divide it with the number of agents.
