@@ -25,13 +25,9 @@ class Env(gym.Env):
         The name of simulator we want to use, by default it is OpenDSS.
     state : TYPE
         The state of environment after performing one step forward.
-    tracking_ids : list
-        A list of agent ids we want to keep track.
-    tracking_infos : dict
-        The tracking information of the agent ids.
     """
 
-    def __init__(self, sim_params, simulator='opendss', tracking_ids=None):
+    def __init__(self, sim_params, simulator='opendss'):
         """Initialize the environment.
 
         Parameters
@@ -40,8 +36,6 @@ class Env(gym.Env):
             A dictionary of simulation information. for example: /examples/rl_config_scenarios.yaml
         simulator : str
             The name of simulator we want to use, by default it is OpenDSS.
-        tracking_ids : list
-            A list of agent ids we want to keep track.
         """
         self.state = None
         self.simulator = simulator
@@ -60,12 +54,9 @@ class Env(gym.Env):
         # when exit the environment, trigger function terminate to clear all attached processes.
         atexit.register(self.terminate)
 
-        # save the tracking ids, we will keep track the history of agents who have the ids in this list.
-        self.tracking_ids = tracking_ids
-
         self.post_process_output_specs = False
 
-    def restart_simulation(self, sim_params, render=None):
+    def restart_simulation(self, sim_params):
         """Not in use.
         """
         pass

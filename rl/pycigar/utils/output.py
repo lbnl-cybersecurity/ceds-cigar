@@ -98,7 +98,7 @@ def pycigar_output_specs(env):
     output_specs = {}
     if isinstance(env.unwrapped.k.sim_params['scenario_config']['start_end_time'], list):
         start_end_time = env.unwrapped.k.sim_params['scenario_config']['start_end_time']
-        output_specs['Start Time'] = start_end_time[0]
+        output_specs['Start Time'] = start_end_time[0] + 50
         output_specs['Time Steps'] = start_end_time[1] - start_end_time[0]
 
     output_specs['Time Step Size (s)'] = 1  # TODO: current resolution
@@ -136,30 +136,30 @@ def pycigar_output_specs(env):
     node_ids = env.unwrapped.k.node.get_node_ids()
     voltages = np.array([log_dict[node]['voltage'] for node in node_ids])
 
-    output_specs['allMeterVoltages']['Min'] = np.amin(voltages, axis=0) * BASE_VOLTAGE
-    output_specs['allMeterVoltages']['Max'] = np.amax(voltages, axis=0) * BASE_VOLTAGE
-    output_specs['allMeterVoltages']['Mean'] = np.mean(voltages, axis=0) * BASE_VOLTAGE
-    output_specs['allMeterVoltages']['StdDev'] = np.std(voltages, axis=0) * BASE_VOLTAGE
+    output_specs['allMeterVoltages']['Min'] = (np.amin(voltages, axis=0) * BASE_VOLTAGE).tolist()
+    output_specs['allMeterVoltages']['Max'] = (np.amax(voltages, axis=0) * BASE_VOLTAGE).tolist()
+    output_specs['allMeterVoltages']['Mean'] = (np.mean(voltages, axis=0) * BASE_VOLTAGE).tolist()
+    output_specs['allMeterVoltages']['StdDev'] = (np.std(voltages, axis=0) * BASE_VOLTAGE).tolist()
 
     substation_p = np.array(log_dict['network']['substation_power'])[:, 0]
     substation_q = np.array(log_dict['network']['substation_power'])[:, 1]
     loss_p = np.array(log_dict['network']['loss'])[:, 0]
-    output_specs['Consumption']['Power Substation (W)'] = substation_p
-    output_specs['Consumption']['Losses Total (W)'] = loss_p
-    output_specs['Substation Power Factor (%)'] = substation_p / np.sqrt(substation_p**2 + substation_q**2)
-    output_specs['Consumption']['DG Output (W)'] = np.sum(np.array([log_dict[node]['p'] for node in node_ids]), axis=0)
-    output_specs['Substation Top Voltage(V)'] = np.array(log_dict['network']['substation_top_voltage'])
-    output_specs['Substation Bottom Voltage(V)'] = np.array(log_dict['network']['substation_bottom_voltage'])
+    output_specs['Consumption']['Power Substation (W)'] = substation_p.tolist()
+    output_specs['Consumption']['Losses Total (W)'] = loss_p.tolist()
+    output_specs['Substation Power Factor (%)'] = (substation_p / np.sqrt(substation_p**2 + substation_q**2)).tolist()
+    output_specs['Consumption']['DG Output (W)'] = np.sum(np.array([log_dict[node]['p'] for node in node_ids]), axis=0).tolist()
+    output_specs['Substation Top Voltage(V)'] = np.array(log_dict['network']['substation_top_voltage']).tolist()
+    output_specs['Substation Bottom Voltage(V)'] = np.array(log_dict['network']['substation_bottom_voltage']).tolist()
 
     for inverter_name in output_specs['Inverter Outputs'].keys():
         node_id = env.unwrapped.k.device.get_node_connected_to(inverter_name)
-        output_specs['Inverter Outputs'][inverter_name]['Voltage (V)'] = np.array(log_dict[node_id]['voltage']) * BASE_VOLTAGE
-        output_specs['Inverter Outputs'][inverter_name]['Power Output (W)'] = np.array(log_dict[inverter_name]['p_out'])
-        output_specs['Inverter Outputs'][inverter_name]['Reactive Power Output (VAR)'] = np.array(log_dict[inverter_name]['q_out'])
+        output_specs['Inverter Outputs'][inverter_name]['Voltage (V)'] = (np.array(log_dict[node_id]['voltage']) * BASE_VOLTAGE).tolist()
+        output_specs['Inverter Outputs'][inverter_name]['Power Output (W)'] = np.array(log_dict[inverter_name]['p_out']).tolist()
+        output_specs['Inverter Outputs'][inverter_name]['Reactive Power Output (VAR)'] = np.array(log_dict[inverter_name]['q_out']).tolist()
 
     for regulator_name in output_specs['Regulator_testReg'].keys():
         if regulator_name != 'RegPhases':
-            output_specs['Regulator_testReg'][regulator_name] = np.array(log_dict[regulator_name]['tap_number'])
+            output_specs['Regulator_testReg'][regulator_name] = np.array(log_dict[regulator_name]['tap_number']).tolist()
 
         val_max = None
         val_min = None
@@ -172,8 +172,8 @@ def pycigar_output_specs(env):
                 val_max = val_upper if val_max is None else np.amax([val_max, val_upper], axis=0)
                 val_min = val_lower if val_min is None else np.amax([val_min, val_lower], axis=0)
 
-        output_specs['Substation Regulator Minimum Voltage(V)'] = val_min
-        output_specs['Substation Regulator Maximum Voltage(V)'] = val_max
+        output_specs['Substation Regulator Minimum Voltage(V)'] = val_min.tolist()
+        output_specs['Substation Regulator Maximum Voltage(V)'] = val_max.tolist()
 
     inverter_outputs = []
     for inverter_name in output_specs['Inverter Outputs'].keys():
