@@ -10,7 +10,7 @@ def plot(env, tracking_id, save_dir=None, file_name=None):
     log_dict = logger().log_dict
     f, ax = plt.subplots(6, figsize=(25, 25))
     tracking_id = tracking_id
-    node = env.unwrapped.k.device.get_node_connected_to(tracking_id)
+    node = env.k.device.get_node_connected_to(tracking_id)
     ax[0].set_title(tracking_id + " -- total reward: " + str(0))
     ax[0].plot(log_dict[node]['voltage'])
     ax[0].set_ylabel('voltage')
@@ -40,7 +40,7 @@ def plot_unbalance(env, tracking_id, save_dir, file_name):
     log_dict = logger().log_dict
     f, ax = plt.subplots(6, figsize=(25, 25))
     tracking_id = tracking_id
-    node = env.unwrapped.k.device.get_node_connected_to(tracking_id)
+    node = env.k.device.get_node_connected_to(tracking_id)
     plot_v_list = []
     plot_v_label = []
     v = ax[0].plot(log_dict[node]['voltage'])
@@ -96,8 +96,8 @@ def plot_unbalance(env, tracking_id, save_dir, file_name):
 def pycigar_output_specs(env):
     log_dict = logger().log_dict
     output_specs = {}
-    if isinstance(env.unwrapped.k.sim_params['scenario_config']['start_end_time'], list):
-        start_end_time = env.unwrapped.k.sim_params['scenario_config']['start_end_time']
+    if isinstance(env.k.sim_params['scenario_config']['start_end_time'], list):
+        start_end_time = env.k.sim_params['scenario_config']['start_end_time']
         output_specs['Start Time'] = start_end_time[0] + 50
         output_specs['Time Steps'] = start_end_time[1] - start_end_time[0]
 
@@ -115,7 +115,7 @@ def pycigar_output_specs(env):
     output_specs['Substation Power Factor (%)'] = []
     output_specs['Regulator_testReg'] = {}
     reg_phases = ''
-    for regulator_name in env.unwrapped.k.device.get_regulator_device_ids():
+    for regulator_name in env.k.device.get_regulator_device_ids():
         output_specs['Regulator_testReg'][regulator_name] = []
         reg_phases += regulator_name[-1]
     output_specs['Regulator_testReg']['RegPhases'] = reg_phases.upper()
@@ -126,14 +126,14 @@ def pycigar_output_specs(env):
     output_specs['Substation Regulator Maximum Voltage(V)'] = []
 
     output_specs['Inverter Outputs'] = {}
-    for inverter_name in env.unwrapped.k.device.get_pv_device_ids():
+    for inverter_name in env.k.device.get_pv_device_ids():
         output_specs['Inverter Outputs'][inverter_name] = {}
         output_specs['Inverter Outputs'][inverter_name]['Name'] = inverter_name
         output_specs['Inverter Outputs'][inverter_name]['Voltage (V)'] = []
         output_specs['Inverter Outputs'][inverter_name]['Power Output (W)'] = []
         output_specs['Inverter Outputs'][inverter_name]['Reactive Power Output (VAR)'] = []
 
-    node_ids = env.unwrapped.k.node.get_node_ids()
+    node_ids = env.k.node.get_node_ids()
     voltages = np.array([log_dict[node]['voltage'] for node in node_ids])
 
     output_specs['allMeterVoltages']['Min'] = (np.amin(voltages, axis=0) * BASE_VOLTAGE).tolist()
@@ -152,7 +152,7 @@ def pycigar_output_specs(env):
     output_specs['Substation Bottom Voltage(V)'] = np.array(log_dict['network']['substation_bottom_voltage']).tolist()
 
     for inverter_name in output_specs['Inverter Outputs'].keys():
-        node_id = env.unwrapped.k.device.get_node_connected_to(inverter_name)
+        node_id = env.k.device.get_node_connected_to(inverter_name)
         output_specs['Inverter Outputs'][inverter_name]['Voltage (V)'] = (np.array(log_dict[node_id]['voltage']) * BASE_VOLTAGE).tolist()
         output_specs['Inverter Outputs'][inverter_name]['Power Output (W)'] = np.array(log_dict[inverter_name]['p_out']).tolist()
         output_specs['Inverter Outputs'][inverter_name]['Reactive Power Output (VAR)'] = np.array(log_dict[inverter_name]['q_out']).tolist()

@@ -53,7 +53,7 @@ class Wrapper:
 
     def reset(self):
         observation = self.env.reset()
-        self.INIT_ACTION = self.unwrapped.INIT_ACTION
+        self.INIT_ACTION = self.INIT_ACTION
         return observation
 
     @property

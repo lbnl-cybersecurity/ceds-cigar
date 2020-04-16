@@ -60,9 +60,9 @@ class LocalRewardWrapper(RewardWrapper):
 
 class GlobalRewardWrapper(RewardWrapper):
     def reward(self, reward, info):
-        M = self.env.unwrapped.k.sim_params['M']
-        N = self.env.unwrapped.k.sim_params['N']
-        P = self.env.unwrapped.k.sim_params['P']
+        M = self.env.sim_params['M']
+        N = self.env.sim_params['N']
+        P = self.env.sim_params['P']
 
         rewards = {}
         global_reward = 0
@@ -111,6 +111,7 @@ class SecondStageGlobalRewardWrapper(RewardWrapper):
                 ria = 0
             else:
                 ria = 1
+
             r += -(2 * y + 0.1 * roa + np.linalg.norm(action - self.INIT_ACTION[key]))
             # r += -((M2*y**2 + P2*np.sum(np.abs(action-old_action)) + N2*np.sum(np.abs(action-INIT_ACTION))))/100
             global_reward += r
@@ -123,9 +124,9 @@ class SecondStageGlobalRewardWrapper(RewardWrapper):
 
 class SearchGlobalRewardWrapper(RewardWrapper):
     def reward(self, reward, info):
-        M = self.env.unwrapped.k.sim_params['M']
-        N = self.env.unwrapped.k.sim_params['N']
-        P = self.env.unwrapped.k.sim_params['P']
+        M = self.env.sim_params['M']
+        N = self.env.sim_params['N']
+        P = self.env.sim_params['P']
         rewards = {}
         global_reward = 0
         # we accumulate agents reward into global_reward and divide it with the number of agents.

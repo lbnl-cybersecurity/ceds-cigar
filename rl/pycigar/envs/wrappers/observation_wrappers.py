@@ -9,7 +9,7 @@ from pycigar.envs.wrappers.wrappers_constants import *
 class ObservationWrapper(Wrapper):
     def reset(self):
         observation = self.env.reset()
-        self.INIT_ACTION = self.unwrapped.INIT_ACTION
+        self.INIT_ACTION = self.INIT_ACTION
         return self.observation(observation, info=None)
 
     def step(self, rl_actions):
