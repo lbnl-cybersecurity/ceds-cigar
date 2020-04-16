@@ -20,13 +20,13 @@ class Singleton(type):
 class logger(metaclass=Singleton):
     log_dict = {}
     custom_metrics = {}
-    flag = False
+    active = False
 
     def __init__(self):
         pass
 
     def log(self, object, params, value):
-        if self.flag is True:
+        if self.active:
             if object not in self.log_dict:
                 self.log_dict[object] = {}
             if params not in self.log_dict[object]:
@@ -34,13 +34,20 @@ class logger(metaclass=Singleton):
             else:
                 self.log_dict[object][params].append(value)
 
+    def log_single(self, object, params, value):
+        if self.active:
+            if object not in self.log_dict:
+                self.log_dict[object] = {}
+
+            self.log_dict[object][params] = value
+    
     def reset(self):
         self.log_dict = {}
         self.custom_metrics = {}
 
-    def is_log(self, flag=True):
-        self.flag = flag
-        return self.flag
+    def set_active(self, active=True):
+        self.active = active
+        return self.active
 
 
 def test_logger():

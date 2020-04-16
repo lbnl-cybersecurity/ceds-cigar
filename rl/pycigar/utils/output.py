@@ -181,3 +181,72 @@ def pycigar_output_specs(env):
     output_specs['Inverter Outputs'] = inverter_outputs
 
     return output_specs
+
+
+def plot_new(log_dict, epoch='', unbalance=False):
+    def get_translation_and_slope(a_val):
+        points = np.array(a_val)
+        slope = points[:, 1] - points[:, 0]
+        og_point = points[0, 2]
+        translation = points[:, 2] - og_point
+        return translation, slope
+
+    plt.rc('font', size=15)
+    plt.rc('figure', titlesize=35)
+
+    if not unbalance:
+        inv_k = next(k for k in log_dict if 'inverter' in k)
+        f, ax = plt.subplots(5, figsize=(25, 20))
+        title = '[epoch {}] total reward: {:.2f}'.format(epoch, sum(log_dict[inv_k]['reward']))
+        f.suptitle(title)
+        ax[0].plot(log_dict[log_dict[inv_k]['node']]['voltage'], color='tab:blue', label='voltage')
+
+        ax[1].plot(log_dict[inv_k]['y'], color='tab:blue', label='oscillation observer')
+
+        ax[2].plot(log_dict[inv_k]['q_set'], color='tab:blue', label='q_set')
+        ax[2].plot(log_dict[inv_k]['q_out'], color='tab:orange', label='q_val')
+
+        translation, slope = get_translation_and_slope(log_dict[inv_k]['control_setting'])
+        ax[3].plot(translation, color='tab:blue', label='RL translation')
+        ax[3].plot(slope, color='tab:purple', label='RL slope (a2-a1)')
+
+        translation, slope = get_translation_and_slope(log_dict['adversary_' + inv_k]['control_setting'])
+        ax[4].plot(translation, color='tab:orange', label='hacked translation')
+        ax[4].plot(slope, color='tab:red', label='hacked slope (a2-a1)')
+        ax[0].set_ylim([0.93, 1.07])
+        ax[1].set_ylim([0, 0.8])
+        ax[2].set_ylim([-280, 280])
+        ax[3].set_ylim([-0.06, 0.06])
+        ax[4].set_ylim([-0.06, 0.06])
+    else:
+        inv_ks = [k for k in log_dict if k.startswith('inverter_s701')]
+        regs = [k for k in log_dict if 'reg' in k]
+        reg = regs[0] if regs else None
+
+        f, ax = plt.subplots(2 + len(inv_ks) + (reg is not None), figsize=(25, 8 + 4 * len(inv_ks) + 4 * (reg is not None)))
+        title = '[epoch {}] total reward: {:.2f}'.format(epoch, sum(log_dict[inv_ks[0]]['reward']))
+        f.suptitle(title)
+        for i, k in enumerate(inv_ks):
+            ax[0].plot(log_dict[log_dict[k]['node']]['voltage'], label='voltage ({})'.format(k))
+            ax[1].plot(log_dict[k]['u'], label='unbalance observer ({})'.format(k))
+
+            translation, slope = get_translation_and_slope(log_dict[k][k]['control_setting'])
+            ax[2+i].plot(translation, label='RL translation ({})'.format(k))
+            ax[2+i].plot(slope, label='RL slope (a2-a1) ({})'.format(k))
+
+        if reg:
+            ax[-1].plot(log_dict[reg]['tap_number'], label=reg)
+
+        ax[0].set_ylim([0.90, 1.10])
+        ax[1].set_ylim([0, 0.1])
+        ax[2].set_ylim([-280, 280])
+        for i in range(len(inv_ks)):
+            ax[2+i].set_ylim([-0.06, 0.06])
+
+    for a in ax:
+        a.grid(b=True, which='both')
+        a.legend(loc=1, ncol=2)
+
+    plt.tight_layout()
+    plt.subplots_adjust(top=0.95)
+    return f

@@ -1,14 +1,12 @@
 import argparse
+import json
 import math
 import os
 import pickle
-import json
 import shutil
-import random
 from collections import namedtuple
 from copy import deepcopy
 
-import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import ray
@@ -19,6 +17,8 @@ from ray.tune.registry import register_env
 from tqdm import tqdm
 
 from pycigar.utils.input_parser import input_parser
+from pycigar.utils.logging import logger
+from pycigar.utils.output import plot_new
 from pycigar.utils.registry import make_create_env
 
 ActionTuple = namedtuple('Action', ['action', 'timestep'])
@@ -39,8 +39,6 @@ def parse_cli_args():
 
 
 def custom_eval_function(trainer, eval_workers):
-    # same behaviour as
-    # https://github.com/ray-project/ray/blob/7ebc6783e4a1f6b32753c35cea70973763c996f1/rllib/agents/trainer.py#L707-L723
     if trainer.config["evaluation_num_workers"] == 0:
         for _ in range(trainer.config["evaluation_num_episodes"]):
             eval_workers.local_worker().sample()
@@ -54,11 +52,11 @@ def custom_eval_function(trainer, eval_workers):
     episodes, _ = collect_episodes(eval_workers.local_worker(), eval_workers.remote_workers())
     metrics = summarize_episodes(episodes)
 
-    #f = plot_episode(episodes[-1], trainer.iteration)
-    #f.savefig(trainer.global_vars['reporter_dir'] + 'eval-epoch-' + str(trainer.iteration) + '.png', bbox_inches='tight')
+    f = plot_new(episodes[-1].hist_data['tracking'], trainer.iteration, trainer.global_vars['unbalance'])
+    f.savefig(trainer.global_vars['reporter_dir'] + 'eval-epoch-' + str(trainer.iteration) + '.png',
+              bbox_inches='tight')
 
-    #save_best_policy(trainer, episodes)
-
+    save_best_policy(trainer, episodes)
     return metrics
 
 
@@ -72,9 +70,7 @@ def on_episode_start(info):
 
     # get the base env
     env = info['env'].get_unwrapped()[0]
-    while not hasattr(env, 'tracking_ids'):
-        env = env.env
-    episode.user_data["tracking_id"] = env.tracking_ids[0]
+    episode.user_data["tracking_id"] = env.k.device.get_rl_device_ids()[0]
 
 
 def on_episode_step(info):
@@ -100,90 +96,23 @@ def on_episode_end(info):
     episode.custom_metrics["avg_magnitude"] = avg_mag
     episode.custom_metrics["num_actions_taken"] = num_actions
 
+    tracking = logger().log_dict
+    info['episode'].hist_data['tracking'] = tracking
+
     env = info['env'].vector_env.envs[0]
-    t_id = env.unwrapped.tracking_ids[0]
-    # episode.hist_data['tracking'] = env.unwrapped.tracking_infos
-    # episode.hist_data['adversary_a_val'] = env.unwrapped.tracking_infos['adversary_' + t_id]['a_val']
-    #hack_start = int([k for k, v in env.unwrapped.k.scenario.hack_start_times.items() if 'adversary_' + t_id in v][0])
-    #hack_end = int([k for k, v in env.unwrapped.k.scenario.hack_end_times.items() if 'adversary_' + t_id in v][0])
-    #episode.custom_metrics["hack_start"] = hack_start
-    #episode.custom_metrics["hack_end"] = hack_end
+    t_id = env.k.device.get_rl_device_ids()[0]
+    hack_start = int([k for k, v in env.k.scenario.hack_start_times.items() if 'adversary_' + t_id in v][0])
+    hack_end = int([k for k, v in env.k.scenario.hack_end_times.items() if 'adversary_' + t_id in v][0])
+    episode.custom_metrics["hack_start"] = hack_start
+    episode.custom_metrics["hack_end"] = hack_end
 
 
-# ==== ====
 def get_translation_and_slope(a_val):
     points = np.array(a_val)
     slope = points[:, 1] - points[:, 0]
     og_point = points[0, 2]
     translation = points[:, 2] - og_point
     return translation, slope
-
-
-def plot_episode(ep, epoch=None, unbalanced=True):
-    plt.rc('font', size=15)
-    plt.rc('figure', titlesize=35)
-    if not unbalanced:
-        k = list(ep.hist_data['tracking'].keys())[0]
-        data = ep.hist_data['tracking'][k]
-        f, ax = plt.subplots(5, figsize=(25, 20))
-        title = '[epoch {}] total reward: {:.2f}'.format(epoch, ep.episode_reward)
-        f.suptitle(title)
-        ax[0].plot(data['v_val'], color='tab:blue', label='voltage')
-
-        ax[1].plot(data['y_val'], color='tab:blue', label='oscillation observer')
-
-        ax[2].plot(data['q_set'], color='tab:blue', label='q_set')
-        ax[2].plot(data['q_val'], color='tab:orange', label='q_val')
-
-        translation, slope = get_translation_and_slope(data['a_val'])
-        ax[3].plot(translation, color='tab:blue', label='RL translation')
-        ax[3].plot(slope, color='tab:purple', label='RL slope (a2-a1)')
-
-        translation, slope = get_translation_and_slope(data['adversary_a_val'])
-        ax[4].plot(translation, color='tab:orange', label='hacked translation')
-        ax[4].plot(slope, color='tab:red', label='hacked slope (a2-a1)')
-        ax[0].set_ylim([0.93, 1.07])
-        ax[1].set_ylim([0, 0.8])
-        ax[2].set_ylim([-280, 280])
-        ax[3].set_ylim([-0.06, 0.06])
-        ax[4].set_ylim([-0.06, 0.06])
-    else:
-        keys = [k for k in ep.hist_data['tracking'].keys() if 'adversary' not in k and 'inv' in k]
-        keys_all = list(ep.hist_data['tracking'].keys())
-        reg = False
-        for k in keys_all:
-            if 'reg' in k:
-                reg = k
-                break
-
-        data = ep.hist_data['tracking']
-        f, ax = plt.subplots(2 + len(keys) + (reg is not False), figsize=(25, 8 + 4 * len(keys) + 4 * (reg is not False)))
-        title = '[epoch {}] total reward: {:.2f}'.format(epoch, ep.episode_reward)
-        f.suptitle(title)
-        for i, k in enumerate(keys):
-            ax[0].plot(data[k]['v_val'], label='voltage ({})'.format(k))
-            ax[1].plot(data[k]['y_val'], label='unbalance observer ({})'.format(k))
-
-            translation, slope = get_translation_and_slope(data[k]['a_val'])
-            ax[2+i].plot(translation, label='RL translation ({})'.format(k))
-            ax[2+i].plot(slope, label='RL slope (a2-a1) ({})'.format(k))
-
-        if reg:
-            ax[-1].plot(data[reg]['reg_val'], label=reg)
-
-        ax[0].set_ylim([0.90, 1.10])
-        ax[1].set_ylim([0, 0.1])
-        ax[2].set_ylim([-280, 280])
-        for i in range(len(keys)):
-            ax[2+i].set_ylim([-0.06, 0.06])
-
-    for a in ax:
-        a.grid(b=True, which='both')
-        a.legend(loc=1, ncol=2)
-
-    plt.tight_layout()
-    plt.subplots_adjust(top=0.95)
-    return f
 
 
 def save_best_policy(trainer, episodes):
@@ -193,21 +122,22 @@ def save_best_policy(trainer, episodes):
         trainer.global_vars['best_eval_reward'] = mean_r
         # save policy
         shutil.rmtree(os.path.join(trainer.global_vars['reporter_dir'], 'best', 'policy'), ignore_errors=True)
-#        trainer.get_policy().export_model(os.path.join(trainer.global_vars['reporter_dir'], 'best', 'policy'))
+        #        trainer.get_policy().export_model(os.path.join(trainer.global_vars['reporter_dir'], 'best', 'policy'))
         # save plots
         ep = episodes[-1]
-        f = plot_episode(ep, trainer.iteration)
+        f = plot_new(ep.hist_data['tracking'], trainer.iteration, trainer.global_vars['unbalance'])
         f.savefig(os.path.join(trainer.global_vars['reporter_dir'], 'best', 'eval.png'))
 
         # save CSV
         data = ep.hist_data['tracking']
         k = list(data.keys())[0]
-        ep_hist = pd.DataFrame(dict(v=data[k]['v_val'], y=data[k]['y_val'],
-                                    q_set=data[k]['q_set'], q_val=data[k]['q_val']))
-        a_hist = pd.DataFrame(data[k]['a_val'], columns=['a1', 'a2', 'a3', 'a4', 'a5'])
-        adv_a_hist = pd.DataFrame(data[k]['a_val'], columns=['adv_a1', 'adv_a2', 'adv_a3', 'adv_a4', 'adv_a5'])
-        translation, slope = get_translation_and_slope(data[k]['a_val'])
-        adv_translation, adv_slope = get_translation_and_slope(data['adversary_'+k]['a_val'])
+        ep_hist = pd.DataFrame(dict(v=data[data[k]['node']]['voltage'], y=data[k]['y'],
+                                    q_set=data[k]['q_set'], q_val=data[k]['q_out']))
+        a_hist = pd.DataFrame(data[k]['control_setting'], columns=['a1', 'a2', 'a3', 'a4', 'a5'])
+        adv_a_hist = pd.DataFrame(data['adversary_' + k]['control_setting'],
+                                  columns=['adv_a1', 'adv_a2', 'adv_a3', 'adv_a4', 'adv_a5'])
+        translation, slope = get_translation_and_slope(data[k]['control_setting'])
+        adv_translation, adv_slope = get_translation_and_slope(data['adversary_' + k]['control_setting'])
         trans_slope_hist = pd.DataFrame(dict(translation=translation, slope=slope,
                                              adv_translation=adv_translation, adv_slope=adv_slope))
 
@@ -239,6 +169,9 @@ def run_train(config, reporter):
 
     for _ in tqdm(range(config['epochs'])):
         results = trainer.train()
+        del results['hist_stats']['tracking']  # don't send to tensorboard
+        if 'evaluation' in results:
+            del results['evaluation']['hist_stats']['tracking']
         reporter(**results)
 
     trainer.stop()
@@ -259,18 +192,15 @@ def run_hp_experiment(full_config, name):
 
 if __name__ == '__main__':
     args = parse_cli_args()
-    args.unbalance = True
 
     if args.unbalance:
         pycigar_params = {'exp_tag': 'cooperative_multiagent_ppo',
                           'env_name': 'CentralControlPVInverterContinuousEnv',
-                          'simulator': 'opendss',
-                          'tracking_ids': ['inverter_s701a', 'adversary_inverter_s701a', 'reg1']}
+                          'simulator': 'opendss'}
     else:
         pycigar_params = {'exp_tag': 'cooperative_multiagent_ppo',
                           'env_name': 'CentralControlPVInverterEnv',
-                          'simulator': 'opendss',
-                          'tracking_ids': ['inverter_s701a', 'adversary_inverter_s701a']}
+                          'simulator': 'opendss'}
 
     create_env, env_name = make_create_env(pycigar_params, version=0)
     register_env(env_name, create_env)
@@ -313,9 +243,9 @@ if __name__ == '__main__':
         },
 
         # ==== EVALUATION ====
-        "evaluation_num_workers": 0,
-        'evaluation_num_episodes': 2,
-        "evaluation_interval": 1,
+        "evaluation_num_workers": 1,
+        'evaluation_num_episodes': 1,
+        "evaluation_interval": 5,
         "custom_eval_function": tune.function(custom_eval_function),
         'evaluation_config': {
             "seed": 42,
@@ -337,7 +267,7 @@ if __name__ == '__main__':
     base_config['evaluation_config']['env_config']['scenario_config']['multi_config'] = False
     del base_config['evaluation_config']['env_config']['attack_randomization']
 
-    ray.init(local_mode=True)
+    ray.init(local_mode=False)
 
     base_config['num_workers'] = args.workers
     base_config['evaluation_num_episodes'] = args.eval_rounds
@@ -350,7 +280,7 @@ if __name__ == '__main__':
     }
 
     if args.algo == 'ppo':
-        
+
         config = deepcopy(full_config)
         run_hp_experiment(config, 'main')
 

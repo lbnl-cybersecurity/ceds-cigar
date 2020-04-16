@@ -1,12 +1,19 @@
 import numpy as np
 
 from pycigar.envs.wrappers.wrapper import Wrapper
+from pycigar.utils.logging import logger
 
 
 class RewardWrapper(Wrapper):
     def step(self, action):
         observation, reward, done, info = self.env.step(action)
-        return observation, self.reward(reward, info), done, info
+        new_r = self.reward(reward, info)
+        Logger = logger()
+        reward_dict = new_r if isinstance(new_r, dict) else {k: new_r for k in self.k.device.get_rl_device_ids()}
+        for k, r in reward_dict.items():
+            Logger.log(k, 'reward', r)
+
+        return observation, new_r, done, info
 
     def reward(self, reward, info):
         """Redefine the reward of the last wrapper.
@@ -142,7 +149,8 @@ class SearchGlobalRewardWrapper(RewardWrapper):
             r = 0
             # if y > 0.025:
             #    r = -500
-            r += -((M * y ** 2 + N * np.sum((action - old_action) ** 2) + P * np.sum((action - self.INIT_ACTION[key]) ** 2))) / 100
+            r += -((M * y ** 2 + N * np.sum((action - old_action) ** 2) + P * np.sum(
+                (action - self.INIT_ACTION[key]) ** 2))) / 100
             global_reward += r
         global_reward = global_reward / len(list(info.keys()))
         for key in info.keys():
@@ -200,7 +208,8 @@ class CentralGlobalRewardWrapper(RewardWrapper):
             else:
                 roa = 1
 
-            r += -(M * info[key]['y'] + N * roa + P * np.linalg.norm(action - self.INIT_ACTION[key]) + 0.5 * (1 - abs(info[key]['p_set_p_max'])) ** 2)
+            r += -(M * info[key]['y'] + N * roa + P * np.linalg.norm(action - self.INIT_ACTION[key]) + 0.5 * (
+                        1 - abs(info[key]['p_set_p_max'])) ** 2)
             global_reward += r
         global_reward = global_reward / len(list(info.keys()))
 

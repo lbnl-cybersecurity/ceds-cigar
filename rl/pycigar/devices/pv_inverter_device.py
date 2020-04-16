@@ -69,6 +69,7 @@ class PVDevice(BaseDevice):
 
         # record voltage magnitude measurement
         node_id = k.device.get_node_connected_to(self.device_id)
+        self.node_id = node_id
         Sbar = self.Sbar
         solar_irr = self.solar_generation[k.time]
         self.solar_irr = solar_irr
@@ -186,9 +187,12 @@ class PVDevice(BaseDevice):
         # log history
         Logger = logger()
         Logger.log(self.device_id, 'y', self.y)
+        Logger.log(self.device_id, 'u', self.u)
         Logger.log(self.device_id, 'p_set', self.p_set[1])
         Logger.log(self.device_id, 'q_set', self.q_set[1])
         Logger.log(self.device_id, 'p_out', self.p_out[1])
         Logger.log(self.device_id, 'q_out', self.q_out[1])
         Logger.log(self.device_id, 'control_setting', self.control_setting)
         Logger.log(self.device_id, 'solar_irr', self.solar_irr)
+        if hasattr(self, 'node_id'):
+            Logger.log_single(self.device_id, 'node', self.node_id)
