@@ -132,9 +132,6 @@ class Kernel(object):
 
             self.warm_up_k_step(50)
 
-            Logger = logger()
-            Logger.is_log()
-
             return self.sim_params
 
         else:
@@ -159,7 +156,7 @@ class Kernel(object):
 
     def warm_up_k_step(self, k):
         Logger = logger()
-        Logger.is_log(False)
+        Logger.set_active(False)
 
         for _ in range(k):
             self.time += 1
@@ -167,6 +164,8 @@ class Kernel(object):
             self.node.update(reset=False)
             self.simulation.update(reset=False)
             self.scenario.update(reset=False)
+
+        Logger.set_active()
 
     def warm_up_v(self):
         """Run the simulation until the voltage is stablized."""

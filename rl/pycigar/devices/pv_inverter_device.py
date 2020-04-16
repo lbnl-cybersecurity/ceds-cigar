@@ -194,6 +194,4 @@ class PVDevice(BaseDevice):
         Logger.log(self.device_id, 'q_out', self.q_out[1])
         Logger.log(self.device_id, 'control_setting', self.control_setting)
         Logger.log(self.device_id, 'solar_irr', self.solar_irr)
-
-        if hasattr(self, 'node_id'):
-            Logger.log_dict[self.device_id]['node'] = self.node_id
+        Logger.log_single(self.device_id, 'node', self.node_id)
