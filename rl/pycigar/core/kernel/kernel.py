@@ -132,7 +132,7 @@ class Kernel(object):
 
             self.warm_up_k_step(50)
             logger().set_active()
-            
+
             return self.sim_params
 
         else:

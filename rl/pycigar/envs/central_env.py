@@ -2,6 +2,8 @@ import numpy as np
 from gym.spaces.box import Box
 
 from pycigar.envs.base import Env
+from pycigar.utils.logging import logger
+from copy import deepcopy
 
 
 class CentralEnv(Env):
@@ -23,7 +25,7 @@ class CentralEnv(Env):
                 action = actions
                 self.k.device.apply_control(rl_id, action)
 
-    def step(self, rl_actions):
+    def step(self, rl_actions, randomize_rl_update=None):
         """Move the environment one step forward.
 
         Parameters
@@ -43,11 +45,19 @@ class CentralEnv(Env):
         self.old_actions = {}
         for rl_id in self.k.device.get_rl_device_ids():
             self.old_actions[rl_id] = self.k.device.get_control_setting(rl_id)
-        randomize_rl_update = {}
-        if rl_actions is not None:
+
+        # need to refactor this bulk
+        if randomize_rl_update is None:
+            randomize_rl_update = {}
             for rl_id in self.k.device.get_rl_device_ids():
                 randomize_rl_update[rl_id] = np.random.randint(low=0, high=3)
-        else:
+            Logger = logger()
+            if 'randomize_rl_update' not in Logger.custom_metrics:
+                Logger.custom_metrics['randomize_rl_update'] = [deepcopy(randomize_rl_update)]
+            else:
+                Logger.custom_metrics['randomize_rl_update'].append(deepcopy(randomize_rl_update))
+
+        if rl_actions is None:
             rl_actions = self.old_actions
 
         for _ in range(self.sim_params['env_config']["sims_per_step"]):

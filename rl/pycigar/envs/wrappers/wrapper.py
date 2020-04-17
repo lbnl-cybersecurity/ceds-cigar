@@ -48,8 +48,8 @@ class Wrapper:
     def __init__(self, env):
         self.env = env
 
-    def step(self, rl_actions):
-        return self.env.step(rl_actions)
+    def step(self, rl_actions, randomize_rl_update=None):
+        return self.env.step(rl_actions, randomize_rl_update)
 
     def reset(self):
         observation = self.env.reset()

@@ -66,7 +66,7 @@ class Env(gym.Env):
         """
         pass
 
-    def step(self, rl_actions):
+    def step(self, rl_actions, randomize_rl_update=None):
         raise NotImplementedError
 
     def reset(self):
