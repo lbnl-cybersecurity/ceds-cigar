@@ -100,6 +100,7 @@ def on_episode_end(info):
 
     tracking = logger().log_dict
     info['episode'].hist_data['tracking'] = tracking
+    info['episode'].custom_metrics['logger'] = logger()
 
     env = info['env'].vector_env.envs[0]
     t_id = env.k.device.get_rl_device_ids()[0]

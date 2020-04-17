@@ -29,6 +29,11 @@ class PVDevice(BaseDevice):
         self.gain = additional_params.get('gain', 1e5)
         self.delta_t = additional_params.get('delta_t', 1)
         self.solar_min_value = additional_params.get('solar_min_value', 5)
+        Logger = logger()
+        if 'init_control_settings' in Logger.custom_metrics:
+            logger().custom_metrics['init_control_settings']['device_id'] = np.array(self.control_setting)
+        else:
+            logger().custom_metrics['init_control_settings'] = {device_id: np.array(self.control_setting)}
 
         self.p_set = np.zeros(2)
         self.q_set = np.zeros(2)
