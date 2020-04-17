@@ -29,8 +29,10 @@ def parse_cli_args():
     parser.add_argument('--epochs', type=int, default=2, help='number of epochs per trial')
     parser.add_argument('--save-path', type=str, default='~/hp_experiment3', help='where to save the results')
     parser.add_argument('--workers', type=int, default=3, help='number of cpu workers per run')
-    parser.add_argument('--eval-rounds', type=int, default=2,
+    parser.add_argument('--eval-rounds', type=int, default=1,
                         help='number of evaluation rounds to run to smooth random results')
+    parser.add_argument('--eval-interval', type=int, default=5,
+                        help='do an evaluation every N epochs')
     parser.add_argument("--algo", help="use PPO or APPO", choices=['ppo', 'appo'],
                         nargs='?', const='ppo', default='ppo', type=str.lower)
     parser.add_argument('--unbalance', dest='unbalance', action='store_true')
@@ -122,7 +124,7 @@ def save_best_policy(trainer, episodes):
         trainer.global_vars['best_eval_reward'] = mean_r
         # save policy
         shutil.rmtree(os.path.join(trainer.global_vars['reporter_dir'], 'best', 'policy'), ignore_errors=True)
-        #        trainer.get_policy().export_model(os.path.join(trainer.global_vars['reporter_dir'], 'best', 'policy'))
+        trainer.get_policy().export_model(os.path.join(trainer.global_vars['reporter_dir'], 'best', 'policy'))
         # save plots
         ep = episodes[-1]
         f = plot_new(ep.hist_data['tracking'], trainer.iteration, trainer.global_vars['unbalance'])
@@ -195,7 +197,7 @@ if __name__ == '__main__':
 
     if args.unbalance:
         pycigar_params = {'exp_tag': 'cooperative_multiagent_ppo',
-                          'env_name': 'CentralControlPVInverterContinuousEnv',
+                          'env_name': 'CentralControlPhaseSpecificPVInverterEnv',
                           'simulator': 'opendss'}
     else:
         pycigar_params = {'exp_tag': 'cooperative_multiagent_ppo',
@@ -218,7 +220,7 @@ if __name__ == '__main__':
         'lambda': 0.95,
         'vf_clip_param': 100,
 
-        'num_workers': 3,
+        'num_workers': args.workers,
         'num_cpus_per_worker': 1,
         'num_cpus_for_driver': 1,
         'num_envs_per_worker': 1,
@@ -244,8 +246,8 @@ if __name__ == '__main__':
 
         # ==== EVALUATION ====
         "evaluation_num_workers": 1,
-        'evaluation_num_episodes': 1,
-        "evaluation_interval": 5,
+        'evaluation_num_episodes': args.eval_rounds,
+        "evaluation_interval": args.eval_interval,
         "custom_eval_function": tune.function(custom_eval_function),
         'evaluation_config': {
             "seed": 42,
@@ -267,10 +269,16 @@ if __name__ == '__main__':
     base_config['evaluation_config']['env_config']['scenario_config']['multi_config'] = False
     del base_config['evaluation_config']['env_config']['attack_randomization']
 
+    if args.unbalance:
+        for node in base_config['env_config']['scenario_config']['nodes']:
+            for d in node['devices']:
+                d['adversary_controller'] = 'unbalanced_fixed_controller'
+        for node in base_config['evaluation_config']['env_config']['scenario_config']['nodes']:
+            for d in node['devices']:
+                d['adversary_controller'] = 'unbalanced_fixed_controller'
+
     ray.init(local_mode=False)
 
-    base_config['num_workers'] = args.workers
-    base_config['evaluation_num_episodes'] = args.eval_rounds
     full_config = {
         'config': base_config,
         'epochs': args.epochs,

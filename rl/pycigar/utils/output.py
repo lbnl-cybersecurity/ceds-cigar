@@ -230,7 +230,7 @@ def plot_new(log_dict, epoch='', unbalance=False):
             ax[0].plot(log_dict[log_dict[k]['node']]['voltage'], label='voltage ({})'.format(k))
             ax[1].plot(log_dict[k]['u'], label='unbalance observer ({})'.format(k))
 
-            translation, slope = get_translation_and_slope(log_dict[k][k]['control_setting'])
+            translation, slope = get_translation_and_slope(log_dict[k]['control_setting'])
             ax[2+i].plot(translation, label='RL translation ({})'.format(k))
             ax[2+i].plot(slope, label='RL slope (a2-a1) ({})'.format(k))
 
