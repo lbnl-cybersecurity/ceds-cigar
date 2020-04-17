@@ -12,8 +12,8 @@ class ObservationWrapper(Wrapper):
         self.INIT_ACTION = self.INIT_ACTION
         return self.observation(observation, info=None)
 
-    def step(self, rl_actions):
-        observation, reward, done, info = self.env.step(rl_actions)
+    def step(self, rl_actions, randomize_rl_update=None):
+        observation, reward, done, info = self.env.step(rl_actions, randomize_rl_update)
         return self.observation(observation, info), reward, done, info
 
     @property

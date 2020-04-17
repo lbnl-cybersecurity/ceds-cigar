@@ -5,8 +5,8 @@ from pycigar.utils.logging import logger
 
 
 class RewardWrapper(Wrapper):
-    def step(self, action):
-        observation, reward, done, info = self.env.step(action)
+    def step(self, action, randomize_rl_update=None):
+        observation, reward, done, info = self.env.step(action, randomize_rl_update)
         new_r = self.reward(reward, info)
         Logger = logger()
         reward_dict = new_r if isinstance(new_r, dict) else {k: new_r for k in self.k.device.get_rl_device_ids()}

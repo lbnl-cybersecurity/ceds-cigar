@@ -6,7 +6,7 @@ from pycigar.envs.wrappers.wrappers_constants import *
 
 
 class ActionWrapper(Wrapper):
-    def step(self, action):
+    def step(self, action, randomize_rl_update=None):
         rl_actions = {}
         info_update = {}
         if isinstance(action, dict):
@@ -21,7 +21,7 @@ class ActionWrapper(Wrapper):
                     rl_actions[i] = self.action(action, i)
                     info_update[i] = {'raw_action': action}
 
-        observation, reward, done, info = self.env.step(rl_actions)
+        observation, reward, done, info = self.env.step(rl_actions, randomize_rl_update)
         return observation, reward, done, merge_dicts(info, info_update)
 
     def action(self, action, rl_id):
