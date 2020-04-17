@@ -54,7 +54,7 @@ def custom_eval_function(trainer, eval_workers):
     episodes, _ = collect_episodes(eval_workers.local_worker(), eval_workers.remote_workers())
     metrics = summarize_episodes(episodes)
 
-    f = plot_new(episodes[-1].hist_data['tracking'], trainer.iteration, trainer.global_vars['unbalance'])
+    f = plot_new(episodes[-1].hist_data['logger']['log_dict'], episodes[-1].hist_data['logger']['custom_metrics'], trainer.iteration, trainer.global_vars['unbalance'])
     f.savefig(trainer.global_vars['reporter_dir'] + 'eval-epoch-' + str(trainer.iteration) + '.png',
               bbox_inches='tight')
 
@@ -98,9 +98,8 @@ def on_episode_end(info):
     episode.custom_metrics["avg_magnitude"] = avg_mag
     episode.custom_metrics["num_actions_taken"] = num_actions
 
-    tracking = logger().log_dict
-    info['episode'].hist_data['tracking'] = tracking
-    info['episode'].custom_metrics['logger'] = logger()
+    tracking = logger()
+    info['episode'].hist_data['logger'] = {'log_dict': tracking.log_dict, 'custom_metrics': tracking.custom_metrics}
 
     env = info['env'].vector_env.envs[0]
     t_id = env.k.device.get_rl_device_ids()[0]
@@ -129,11 +128,11 @@ def save_best_policy(trainer, episodes):
             trainer.get_policy().export_model(os.path.join(trainer.global_vars['reporter_dir'], 'best', 'policy'))
         # save plots
         ep = episodes[-1]
-        f = plot_new(ep.hist_data['tracking'], trainer.iteration, trainer.global_vars['unbalance'])
+        data = ep.hist_data['logger']['log_dict']
+        f = plot_new(data, ep.hist_data['logger']['custom_metrics'], trainer.iteration, trainer.global_vars['unbalance'])
         f.savefig(os.path.join(trainer.global_vars['reporter_dir'], 'best', 'eval.png'))
 
         # save CSV
-        data = ep.hist_data['tracking']
         k = list(data.keys())[0]
         ep_hist = pd.DataFrame(dict(v=data[data[k]['node']]['voltage'], y=data[k]['y'],
                                     q_set=data[k]['q_set'], q_val=data[k]['q_out']))
@@ -173,9 +172,9 @@ def run_train(config, reporter):
 
     for _ in tqdm(range(config['epochs'])):
         results = trainer.train()
-        del results['hist_stats']['tracking']  # don't send to tensorboard
+        del results['hist_stats']['logger']  # don't send to tensorboard
         if 'evaluation' in results:
-            del results['evaluation']['hist_stats']['tracking']
+            del results['evaluation']['hist_stats']['logger']
         reporter(**results)
 
     trainer.stop()
