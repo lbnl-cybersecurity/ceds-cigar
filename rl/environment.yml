@@ -1,7 +1,7 @@
-name: pycigar
+name: pycigar-3
 
 dependencies:
-    - python==3.6.8
+    - python==3.7.7
     - scipy==1.1.0
     - lxml==4.2.4
     - six==1.11.0
@@ -9,8 +9,9 @@ dependencies:
     - python-dateutil==2.7.3
     - cloudpickle==1.2.1
     - setuptools==41.0.0
+    - pip
     - pip:
-        - ray==0.8.2
+        - ray==0.8.3
         - tensorflow==2.0.0
         - gym==0.14.0
         - pyprind==2.11.2
