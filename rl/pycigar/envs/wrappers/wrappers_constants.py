@@ -12,7 +12,7 @@ ACTION_UPPER_BOUND = 1.1
 
 # relative single head action
 ACTION_RANGE = 0.1
-ACTION_STEP = 0.05
+ACTION_STEP = 0.01
 DISCRETIZE_RELATIVE = int((ACTION_RANGE / ACTION_STEP)) * 2 + 1
 
 ACTION_MIN_SLOPE = 0.02  # actually the slope is stepper when value is small
