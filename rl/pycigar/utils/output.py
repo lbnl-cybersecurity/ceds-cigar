@@ -183,12 +183,11 @@ def pycigar_output_specs(env):
     return output_specs
 
 
-def plot_new(log_dict, epoch='', unbalance=False):
-    def get_translation_and_slope(a_val):
+def plot_new(log_dict, custom_metrics, epoch='', unbalance=False):
+    def get_translation_and_slope(a_val, init_a):
         points = np.array(a_val)
         slope = points[:, 1] - points[:, 0]
-        og_point = points[0, 2]
-        translation = points[:, 2] - og_point
+        translation = points[:, 2] - init_a[2]
         return translation, slope
 
     plt.rc('font', size=15)
@@ -206,11 +205,11 @@ def plot_new(log_dict, epoch='', unbalance=False):
         ax[2].plot(log_dict[inv_k]['q_set'], color='tab:blue', label='q_set')
         ax[2].plot(log_dict[inv_k]['q_out'], color='tab:orange', label='q_val')
 
-        translation, slope = get_translation_and_slope(log_dict[inv_k]['control_setting'])
+        translation, slope = get_translation_and_slope(log_dict[inv_k]['control_setting'], custom_metrics['init_control_settings'][inv_k])
         ax[3].plot(translation, color='tab:blue', label='RL translation')
         ax[3].plot(slope, color='tab:purple', label='RL slope (a2-a1)')
 
-        translation, slope = get_translation_and_slope(log_dict['adversary_' + inv_k]['control_setting'])
+        translation, slope = get_translation_and_slope(log_dict['adversary_' + inv_k]['control_setting'], custom_metrics['init_control_settings']['adversary_' + inv_k])
         ax[4].plot(translation, color='tab:orange', label='hacked translation')
         ax[4].plot(slope, color='tab:red', label='hacked slope (a2-a1)')
         ax[0].set_ylim([0.93, 1.07])
@@ -219,7 +218,7 @@ def plot_new(log_dict, epoch='', unbalance=False):
         ax[3].set_ylim([-0.06, 0.06])
         ax[4].set_ylim([-0.06, 0.06])
     else:
-        inv_ks = [k for k in log_dict if k.startswith('inverter_s701')]
+        inv_ks = [k for k in log_dict if k.startswith('inverter_s701') or k.startswith('inverter_s728')]
         regs = [k for k in log_dict if 'reg' in k]
         reg = regs[0] if regs else None
 
@@ -230,7 +229,7 @@ def plot_new(log_dict, epoch='', unbalance=False):
             ax[0].plot(log_dict[log_dict[k]['node']]['voltage'], label='voltage ({})'.format(k))
             ax[1].plot(log_dict[k]['u'], label='unbalance observer ({})'.format(k))
 
-            translation, slope = get_translation_and_slope(log_dict[k][k]['control_setting'])
+            translation, slope = get_translation_and_slope(log_dict[k]['control_setting'], custom_metrics['init_control_settings'][k])
             ax[2+i].plot(translation, label='RL translation ({})'.format(k))
             ax[2+i].plot(slope, label='RL slope (a2-a1) ({})'.format(k))
 
