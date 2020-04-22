@@ -164,8 +164,6 @@ class Kernel(object):
             self.simulation.update(reset=False)
             self.scenario.update(reset=False)
 
-        
-
     def warm_up_v(self):
         """Run the simulation until the voltage is stablized."""
 
