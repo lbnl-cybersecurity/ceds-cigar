@@ -17,9 +17,8 @@ class ActionWrapper(Wrapper):
         else:
             # central env
             for i in self.k.device.get_rl_device_ids():
-                if 'adversary' not in i:
-                    rl_actions[i] = self.action(action, i)
-                    info_update[i] = {'raw_action': action}
+                rl_actions[i] = self.action(action, i)
+                info_update[i] = {'raw_action': action}
 
         observation, reward, done, info = self.env.step(rl_actions, randomize_rl_update)
         return observation, reward, done, merge_dicts(info, info_update)
@@ -88,12 +87,38 @@ class NewSingleRelativeInitDiscreteActionWrapper(ActionWrapper):
 
     @property
     def action_space(self):
-        return Tuple([Discrete(DISCRETIZE_RELATIVE)] * 2)
+        return Tuple([Discrete(DISCRETIZE_RELATIVE)] * 5)
 
     def action(self, action, rl_id, *_):
         act = self.INIT_ACTION[rl_id] - ACTION_RANGE + ACTION_STEP * action[0]
         act[0] = act[1] - (ACTION_MAX_SLOPE - ACTION_MIN_SLOPE) / DISCRETIZE_RELATIVE * action[1] - ACTION_MIN_SLOPE
         act[3] = act[1] + (ACTION_MAX_SLOPE - ACTION_MIN_SLOPE) / DISCRETIZE_RELATIVE * action[1] + ACTION_MIN_SLOPE
+        return act
+
+
+class AllRelativeInitDiscreteActionWrapper(ActionWrapper):
+    """
+    Action head is only 1 value.
+    The action head is 1 action discretized into DISCRETIZE_RELATIVE number of bins.
+    We control 5 VBPs by translate the VBPs.
+    Each bin is a step of ACTION_STEP deviated from the initial action.
+    """
+    ACTION_MAX_SLOPE = 0.051
+    ACTION_MIN_SLOPE = 0.001
+    ACTION_RANGE = 0.2
+    ACTION_STEP = 0.01
+    DISCRETIZE_RELATIVE = int((ACTION_RANGE / ACTION_STEP)) * 2 + 1
+
+    @property
+    def action_space(self):
+        return Tuple([Discrete(DISCRETIZE_RELATIVE)] * 5)
+
+    def action(self, action, rl_id, *_):
+        act = self.INIT_ACTION[rl_id] - ACTION_RANGE + ACTION_STEP * action[2]
+        act[1] = act[2] - (ACTION_MAX_SLOPE - ACTION_MAX_SLOPE) / DISCRETIZE_RELATIVE * action[1] - ACTION_MIN_SLOPE
+        act[0] = act[1] - (ACTION_MAX_SLOPE - ACTION_MIN_SLOPE) / DISCRETIZE_RELATIVE * action[0] - ACTION_MIN_SLOPE
+        act[3] = act[2] + (ACTION_MAX_SLOPE - ACTION_MIN_SLOPE) / DISCRETIZE_RELATIVE * action[3] + ACTION_MIN_SLOPE
+        act[4] = act[3] + (ACTION_MAX_SLOPE - ACTION_MIN_SLOPE) / DISCRETIZE_RELATIVE * action[4] + ACTION_MIN_SLOPE
         return act
 
 
@@ -178,3 +203,24 @@ class ARDiscreteActionWrapper(ActionWrapper):
 
 class ARContinuousActionWrapper(ActionWrapper):
     pass
+
+
+#############################
+#    MULTI-AGENT WRAPPER    #
+#############################
+
+class GroupActionWrapper(Wrapper):
+    def step(self, action, randomize_rl_update=None):
+        rl_actions = {}
+        if isinstance(action, dict):
+            # multi-agent env
+            for i, a in action.items():
+                if 'defense_' in i:
+                    for device_name in self.k.device.get_rl_device_ids():
+                        rl_actions[device_name] = a
+                elif 'attack_' in i:
+                    for device_name in self.k.device.get_rl_device_ids():
+                        rl_actions[device_name] = a
+
+        observation, reward, done, info = self.env.step(rl_actions, randomize_rl_update)
+        return observation, reward, done, info

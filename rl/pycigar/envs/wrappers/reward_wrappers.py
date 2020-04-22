@@ -37,15 +37,17 @@ class LocalRewardWrapper(RewardWrapper):
     """
     The reward for each agent. It depends on agent local observation.
     """
+    def __init__(self, env, unbalance=False):
+        super().__init__(env)
+        self.unbalance = unbalance
 
     def reward(self, reward, info):
-        A = 0  # weight for voltage in reward function
-        B = 100  # weight for y-value in reward function
-        C = 1  # weight for the percentage of power injection
-        D = 1  # weight for taking different action from last timestep action
-        E = 5  # weight for taking different action from the initial action
+        M = self.k.sim_params['M']
+        N = self.k.sim_params['N']
+        P = self.k.sim_params['P']
 
         rewards = {}
+        y_or_u = 'u' if self.unbalance else 'y'
         # for each agent, we set the reward as under, note that agent reward is only a function of local information.
         for key in info.keys():
             action = info[key]['current_action']
@@ -54,13 +56,17 @@ class LocalRewardWrapper(RewardWrapper):
             old_action = info[key]['old_action']
             if old_action is None:
                 old_action = self.INIT_ACTION[key]
-            voltage = info[key]['voltage']
-            y = info[key]['y']
-            p_inject = info[key]['p_inject']
-            p_max = info[key]['p_max']
-            r = -(np.sqrt(A * (1 - voltage) ** 2 + B * y ** 2 + C * (1 + p_inject / p_max) ** 2) + D * np.sum(
-                (action - old_action) ** 2))
-            rewards.update({key: r})
+
+            action = np.array(action)
+            old_action = np.array(old_action)
+            if (action == old_action).all():
+                roa = 0
+            else:
+                roa = 1
+
+            r = -(M * info[key][y_or_u] + N * roa + P * np.linalg.norm(action - self.INIT_ACTION[key]) + 0.5 * (
+                1 - abs(info[key]['p_set_p_max'])) ** 2)
+            rewards[key] = r
 
         return rewards
 
@@ -200,14 +206,24 @@ class CentralGlobalRewardWrapper(RewardWrapper):
 
             r = 0
 
+            action = np.array(action)
+            old_action = np.array(old_action)
             if (action == old_action).all():
                 roa = 0
             else:
                 roa = 1
 
             r += -(M * info[key][y_or_u] + N * roa + P * np.linalg.norm(action - self.INIT_ACTION[key]) + 0.5 * (
-                        1 - abs(info[key]['p_set_p_max'])) ** 2)
+                1 - abs(info[key]['p_set_p_max'])) ** 2)
             global_reward += r
         global_reward = global_reward / len(list(info.keys()))
 
         return global_reward
+
+
+###########################################################################
+#                         MULTI-AGENT WRAPPER                             #
+###########################################################################
+
+class AdvRewardWrapper(RewardWrapper):
+    pass
