@@ -1,4 +1,4 @@
-name: pycigar-3
+name: pycigar
 
 dependencies:
     - python==3.7.7

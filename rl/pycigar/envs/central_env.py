@@ -156,7 +156,10 @@ class CentralEnv(Env):
                 'p_set': self.k.device.get_device_p_set_relative(rl_id)
             })
 
-        return {k: np.mean([d[k] for d in obs]) for k in obs[0]}
+        if obs:
+            return {k: np.mean([d[k] for d in obs]) for k in obs[0]}
+        else:
+            return {}
 
     def compute_reward(self, rl_actions, **kwargs):
         return 0

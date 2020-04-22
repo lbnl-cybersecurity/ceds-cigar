@@ -54,8 +54,6 @@ class Env(gym.Env):
         # when exit the environment, trigger function terminate to clear all attached processes.
         atexit.register(self.terminate)
 
-        self.post_process_output_specs = False
-
     def restart_simulation(self, sim_params):
         """Not in use.
         """

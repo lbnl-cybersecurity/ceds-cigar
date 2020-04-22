@@ -182,6 +182,8 @@ class OpenDSSScenario(KernelScenario):
                 device['controller'] = device['hack_controller']
                 device['hack_controller'] = temp
 
+                self.master_kernel.device.update_kernel_device_info(adversary_id)
+
         # hack stops here
         if self.master_kernel.time in self.hack_end_times:
             adversary_ids = self.hack_end_times[self.master_kernel.time]
@@ -191,6 +193,8 @@ class OpenDSSScenario(KernelScenario):
                 temp = device['controller']
                 device['controller'] = device['hack_controller']
                 device['hack_controller'] = temp
+
+                self.master_kernel.device.update_kernel_device_info(adversary_id)
 
     def change_load_profile(self, start_time, end_time):
         sim_params = self.master_kernel.sim_params

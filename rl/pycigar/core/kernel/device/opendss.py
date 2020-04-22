@@ -71,26 +71,13 @@ class OpenDSSDevice(KernelDevice):
         self.devices = {}
 
         self.all_device_ids = []
-        self.num_devices = 0
         self.pv_device_ids = []
-        self.num_pv_devices = 0
 
         self.rl_device_ids = []
-        self.num_rl_devices = 0
         self.adaptive_device_ids = []
-        self.num_adaptive_devices = 0
         self.fixed_device_ids = []
-        self.num_fixed_devices = 0
-
-        self.adversary_rl_device_ids = []
-        self.num_adversary_rl_devices = 0
-        self.adversary_adaptive_device_ids = []
-        self.num_adversary_adaptive_devices = 0
-        self.adversary_fixed_device_ids = []
-        self.num_adversary_fixed_devices = 0
 
         self.regulator_device_ids = []
-        self.num_regulator_device_ids = 0
 
     def pass_api(self, kernel_api):
         """See parent class."""
@@ -134,9 +121,7 @@ class OpenDSSDevice(KernelDevice):
             device_obj = device[0](device_id, device[1])
             self.devices[device_id] = {"device": device_obj}
             self.regulator_device_ids.append(device_id)
-            self.num_regulator_device_ids += 1
             self.all_device_ids.extend(device_id)
-            self.num_devices += 1
             return None
 
         # create ally device
@@ -147,19 +132,15 @@ class OpenDSSDevice(KernelDevice):
         device_obj = device[0](device_id, device[1])
         if device[0] == PVDevice:
             self.pv_device_ids.append(device_id)
-            self.num_pv_devices += 1
 
         controller_obj = controller[0](device_id, additional_params=controller[1])
 
         if controller[0] == AdaptiveInverterController:
             self.adaptive_device_ids.append(device_id)
-            self.num_adaptive_devices += 1
         elif controller[0] == FixedController or controller[0] == AdaptiveFixedController or controller[0] == UnbalancedFixedController:
             self.fixed_device_ids.append(device_id)
-            self.num_fixed_devices += 1
         elif controller[0] == RLController:
             self.rl_device_ids.append(device_id)
-            self.num_rl_devices += 1
 
         self.devices[device_id] = {
             "device": device_obj,
@@ -176,20 +157,16 @@ class OpenDSSDevice(KernelDevice):
 
             if device[0] == PVDevice:
                 self.pv_device_ids.append(adversary_device_id)
-                self.num_pv_devices += 1
 
             adversary_controller_obj = \
                 adversary_controller[0](adversary_device_id, adversary_controller[1])
 
             if adversary_controller[0] == AdaptiveInverterController:
-                self.adversary_adaptive_device_ids.append(adversary_device_id)
-                self.num_adversary_adaptive_devices += 1
+                self.adaptive_device_ids.append(adversary_device_id)
             if adversary_controller[0] == FixedController or adversary_controller[0] == AdaptiveFixedController or adversary_controller[0] == UnbalancedFixedController:
-                self.adversary_fixed_device_ids.append(adversary_device_id)
-                self.num_adversary_fixed_devices += 1
+                self.fixed_device_ids.append(adversary_device_id)
             if adversary_controller[0] == RLController:
-                self.adversary_rl_device_ids.append(adversary_device_id)
-                self.num_adversary_rl_devices += 1
+                self.rl_device_ids.append(adversary_device_id)
 
             self.devices[adversary_device_id] = {
                 "device": adversary_device_obj,
@@ -204,11 +181,9 @@ class OpenDSSDevice(KernelDevice):
 
             if device[0] == PVDevice:
                 self.pv_device_ids.append(adversary_device_id)
-                self.num_pv_devices += 1
 
             adversary_controller_obj = FixedController(adversary_device_id, {})
-            self.adversary_fixed_device_ids.append(adversary_device_id)
-            self.num_adversary_fixed_devices += 1
+            self.fixed_device_ids.append(adversary_device_id)
 
             self.devices[adversary_device_id] = {
                 "device": adversary_device_obj,
@@ -218,7 +193,6 @@ class OpenDSSDevice(KernelDevice):
             }
 
         self.all_device_ids.extend((device_id, adversary_device_id))
-        self.num_devices += 1
 
         return adversary_device_id
 
@@ -237,6 +211,8 @@ class OpenDSSDevice(KernelDevice):
                         self.devices[device_id]['controller'] = self.devices[device_id]['hack_controller']
                         self.devices[device_id]['hack_controller'] = temp
 
+                        self.update_kernel_device_info(device_id)
+
                 elif isinstance(self.devices[device_id]['device'], RegulatorDevice):
                     self.devices[device_id]['device'].reset()
 
@@ -250,6 +226,21 @@ class OpenDSSDevice(KernelDevice):
             for reg_device in self.regulator_device_ids:
                 self.devices[reg_device]["device"].update(self.master_kernel)
 
+    def update_kernel_device_info(self, device_id):
+        if device_id in self.pv_device_ids:
+            if isinstance(self.devices[device_id]["controller"], RLController):
+                self.rl_device_ids.append(device_id)
+                if device_id in self.fixed_device_ids:
+                    self.fixed_device_ids.remove(device_id)
+                if device_id in self.adaptive_device_ids:
+                    self.adaptive_device_ids.remove(device_id)
+            elif isinstance(self.devices[device_id]["controller"], FixedController) or isinstance(self.devices[device_id]["controller"], AdaptiveFixedController):
+                self.fixed_device_ids.append(device_id)
+                if device_id in self.rl_device_ids:
+                    self.rl_device_ids.remove(device_id)
+                if device_id in self.adaptive_device_ids:
+                    self.adaptive_device_ids.remove(device_id)
+
     def get_regulator_device_ids(self):
         return self.regulator_device_ids
 
@@ -261,7 +252,7 @@ class OpenDSSDevice(KernelDevice):
         List
             List of all adaptive device ids
         """
-        return self.adaptive_device_ids + self.adversary_adaptive_device_ids
+        return self.adaptive_device_ids
 
     def get_fixed_device_ids(self):
         """Get all adaptive device ids, for both friendly adaptive device ids and adversarial adaptive device ids.
@@ -271,7 +262,7 @@ class OpenDSSDevice(KernelDevice):
         List
             List of all adaptive device ids
         """
-        return self.fixed_device_ids + self.adversary_fixed_device_ids
+        return self.fixed_device_ids
 
     def get_pv_device_ids(self):
         """Return the list  of PV device ids.
