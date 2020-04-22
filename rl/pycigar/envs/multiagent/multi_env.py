@@ -2,9 +2,12 @@ import numpy as np
 from gym.spaces import Box
 from ray.rllib.env import MultiAgentEnv
 from pycigar.envs.base import Env
+from ray.tune.utils import merge_dicts
 
 
 class MultiEnv(MultiAgentEnv, Env):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
     @property
     def action_space(self):
@@ -40,36 +43,35 @@ class MultiEnv(MultiAgentEnv, Env):
                   indicate all agents has finished their job.
 
         """
-        next_observation = None
+        observations = {}
         self.old_actions = {}
         randomize_rl_update = {}
-        if rl_actions is not None:
-            for rl_id in rl_actions.keys():
-                self.old_actions[rl_id] = self.k.device.get_control_setting(rl_id)
-                randomize_rl_update[rl_id] = np.random.randint(low=0, high=3)
-        else:
+
+        if rl_actions is None:
             rl_actions = self.old_actions
 
-        count = 0
+        for rl_id in rl_actions.keys():
+            self.old_actions[rl_id] = self.k.device.get_control_setting(rl_id)
+            randomize_rl_update[rl_id] = np.random.randint(low=0, high=3)
 
         for _ in range(self.sim_params['env_config']['sims_per_step']):
             self.env_time += 1
-
             # perform action update for PV inverter device controlled by RL control
-            temp_rl_actions = {}
-            for rl_id in self.k.device.get_rl_device_ids():
-                temp_rl_actions[rl_id] = rl_actions[rl_id]
-            rl_dict = {}
-            for rl_id in temp_rl_actions.keys():
-                if randomize_rl_update[rl_id] == 0:
-                    rl_dict[rl_id] = temp_rl_actions[rl_id]
-                else:
-                    randomize_rl_update[rl_id] -= 1
+            if rl_actions != {}:
+                temp_rl_actions = {}
+                for rl_id in self.k.device.get_rl_device_ids():
+                    temp_rl_actions[rl_id] = rl_actions[rl_id]
+                rl_dict = {}
+                for rl_id in temp_rl_actions.keys():
+                    if randomize_rl_update[rl_id] == 0:
+                        rl_dict[rl_id] = temp_rl_actions[rl_id]
+                    else:
+                        randomize_rl_update[rl_id] -= 1
 
-            for rl_id in rl_dict.keys():
-                del temp_rl_actions[rl_id]
+                for rl_id in rl_dict.keys():
+                    del temp_rl_actions[rl_id]
 
-            self.apply_rl_actions(rl_dict)
+                self.apply_rl_actions(rl_dict)
 
             # perform action update for PV inverter device controlled by adaptive control
             if len(self.k.device.get_adaptive_device_ids()) > 0:
@@ -99,19 +101,24 @@ class MultiEnv(MultiAgentEnv, Env):
                 if not converged:
                     break
 
-                states = self.get_state()
-                if next_observation is None:
-                    next_observation = states
+                if observations == {}:
+                    observations = self.get_state()
                 else:
-                    for key in states.keys():
-                        next_observation[key] += states[key]
-                count += 1
+                    new_state = self.get_state()
+                    for device_name in new_state:
+                        for prop in new_state[device_name]:
+                            if not isinstance(observations[device_name][prop], list):
+                                observations[device_name][prop] = [observations[device_name][prop]]
+                            observations[device_name][prop].append(new_state[device_name][prop])
 
             if self.k.time >= self.k.t:
                 break
 
-        for key in states.keys():
-            next_observation[key] = next_observation[key] / count
+        list_device = self.k.device.get_rl_device_ids()
+        for device in list_device:
+            if device not in new_state:
+                del observations[device]
+        obs = {device: {prop: np.mean(observations[device][prop]) for prop in observations[device]} for device in observations}
 
         # the episode will be finished if it is not converged.
         finish = not converged or (self.k.time == self.k.t)
@@ -122,20 +129,20 @@ class MultiEnv(MultiAgentEnv, Env):
             done['__all__'] = False
 
         infos = {key: {'voltage': self.k.node.get_node_voltage(self.k.device.get_node_connected_to(key)),
-                       'y': next_observation[key][2],
+                       'y': obs[key]['y'],
                        'p_inject': self.k.device.get_device_p_injection(key),
                        'p_max': self.k.device.get_device_p_injection(key),
                        'env_time': self.env_time,
-                       'p_set': next_observation[4],
-                       'p_set_p_max': next_observation[3],
-                       } for key in states.keys()}
+                       'p_set': obs[key]['p_set'],
+                       'p_set_p_max': obs[key]['p_set_p_max'],
+                       } for key in self.k.device.get_rl_device_ids()}
 
         for key in self.k.device.get_rl_device_ids():
-            if self.old_actions is not None:
+            if self.old_actions != {}:
                 infos[key]['old_action'] = self.old_actions[key]
             else:
                 infos[key]['old_action'] = None
-            if rl_actions is not None:
+            if rl_actions != {}:
                 infos[key]['current_action'] = rl_actions[key]
             else:
                 infos[key]['current_action'] = None
@@ -147,30 +154,30 @@ class MultiEnv(MultiAgentEnv, Env):
         else:
             reward = self.compute_reward(rl_actions, fail=not converged)
 
-        return next_observation, reward, done, infos
+        return obs, reward, done, infos
 
     def reset(self):
-        self.old_actions = {}
         self.env_time = 0
-        self.k.update(reset=True)
+        self.sim_params = self.k.update(reset=True)  # hotfix: return new sim_params sample in kernel?
         states = self.get_state()
+
+        self.INIT_ACTION = {}
+        pv_device_ids = self.k.device.get_pv_device_ids()
+        for device_id in pv_device_ids:
+            self.INIT_ACTION[device_id] = np.array(self.k.device.get_control_setting(device_id))
         return states
 
     def get_state(self):
         obs = {}
-
         for rl_id in self.k.device.get_rl_device_ids():
             connected_node = self.k.device.get_node_connected_to(rl_id)
-
-            voltage = self.k.node.get_node_voltage(connected_node)
-            solar_generation = self.k.device.get_solar_generation(rl_id)
-            y = self.k.device.get_device_y(rl_id)
-
-            p_inject = self.k.device.get_device_p_injection(rl_id)
-            q_inject = self.k.device.get_device_q_injection(rl_id)
-
-            observation = np.array([voltage, solar_generation, y, p_inject, q_inject])
-
-            obs.update({rl_id: observation})
+            obs.update({rl_id: {
+                'voltage': self.k.node.get_node_voltage(connected_node),
+                'solar_generation': self.k.device.get_solar_generation(rl_id),
+                'y': self.k.device.get_device_y(rl_id),
+                'u': self.k.device.get_device_u(rl_id),
+                'p_set_p_max': self.k.device.get_device_p_set_p_max(rl_id),
+                'p_set': self.k.device.get_device_p_set_relative(rl_id)
+            }})
 
         return obs
