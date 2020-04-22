@@ -2,7 +2,6 @@ import numpy as np
 from gym.spaces import Box
 from ray.rllib.env import MultiAgentEnv
 from pycigar.envs.base import Env
-from ray.tune.utils import merge_dicts
 
 
 class MultiEnv(MultiAgentEnv, Env):
@@ -23,7 +22,7 @@ class MultiEnv(MultiAgentEnv, Env):
                 action = actions
                 self.k.device.apply_control(rl_id, action)
 
-    def step(self, rl_actions):
+    def step(self, rl_actions, randomize_rl_update=None):
         """Perform 1 step forward in the environment.
 
         Parameters
@@ -60,7 +59,9 @@ class MultiEnv(MultiAgentEnv, Env):
             if rl_actions != {}:
                 temp_rl_actions = {}
                 for rl_id in self.k.device.get_rl_device_ids():
-                    temp_rl_actions[rl_id] = rl_actions[rl_id]
+                    if rl_id in rl_actions:
+                        temp_rl_actions[rl_id] = rl_actions[rl_id]
+
                 rl_dict = {}
                 for rl_id in temp_rl_actions.keys():
                     if randomize_rl_update[rl_id] == 0:
@@ -139,11 +140,18 @@ class MultiEnv(MultiAgentEnv, Env):
 
         for key in self.k.device.get_rl_device_ids():
             if self.old_actions != {}:
-                infos[key]['old_action'] = self.old_actions[key]
+                if key in self.old_actions:
+                    infos[key]['old_action'] = self.old_actions[key]
+                else:
+                    infos[key]['old_action'] = self.k.device.get_control_setting(key)
             else:
                 infos[key]['old_action'] = None
+
             if rl_actions != {}:
-                infos[key]['current_action'] = rl_actions[key]
+                if key in rl_actions:
+                    infos[key]['current_action'] = rl_actions[key]
+                else:
+                    infos[key]['current_action'] = self.k.device.get_control_setting(key)
             else:
                 infos[key]['current_action'] = None
 
