@@ -10,7 +10,7 @@ class AdvMultiEnv(Wrapper):
         env = MultiEnv(**kwargs)                           # receive a dict of rl_id: action
         env = AllRelativeInitDiscreteActionWrapper(env)
         env = AdvObservationWrapper(env)
-        env = LocalRewardWrapper(env)
+        env = AdvLocalRewardWrapper(env)
         env = GroupActionWrapper(env)                      # grouping layer
         env = GroupRewardWrapper(env)
         env = GroupObservationWrapper(env)                 # grouping layer

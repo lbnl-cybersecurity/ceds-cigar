@@ -164,11 +164,11 @@ class GroupObservationWrapper(ObservationWrapper):
 
     def observation(self, observation, info):
         obs = {}
-        obs['defense_agent'] = np.mean([observation[key] for key in observation if 'adversary_' not in key])
-        obs['attack_agent'] = np.mean([observation[key] for key in observation if 'adversary_' in key])
-        if np.isnan(obs['defense_agent']):
+        obs['defense_agent'] = np.mean(np.array([observation[key] for key in observation if 'adversary_' not in key]), axis=0)
+        obs['attack_agent'] = np.mean(np.array([observation[key] for key in observation if 'adversary_' in key]), axis=0)
+        if np.isnan(obs['defense_agent']).any():
             del obs['defense_agent']
-        if np.isnan(obs['attack_agent']):
+        if np.isnan(obs['attack_agent']).any():
             del obs['attack_agent']
 
         return obs
@@ -238,6 +238,17 @@ class AdvObservationWrapper(ObservationWrapper):
             observation = {key: np.array([observation[key]['y'], p_set[key], *old_a_encoded[key]]) for key in observation}
 
         return observation
+
+
+class AdvFramestackObservationWrapper(CentralFramestackObservationWrapper):
+
+    def _get_ob(self):
+        new_obs = {}
+        for key in self.frames[-1].keys():
+            y_value_max = max([obs[key][0] for obs in self.frames if key in obs])
+            new_obs[key] = np.insert(self.frames[-1][key], 0, y_value_max)
+
+        return new_obs
 
 
 # for reference purpose

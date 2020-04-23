@@ -242,3 +242,46 @@ class GroupRewardWrapper(RewardWrapper):
             del re['attack_agent']
 
         return re
+
+
+class AdvLocalRewardWrapper(RewardWrapper):
+    """
+    The reward for each agent. It depends on agent local observation.
+    """
+    def __init__(self, env, unbalance=False):
+        super().__init__(env)
+        self.unbalance = unbalance
+
+    def reward(self, reward, info):
+        M = self.k.sim_params['M']
+        N = self.k.sim_params['N']
+        P = self.k.sim_params['P']
+
+        rewards = {}
+        y_or_u = 'u' if self.unbalance else 'y'
+        # for each agent, we set the reward as under, note that agent reward is only a function of local information.
+
+        for key in info.keys():
+            action = info[key]['current_action']
+            if action is None:
+                action = self.INIT_ACTION[key]
+
+            old_action = info[key]['old_action']
+            if old_action is None:
+                old_action = self.INIT_ACTION[key]
+
+            action = np.array(action)
+            old_action = np.array(old_action)
+            if (action == old_action).all():
+                roa = 0
+            else:
+                roa = 1
+
+            if 'adversary_' not in key:
+                r = -(M * info[key][y_or_u] + N * roa + P * np.linalg.norm(action - self.INIT_ACTION[key]) + 0.5 * (
+                    1 - abs(info[key]['p_set_p_max'])) ** 2)
+            else:
+                r = M * info[key][y_or_u] - N * roa
+            rewards[key] = r
+
+        return rewards
