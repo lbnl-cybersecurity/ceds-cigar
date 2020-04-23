@@ -198,6 +198,7 @@ class AdvObservationWrapper(ObservationWrapper):
         return Box(low=-float('inf'), high=float('inf'), shape=(2 + self.a_size,), dtype=np.float64)
 
     def observation(self, observation, info):
+
         if info:
             old_actions = {}
             p_set = {}
@@ -205,6 +206,7 @@ class AdvObservationWrapper(ObservationWrapper):
                 # TODO: check for the else condition
                 old_actions[key] = info[key]['raw_action'] if 'raw_action' in info[key] else self.init_action
                 p_set[key] = info[key]['p_set'] if 'p_set' in info[key] else 0
+
         else:
             old_actions = {key: self.init_action for key in observation}
             p_set = {key: 0 for key in observation}

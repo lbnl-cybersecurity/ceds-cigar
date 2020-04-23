@@ -12,5 +12,7 @@ class AdvMultiEnv(Wrapper):
         env = AdvObservationWrapper(env)
         env = LocalRewardWrapper(env)
         env = GroupActionWrapper(env)                      # grouping layer
+        env = GroupRewardWrapper(env)
         env = GroupObservationWrapper(env)                 # grouping layer
+        env = AdvFramestackObservationWrapper(env)
         self.env = env

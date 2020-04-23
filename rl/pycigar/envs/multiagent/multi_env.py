@@ -116,8 +116,9 @@ class MultiEnv(MultiAgentEnv, Env):
                 break
 
         list_device = self.k.device.get_rl_device_ids()
-        for device in list_device:
-            if device not in new_state:
+        list_device_observation = list(observations.keys())
+        for device in list_device_observation:
+            if device not in list_device:
                 del observations[device]
         obs = {device: {prop: np.mean(observations[device][prop]) for prop in observations[device]} for device in observations}
 
