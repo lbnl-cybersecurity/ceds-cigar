@@ -13,4 +13,5 @@ class AdvMultiEnv(Wrapper):
         env = LocalRewardWrapper(env)
         env = GroupActionWrapper(env)                      # grouping layer
         env = GroupObservationWrapper(env)                 # grouping layer
+        env = GroupRewardWrapper(env)
         self.env = env

@@ -49,10 +49,12 @@ class LocalRewardWrapper(RewardWrapper):
         rewards = {}
         y_or_u = 'u' if self.unbalance else 'y'
         # for each agent, we set the reward as under, note that agent reward is only a function of local information.
+
         for key in info.keys():
             action = info[key]['current_action']
             if action is None:
                 action = self.INIT_ACTION[key]
+
             old_action = info[key]['old_action']
             if old_action is None:
                 old_action = self.INIT_ACTION[key]
@@ -225,5 +227,18 @@ class CentralGlobalRewardWrapper(RewardWrapper):
 #                         MULTI-AGENT WRAPPER                             #
 ###########################################################################
 
-class AdvRewardWrapper(RewardWrapper):
-    pass
+class GroupRewardWrapper(RewardWrapper):
+    def __init__(self, env, unbalance=False):
+        super().__init__(env)
+        self.unbalance = unbalance
+
+    def reward(self, reward, info):
+        re = {}
+        re['defense_agent'] = np.mean([reward[key] for key in reward if 'adversary_' not in key])
+        re['attack_agent'] = np.mean([reward[key] for key in reward if 'adversary_' in key])
+        if np.isnan(re['defense_agent']):
+            del re['defense_agent']
+        if np.isnan(re['attack_agent']):
+            del re['attack_agent']
+
+        return re

@@ -21,6 +21,13 @@ class ActionWrapper(Wrapper):
                 info_update[i] = {'raw_action': action}
 
         observation, reward, done, info = self.env.step(rl_actions, randomize_rl_update)
+
+        if info:
+            info_update_keys = list(info_update.keys())
+            for key in info_update_keys:
+                if key not in info.keys():
+                    del info_update[key]
+
         return observation, reward, done, merge_dicts(info, info_update)
 
     def action(self, action, rl_id):
