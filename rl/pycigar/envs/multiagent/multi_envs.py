@@ -5,7 +5,7 @@ from pycigar.envs.wrappers.reward_wrappers import *
 from pycigar.envs.wrappers.wrapper import Wrapper
 
 
-class AdvMultiEnv(Wrapper):
+class AdvEnv(Wrapper):
     def __init__(self, **kwargs):
         env = MultiEnv(**kwargs)                           # receive a dict of rl_id: action
         env = AllRelativeInitDiscreteActionWrapper(env)
@@ -14,5 +14,46 @@ class AdvMultiEnv(Wrapper):
         env = GroupActionWrapper(env)                      # grouping layer
         env = GroupRewardWrapper(env)
         env = GroupObservationWrapper(env)                 # grouping layer
+        env = GroupInfoWrapper(env)
         env = AdvFramestackObservationWrapper(env)
         self.env = env
+
+
+class GroupInfoWrapper(Wrapper):
+    def reset(self):
+        return self.env.reset()
+
+    def step(self, rl_actions, randomize_rl_update=None):
+        observation, reward, done, info = self.env.step(rl_actions, randomize_rl_update)
+        return observation, reward, done, self.info(info)
+
+    def info(self, info):
+        new_info = {}
+        new_info['defense_agent'] = {key: info[key] for key in info if 'adversary_' not in key}
+        new_info['attack_agent'] = {key: info[key] for key in info if 'adversary_' in key}
+        if not new_info['defense_agent']:
+            del new_info['defense_agent']
+        if not new_info['attack_agent']:
+            del new_info['attack_agent']
+
+        return new_info
+
+class AdvMultiEnv(MultiEnv):
+    def __init__(self, **kwargs):
+        self.env = AdvEnv(**kwargs)
+        self.env.action_space
+        self.env.observation_space
+
+    def reset(self):
+        return self.env.reset()
+
+    def step(self, action_dict):
+        return self.env.step(action_dict)
+
+    @property
+    def action_space(self):
+        return self.env.action_space
+
+    @property
+    def observation_space(self):
+        return self.env.observation_space

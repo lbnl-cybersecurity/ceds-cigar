@@ -153,26 +153,6 @@ class CentralFramestackObservationWrapper(ObservationWrapper):
 ###########################################################################
 #                         MULTI-AGENT WRAPPER                             #
 ###########################################################################
-class GroupObservationWrapper(ObservationWrapper):
-    def __init__(self, env, unbalance=False):
-        super().__init__(env)
-        self.unbalance = unbalance
-
-    @property
-    def observation_space(self):
-        self.env.observation_space
-
-    def observation(self, observation, info):
-        obs = {}
-        obs['defense_agent'] = np.mean(np.array([observation[key] for key in observation if 'adversary_' not in key]), axis=0)
-        obs['attack_agent'] = np.mean(np.array([observation[key] for key in observation if 'adversary_' in key]), axis=0)
-        if np.isnan(obs['defense_agent']).any():
-            del obs['defense_agent']
-        if np.isnan(obs['attack_agent']).any():
-            del obs['attack_agent']
-
-        return obs
-
 
 class AdvObservationWrapper(ObservationWrapper):
     def __init__(self, env, unbalance=False):
@@ -239,8 +219,62 @@ class AdvObservationWrapper(ObservationWrapper):
 
         return observation
 
+class GroupObservationWrapper(ObservationWrapper):
+    def __init__(self, env, unbalance=False):
+        super().__init__(env)
+        self.unbalance = unbalance
 
-class AdvFramestackObservationWrapper(CentralFramestackObservationWrapper):
+    @property
+    def observation_space(self):
+        return self.env.observation_space
+
+    def observation(self, observation, info):
+        obs = {}
+        obs['defense_agent'] = np.mean(np.array([observation[key] for key in observation if 'adversary_' not in key]), axis=0)
+        obs['attack_agent'] = np.mean(np.array([observation[key] for key in observation if 'adversary_' in key]), axis=0)
+
+        d = obs['defense_agent']
+        a = obs['attack_agent']
+        n = np.isnan(obs['attack_agent'])
+
+        if np.isnan(obs['defense_agent']).any():
+            del obs['defense_agent']
+        if np.isnan(obs['attack_agent']).any():
+            del obs['attack_agent']
+
+        return obs
+
+class AdvFramestackObservationWrapper(ObservationWrapper):
+    def __init__(self, env, unbalance=False):
+        super().__init__(env)
+        self.unbalance = unbalance
+
+    @property
+    def observation_space(self):
+        obss = self.env.observation_space
+        if type(obss) is Box:
+            self.frames = deque([], maxlen=NUM_FRAMES)
+            shp = obss.shape
+            obss = Box(
+                low=-float('inf'),
+                high=float('inf'),
+                shape=(shp[0] + 1,),
+                dtype=np.float64)
+        return obss
+
+    def reset(self):
+        # get the observation from environment as usual
+        self.frames = deque([], maxlen=NUM_FRAMES)
+        observation = self.env.reset()
+        # add the observation into frames
+        self.frames.append(observation)
+        return self._get_ob()
+
+    def observation(self, observation, info):
+        # everytime we get a new observation from the environment, we add it to the frame and return the
+        # post-processed observation.
+        self.frames.append(observation)
+        return self._get_ob()
 
     def _get_ob(self):
         new_obs = {}
@@ -249,69 +283,3 @@ class AdvFramestackObservationWrapper(CentralFramestackObservationWrapper):
             new_obs[key] = np.insert(self.frames[-1][key], 0, y_value_max)
 
         return new_obs
-
-
-# for reference purpose
-class GlobalObservationWrapper(ObservationWrapper):
-    """
-    Observation: a dictionary of global observation for each agent, in the form of:
-                 {'id_1': {
-                    'own_obs': local observation of the agent
-                    'opponent_obs': concatenation of local observation of other agents
-                    'opponent_action': concatenation of local observation of other agents (will be filled in at post-processing)
-                 },
-                 'id_2': {}
-                 ,...}.
-
-                 each agent observation is an array of [y-value, y-value-max, last_action_onehot, y-y_t5]
-                 at current timestep.
-
-                y_value: the value measuring oscillation magnitude of the volage at the agent position.
-                last_action_onehot: the last timestep action under one-hot encoding form.
-
-                one-hot encoding: an array of zeros everywhere and have a value of 1 at the executed position.
-                For example, we discretize the action space into DISCRETIZE=10 bins, and the action sent back from
-                RLlib is: 3. The one-hot encoding of the action is: np.array([0, 0, 0, 1, 0, 0, 0, 0, 0, 0])
-    """
-
-    @property
-    def observation_space(self):
-        obss = self.env.observation_space
-        acts = self.env.action_space
-        if type(obss) is Box:
-            shpobs = obss.shape
-            shpact = acts.shape
-
-        observation_space = Dict({
-            "own_obs": Box(low=-float('inf'), high=float('inf'), shape=(shpobs[0] + 13,), dtype=np.float64),
-            "opponent_obs": Box(low=-float('inf'), high=float('inf'), shape=(12 * (shpobs[0] + 13),), dtype=np.float64),
-            "opponent_action": Box(low=-float('inf'), high=float('inf'), shape=(12 * DISCRETIZE_RELATIVE,),
-                                   dtype=np.float64),
-        })
-        return observation_space
-
-    def observation(self, observation, info):
-        global_obs = {}
-        rl_ids = list(observation.keys())
-        rl_ids.sort()
-
-        for rl_id in observation.keys():
-            onehot_ids = [0.] * len(rl_ids)
-            index_id = rl_ids.index(rl_id)
-            onehot_ids[index_id] = 1.
-            observation[rl_id] = list(observation[rl_id]) + list(onehot_ids)
-
-        for rl_id in observation.keys():
-            other_rl_ids = list(observation.keys())
-            other_rl_ids.remove(rl_id)
-            own_obs = observation[rl_id]
-            opponent_obs = []
-
-            for other_rl_id in other_rl_ids:
-                opponent_obs += list(observation[other_rl_id])
-
-            global_obs[rl_id] = {"own_obs": own_obs,
-                                 "opponent_obs": np.array(opponent_obs),
-                                 "opponent_action": np.array([-1.] * 12 * DISCRETIZE_RELATIVE)  # case of single action
-                                 }
-        return global_obs

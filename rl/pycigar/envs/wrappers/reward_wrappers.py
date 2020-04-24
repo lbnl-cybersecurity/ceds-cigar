@@ -100,43 +100,6 @@ class GlobalRewardWrapper(RewardWrapper):
 
         return rewards
 
-
-class SecondStageGlobalRewardWrapper(RewardWrapper):
-    def reward(self, reward, info):
-        rewards = {}
-        global_reward = 0
-        # we accumulate agents reward into global_reward and divide it with the number of agents.
-
-        for key in info.keys():
-            action = info[key]['current_action']
-            if action is None:
-                action = self.INIT_ACTION[key]
-            old_action = info[key]['old_action']
-            if old_action is None:
-                old_action = self.INIT_ACTION[key]
-            y = info[key]['y']
-
-            r = 0
-
-            if (action == old_action).all():
-                roa = 0
-            else:
-                roa = 1
-            if (action == self.INIT_ACTION[key]).all():
-                ria = 0
-            else:
-                ria = 1
-
-            r += -(2 * y + 0.1 * roa + np.linalg.norm(action - self.INIT_ACTION[key]))
-            # r += -((M2*y**2 + P2*np.sum(np.abs(action-old_action)) + N2*np.sum(np.abs(action-INIT_ACTION))))/100
-            global_reward += r
-        global_reward = global_reward / len(list(info.keys()))
-        for key in info.keys():
-            rewards.update({key: global_reward})
-
-        return rewards
-
-
 class SearchGlobalRewardWrapper(RewardWrapper):
     def reward(self, reward, info):
         M = self.sim_params['M']
