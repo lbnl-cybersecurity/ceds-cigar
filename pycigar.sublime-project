@@ -1,0 +1,24 @@
+{
+	"conda_environment": "/home/toanngo/anaconda3/envs/pycigar",
+	"folders":
+	[
+		{
+			"path": "."
+		}
+	],
+	"settings":
+	{
+		"debug.configurations":
+		[
+			{
+				"cwd": "${workspaceRoot}",
+				"name": "Launch Program",
+				"program": "${project_path}/rl/setup.py",
+				"request": "launch",
+				"type": "python",
+				"valuesFormatting": "parseText",
+				"target": "/home/toanngo/anaconda3/envs/pycigar"
+			}
+		]
+	}
+}
