@@ -45,13 +45,17 @@ class MultiEnv(MultiAgentEnv, Env):
         observations = {}
         self.old_actions = {}
         randomize_rl_update = {}
-
         if rl_actions is None:
             rl_actions = self.old_actions
 
         for rl_id in rl_actions.keys():
             self.old_actions[rl_id] = self.k.device.get_control_setting(rl_id)
             randomize_rl_update[rl_id] = np.random.randint(low=0, high=3)
+
+        if rl_actions != {}:
+            for key in rl_actions:
+                if 'adversary_' in key:
+                    rl_actions[key] = [1.014, 1.015, 1.015, 1.016, 1.017]
 
         for _ in range(self.sim_params['env_config']['sims_per_step']):
             self.env_time += 1
@@ -126,6 +130,7 @@ class MultiEnv(MultiAgentEnv, Env):
         finish = not converged or (self.k.time == self.k.t)
         done = {}
         if finish:
+            print('done')
             done['__all__'] = True
         else:
             done['__all__'] = False
