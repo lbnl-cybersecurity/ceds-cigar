@@ -94,7 +94,7 @@ class NewSingleRelativeInitDiscreteActionWrapper(ActionWrapper):
 
     @property
     def action_space(self):
-        return Tuple([Discrete(DISCRETIZE_RELATIVE)] * 5)
+        return Tuple([Discrete(DISCRETIZE_RELATIVE)] * 2)
 
     def action(self, action, rl_id, *_):
         act = self.INIT_ACTION[rl_id] - ACTION_RANGE + ACTION_STEP * action[0]
