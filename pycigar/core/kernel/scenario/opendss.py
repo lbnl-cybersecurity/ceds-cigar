@@ -10,7 +10,6 @@ from pycigar.controllers import UnbalancedFixedController
 from pycigar.controllers import RLController
 import os
 import numpy as np
-import pycigar.config as config
 import pandas as pd
 from pycigar.envs.attack_definition import AttackDefinitionGenerator
 from pycigar.utils.logging import logger
