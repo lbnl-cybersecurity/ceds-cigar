@@ -1,24 +1,13 @@
 import os
-import pycigar.config as config
 import pandas as pd
 import numpy as np
 
 
-def input_parser(folder_name, benchmark=False):
-    folder_name = folder_name
-    folder_path = os.path.join(config.DATA_DIR, folder_name)
-
-    file_dss_name = 'ieee37.dss'
-    file_dss_path = os.path.join(folder_path, file_dss_name)
-
-    file_load_solar_name = 'load_solar_data.csv'
-    file_load_solar_path = os.path.join(folder_path, file_load_solar_name)
-
-    file_misc_inputs_name = 'misc_inputs.csv'
-    file_misc_inputs_path = os.path.join(folder_path, file_misc_inputs_name)
-
-    file_breakpoints_name = 'breakpoints.csv'
-    file_breakpoints_path = os.path.join(folder_path, file_breakpoints_name)
+def input_parser(misc_inputs_path, dss_path, load_solar_path, breakpoints_path=None, benchmark=False):
+    file_misc_inputs_path = misc_inputs_path
+    file_dss_path = dss_path
+    file_load_solar_path = load_solar_path
+    file_breakpoints_path = breakpoints_path
 
     json_query = {
         'M': 50,  # weight for y-value in reward function
