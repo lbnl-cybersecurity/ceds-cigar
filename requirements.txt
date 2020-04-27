@@ -14,7 +14,7 @@ path.py
 joblib
 python-dateutil
 cached_property
-cloudpickle
+cloudpickle<1.4.0,>=1.2.0
 matplotlib
 tabulate
 tensorflow
