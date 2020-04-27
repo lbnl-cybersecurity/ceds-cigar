@@ -100,7 +100,7 @@ class CentralLocalObservationWrapper(ObservationWrapper):
             old_a_encoded = old_actions.flatten()
 
         if self.unbalance:
-            observation = np.array([observation['u'], p_set, *old_a_encoded])
+            observation = np.array([observation['u'] / 0.1, p_set, *old_a_encoded])
         else:
             observation = np.array([observation['y'], p_set, *old_a_encoded])
 
