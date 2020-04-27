@@ -3,7 +3,7 @@ import os.path as osp
 
 OPENDSS_SLEEP = 1.0  # Delay between initializing OpenDSS and PyCIGAR
 
-PROJECT_PATH = osp.abspath(osp.join(osp.dirname(__file__)))
+PROJECT_DIR = osp.abspath(osp.join(osp.dirname(__file__)))
 
 DATA_DIR = osp.abspath(osp.join(osp.dirname(__file__), 'data'))
 
