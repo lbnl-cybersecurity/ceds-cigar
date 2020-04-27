@@ -193,13 +193,13 @@ def main(misc_inputs_path, dss_path, load_solar_path, breakpoints_path, test, po
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--params", type=os.path.abspath, default=pycigdir + "/data/ieee37busdata/misc_inputs.csv", help='Directory to params.csv file.')
-    parser.add_argument("--dss", type=os.path.abspath, default=pycigdir + "/data/ieee37busdata/ieee37.dss", help='Directory to .dss file.')
-    parser.add_argument("--loadpv", type=os.path.abspath, default=pycigdir + "/data/ieee37busdata/load_solar_data.csv", help='Directory to load-solar.csv file.')
+    parser.add_argument("--params", type=os.path.abspath, default=DATA_DIR + "/ieee37busdata/misc_inputs.csv", help='Directory to params.csv file.')
+    parser.add_argument("--dss", type=os.path.abspath, default=DATA_DIR + "/ieee37busdata/ieee37.dss", help='Directory to .dss file.')
+    parser.add_argument("--loadpv", type=os.path.abspath, default=DATA_DIR + "/ieee37busdata/load_solar_data.csv", help='Directory to load-solar.csv file.')
     parser.add_argument("--breakpoints", type=os.path.abspath, default=None, help='Directory to custom initial breakpoints.csv file (Optional)')
     parser.add_argument("--test", type=int, default=0)
-    parser.add_argument("--policy", type=os.path.abspath, default=pycigdir + "/result/policy/")
-    parser.add_argument("--output", type=os.path.abspath, default=pycigdir + "/result/")
+    parser.add_argument("--policy", type=os.path.abspath, default=DATA_DIR + "/result/policy/")
+    parser.add_argument("--output", type=os.path.abspath, default=DATA_DIR + "/result/")
     args = parser.parse_args()
     # Run
     main(args.params, args.dss, args.loadpv, args.breakpoints, args.test, args.policy, args.output)
