@@ -213,7 +213,7 @@ class AdvObservationWrapper(ObservationWrapper):
                 old_a_encoded[key] = old_actions[key].flatten()
 
         if self.unbalance:
-            observation = {key: np.array([observation[key]['u'], p_set[key], *old_a_encoded[key]]) for key in observation}
+            observation = {key: np.array([observation[key]['u'] / 0.1, p_set[key], *old_a_encoded[key]]) for key in observation}
         else:
             observation = {key: np.array([observation[key]['y'], p_set[key], *old_a_encoded[key]]) for key in observation}
 
