@@ -16,6 +16,7 @@ from ray.rllib.evaluation.metrics import collect_episodes, summarize_episodes
 from ray.tune.registry import register_env
 from tqdm import tqdm
 
+import pycigar
 from pycigar.utils.input_parser import input_parser
 from pycigar.utils.logging import logger
 from pycigar.utils.output import plot_new
@@ -208,14 +209,26 @@ if __name__ == '__main__':
     create_env, env_name = make_create_env(pycigar_params, version=0)
     register_env(env_name, create_env)
 
-    sim_params = input_parser('ieee37busdata_regulator_attack' if args.unbalance else 'ieee37busdata')
+    if not args.unbalance:
+        misc_inputs_path = pycigar.DATA_DIR + "/ieee37busdata/misc_inputs.csv"
+        dss_path = pycigar.DATA_DIR + "/ieee37busdata/ieee37.dss"
+        load_solar_path = pycigar.DATA_DIR + "/ieee37busdata/load_solar_data.csv"
+        breakpoints_path = pycigar.DATA_DIR + "/ieee37busdata/breakpoints.csv"
+    else:
+        misc_inputs_path = pycigar.DATA_DIR + "/ieee37busdata_regulator_attack/misc_inputs.csv"
+        dss_path = pycigar.DATA_DIR + "/ieee37busdata_regulator_attack/ieee37.dss"
+        load_solar_path = pycigar.DATA_DIR + "/ieee37busdata_regulator_attack/load_solar_data.csv"
+        breakpoints_path = pycigar.DATA_DIR + "/ieee37busdata_regulator_attack/breakpoints.csv"
+
+    sim_params = input_parser(misc_inputs_path, dss_path, load_solar_path, breakpoints_path)
+    #sim_params = input_parser('ieee37busdata_regulator_attack' if args.unbalance else 'ieee37busdata')
 
     base_config = {
         "env": env_name,
         "gamma": 0.5,
         'lr': 2e-4,
         'env_config': deepcopy(sim_params),
-        'sample_batch_size': 50,
+        'rollout_fragment_length': 50,
         'train_batch_size': 500,
         'clip_param': 0.1,
         'lambda': 0.95,
@@ -249,7 +262,7 @@ if __name__ == '__main__':
         "evaluation_num_workers": 1,
         'evaluation_num_episodes': args.eval_rounds,
         "evaluation_interval": args.eval_interval,
-        "custom_eval_function": tune.function(custom_eval_function),
+        "custom_eval_function": custom_eval_function,
         'evaluation_config': {
             "seed": 42,
             # IMPORTANT NOTE: For policy gradients, this might not be the optimal policy
@@ -259,9 +272,9 @@ if __name__ == '__main__':
 
         # ==== CUSTOM METRICS ====
         "callbacks": {
-            "on_episode_start": tune.function(on_episode_start),
-            "on_episode_step": tune.function(on_episode_step),
-            "on_episode_end": tune.function(on_episode_end),
+            "on_episode_start": on_episode_start,
+            "on_episode_step": on_episode_step,
+            "on_episode_end": on_episode_end,
         },
     }
     # eval environment should not be random across workers

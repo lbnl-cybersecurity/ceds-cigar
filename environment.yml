@@ -1,4 +1,4 @@
-name: pycigar
+name: pycigar-084
 
 dependencies:
     - python==3.7.6
@@ -11,7 +11,7 @@ dependencies:
     - setuptools==41.0.0
     - pip
     - pip:
-        - ray==0.8.3
+        - ray==0.8.4
         - tensorflow==2.0.0
         - gym==0.14.0
         - pyprind==2.11.2
