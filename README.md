@@ -1,3 +1,12 @@
-# ceds-cigar
-# 05/28/20108 : GridPV first module pushed, Feeder Model Pushed , First OpenDSS model code added 
-# 06/03/2018 : Version 0.1 of the Python OpenDSS Interface has been pushed.
+<img src="docs/img/square_logo.svg" align="right" width="25%"/>
+
+[![Build Status](https://travis-ci.com/toanngosy/pycigar.svg?token=ZipDQiMzmqdEzHhckL4y&branch=master)](https://travis-ci.com/toanngosy/pycigar)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/toanngosy/pycigar/blob/master/LICENSE.md)
+
+# PyCIGAR
+PyCIGAR is a computational framework for deep Reinforcement Learning and control experiments for distributed grid.
+
+# More information
+- [Documentations]()
+- [Installation]()
+- [Tutorials]()
