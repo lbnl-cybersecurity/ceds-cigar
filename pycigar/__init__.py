@@ -21,8 +21,7 @@ import numpy as np
 import shutil
 from copy import deepcopy
 import tensorflow as tf
-
-pycigdir = os.path.dirname(__file__)
+from pycigar.config import config
 
 
 def main(misc_inputs_path, dss_path, load_solar_path, breakpoints_path, test, policy, output):

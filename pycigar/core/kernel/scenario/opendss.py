@@ -199,7 +199,7 @@ class OpenDSSScenario(KernelScenario):
         sim_params = self.master_kernel.sim_params
         load_scaling_factor = sim_params['scenario_config']['custom_configs']['load_scaling_factor']
 
-        network_data_directory_path = os.path.join(config.DATA_DIR, sim_params['scenario_config']['network_data_directory'])
+        network_data_directory_path = sim_params['scenario_config']['network_data_directory']
 
         profile = pd.read_csv(network_data_directory_path)
         profile.columns = map(str.lower, profile.columns)

@@ -2,13 +2,13 @@ import pycigar
 
 # Test no-agent path
 pycigar.main(
-    pycigar.pycigdir + "/data/ieee37busdata/misc_inputs.csv",
-    pycigar.pycigdir + "/data/ieee37busdata/ieee37.dss",
-    pycigar.pycigdir + "/data/ieee37busdata/load_solar_data.csv",
-    pycigar.pycigdir + "/data/ieee37busdata/breakpoints.csv",
+    pycigar.DATA_DIR + "/ieee37busdata/misc_inputs.csv",
+    pycigar.DATA_DIR + "/ieee37busdata/ieee37.dss",
+    pycigar.DATA_DIR + "/ieee37busdata/load_solar_data.csv",
+    pycigar.DATA_DIR + "/ieee37busdata/breakpoints.csv",
     2,
     None,
-    pycigar.pycigdir + "/result/",
+    pycigar.DATA_DIR + "/result/",
 )
 
 # Test the training
