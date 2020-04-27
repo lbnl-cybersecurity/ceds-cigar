@@ -1,7 +1,7 @@
 name: pycigar
 
 dependencies:
-    - python==3.7.7
+    - python==3.7.6
     - scipy==1.1.0
     - lxml==4.2.4
     - six==1.11.0

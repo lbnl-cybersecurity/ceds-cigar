@@ -16,8 +16,8 @@ User-facing application reqs and specs: https://docs.google.com/presentation/d/1
 ## Installation (Using Regular Python)
 
 ```
-git clone git+ssh://USERNAME@github.com/lbnl-cybersecurity/ceds-cigar-external.git
-cd ceds-cigar-external
+git clone git+ssh://USERNAME@github.com/lbnl-cybersecurity/ceds-cigar.git
+cd ceds-cigar
 pip3 install -r requirements.txt
 python3 setup.py develop
 ```
@@ -25,8 +25,8 @@ python3 setup.py develop
 ## Installation (Using Anaconda of Miniconda)
 
 ```
-git clone git+ssh://USERNAME@github.com/lbnl-cybersecurity/ceds-cigar-external.git
-cd ceds-cigar-external
+git clone git+ssh://USERNAME@github.com/lbnl-cybersecurity/ceds-cigar.git
+cd ceds-cigar
 conda env create -f environment.yml
 python setup_conda.py develop
 ```

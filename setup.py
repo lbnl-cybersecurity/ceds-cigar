@@ -5,7 +5,7 @@ from os.path import dirname, realpath
 from setuptools import find_packages, setup, Distribution
 import setuptools.command.build_ext as _build_ext
 import subprocess
-from pycigar.version import __version__
+from pycigar import __version__
 
 
 def _read_requirements_file():
@@ -36,9 +36,10 @@ setup(
     description=("A system for applying deep reinforcement learning and "
                  "control to distributed grid"),
     long_description=open("README.md").read(),
-    url="https://github.com/toanngosy/pycigar",
+    url="https://github.com/lbnl-cybersecurity/ceds-cigar",
     keywords=("distributed grid"
               "reinforcement-learning deep-learning python"),
     install_requires=_read_requirements_file(),
     zip_safe=False,
+    scripts=['pycigar/__init__.py',]
 )
