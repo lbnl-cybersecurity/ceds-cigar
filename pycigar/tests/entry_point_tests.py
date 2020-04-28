@@ -23,14 +23,14 @@ pycigar.main(
 #)
 
 # Test running with a trained agent
-pycigar.main(
-    pycigar.DATA_DIR + "/ieee37busdata/misc_inputs.csv",
-    pycigar.DATA_DIR + "/ieee37busdata/ieee37.dss",
-    pycigar.DATA_DIR + "/ieee37busdata/load_solar_data.csv",
-    pycigar.DATA_DIR + "/ieee37busdata/breakpoints.csv",
-    1,
-    pycigar.PROJECT_DIR + "/docs/SAMPLE_RESULT_policy/",
-    pycigar.LOG_DIR,  # output dir
-)
+# pycigar.main(
+#     pycigar.DATA_DIR + "/ieee37busdata/misc_inputs.csv",
+#     pycigar.DATA_DIR + "/ieee37busdata/ieee37.dss",
+#     pycigar.DATA_DIR + "/ieee37busdata/load_solar_data.csv",
+#     pycigar.DATA_DIR + "/ieee37busdata/breakpoints.csv",
+#     1,
+#     pycigar.PROJECT_DIR + "/docs/SAMPLE_RESULT_policy/",
+#     pycigar.LOG_DIR,  # output dir
+# )
 
 # TODO: clean up the API to handle optional arguments.
