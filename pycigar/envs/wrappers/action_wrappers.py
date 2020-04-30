@@ -160,7 +160,7 @@ class SingleRelativeInitPhaseSpecificDiscreteActionWrapper(ActionWrapper):
 
     @property
     def action_space(self):
-        return Tuple([Discrete(DISCRETIZE_RELATIVE)] * 4)
+        return Tuple([Discrete(DISCRETIZE_RELATIVE)] * 3)
 
     def action(self, action, rl_id, *_):
         if rl_id.endswith('a'):
@@ -170,7 +170,7 @@ class SingleRelativeInitPhaseSpecificDiscreteActionWrapper(ActionWrapper):
         elif rl_id.endswith('c'):
             translation = action[2]
         else:
-            translation = action[3]
+            translation = int(DISCRETIZE_RELATIVE / 2)
 
         return self.INIT_ACTION[rl_id] - ACTION_RANGE + ACTION_STEP * translation
 
