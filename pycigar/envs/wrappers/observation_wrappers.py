@@ -1,7 +1,7 @@
 from collections import deque
 
-from gym.spaces import Dict, Box, Tuple, Discrete
-
+import numpy as np
+from gym.spaces import Box, Tuple, Discrete
 from pycigar.envs.wrappers.wrapper import Wrapper
 from pycigar.envs.wrappers.wrappers_constants import *
 
@@ -105,6 +105,23 @@ class CentralLocalObservationWrapper(ObservationWrapper):
             observation = np.array([observation['y'], p_set, *old_a_encoded])
 
         return observation
+
+
+class CentralLocalPhaseSpecificObservationWrapper(CentralLocalObservationWrapper):
+    def __init__(self, env, unbalance=False):
+        super().__init__(env, unbalance)
+
+    @property
+    def observation_space(self):
+        prev_shape = super().observation_space.shape[0]
+        return Box(low=-float('inf'), high=float('inf'), shape=(3 + prev_shape,), dtype=np.float64)
+
+    def observation(self, observation, info):
+        obs = super().observation(observation, info)
+        va = self.k.node.nodes['s701a']['voltage'][self.k.time - 1]
+        vb = self.k.node.nodes['s701b']['voltage'][self.k.time - 1]
+        vc = self.k.node.nodes['s701c']['voltage'][self.k.time - 1]
+        return np.array([*obs, va, vb, vc])
 
 
 class CentralFramestackObservationWrapper(ObservationWrapper):
@@ -213,11 +230,14 @@ class AdvObservationWrapper(ObservationWrapper):
                 old_a_encoded[key] = old_actions[key].flatten()
 
         if self.unbalance:
-            observation = {key: np.array([observation[key]['u'] / 0.1, p_set[key], *old_a_encoded[key]]) for key in observation}
+            observation = {key: np.array([observation[key]['u'] / 0.1, p_set[key], *old_a_encoded[key]]) for key in
+                           observation}
         else:
-            observation = {key: np.array([observation[key]['y'], p_set[key], *old_a_encoded[key]]) for key in observation}
+            observation = {key: np.array([observation[key]['y'], p_set[key], *old_a_encoded[key]]) for key in
+                           observation}
 
         return observation
+
 
 class GroupObservationWrapper(ObservationWrapper):
     def __init__(self, env, unbalance=False):
@@ -230,8 +250,10 @@ class GroupObservationWrapper(ObservationWrapper):
 
     def observation(self, observation, info):
         obs = {}
-        obs['defense_agent'] = np.mean(np.array([observation[key] for key in observation if 'adversary_' not in key]), axis=0)
-        obs['attack_agent'] = np.mean(np.array([observation[key] for key in observation if 'adversary_' in key]), axis=0)
+        obs['defense_agent'] = np.mean(np.array([observation[key] for key in observation if 'adversary_' not in key]),
+                                       axis=0)
+        obs['attack_agent'] = np.mean(np.array([observation[key] for key in observation if 'adversary_' in key]),
+                                      axis=0)
 
         d = obs['defense_agent']
         a = obs['attack_agent']
@@ -243,6 +265,7 @@ class GroupObservationWrapper(ObservationWrapper):
             del obs['attack_agent']
 
         return obs
+
 
 class AdvFramestackObservationWrapper(ObservationWrapper):
     def __init__(self, env, unbalance=False):

@@ -9,18 +9,17 @@ from copy import deepcopy
 
 import numpy as np
 import pandas as pd
+import pycigar
 import ray
+from pycigar.utils.input_parser import input_parser
+from pycigar.utils.logging import logger
+from pycigar.utils.output import plot_new
+from pycigar.utils.registry import make_create_env
 from ray import tune
 from ray.rllib.agents.ppo import PPOTrainer, APPOTrainer
 from ray.rllib.evaluation.metrics import collect_episodes, summarize_episodes
 from ray.tune.registry import register_env
 from tqdm import tqdm
-
-import pycigar
-from pycigar.utils.input_parser import input_parser
-from pycigar.utils.logging import logger
-from pycigar.utils.output import plot_new
-from pycigar.utils.registry import make_create_env
 
 ActionTuple = namedtuple('Action', ['action', 'timestep'])
 
@@ -55,7 +54,8 @@ def custom_eval_function(trainer, eval_workers):
     episodes, _ = collect_episodes(eval_workers.local_worker(), eval_workers.remote_workers())
     metrics = summarize_episodes(episodes)
 
-    f = plot_new(episodes[-1].hist_data['logger']['log_dict'], episodes[-1].hist_data['logger']['custom_metrics'], trainer.iteration, trainer.global_vars['unbalance'])
+    f = plot_new(episodes[-1].hist_data['logger']['log_dict'], episodes[-1].hist_data['logger']['custom_metrics'],
+                 trainer.iteration, trainer.global_vars['unbalance'])
     f.savefig(trainer.global_vars['reporter_dir'] + 'eval-epoch-' + str(trainer.iteration) + '.png',
               bbox_inches='tight')
 
@@ -130,7 +130,8 @@ def save_best_policy(trainer, episodes):
         # save plots
         ep = episodes[-1]
         data = ep.hist_data['logger']['log_dict']
-        f = plot_new(data, ep.hist_data['logger']['custom_metrics'], trainer.iteration, trainer.global_vars['unbalance'])
+        f = plot_new(data, ep.hist_data['logger']['custom_metrics'], trainer.iteration,
+                     trainer.global_vars['unbalance'])
         f.savefig(os.path.join(trainer.global_vars['reporter_dir'], 'best', 'eval.png'))
 
         # save CSV
@@ -221,7 +222,7 @@ if __name__ == '__main__':
         breakpoints_path = pycigar.DATA_DIR + "/ieee37busdata_regulator_attack/breakpoints.csv"
 
     sim_params = input_parser(misc_inputs_path, dss_path, load_solar_path, breakpoints_path)
-    #sim_params = input_parser('ieee37busdata_regulator_attack' if args.unbalance else 'ieee37busdata')
+    # sim_params = input_parser('ieee37busdata_regulator_attack' if args.unbalance else 'ieee37busdata')
 
     base_config = {
         "env": env_name,
@@ -301,7 +302,21 @@ if __name__ == '__main__':
         'unbalance': args.unbalance
     }
 
-    if args.algo == 'ppo':
+    full_config['config']['evaluation_config']['env_config']['M'] = tune.sample_from(
+        lambda spec: np.random.choice([spec['config']['config']['env_config']['M']]))
+    full_config['config']['evaluation_config']['env_config']['N'] = tune.sample_from(
+        lambda spec: np.random.choice([spec['config']['config']['env_config']['N']]))
+    full_config['config']['evaluation_config']['env_config']['P'] = tune.sample_from(
+        lambda spec: np.random.choice([spec['config']['config']['env_config']['P']]))
+
+    if args.unbalance:
+        config = deepcopy(full_config)
+        config['config']['env_config']['M'] = 2500
+        config['config']['env_config']['N'] = 30
+        config['config']['env_config']['P'] = 0
+        run_hp_experiment(config, 'main_N30')
+
+    elif args.algo == 'ppo':
 
         config = deepcopy(full_config)
         run_hp_experiment(config, 'main')

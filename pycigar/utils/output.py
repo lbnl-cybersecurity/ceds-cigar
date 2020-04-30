@@ -1,4 +1,5 @@
 from pycigar.utils.logging import logger
+from pycigar.envs.wrappers.wrappers_constants import ACTION_RANGE
 import matplotlib.pyplot as plt
 import os
 import numpy as np
@@ -215,8 +216,8 @@ def plot_new(log_dict, custom_metrics, epoch='', unbalance=False):
         ax[0].set_ylim([0.93, 1.07])
         ax[1].set_ylim([0, 0.8])
         ax[2].set_ylim([-280, 280])
-        ax[3].set_ylim([-0.11, 0.11])
-        ax[4].set_ylim([-0.11, 0.11])
+        ax[3].set_ylim([-ACTION_RANGE*1.1, ACTION_RANGE*1.1])
+        ax[4].set_ylim([-ACTION_RANGE*1.1, ACTION_RANGE*1.1])
     else:
         inv_ks = [k for k in log_dict if k.startswith('inverter_s701') or k.startswith('inverter_s728')]
         regs = [k for k in log_dict if 'reg' in k]
@@ -240,7 +241,7 @@ def plot_new(log_dict, custom_metrics, epoch='', unbalance=False):
         ax[1].set_ylim([0, 0.1])
         ax[2].set_ylim([-280, 280])
         for i in range(len(inv_ks)):
-            ax[2+i].set_ylim([-0.11, 0.11])
+            ax[2+i].set_ylim([-ACTION_RANGE*1.1, ACTION_RANGE*1.1])
 
     for a in ax:
         a.grid(b=True, which='both')
