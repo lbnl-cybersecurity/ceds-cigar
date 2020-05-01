@@ -27,6 +27,7 @@ from ray.rllib.evaluation.metrics import collect_episodes, summarize_episodes
 from ray.tune.registry import register_env
 from tqdm import tqdm
 
+import pycigar
 from pycigar.utils.input_parser import input_parser
 from pycigar.utils.logging import logger
 from pycigar.utils.output import plot_new
@@ -132,7 +133,7 @@ def save_best_policy(trainer, episodes):
         # save policy
         if not trainer.global_vars['unbalance']:
             shutil.rmtree(os.path.join(trainer.global_vars['reporter_dir'], 'best', 'policy'), ignore_errors=True)
-            trainer.get_policy().export_model(os.path.join(trainer.global_vars['reporter_dir'], 'best', 'policy'))
+            trainer.get_policy('attack').export_model(os.path.join(trainer.global_vars['reporter_dir'], 'best', 'policy'))
         # save plots
         ep = episodes[-1]
         data = ep.hist_data['logger']['log_dict']
@@ -169,7 +170,7 @@ def save_best_policy(trainer, episodes):
             json.dump(info, f, ensure_ascii=False, indent=4)
 
 
-class Attack(Policy):
+class ConstantPolicy(Policy):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -184,7 +185,7 @@ class Attack(Policy):
                         episodes=None,
                         **kwargs):
 
-        return [(1) for x in obs_batch], [], {}
+        return [(1,2,3,4,5) for x in obs_batch], [], {}
 
     def learn_on_batch(self, samples):
         pass
@@ -240,7 +241,13 @@ if __name__ == "__main__":
                       'env_name': 'AdvMultiEnv',
                       'simulator': 'opendss'}
 
-    sim_params = input_parser('ieee37busdata')
+    misc_inputs_path = pycigar.DATA_DIR + "/ieee37busdata/misc_inputs.csv"
+    dss_path = pycigar.DATA_DIR + "/ieee37busdata/ieee37.dss"
+    load_solar_path = pycigar.DATA_DIR + "/ieee37busdata/load_solar_data.csv"
+    breakpoints_path = pycigar.DATA_DIR + "/ieee37busdata/breakpoints.csv"
+
+    sim_params = input_parser(misc_inputs_path, dss_path, load_solar_path, breakpoints_path)
+
     create_env, env_name = make_create_env(pycigar_params, version=0)
     register_env(env_name, create_env)
     test_env = create_env(sim_params)
@@ -253,25 +260,28 @@ if __name__ == "__main__":
         'num_workers': args.workers,
         'num_cpus_per_worker': 1,
         'num_cpus_for_driver': 1,
+        'num_gpus': 0,
+        'num_gpus_per_worker': 0,
         'num_envs_per_worker': 1,
         'log_level': 'WARNING',
         "gamma": 0.5,
         'lr': 2e-4,
+        'no_done_at_end': True,
         'rollout_fragment_length': 50,
-        'train_batch_size': 500,
+        'train_batch_size': 200,
         'clip_param': 0.1,
         'lambda': 0.95,
         'vf_clip_param': 100,
         "multiagent": {
-            "policies_to_train": ["defense"],
+            "policies_to_train": ["attack"],
             "policies": {
-                "defense": (PPOTFPolicy,
+                "attack": (None,
                             obs_space,
                             act_space,
                             {
                     'model': {
                         'fcnet_activation': 'tanh',
-                        'fcnet_hiddens': [128, 64, 32],
+                        'fcnet_hiddens': [256, 128, 128, 64],
                         'free_log_std': False,
                         'vf_share_layers': True,
                         'use_lstm': False,
@@ -280,7 +290,7 @@ if __name__ == "__main__":
                         'zero_mean': True,
                     },
                             }),
-                "attack": (Attack,
+                "defense": (ConstantPolicy,
                            obs_space,
                            act_space,
                            {}),
@@ -297,7 +307,7 @@ if __name__ == "__main__":
         "evaluation_num_workers": 1,
         'evaluation_num_episodes': args.eval_rounds,
         "evaluation_interval": args.eval_interval,
-        "custom_eval_function": tune.function(custom_eval_function),
+        "custom_eval_function": custom_eval_function,
         'evaluation_config': {
             "seed": 42,
             # IMPORTANT NOTE: For policy gradients, this might not be the optimal policy
@@ -307,9 +317,9 @@ if __name__ == "__main__":
 
         # ==== CUSTOM METRICS ====
         "callbacks": {
-            "on_episode_start": tune.function(on_episode_start),
-            "on_episode_step": tune.function(on_episode_step),
-            "on_episode_end": tune.function(on_episode_end),
+            "on_episode_start": on_episode_start,
+            "on_episode_step": on_episode_step,
+            "on_episode_end": on_episode_end,
         },
     }
     # eval environment should not be random across workers
@@ -329,4 +339,4 @@ if __name__ == "__main__":
 
     if args.algo == 'ppo':
         config = deepcopy(full_config)
-        run_defense_vs_attack(config, 'ppo')
+        run_defense_vs_attack(config, 'attack_train')

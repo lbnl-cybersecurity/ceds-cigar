@@ -8,7 +8,7 @@ from pycigar.envs.wrappers.wrapper import Wrapper
 class AdvEnv(Wrapper):
     def __init__(self, **kwargs):
         env = MultiEnv(**kwargs)                           # receive a dict of rl_id: action
-        env = SingleRelativeInitDiscreteActionWrapper(env)
+        env = AllRelativeInitDiscreteActionWrapper(env)
         env = AdvObservationWrapper(env)
         env = AdvLocalRewardWrapper(env)
         env = GroupActionWrapper(env)                      # grouping layer

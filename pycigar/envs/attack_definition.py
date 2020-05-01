@@ -23,7 +23,7 @@ class AttackDefinitionGenerator:
         hack_start = random.randint(250, 250 + 10)  # random.randint(int(duration*2/5), int(duration*2/5)+10)
         hack_end = random.randint(500, 500 + 10)  # random.randint(int(duration*4/5), int(duration*4/5)+10)
 
-        percentage = random.randint(5, 50) / 100
+        percentage = random.randint(40, 50) / 100
         res = [hack_start, percentage, hack_end]
 
         return res

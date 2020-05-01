@@ -174,21 +174,24 @@ class AdvObservationWrapper(ObservationWrapper):
         else:
             raise NotImplementedError()
 
-        return Box(low=-float('inf'), high=float('inf'), shape=(2 + self.a_size,), dtype=np.float64)
+        return Box(low=-float('inf'), high=float('inf'), shape=(3 + self.a_size,), dtype=np.float64)
 
     def observation(self, observation, info):
 
         if info:
             old_actions = {}
             p_set = {}
+            voltage = {}
             for key in observation:
                 # TODO: check for the else condition
                 old_actions[key] = info[key]['raw_action'] if 'raw_action' in info[key] else self.init_action
                 p_set[key] = info[key]['p_set'] if 'p_set' in info[key] else 0
+                voltage[key] = info[key]['voltage'] if 'voltage' in info[key] else 0
 
         else:
             old_actions = {key: self.init_action for key in observation}
             p_set = {key: 0 for key in observation}
+            voltage = {key: 1 for key in observation}
 
         if isinstance(self.action_space, Tuple):
             # multihot
@@ -212,9 +215,9 @@ class AdvObservationWrapper(ObservationWrapper):
                 old_a_encoded[key] = old_actions[key].flatten()
 
         if self.unbalance:
-            observation = {key: np.array([observation[key]['u'], p_set[key], *old_a_encoded[key]]) for key in observation}
+            observation = {key: np.array([observation[key]['u'], p_set[key], (voltage[key]-1)*10, *old_a_encoded[key]]) for key in observation}
         else:
-            observation = {key: np.array([observation[key]['y'], p_set[key], *old_a_encoded[key]]) for key in observation}
+            observation = {key: np.array([observation[key]['y'], p_set[key], (voltage[key]-1)*10, *old_a_encoded[key]]) for key in observation} # use baseline 1 for voltage and scale by 10
 
         return observation
 

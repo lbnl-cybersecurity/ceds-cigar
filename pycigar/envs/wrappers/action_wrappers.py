@@ -110,11 +110,6 @@ class AllRelativeInitDiscreteActionWrapper(ActionWrapper):
     We control 5 VBPs by translate the VBPs.
     Each bin is a step of ACTION_STEP deviated from the initial action.
     """
-    ACTION_MAX_SLOPE = 0.051
-    ACTION_MIN_SLOPE = 0.001
-    ACTION_RANGE = 0.25
-    ACTION_STEP = 0.01
-    DISCRETIZE_RELATIVE = int((ACTION_RANGE / ACTION_STEP)) * 2 + 1
 
     @property
     def action_space(self):

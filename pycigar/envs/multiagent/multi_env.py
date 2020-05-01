@@ -54,8 +54,8 @@ class MultiEnv(MultiAgentEnv, Env):
 
         if rl_actions != {}:
             for key in rl_actions:
-                if 'adversary_' in key:
-                    rl_actions[key] = [1.014, 1.015, 1.015, 1.016, 1.017]
+                if 'adversary_' not in key:
+                    rl_actions[key] = self.k.device.get_control_setting(key) #[1.014, 1.015, 1.015, 1.016, 1.017]
 
         for _ in range(self.sim_params['env_config']['sims_per_step']):
             self.env_time += 1
@@ -111,10 +111,13 @@ class MultiEnv(MultiAgentEnv, Env):
                 else:
                     new_state = self.get_state()
                     for device_name in new_state:
+                        if device_name not in observations:
+                            observations[device_name] = new_state[device_name]
                         for prop in new_state[device_name]:
                             if not isinstance(observations[device_name][prop], list):
                                 observations[device_name][prop] = [observations[device_name][prop]]
-                            observations[device_name][prop].append(new_state[device_name][prop])
+                            else:
+                                observations[device_name][prop].append(new_state[device_name][prop])
 
             if self.k.time >= self.k.t:
                 break
@@ -130,7 +133,6 @@ class MultiEnv(MultiAgentEnv, Env):
         finish = not converged or (self.k.time == self.k.t)
         done = {}
         if finish:
-            print('done')
             done['__all__'] = True
         else:
             done['__all__'] = False
