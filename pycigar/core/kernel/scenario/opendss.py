@@ -12,6 +12,7 @@ import os
 import numpy as np
 import pandas as pd
 from pycigar.envs.attack_definition import AttackDefinitionGenerator
+from pycigar.envs.attack_definition import AttackDefinitionGeneratorEvaluation
 from pycigar.utils.logging import logger
 
 
@@ -25,6 +26,8 @@ class OpenDSSScenario(KernelScenario):
 
         # take the first snapshot of randomization function if multi_config False
         self.snapshot_randomization = {}
+        # capture the attack generator to make sure it is only init once
+        self.attack_def_gen = None
 
     def pass_api(self, kernel_api):
         """See parent class."""
@@ -39,10 +42,18 @@ class OpenDSSScenario(KernelScenario):
 
         # loading attack def generator
         if 'attack_randomization' in sim_params:
-            if sim_params['attack_randomization']['generator'] == 'AttackDefinitionGenerator':
-                attack_def_gen = AttackDefinitionGenerator(start_time, end_time)
+            if self.attack_def_gen is None and sim_params['attack_randomization']['generator'] == 'AttackDefinitionGenerator':
+                self.attack_def_gen = AttackDefinitionGenerator(start_time, end_time)
+            elif self.attack_def_gen is None and sim_params['attack_randomization']['generator'] == 'AttackDefinitionGeneratorEvaluation':
+                self.attack_def_gen = AttackDefinitionGeneratorEvaluation(start_time, end_time)
         else:
-            attack_def_gen = None
+            self.attack_def_gen = None
+
+        # overwrite multi_config to have a new start_time and end_time
+        if isinstance(self.attack_def_gen, AttackDefinitionGeneratorEvaluation):
+            start_time, end_time = self.attack_def_gen.change_mode()
+            self.master_kernel.sim_params['scenario_config']['start_time'] = start_time
+            self.master_kernel.sim_params['scenario_config']['end_time'] = end_time
 
         # load simulation and opendss file
         # network_model_directory_path = os.path.join(config.DATA_DIR, sim_params['simulation_config']['network_model_directory'])
@@ -114,8 +125,8 @@ class OpenDSSScenario(KernelScenario):
                         adversary_device_controller = FixedController
                         adversary_device_configs = {}
 
-                    if attack_def_gen:
-                        dev_hack_info = attack_def_gen.new_dev_hack_info()
+                    if self.attack_def_gen:
+                        dev_hack_info = self.attack_def_gen.new_dev_hack_info()
                     else:
                         dev_hack_info = device['hack']
 

@@ -9,7 +9,6 @@ from pycigar.envs.wrappers.wrappers_constants import *
 class ObservationWrapper(Wrapper):
     def reset(self):
         observation = self.env.reset()
-        self.INIT_ACTION = self.INIT_ACTION
         return self.observation(observation, info=None)
 
     def step(self, rl_actions, randomize_rl_update=None):
@@ -232,10 +231,6 @@ class GroupObservationWrapper(ObservationWrapper):
         obs = {}
         obs['defense_agent'] = np.mean(np.array([observation[key] for key in observation if 'adversary_' not in key]), axis=0)
         obs['attack_agent'] = np.mean(np.array([observation[key] for key in observation if 'adversary_' in key]), axis=0)
-
-        d = obs['defense_agent']
-        a = obs['attack_agent']
-        n = np.isnan(obs['attack_agent'])
 
         if np.isnan(obs['defense_agent']).any():
             del obs['defense_agent']
