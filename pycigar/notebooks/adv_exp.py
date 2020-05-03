@@ -42,7 +42,7 @@ def parse_cli_args():
     parser.add_argument('--epochs', type=int, default=2, help='number of epochs per trial')
     parser.add_argument('--save-path', type=str, default='~/adv_exp', help='where to save the results')
     parser.add_argument('--workers', type=int, default=1, help='number of cpu workers per run')
-    parser.add_argument('--eval-rounds', type=int, default=2,
+    parser.add_argument('--eval-rounds', type=int, default=10,
                         help='number of evaluation rounds to run to smooth random results')
     parser.add_argument('--eval-interval', type=int, default=10,
                         help='do an evaluation every N epochs')
@@ -76,71 +76,42 @@ def custom_eval_function(trainer, eval_workers):
 # ==== CUSTOM METRICS (eval and training) ====
 def on_episode_start(info):
     episode = info["episode"]
-    episode.user_data["num_actions_taken"] = 0
-    episode.user_data["magnitudes"] = []
-    episode.user_data["true_actions"] = [ActionTuple(2, -1)]  # 2 is the init action
-    episode.hist_data["y"] = []
 
     # get the base env
     env = info['env'].get_unwrapped()[0]
     episode.user_data["tracking_id"] = env.k.device.get_rl_device_ids()[0]
-
+    episode.user_data["hack_length"] = 0
+    episode.user_data["defense_win"] = 0
 
 def on_episode_step(info):
     episode = info["episode"]
-    action = episode.last_action_for()
-    if (action != episode.user_data["true_actions"][-1].action).all():
-        episode.user_data["true_actions"].append(ActionTuple(action, episode.length))
 
-    if episode.last_info_for() is not None:
-        y = episode.last_info_for()[episode.user_data["tracking_id"]]['y']
-        episode.hist_data["y"].append(y)
+    if episode.last_observation_for('attack_agent') is not None and episode._agent_reward_history['attack_agent']:
+        if episode.user_data["hack_length"] != len(episode._agent_reward_history['attack_agent']):
+            episode.user_data["hack_length"] = len(episode._agent_reward_history['attack_agent'])
+            y = episode.last_observation_for('attack_agent')[1]
+            # TODOs: check this condition for average y value
+            if y < 0.07:
+                episode.user_data["defense_win"] += 1
 
 
 def on_episode_end(info):
     episode = info["episode"]
-    actions = episode.user_data["true_actions"]
-    avg_mag = (np.array([t.action for t in actions[1:]]) - 2).mean()
-    num_actions = len(actions) - 1
-    if num_actions > 0:
-        episode.custom_metrics['latest_action'] = actions[-1].timestep
-        episode.custom_metrics['earliest_action'] = actions[1].timestep
-
-    episode.custom_metrics["avg_magnitude"] = avg_mag
-    episode.custom_metrics["num_actions_taken"] = num_actions
 
     tracking = logger()
-    info['episode'].hist_data['logger'] = {'log_dict': tracking.log_dict, 'custom_metrics': tracking.custom_metrics}
+    episode.hist_data['defense_win'] = [True] if episode.user_data['defense_win']/ float(episode.user_data['hack_length']) > 0.6 else [False] # defense agent win 60% of the hack period
+    episode.hist_data['logger'] = {'log_dict': tracking.log_dict, 'custom_metrics': tracking.custom_metrics}
 
-    #env = info['env'].vector_env.envs[0]
-    #t_id = env.k.device.get_rl_device_ids()[0]
-    #hack_start = int([k for k, v in env.k.scenario.hack_start_times.items() if 'adversary_' + t_id in v][0])
-    #hack_end = int([k for k, v in env.k.scenario.hack_end_times.items() if 'adversary_' + t_id in v][0])
-    #episode.custom_metrics["hack_start"] = hack_start
-    #episode.custom_metrics["hack_end"] = hack_end
-
-
-def get_translation_and_slope(a_val):
-    points = np.array(a_val)
-    slope = points[:, 1] - points[:, 0]
-    og_point = points[0, 2]
-    translation = points[:, 2] - og_point
-    return translation, slope
 
 def save_best_policy(trainer, episodes):
-    mean_r = np.array([ep.episode_reward for ep in episodes]).mean()
+    train_policy = trainer.config['multiagent']['policies_to_train'][0]
+    mean_r = np.array([ep.agent_rewards[key] for ep in episodes for key in ep.agent_rewards.keys() if train_policy in key]).mean()
     if 'best_eval_reward' not in trainer.global_vars or trainer.global_vars['best_eval_reward'] < mean_r:
         os.makedirs(os.path.join(trainer.global_vars['reporter_dir'], 'best'), exist_ok=True)
         trainer.global_vars['best_eval_reward'] = mean_r
         # save policy
-        if not trainer.global_vars['adv']:
-            shutil.rmtree(os.path.join(trainer.global_vars['reporter_dir'], 'best', 'attack_policy'), ignore_errors=True)
-            trainer.get_policy('attack').export_model(os.path.join(trainer.global_vars['reporter_dir'], 'best', 'attack_policy'))
-        else:
-            shutil.rmtree(os.path.join(trainer.global_vars['reporter_dir'], 'best', 'attack_policy'), ignore_errors=True)
-            shutil.rmtree(os.path.join(trainer.global_vars['reporter_dir'], 'best', 'defense_policy'), ignore_errors=True)
-            trainer.get_policy('defense').export_model(os.path.join(trainer.global_vars['reporter_dir'], 'best', 'defense_policy'))
-            trainer.get_policy('defense').export_model(os.path.join(trainer.global_vars['reporter_dir'], 'best', 'attack_policy'))
+        shutil.rmtree(os.path.join(trainer.global_vars['reporter_dir'], 'best', train_policy + '_policy'), ignore_errors=True)
+        trainer.get_policy(train_policy).export_model(os.path.join(trainer.global_vars['reporter_dir'], 'best', train_policy + '_policy'))
 
         # save plots
         ep = episodes[-1]
@@ -149,6 +120,7 @@ def save_best_policy(trainer, episodes):
         f.savefig(os.path.join(trainer.global_vars['reporter_dir'], 'best', 'eval.png'))
 
         # save CSV
+        """
         k = list(data.keys())[0]
         ep_hist = pd.DataFrame(dict(v=data[data[k]['node']]['voltage'], y=data[k]['y'],
                                     q_set=data[k]['q_set'], q_val=data[k]['q_out']))
@@ -164,7 +136,7 @@ def save_best_policy(trainer, episodes):
         df = df.join(adv_a_hist, how='outer')
         df = df.join(trans_slope_hist, how='outer')
         df.to_csv(os.path.join(trainer.global_vars['reporter_dir'], 'best', 'last_eval_hists.csv'))
-
+        """
         # save info
         #start = ep.custom_metrics["hack_start"]
         #end = ep.custom_metrics["hack_end"]
@@ -225,11 +197,6 @@ def run_train(config, reporter):
         trainer.global_vars['adv'] = config['adv']
 
         for _ in tqdm(range(config['epochs'])):
-            print("###############################################################")
-            print("begin to evaluate")
-            evaluate = trainer._evaluate()   #test
-            print("end evaluate")
-            print("###############################################################")
             results = trainer.train()
             del results['hist_stats']['logger']  # don't send to tensorboard
             if 'evaluation' in results:
@@ -253,21 +220,36 @@ def run_train(config, reporter):
         attack_trainer.global_vars['reporter_dir']= reporter.logdir
         attack_trainer.global_vars['adv'] = config['adv']
 
-        for _ in tqdm(range(config['epochs'])):
+        for i in tqdm(range(config['epochs'])):
+            if i == 0:
+                # load pretrained defense_trainer
+                pass
 
+            while True:
+                attack_trainer.get_policy('defense').set_weights(attack_trainer.get_policy('defense').get_weights())
+                results = attack_trainer.train()
+                evaluate = attack_trainer._evaluate()
+                num_lose = sum(evaluate['evaluation']['hist_stats']['defense_win'])
+                num_match = len(evaluate['evaluation']['hist_stats']['defense_win'])
+                if (num_match - num_lose)/float(num_match) >=0.6:
+                    del results['hist_stats']['logger']
+                    if 'evaluation' in results:
+                        del results['evaluation']['hist_stats']['logger']
+                    reporter(**results)
+                    break
             while True:
                 defense_trainer.get_policy('attack').set_weights(attack_trainer.get_policy('attack').get_weights())
                 results = defense_trainer.train()
-                del results['hist_stats']['logger']
-                if 'evaluation' in results:
-                    del results['evaluation']['hist_stats']['logger']
-                reporter(**results)
                 evaluate = defense_trainer._evaluate()
+                num_win = sum(evaluate['evaluation']['hist_stats']['defense_win'])
+                num_match = len(evaluate['evaluation']['hist_stats']['defense_win'])
+                if num_win/float(num_match) >=0.6:
+                    del results['hist_stats']['logger']
+                    if 'evaluation' in results:
+                        del results['evaluation']['hist_stats']['logger']
+                    reporter(**results)
+                    break
 
-            attack_trainer.get_policy('defense').set_weights(attack_trainer.get_policy('defense').get_weights())
-            results = attack_trainer.train()
-            del results['hist_stats']['logger']
-            reporter(**results)
         defense_trainer.stop()
         attack_trainer.stop()
 
