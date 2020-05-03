@@ -91,8 +91,8 @@ class GlobalRewardWrapper(RewardWrapper):
                 old_action = self.INIT_ACTION[key]
             y = info[key]['y']
             r = 0
-            r = -((M * y ** 2 + N * np.sum((action - old_action) ** 2) + P * np.sum(
-                (action - self.INIT_ACTION[key]) ** 2))) / 100
+            r = -(M * y ** 2 + N * np.sum((action - old_action) ** 2) + P * np.sum(
+                (action - self.INIT_ACTION[key]) ** 2)) / 100
             global_reward += r
         global_reward = global_reward / len(list(info.keys()))
         for key in info.keys():

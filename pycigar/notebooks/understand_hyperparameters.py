@@ -221,8 +221,6 @@ if __name__ == '__main__':
         breakpoints_path = pycigar.DATA_DIR + "/ieee37busdata_regulator_attack/breakpoints.csv"
 
     sim_params = input_parser(misc_inputs_path, dss_path, load_solar_path, breakpoints_path)
-    #sim_params = input_parser('ieee37busdata_regulator_attack' if args.unbalance else 'ieee37busdata')
-
     base_config = {
         "env": env_name,
         "gamma": 0.5,

@@ -30,8 +30,10 @@ from tqdm import tqdm
 import pycigar
 from pycigar.utils.input_parser import input_parser
 from pycigar.utils.logging import logger
-from pycigar.utils.output import plot_new
+from pycigar.utils.output import plot_adv
 from pycigar.utils.registry import make_create_env
+from copy import copy
+
 
 ActionTuple = namedtuple('Action', ['action', 'timestep'])
 
@@ -39,14 +41,14 @@ def parse_cli_args():
     parser = argparse.ArgumentParser(description='Run distributed runs for adversarial training PyCIGAR')
     parser.add_argument('--epochs', type=int, default=2, help='number of epochs per trial')
     parser.add_argument('--save-path', type=str, default='~/adv_exp', help='where to save the results')
-    parser.add_argument('--workers', type=int, default=2, help='number of cpu workers per run')
-    parser.add_argument('--eval-rounds', type=int, default=1,
+    parser.add_argument('--workers', type=int, default=1, help='number of cpu workers per run')
+    parser.add_argument('--eval-rounds', type=int, default=2,
                         help='number of evaluation rounds to run to smooth random results')
-    parser.add_argument('--eval-interval', type=int, default=1,
+    parser.add_argument('--eval-interval', type=int, default=10,
                         help='do an evaluation every N epochs')
     parser.add_argument("--algo", help="use PPO or APPO", choices=['ppo', 'appo'],
                         nargs='?', const='ppo', default='ppo', type=str.lower)
-    parser.add_argument('--unbalance', dest='unbalance', action='store_true')
+    parser.add_argument('--adv', dest='adv', action='store_true')
 
     return parser.parse_args()
 
@@ -64,7 +66,7 @@ def custom_eval_function(trainer, eval_workers):
     episodes, _ = collect_episodes(eval_workers.local_worker(), eval_workers.remote_workers())
     metrics = summarize_episodes(episodes)
 
-    f = plot_new(episodes[-1].hist_data['logger']['log_dict'], episodes[-1].hist_data['logger']['custom_metrics'], trainer.iteration, trainer.global_vars['unbalance'])
+    f = plot_adv(episodes[-1].hist_data['logger']['log_dict'], episodes[-1].hist_data['logger']['custom_metrics'], trainer.iteration, trainer.global_vars['adv'])
     f.savefig(trainer.global_vars['reporter_dir'] + 'eval-epoch-' + str(trainer.iteration) + '.png',
               bbox_inches='tight')
 
@@ -131,13 +133,19 @@ def save_best_policy(trainer, episodes):
         os.makedirs(os.path.join(trainer.global_vars['reporter_dir'], 'best'), exist_ok=True)
         trainer.global_vars['best_eval_reward'] = mean_r
         # save policy
-        if not trainer.global_vars['unbalance']:
-            shutil.rmtree(os.path.join(trainer.global_vars['reporter_dir'], 'best', 'policy'), ignore_errors=True)
-            trainer.get_policy('attack').export_model(os.path.join(trainer.global_vars['reporter_dir'], 'best', 'policy'))
+        if not trainer.global_vars['adv']:
+            shutil.rmtree(os.path.join(trainer.global_vars['reporter_dir'], 'best', 'attack_policy'), ignore_errors=True)
+            trainer.get_policy('attack').export_model(os.path.join(trainer.global_vars['reporter_dir'], 'best', 'attack_policy'))
+        else:
+            shutil.rmtree(os.path.join(trainer.global_vars['reporter_dir'], 'best', 'attack_policy'), ignore_errors=True)
+            shutil.rmtree(os.path.join(trainer.global_vars['reporter_dir'], 'best', 'defense_policy'), ignore_errors=True)
+            trainer.get_policy('defense').export_model(os.path.join(trainer.global_vars['reporter_dir'], 'best', 'defense_policy'))
+            trainer.get_policy('defense').export_model(os.path.join(trainer.global_vars['reporter_dir'], 'best', 'attack_policy'))
+
         # save plots
         ep = episodes[-1]
         data = ep.hist_data['logger']['log_dict']
-        f = plot_new(data, ep.hist_data['logger']['custom_metrics'], trainer.iteration, trainer.global_vars['unbalance'])
+        f = plot_adv(data, ep.hist_data['logger']['custom_metrics'], trainer.iteration, trainer.global_vars['adv'])
         f.savefig(os.path.join(trainer.global_vars['reporter_dir'], 'best', 'eval.png'))
 
         # save CSV
@@ -203,22 +211,65 @@ def select_policy(agent_id):
         return "attack"
 
 def run_train(config, reporter):
-    trainer_cls = APPOTrainer if config['algo'] == 'appo' else PPOTrainer
-    trainer = trainer_cls(config=config['config'])
+    if not config['adv']:
+        trainer_cls = APPOTrainer if config['algo'] == 'appo' else PPOTrainer
+        config['config']['multiagent']['policies']['defense'] = (ConstantPolicy,
+                                                                 config['config']['multiagent']['policies']['defense'][1],
+                                                                 config['config']['multiagent']['policies']['defense'][2],
+                                                                 {})
+        config['config']['multiagent']['policies_to_train'] = ['attack']
+        trainer = trainer_cls(config=config['config'])
 
-    # needed so that the custom eval fn knows where to save plots
-    trainer.global_vars['reporter_dir'] = reporter.logdir
-    trainer.global_vars['unbalance'] = config['unbalance']
+        # needed so that the custom eval fn knows where to save plots
+        trainer.global_vars['reporter_dir'] = reporter.logdir
+        trainer.global_vars['adv'] = config['adv']
 
-    for _ in tqdm(range(config['epochs'])):
-        results = trainer.train()
-        del results['hist_stats']['logger']  # don't send to tensorboard
-        if 'evaluation' in results:
-            del results['evaluation']['hist_stats']['logger']
-        reporter(**results)
+        for _ in tqdm(range(config['epochs'])):
+            print("###############################################################")
+            print("begin to evaluate")
+            evaluate = trainer._evaluate()   #test
+            print("end evaluate")
+            print("###############################################################")
+            results = trainer.train()
+            del results['hist_stats']['logger']  # don't send to tensorboard
+            if 'evaluation' in results:
+                del results['evaluation']['hist_stats']['logger']
+            reporter(**results)
 
-    trainer.stop()
+        trainer.stop()
 
+    else:
+        trainer_cls = APPOTrainer if config['algo'] == 'appo' else PPOTrainer
+        defense_config = copy(config)
+        defense_config['config']['multiagent']['policies_to_train'] = ['defense']
+        attack_config = copy(config)
+        attack_config['config']['multiagent']['policies_to_train'] = ['attack']
+
+        defense_trainer = trainer_cls(config=defense_config['config'])
+        attack_trainer = trainer_cls(config=attack_config['config'])
+
+        defense_trainer.global_vars['reporter_dir']= reporter.logdir
+        defense_trainer.global_vars['adv'] = config['adv']
+        attack_trainer.global_vars['reporter_dir']= reporter.logdir
+        attack_trainer.global_vars['adv'] = config['adv']
+
+        for _ in tqdm(range(config['epochs'])):
+
+            while True:
+                defense_trainer.get_policy('attack').set_weights(attack_trainer.get_policy('attack').get_weights())
+                results = defense_trainer.train()
+                del results['hist_stats']['logger']
+                if 'evaluation' in results:
+                    del results['evaluation']['hist_stats']['logger']
+                reporter(**results)
+                evaluate = defense_trainer._evaluate()
+
+            attack_trainer.get_policy('defense').set_weights(attack_trainer.get_policy('defense').get_weights())
+            results = attack_trainer.train()
+            del results['hist_stats']['logger']
+            reporter(**results)
+        defense_trainer.stop()
+        attack_trainer.stop()
 
 def run_defense_vs_attack(full_config, name):
 
@@ -246,7 +297,7 @@ if __name__ == "__main__":
     load_solar_path = pycigar.DATA_DIR + "/ieee37busdata/load_solar_data.csv"
     breakpoints_path = pycigar.DATA_DIR + "/ieee37busdata/breakpoints.csv"
 
-    sim_params = input_parser(misc_inputs_path, dss_path, load_solar_path, breakpoints_path)
+    sim_params = input_parser(misc_inputs_path, dss_path, load_solar_path, breakpoints_path, adv=True)
 
     create_env, env_name = make_create_env(pycigar_params, version=0)
     register_env(env_name, create_env)
@@ -273,7 +324,7 @@ if __name__ == "__main__":
         'lambda': 0.95,
         'vf_clip_param': 100,
         "multiagent": {
-            "policies_to_train": ["attack"],
+            "policies_to_train": ["attack", "defense"],
             "policies": {
                 "attack": (None,
                             obs_space,
@@ -290,10 +341,21 @@ if __name__ == "__main__":
                         'zero_mean': True,
                     },
                             }),
-                "defense": (ConstantPolicy,
+                "defense": (None,
                            obs_space,
                            act_space,
-                           {}),
+                           {
+                        'model': {
+                        'fcnet_activation': 'tanh',
+                        'fcnet_hiddens': [256, 128, 128, 64],
+                        'free_log_std': False,
+                        'vf_share_layers': True,
+                        'use_lstm': False,
+                        'state_shape': None,
+                        'framestack': False,
+                        'zero_mean': True,
+                    },
+                           }),
             },
             "policy_mapping_fn": select_policy,
         },
@@ -334,7 +396,7 @@ if __name__ == "__main__":
         'epochs': args.epochs,
         'save_path': args.save_path,
         'algo': args.algo,
-        'unbalance': args.unbalance
+        'adv': args.adv
     }
 
     if args.algo == 'ppo':
