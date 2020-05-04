@@ -178,9 +178,9 @@ class CentralGlobalRewardWrapper(RewardWrapper):
             else:
                 roa = 1
 
-            #r += -(M * info[key][y_or_u] + N * roa + P * np.linalg.norm(action - self.INIT_ACTION[key]) + 0.5 * (
-            #    1 - abs(info[key]['p_set_p_max'])) ** 2)
-            r += -(M * info[key][y_or_u] + N * roa + P * np.linalg.norm(action - self.INIT_ACTION[key]) + 1.5e-6*info[key]['sbar_solar_irr'])
+            r += -(M * info[key][y_or_u] + N * roa + P * np.linalg.norm(action - self.INIT_ACTION[key]) + 0.5 * (
+                1 - abs(info[key]['p_set_p_max'])) ** 2)
+            #r += -(M * info[key][y_or_u] + N * roa + P * np.linalg.norm(action - self.INIT_ACTION[key]) + 1.5e-6*info[key]['sbar_solar_irr'])
             #print(0.5*(1 - abs(info[key]['p_set_p_max'])) ** 2/(1.5e-6*info[key]['sbar_solar_irr']))
             global_reward += r
         global_reward = global_reward / len(list(info.keys()))

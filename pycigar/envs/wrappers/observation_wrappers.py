@@ -79,7 +79,8 @@ class CentralLocalObservationWrapper(ObservationWrapper):
     def observation(self, observation, info):
         if info:
             old_actions = info[list(info.keys())[0]]['raw_action']
-            p_set = np.mean([info[k]['p_set'] for k in self.k.device.get_rl_device_ids()])
+            #p_set = np.mean([info[k]['p_set'] for k in self.k.device.get_rl_device_ids()])
+            p_set = np.mean([1.5e-6*info[key]['sbar_solar_irr'] for k in self.k.device.get_rl_device_ids()])
         else:
             old_actions = self.init_action
             p_set = 0

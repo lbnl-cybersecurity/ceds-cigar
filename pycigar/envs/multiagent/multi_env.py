@@ -149,7 +149,6 @@ class MultiEnv(MultiAgentEnv, Env):
         finish = not converged or (self.k.time == self.k.t)
         done = {}
         if abs(max(self.k.scenario.hack_end_times.keys()) - self.k.time) < self.sim_params['env_config']['sims_per_step']:
-            print("#### {} ######### {} ########### {} ##########".format(self.k.scenario.hack_end_times.keys(), self.k.time, self.sim_params['env_config']['sims_per_step']))
             done['attack_agent'] = True
 
         if finish:
