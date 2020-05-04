@@ -99,9 +99,12 @@ def on_episode_end(info):
     episode = info["episode"]
 
     tracking = logger()
-    episode.hist_data['defense_win'] = [True] if episode.user_data['defense_win']/ float(episode.user_data['hack_length']) > 0.6 else [False] # defense agent win 60% of the hack period
+    if episode.user_data["hack_length"] != 0:
+        episode.hist_data['defense_win'] = [True] if episode.user_data['defense_win']/ float(episode.user_data['hack_length']) > 0.6 else [False] # defense agent win 60% of the hack period
     episode.hist_data['logger'] = {'log_dict': tracking.log_dict, 'custom_metrics': tracking.custom_metrics}
 
+def on_postprocess_traj(info):
+    info = info
 
 def save_best_policy(trainer, episodes):
     train_policy = trainer.config['multiagent']['policies_to_train'][0]
@@ -185,13 +188,14 @@ def select_policy(agent_id):
 def run_train(config, reporter):
     if not config['adv']:
         trainer_cls = APPOTrainer if config['algo'] == 'appo' else PPOTrainer
-        config['config']['multiagent']['policies']['defense'] = (ConstantPolicy,
+        config['config']['multiagent']['policies']['defense'] = (None,
                                                                  config['config']['multiagent']['policies']['defense'][1],
                                                                  config['config']['multiagent']['policies']['defense'][2],
                                                                  {})
-        config['config']['multiagent']['policies_to_train'] = ['attack']
+        config['config']['multiagent']['policies_to_train'] = ['defense']
         trainer = trainer_cls(config=config['config'])
 
+        trainer._evaluate()
         # needed so that the custom eval fn knows where to save plots
         trainer.global_vars['reporter_dir'] = reporter.logdir
         trainer.global_vars['adv'] = config['adv']
@@ -299,7 +303,7 @@ if __name__ == "__main__":
         'log_level': 'WARNING',
         "gamma": 0.5,
         'lr': 2e-4,
-        'no_done_at_end': True,
+        'no_done_at_end': False,
         'rollout_fragment_length': 50,
         'train_batch_size': 200,
         'clip_param': 0.1,
@@ -364,6 +368,7 @@ if __name__ == "__main__":
             "on_episode_start": on_episode_start,
             "on_episode_step": on_episode_step,
             "on_episode_end": on_episode_end,
+            "on_postprocess_traj": on_postprocess_traj,
         },
     }
     # eval environment should not be random across workers

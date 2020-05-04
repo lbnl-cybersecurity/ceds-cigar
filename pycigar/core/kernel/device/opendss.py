@@ -345,6 +345,21 @@ class OpenDSSDevice(KernelDevice):
         """
         return self.devices[device_id]['device'].p_set[1] / max(10, self.devices[device_id]['device'].solar_irr)
 
+    def get_device_sbar_solar_irr(self, device_id):
+        """Return the device's power set relative to Sbar at the current timestep.
+
+        Parameters
+        ----------
+        device_id : string
+            The device id
+
+        Returns
+        -------
+        float
+            The relative power set
+        """
+        return (abs(self.devices[device_id]['device'].Sbar ** 2 - max(10, self.devices[device_id]['device'].solar_irr) ** 2)) ** (1 / 2)
+
     def get_device_p_injection(self, device_id):
         """Return the device's power injection at the current timestep.
 

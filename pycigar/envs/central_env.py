@@ -122,6 +122,7 @@ class CentralEnv(Env):
                        'env_time': self.env_time,
                        'p_set': obs['p_set'],
                        'p_set_p_max': obs['p_set_p_max'],
+                       'sbar_solar_irr': obs['sbar_solar_irr'],
                        } for key in self.k.device.get_rl_device_ids()}
 
         for key in self.k.device.get_rl_device_ids():
@@ -153,6 +154,7 @@ class CentralEnv(Env):
                 'y': self.k.device.get_device_y(rl_id),
                 'u': self.k.device.get_device_u(rl_id),
                 'p_set_p_max': self.k.device.get_device_p_set_p_max(rl_id),
+                'sbar_solar_irr': self.k.device.get_device_sbar_solar_irr(rl_id),
                 'p_set': self.k.device.get_device_p_set_relative(rl_id)
             })
 
