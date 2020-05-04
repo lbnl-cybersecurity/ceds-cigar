@@ -103,9 +103,6 @@ def on_episode_end(info):
         episode.hist_data['defense_win'] = [True] if episode.user_data['defense_win']/ float(episode.user_data['hack_length']) > 0.6 else [False] # defense agent win 60% of the hack period
     episode.hist_data['logger'] = {'log_dict': tracking.log_dict, 'custom_metrics': tracking.custom_metrics}
 
-def on_postprocess_traj(info):
-    info = info
-
 def save_best_policy(trainer, episodes):
     train_policy = trainer.config['multiagent']['policies_to_train'][0]
     mean_r = np.array([ep.agent_rewards[key] for ep in episodes for key in ep.agent_rewards.keys() if train_policy in key]).mean()
@@ -195,7 +192,6 @@ def run_train(config, reporter):
         config['config']['multiagent']['policies_to_train'] = ['defense']
         trainer = trainer_cls(config=config['config'])
 
-        trainer._evaluate()
         # needed so that the custom eval fn knows where to save plots
         trainer.global_vars['reporter_dir'] = reporter.logdir
         trainer.global_vars['adv'] = config['adv']
@@ -368,7 +364,6 @@ if __name__ == "__main__":
             "on_episode_start": on_episode_start,
             "on_episode_step": on_episode_step,
             "on_episode_end": on_episode_end,
-            "on_postprocess_traj": on_postprocess_traj,
         },
     }
     # eval environment should not be random across workers
