@@ -59,7 +59,8 @@ class Kernel(object):
         """
         self.kernel_api = None
         self.sim_params = sim_params
-        self.multi_config = self.sim_params['scenario_config']['multi_config']
+        if self.sim_params != None:
+            self.multi_config = self.sim_params['scenario_config']['multi_config']
         self.time = 0
         # initialize logger
         logger()

@@ -160,15 +160,16 @@ class OpenDSSScenario(KernelScenario):
 
         # adding regulator, hotfix
         regulator_names = self.kernel_api.get_all_regulator_names()
-        device_configs = sim_params['scenario_config']['regulators']
-        device_configs['kernel_api'] = self.kernel_api
-        for regulator_id in regulator_names:
-            self.master_kernel.device.add(name=regulator_id,
-                                         connect_to=None,
-                                         device=(RegulatorDevice, device_configs),
-                                         controller=None,
-                                         adversary_controller=None,
-                                         hack=None)
+        if regulator_names and 'regulators' in sim_params['scenario_config']:
+            device_configs = sim_params['scenario_config']['regulators']
+            device_configs['kernel_api'] = self.kernel_api
+            for regulator_id in regulator_names:
+                self.master_kernel.device.add(name=regulator_id,
+                                            connect_to=None,
+                                            device=(RegulatorDevice, device_configs),
+                                            controller=None,
+                                            adversary_controller=None,
+                                            hack=None)
 
         self.change_load_profile(start_time, end_time)
 

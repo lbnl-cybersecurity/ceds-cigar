@@ -15,7 +15,7 @@ New Transformer.SubXF Phases=1 Windings=2 Xhl=8
 
 New Transformer.Reg1 phases=1 bank=reg1 XHL=0.01 kVAs=[2500 2500]
 ~ Buses=[799.1 799r.1] kVs=[2.77128129 2.77128129] %LoadLoss=0.01
-new regcontrol.Reg1 transformer=Reg1 bus=799r.1 winding=2 vreg=138 band=2 ptratio=20 !ctprim=700 !R=1  X=3
+!new regcontrol.Reg1 transformer=Reg1 bus=799r.1 winding=2 vreg=138 band=2 ptratio=20 !ctprim=700 !R=1  X=3
 
 New linecode.721bal nphases=1 BaseFreq=60
 ~ rmatrix = [0.1 | 0.0 0.0 | 0.0 0.0 0.0]
