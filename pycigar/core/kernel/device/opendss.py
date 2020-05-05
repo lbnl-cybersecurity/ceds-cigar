@@ -148,7 +148,7 @@ class OpenDSSDevice(KernelDevice):
             "node_id": connect_to
         }
 
-        # create adsersarial controller
+        # create adversarial controller
 
         if adversary_controller is not None:
             adversary_device_id = "adversary_%s" % name
@@ -175,8 +175,8 @@ class OpenDSSDevice(KernelDevice):
                 "hack_controller": FixedController(adversary_device_id, controller[1])  # MimicController(adversary_device_id, device_id)    #AdaptiveInverterController(adversary_device_id, controller[1])
             }
         else:
-            adversary_device_id = "adversary_%i" % name
-            device[1]["percentage_control"] = hack[1]
+            adversary_device_id = "adversary_%s" % name
+            device[1]["percentage_control"] = 0
             adversary_device_obj = device[0](adversary_device_id, device[1])
 
             if device[0] == PVDevice:
