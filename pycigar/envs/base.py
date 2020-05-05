@@ -69,7 +69,8 @@ class Env(gym.Env):
 
     def reset(self):
         self.env_time = 0
-        self.sim_params = self.k.update(reset=True)  # hotfix: return new sim_params sample in kernel?
+        self.k.update(reset=True)
+        self.sim_params = self.k.sim_params
         states = self.get_state()
 
         self.INIT_ACTION = {}

@@ -249,3 +249,48 @@ def plot_new(log_dict, custom_metrics, epoch='', unbalance=False):
     plt.tight_layout()
     plt.subplots_adjust(top=0.95)
     return f
+
+
+def plot_adv(log_dict, custom_metrics, epoch='', unbalance=False):
+
+    plt.rc('font', size=15)
+    plt.rc('figure', titlesize=35)
+
+    if not unbalance:
+        inv_k = next(k for k in log_dict if 'inverter' in k)
+        f, ax = plt.subplots(5, figsize=(25, 20))
+        title = '[epoch {}] Defense reward: {:.2f}, Attack reward: {:.2f}'.format(epoch, sum(log_dict[inv_k]['reward']), sum(log_dict['adversary_' + inv_k]['reward']))
+        f.suptitle(title)
+        ax[0].plot(log_dict[log_dict[inv_k]['node']]['voltage'], color='tab:blue', label='voltage')
+
+        ax[1].plot(log_dict[inv_k]['y'], color='tab:blue', label='oscillation observer')
+
+        ax[2].plot(log_dict[inv_k]['q_set'], color='tab:blue', label='q_set')
+        ax[2].plot(log_dict[inv_k]['q_out'], color='tab:orange', label='q_val')
+
+        labels = ['a1', 'a2', 'a3', 'a4', 'a5']
+        [a1, a2, a3, a4, a5] = ax[3].plot(log_dict[inv_k]['control_setting'])
+        ax[3].set_ylabel('action')
+        ax[3].grid(b=True, which='both')
+        ax[3].legend([a1, a2, a3, a4, a5], labels, loc=1)
+
+
+
+        a1, a2, a3, a4, a5 = ax[4].plot(log_dict['adversary_' + inv_k]['control_setting'])
+        ax[4].set_ylabel('action')
+        ax[4].grid(b=True, which='both')
+        ax[4].legend([a1, a2, a3, a4, a5], labels, loc=1)
+
+        ax[0].set_ylim([0.93, 1.07])
+        ax[1].set_ylim([0, 0.8])
+        ax[2].set_ylim([-280, 280])
+        #ax[3].set_ylim([-0.06, 0.06])
+        #ax[4].set_ylim([-0.06, 0.06])
+
+    for a in ax:
+        a.grid(b=True, which='both')
+        a.legend(loc=1, ncol=2)
+
+    plt.tight_layout()
+    plt.subplots_adjust(top=0.95)
+    return f

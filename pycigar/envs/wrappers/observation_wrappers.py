@@ -9,7 +9,6 @@ from pycigar.envs.wrappers.wrappers_constants import *
 class ObservationWrapper(Wrapper):
     def reset(self):
         observation = self.env.reset()
-        self.INIT_ACTION = self.INIT_ACTION
         return self.observation(observation, info=None)
 
     def step(self, rl_actions, randomize_rl_update=None):
@@ -80,7 +79,8 @@ class CentralLocalObservationWrapper(ObservationWrapper):
     def observation(self, observation, info):
         if info:
             old_actions = info[list(info.keys())[0]]['raw_action']
-            p_set = np.mean([info[k]['p_set'] for k in self.k.device.get_rl_device_ids()])
+            #p_set = np.mean([info[k]['p_set'] for k in self.k.device.get_rl_device_ids()])
+            p_set = np.mean([1.5e-6*info[k]['sbar_solar_irr'] for k in self.k.device.get_rl_device_ids()])
         else:
             old_actions = self.init_action
             p_set = 0
@@ -175,21 +175,24 @@ class AdvObservationWrapper(ObservationWrapper):
         else:
             raise NotImplementedError()
 
-        return Box(low=-float('inf'), high=float('inf'), shape=(2 + self.a_size,), dtype=np.float64)
+        return Box(low=-float('inf'), high=float('inf'), shape=(3 + self.a_size,), dtype=np.float64)
 
     def observation(self, observation, info):
 
         if info:
             old_actions = {}
             p_set = {}
+            voltage = {}
             for key in observation:
                 # TODO: check for the else condition
                 old_actions[key] = info[key]['raw_action'] if 'raw_action' in info[key] else self.init_action
                 p_set[key] = info[key]['p_set'] if 'p_set' in info[key] else 0
+                voltage[key] = info[key]['voltage'] if 'voltage' in info[key] else 0
 
         else:
             old_actions = {key: self.init_action for key in observation}
             p_set = {key: 0 for key in observation}
+            voltage = {key: 1 for key in observation}
 
         if isinstance(self.action_space, Tuple):
             # multihot
@@ -213,9 +216,9 @@ class AdvObservationWrapper(ObservationWrapper):
                 old_a_encoded[key] = old_actions[key].flatten()
 
         if self.unbalance:
-            observation = {key: np.array([observation[key]['u'], p_set[key], *old_a_encoded[key]]) for key in observation}
+            observation = {key: np.array([observation[key]['u'], p_set[key], (voltage[key]-1)*10, *old_a_encoded[key]]) for key in observation}
         else:
-            observation = {key: np.array([observation[key]['y'], p_set[key], *old_a_encoded[key]]) for key in observation}
+            observation = {key: np.array([observation[key]['y'], p_set[key], (voltage[key]-1)*10, *old_a_encoded[key]]) for key in observation} # use baseline 1 for voltage and scale by 10
 
         return observation
 
@@ -232,10 +235,6 @@ class GroupObservationWrapper(ObservationWrapper):
         obs = {}
         obs['defense_agent'] = np.mean(np.array([observation[key] for key in observation if 'adversary_' not in key]), axis=0)
         obs['attack_agent'] = np.mean(np.array([observation[key] for key in observation if 'adversary_' in key]), axis=0)
-
-        d = obs['defense_agent']
-        a = obs['attack_agent']
-        n = np.isnan(obs['attack_agent'])
 
         if np.isnan(obs['defense_agent']).any():
             del obs['defense_agent']

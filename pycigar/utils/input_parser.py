@@ -3,7 +3,7 @@ import pandas as pd
 import numpy as np
 
 
-def input_parser(misc_inputs_path, dss_path, load_solar_path, breakpoints_path=None, benchmark=False):
+def input_parser(misc_inputs_path, dss_path, load_solar_path, breakpoints_path=None, benchmark=False, percentage_hack=0.45, adv=False):
     file_misc_inputs_path = misc_inputs_path
     file_dss_path = dss_path
     file_load_solar_path = load_solar_path
@@ -114,10 +114,14 @@ def input_parser(misc_inputs_path, dss_path, load_solar_path, breakpoints_path=N
         else:
             device['custom_configs']['low_pass_filter_measure'] = low_pass_filter_measure_std * np.random.randn() + low_pass_filter_measure_mean
             device['custom_configs']['low_pass_filter_output'] = low_pass_filter_output_std * np.random.randn() + low_pass_filter_output_mean
-        device['adversary_controller'] = 'adaptive_fixed_controller'
+        if not adv:
+            device['adversary_controller'] = 'adaptive_fixed_controller'
+        else:
+            device['adversary_controller'] = 'rl_controller'
+
         device['adversary_custom_configs'] = {}
         device['adversary_custom_configs']['default_control_setting'] = [1.014, 1.015, 1.015, 1.016, 1.017]
-        device['hack'] = [250, 0.45, 500]
+        device['hack'] = [250, percentage_hack, 500]
         node_description['devices'].append(device)
 
         json_query['scenario_config']['nodes'].append(node_description)

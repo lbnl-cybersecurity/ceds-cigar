@@ -22,9 +22,6 @@ class logger(metaclass=Singleton):
     custom_metrics = {}
     active = False
 
-    def __init__(self):
-        pass
-
     def log(self, object, params, value):
         if self.active:
             if object not in self.log_dict:
@@ -40,7 +37,7 @@ class logger(metaclass=Singleton):
                 self.log_dict[object] = {}
 
             self.log_dict[object][params] = value
-    
+
     def reset(self):
         self.log_dict = {}
         self.custom_metrics = {}

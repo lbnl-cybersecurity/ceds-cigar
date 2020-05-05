@@ -59,7 +59,8 @@ class Kernel(object):
         """
         self.kernel_api = None
         self.sim_params = sim_params
-        self.multi_config = self.sim_params['scenario_config']['multi_config']
+        if self.sim_params != None:
+            self.multi_config = self.sim_params['scenario_config']['multi_config']
         self.time = 0
         # initialize logger
         logger()
@@ -124,6 +125,8 @@ class Kernel(object):
             self.scenario.start_scenario()
             self.device.update(reset)
 
+            start_time = self.sim_params['scenario_config']['start_time']
+            end_time = self.sim_params['scenario_config']['end_time']
             self.scenario.change_load_profile(start_time, end_time)
 
             self.node.update(reset)
@@ -132,8 +135,6 @@ class Kernel(object):
 
             self.warm_up_k_step(50)
             logger().set_active()
-
-            return self.sim_params
 
         else:
             self.device.update(reset)  # calculate new PQ with new VBP, then push PV to node

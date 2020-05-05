@@ -27,10 +27,13 @@ from ray.rllib.evaluation.metrics import collect_episodes, summarize_episodes
 from ray.tune.registry import register_env
 from tqdm import tqdm
 
+import pycigar
 from pycigar.utils.input_parser import input_parser
 from pycigar.utils.logging import logger
-from pycigar.utils.output import plot_new
+from pycigar.utils.output import plot_adv
 from pycigar.utils.registry import make_create_env
+from copy import copy
+
 
 ActionTuple = namedtuple('Action', ['action', 'timestep'])
 
@@ -38,14 +41,14 @@ def parse_cli_args():
     parser = argparse.ArgumentParser(description='Run distributed runs for adversarial training PyCIGAR')
     parser.add_argument('--epochs', type=int, default=2, help='number of epochs per trial')
     parser.add_argument('--save-path', type=str, default='~/adv_exp', help='where to save the results')
-    parser.add_argument('--workers', type=int, default=2, help='number of cpu workers per run')
-    parser.add_argument('--eval-rounds', type=int, default=1,
+    parser.add_argument('--workers', type=int, default=1, help='number of cpu workers per run')
+    parser.add_argument('--eval-rounds', type=int, default=10,
                         help='number of evaluation rounds to run to smooth random results')
-    parser.add_argument('--eval-interval', type=int, default=1,
+    parser.add_argument('--eval-interval', type=int, default=10,
                         help='do an evaluation every N epochs')
     parser.add_argument("--algo", help="use PPO or APPO", choices=['ppo', 'appo'],
                         nargs='?', const='ppo', default='ppo', type=str.lower)
-    parser.add_argument('--unbalance', dest='unbalance', action='store_true')
+    parser.add_argument('--adv', dest='adv', action='store_true')
 
     return parser.parse_args()
 
@@ -63,7 +66,7 @@ def custom_eval_function(trainer, eval_workers):
     episodes, _ = collect_episodes(eval_workers.local_worker(), eval_workers.remote_workers())
     metrics = summarize_episodes(episodes)
 
-    f = plot_new(episodes[-1].hist_data['logger']['log_dict'], episodes[-1].hist_data['logger']['custom_metrics'], trainer.iteration, trainer.global_vars['unbalance'])
+    f = plot_adv(episodes[-1].hist_data['logger']['log_dict'], episodes[-1].hist_data['logger']['custom_metrics'], trainer.iteration, trainer.global_vars['adv'])
     f.savefig(trainer.global_vars['reporter_dir'] + 'eval-epoch-' + str(trainer.iteration) + '.png',
               bbox_inches='tight')
 
@@ -73,73 +76,51 @@ def custom_eval_function(trainer, eval_workers):
 # ==== CUSTOM METRICS (eval and training) ====
 def on_episode_start(info):
     episode = info["episode"]
-    episode.user_data["num_actions_taken"] = 0
-    episode.user_data["magnitudes"] = []
-    episode.user_data["true_actions"] = [ActionTuple(2, -1)]  # 2 is the init action
-    episode.hist_data["y"] = []
 
     # get the base env
     env = info['env'].get_unwrapped()[0]
     episode.user_data["tracking_id"] = env.k.device.get_rl_device_ids()[0]
-
+    episode.user_data["hack_length"] = 0
+    episode.user_data["defense_win"] = 0
 
 def on_episode_step(info):
     episode = info["episode"]
-    action = episode.last_action_for()
-    if (action != episode.user_data["true_actions"][-1].action).all():
-        episode.user_data["true_actions"].append(ActionTuple(action, episode.length))
 
-    if episode.last_info_for() is not None:
-        y = episode.last_info_for()[episode.user_data["tracking_id"]]['y']
-        episode.hist_data["y"].append(y)
+    if episode.last_observation_for('attack_agent') is not None and episode._agent_reward_history['attack_agent']:
+        if episode.user_data["hack_length"] != len(episode._agent_reward_history['attack_agent']):
+            episode.user_data["hack_length"] = len(episode._agent_reward_history['attack_agent'])
+            y = episode.last_observation_for('attack_agent')[1]
+            # TODOs: check this condition for average y value
+            if y < 0.07:
+                episode.user_data["defense_win"] += 1
 
 
 def on_episode_end(info):
     episode = info["episode"]
-    actions = episode.user_data["true_actions"]
-    avg_mag = (np.array([t.action for t in actions[1:]]) - 2).mean()
-    num_actions = len(actions) - 1
-    if num_actions > 0:
-        episode.custom_metrics['latest_action'] = actions[-1].timestep
-        episode.custom_metrics['earliest_action'] = actions[1].timestep
-
-    episode.custom_metrics["avg_magnitude"] = avg_mag
-    episode.custom_metrics["num_actions_taken"] = num_actions
 
     tracking = logger()
-    info['episode'].hist_data['logger'] = {'log_dict': tracking.log_dict, 'custom_metrics': tracking.custom_metrics}
-
-    #env = info['env'].vector_env.envs[0]
-    #t_id = env.k.device.get_rl_device_ids()[0]
-    #hack_start = int([k for k, v in env.k.scenario.hack_start_times.items() if 'adversary_' + t_id in v][0])
-    #hack_end = int([k for k, v in env.k.scenario.hack_end_times.items() if 'adversary_' + t_id in v][0])
-    #episode.custom_metrics["hack_start"] = hack_start
-    #episode.custom_metrics["hack_end"] = hack_end
-
-
-def get_translation_and_slope(a_val):
-    points = np.array(a_val)
-    slope = points[:, 1] - points[:, 0]
-    og_point = points[0, 2]
-    translation = points[:, 2] - og_point
-    return translation, slope
+    if episode.user_data["hack_length"] != 0:
+        episode.hist_data['defense_win'] = [True] if episode.user_data['defense_win']/ float(episode.user_data['hack_length']) > 0.6 else [False] # defense agent win 60% of the hack period
+    episode.hist_data['logger'] = {'log_dict': tracking.log_dict, 'custom_metrics': tracking.custom_metrics}
 
 def save_best_policy(trainer, episodes):
-    mean_r = np.array([ep.episode_reward for ep in episodes]).mean()
+    train_policy = trainer.config['multiagent']['policies_to_train'][0]
+    mean_r = np.array([ep.agent_rewards[key] for ep in episodes for key in ep.agent_rewards.keys() if train_policy in key]).mean()
     if 'best_eval_reward' not in trainer.global_vars or trainer.global_vars['best_eval_reward'] < mean_r:
         os.makedirs(os.path.join(trainer.global_vars['reporter_dir'], 'best'), exist_ok=True)
         trainer.global_vars['best_eval_reward'] = mean_r
         # save policy
-        if not trainer.global_vars['unbalance']:
-            shutil.rmtree(os.path.join(trainer.global_vars['reporter_dir'], 'best', 'policy'), ignore_errors=True)
-            trainer.get_policy().export_model(os.path.join(trainer.global_vars['reporter_dir'], 'best', 'policy'))
+        shutil.rmtree(os.path.join(trainer.global_vars['reporter_dir'], 'best', train_policy + '_policy'), ignore_errors=True)
+        trainer.get_policy(train_policy).export_model(os.path.join(trainer.global_vars['reporter_dir'], 'best', train_policy + '_policy'))
+
         # save plots
         ep = episodes[-1]
         data = ep.hist_data['logger']['log_dict']
-        f = plot_new(data, ep.hist_data['logger']['custom_metrics'], trainer.iteration, trainer.global_vars['unbalance'])
+        f = plot_adv(data, ep.hist_data['logger']['custom_metrics'], trainer.iteration, trainer.global_vars['adv'])
         f.savefig(os.path.join(trainer.global_vars['reporter_dir'], 'best', 'eval.png'))
 
         # save CSV
+        """
         k = list(data.keys())[0]
         ep_hist = pd.DataFrame(dict(v=data[data[k]['node']]['voltage'], y=data[k]['y'],
                                     q_set=data[k]['q_set'], q_val=data[k]['q_out']))
@@ -155,7 +136,7 @@ def save_best_policy(trainer, episodes):
         df = df.join(adv_a_hist, how='outer')
         df = df.join(trans_slope_hist, how='outer')
         df.to_csv(os.path.join(trainer.global_vars['reporter_dir'], 'best', 'last_eval_hists.csv'))
-
+        """
         # save info
         #start = ep.custom_metrics["hack_start"]
         #end = ep.custom_metrics["hack_end"]
@@ -169,7 +150,7 @@ def save_best_policy(trainer, episodes):
             json.dump(info, f, ensure_ascii=False, indent=4)
 
 
-class Attack(Policy):
+class ConstantPolicy(Policy):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -184,7 +165,7 @@ class Attack(Policy):
                         episodes=None,
                         **kwargs):
 
-        return [(1) for x in obs_batch], [], {}
+        return [(1,2,3,4,5) for x in obs_batch], [], {}
 
     def learn_on_batch(self, samples):
         pass
@@ -202,22 +183,75 @@ def select_policy(agent_id):
         return "attack"
 
 def run_train(config, reporter):
-    trainer_cls = APPOTrainer if config['algo'] == 'appo' else PPOTrainer
-    trainer = trainer_cls(config=config['config'])
+    if not config['adv']:
+        trainer_cls = APPOTrainer if config['algo'] == 'appo' else PPOTrainer
+        config['config']['multiagent']['policies']['defense'] = (None,
+                                                                 config['config']['multiagent']['policies']['defense'][1],
+                                                                 config['config']['multiagent']['policies']['defense'][2],
+                                                                 {})
+        config['config']['multiagent']['policies_to_train'] = ['defense']
+        trainer = trainer_cls(config=config['config'])
 
-    # needed so that the custom eval fn knows where to save plots
-    trainer.global_vars['reporter_dir'] = reporter.logdir
-    trainer.global_vars['unbalance'] = config['unbalance']
+        # needed so that the custom eval fn knows where to save plots
+        trainer.global_vars['reporter_dir'] = reporter.logdir
+        trainer.global_vars['adv'] = config['adv']
 
-    for _ in tqdm(range(config['epochs'])):
-        results = trainer.train()
-        del results['hist_stats']['logger']  # don't send to tensorboard
-        if 'evaluation' in results:
-            del results['evaluation']['hist_stats']['logger']
-        reporter(**results)
+        for _ in tqdm(range(config['epochs'])):
+            results = trainer.train()
+            del results['hist_stats']['logger']  # don't send to tensorboard
+            if 'evaluation' in results:
+                del results['evaluation']['hist_stats']['logger']
+            reporter(**results)
 
-    trainer.stop()
+        trainer.stop()
 
+    else:
+        trainer_cls = APPOTrainer if config['algo'] == 'appo' else PPOTrainer
+        defense_config = copy(config)
+        defense_config['config']['multiagent']['policies_to_train'] = ['defense']
+        attack_config = copy(config)
+        attack_config['config']['multiagent']['policies_to_train'] = ['attack']
+
+        defense_trainer = trainer_cls(config=defense_config['config'])
+        attack_trainer = trainer_cls(config=attack_config['config'])
+
+        defense_trainer.global_vars['reporter_dir']= reporter.logdir
+        defense_trainer.global_vars['adv'] = config['adv']
+        attack_trainer.global_vars['reporter_dir']= reporter.logdir
+        attack_trainer.global_vars['adv'] = config['adv']
+
+        for i in tqdm(range(config['epochs'])):
+            if i == 0:
+                # load pretrained defense_trainer
+                pass
+
+            while True:
+                attack_trainer.get_policy('defense').set_weights(attack_trainer.get_policy('defense').get_weights())
+                results = attack_trainer.train()
+                evaluate = attack_trainer._evaluate()
+                num_lose = sum(evaluate['evaluation']['hist_stats']['defense_win'])
+                num_match = len(evaluate['evaluation']['hist_stats']['defense_win'])
+                if (num_match - num_lose)/float(num_match) >=0.6:
+                    del results['hist_stats']['logger']
+                    if 'evaluation' in results:
+                        del results['evaluation']['hist_stats']['logger']
+                    reporter(**results)
+                    break
+            while True:
+                defense_trainer.get_policy('attack').set_weights(attack_trainer.get_policy('attack').get_weights())
+                results = defense_trainer.train()
+                evaluate = defense_trainer._evaluate()
+                num_win = sum(evaluate['evaluation']['hist_stats']['defense_win'])
+                num_match = len(evaluate['evaluation']['hist_stats']['defense_win'])
+                if num_win/float(num_match) >=0.6:
+                    del results['hist_stats']['logger']
+                    if 'evaluation' in results:
+                        del results['evaluation']['hist_stats']['logger']
+                    reporter(**results)
+                    break
+
+        defense_trainer.stop()
+        attack_trainer.stop()
 
 def run_defense_vs_attack(full_config, name):
 
@@ -240,7 +274,13 @@ if __name__ == "__main__":
                       'env_name': 'AdvMultiEnv',
                       'simulator': 'opendss'}
 
-    sim_params = input_parser('ieee37busdata')
+    misc_inputs_path = pycigar.DATA_DIR + "/ieee37busdata/misc_inputs.csv"
+    dss_path = pycigar.DATA_DIR + "/ieee37busdata/ieee37.dss"
+    load_solar_path = pycigar.DATA_DIR + "/ieee37busdata/load_solar_data.csv"
+    breakpoints_path = pycigar.DATA_DIR + "/ieee37busdata/breakpoints.csv"
+
+    sim_params = input_parser(misc_inputs_path, dss_path, load_solar_path, breakpoints_path, adv=True)
+
     create_env, env_name = make_create_env(pycigar_params, version=0)
     register_env(env_name, create_env)
     test_env = create_env(sim_params)
@@ -253,25 +293,28 @@ if __name__ == "__main__":
         'num_workers': args.workers,
         'num_cpus_per_worker': 1,
         'num_cpus_for_driver': 1,
+        'num_gpus': 0,
+        'num_gpus_per_worker': 0,
         'num_envs_per_worker': 1,
         'log_level': 'WARNING',
         "gamma": 0.5,
         'lr': 2e-4,
+        'no_done_at_end': False,
         'rollout_fragment_length': 50,
-        'train_batch_size': 500,
+        'train_batch_size': 200,
         'clip_param': 0.1,
         'lambda': 0.95,
         'vf_clip_param': 100,
         "multiagent": {
-            "policies_to_train": ["defense"],
+            "policies_to_train": ["attack", "defense"],
             "policies": {
-                "defense": (PPOTFPolicy,
+                "attack": (None,
                             obs_space,
                             act_space,
                             {
                     'model': {
                         'fcnet_activation': 'tanh',
-                        'fcnet_hiddens': [128, 64, 32],
+                        'fcnet_hiddens': [256, 128, 128, 64],
                         'free_log_std': False,
                         'vf_share_layers': True,
                         'use_lstm': False,
@@ -280,10 +323,21 @@ if __name__ == "__main__":
                         'zero_mean': True,
                     },
                             }),
-                "attack": (Attack,
+                "defense": (None,
                            obs_space,
                            act_space,
-                           {}),
+                           {
+                        'model': {
+                        'fcnet_activation': 'tanh',
+                        'fcnet_hiddens': [256, 128, 128, 64],
+                        'free_log_std': False,
+                        'vf_share_layers': True,
+                        'use_lstm': False,
+                        'state_shape': None,
+                        'framestack': False,
+                        'zero_mean': True,
+                    },
+                           }),
             },
             "policy_mapping_fn": select_policy,
         },
@@ -297,7 +351,7 @@ if __name__ == "__main__":
         "evaluation_num_workers": 1,
         'evaluation_num_episodes': args.eval_rounds,
         "evaluation_interval": args.eval_interval,
-        "custom_eval_function": tune.function(custom_eval_function),
+        "custom_eval_function": custom_eval_function,
         'evaluation_config': {
             "seed": 42,
             # IMPORTANT NOTE: For policy gradients, this might not be the optimal policy
@@ -307,9 +361,9 @@ if __name__ == "__main__":
 
         # ==== CUSTOM METRICS ====
         "callbacks": {
-            "on_episode_start": tune.function(on_episode_start),
-            "on_episode_step": tune.function(on_episode_step),
-            "on_episode_end": tune.function(on_episode_end),
+            "on_episode_start": on_episode_start,
+            "on_episode_step": on_episode_step,
+            "on_episode_end": on_episode_end,
         },
     }
     # eval environment should not be random across workers
@@ -324,9 +378,9 @@ if __name__ == "__main__":
         'epochs': args.epochs,
         'save_path': args.save_path,
         'algo': args.algo,
-        'unbalance': args.unbalance
+        'adv': args.adv
     }
 
     if args.algo == 'ppo':
         config = deepcopy(full_config)
-        run_defense_vs_attack(config, 'ppo')
+        run_defense_vs_attack(config, 'attack_train')

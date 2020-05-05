@@ -110,11 +110,6 @@ class AllRelativeInitDiscreteActionWrapper(ActionWrapper):
     We control 5 VBPs by translate the VBPs.
     Each bin is a step of ACTION_STEP deviated from the initial action.
     """
-    ACTION_MAX_SLOPE = 0.051
-    ACTION_MIN_SLOPE = 0.001
-    ACTION_RANGE = 0.2
-    ACTION_STEP = 0.01
-    DISCRETIZE_RELATIVE = int((ACTION_RANGE / ACTION_STEP)) * 2 + 1
 
     @property
     def action_space(self):
@@ -122,7 +117,7 @@ class AllRelativeInitDiscreteActionWrapper(ActionWrapper):
 
     def action(self, action, rl_id, *_):
         act = self.INIT_ACTION[rl_id] - ACTION_RANGE + ACTION_STEP * action[2]
-        act[1] = act[2] - (ACTION_MAX_SLOPE - ACTION_MAX_SLOPE) / DISCRETIZE_RELATIVE * action[1] - ACTION_MIN_SLOPE
+        act[1] = act[2] - (ACTION_MAX_SLOPE - ACTION_MIN_SLOPE) / DISCRETIZE_RELATIVE * action[1] - ACTION_MIN_SLOPE
         act[0] = act[1] - (ACTION_MAX_SLOPE - ACTION_MIN_SLOPE) / DISCRETIZE_RELATIVE * action[0] - ACTION_MIN_SLOPE
         act[3] = act[2] + (ACTION_MAX_SLOPE - ACTION_MIN_SLOPE) / DISCRETIZE_RELATIVE * action[3] + ACTION_MIN_SLOPE
         act[4] = act[3] + (ACTION_MAX_SLOPE - ACTION_MIN_SLOPE) / DISCRETIZE_RELATIVE * action[4] + ACTION_MIN_SLOPE
@@ -221,13 +216,10 @@ class GroupActionWrapper(Wrapper):
         rl_actions = {}
         if isinstance(action, dict):
             # multi-agent env
-            for i, a in action.items():
-                if 'defense_' in i:
-                    for device_name in self.k.device.get_rl_device_ids():
-                        rl_actions[device_name] = a
-                elif 'attack_' in i:
-                    for device_name in self.k.device.get_rl_device_ids():
-                        rl_actions[device_name] = a
+            if 'defense_agent' in action:
+                rl_actions = {device_name: action['defense_agent'] for device_name in self.k.device.get_rl_device_ids() if 'adversary_' not in device_name}
+            if 'attack_agent' in action:
+                rl_actions = {device_name: action['attack_agent'] for device_name in self.k.device.get_rl_device_ids() if 'adversary_' in device_name}
 
         observation, reward, done, info = self.env.step(rl_actions, randomize_rl_update)
         return observation, reward, done, info

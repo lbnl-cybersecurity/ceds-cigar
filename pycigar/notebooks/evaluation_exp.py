@@ -27,10 +27,10 @@ ActionTuple = namedtuple('Action', ['action', 'timestep'])
 
 def parse_cli_args():
     parser = argparse.ArgumentParser(description='Run distributed runs to better understand PyCIGAR hyperparameters')
-    parser.add_argument('--epochs', type=int, default=2, help='number of epochs per trial')
+    parser.add_argument('--epochs', type=int, default=500, help='number of epochs per trial')
     parser.add_argument('--save-path', type=str, default='~/hp_experiment3', help='where to save the results')
-    parser.add_argument('--workers', type=int, default=3, help='number of cpu workers per run')
-    parser.add_argument('--eval-rounds', type=int, default=1,
+    parser.add_argument('--workers', type=int, default=7, help='number of cpu workers per run')
+    parser.add_argument('--eval-rounds', type=int, default=25,
                         help='number of evaluation rounds to run to smooth random results')
     parser.add_argument('--eval-interval', type=int, default=5,
                         help='do an evaluation every N epochs')
@@ -276,10 +276,7 @@ if __name__ == '__main__':
         },
     }
     # eval environment should not be random across workers
-    eval_start = 100  # random.randint(0, 3599 - 500)
-    base_config['evaluation_config']['env_config']['scenario_config']['start_end_time'] = [eval_start, eval_start + 750]
-    base_config['evaluation_config']['env_config']['scenario_config']['multi_config'] = False
-    del base_config['evaluation_config']['env_config']['attack_randomization']
+    sim_params['attack_randomization']['generator'] = 'AttackDefinitionGeneratorEvaluation'
 
     if args.unbalance:
         for node in base_config['env_config']['scenario_config']['nodes']:

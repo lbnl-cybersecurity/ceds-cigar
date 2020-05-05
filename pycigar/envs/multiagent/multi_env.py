@@ -2,7 +2,7 @@ import numpy as np
 from gym.spaces import Box
 from ray.rllib.env import MultiAgentEnv
 from pycigar.envs.base import Env
-
+from pycigar.controllers import AdaptiveFixedController
 
 class MultiEnv(MultiAgentEnv, Env):
     def __init__(self, *args, **kwargs):
@@ -52,10 +52,11 @@ class MultiEnv(MultiAgentEnv, Env):
             self.old_actions[rl_id] = self.k.device.get_control_setting(rl_id)
             randomize_rl_update[rl_id] = np.random.randint(low=0, high=3)
 
+        # TODOs: disable defense action here
         if rl_actions != {}:
             for key in rl_actions:
-                if 'adversary_' in key:
-                    rl_actions[key] = [1.014, 1.015, 1.015, 1.016, 1.017]
+                if 'adversary_' not in key:
+                    rl_actions[key] = self.k.device.get_control_setting(key) #[1.014, 1.015, 1.015, 1.016, 1.017]
 
         for _ in range(self.sim_params['env_config']['sims_per_step']):
             self.env_time += 1
@@ -96,6 +97,21 @@ class MultiEnv(MultiAgentEnv, Env):
                     control_setting.append(action)
                 self.k.device.apply_control(self.k.device.get_fixed_device_ids(), control_setting)
 
+            """
+            # TODOs: clean this code
+            control_setting = []
+            adv_ids = []
+            for rl_id in self.k.device.get_rl_device_ids():
+                if 'adversary_' in rl_id:
+                    if rl_id not in self.tempo_controllers:
+                        self.tempo_controllers[rl_id] = AdaptiveFixedController(rl_id, None)
+                    action = self.tempo_controllers[rl_id].get_action(self)
+                    control_setting.append(action)
+                    adv_ids.append(rl_id)
+                    self.k.device.apply_control(adv_ids, control_setting)
+            ########################
+            """
+
             self.additional_command()
 
             if self.k.time <= self.k.t:
@@ -111,10 +127,13 @@ class MultiEnv(MultiAgentEnv, Env):
                 else:
                     new_state = self.get_state()
                     for device_name in new_state:
+                        if device_name not in observations:
+                            observations[device_name] = new_state[device_name]
                         for prop in new_state[device_name]:
                             if not isinstance(observations[device_name][prop], list):
                                 observations[device_name][prop] = [observations[device_name][prop]]
-                            observations[device_name][prop].append(new_state[device_name][prop])
+                            else:
+                                observations[device_name][prop].append(new_state[device_name][prop])
 
             if self.k.time >= self.k.t:
                 break
@@ -129,8 +148,10 @@ class MultiEnv(MultiAgentEnv, Env):
         # the episode will be finished if it is not converged.
         finish = not converged or (self.k.time == self.k.t)
         done = {}
+        if abs(max(self.k.scenario.hack_end_times.keys()) - self.k.time) < self.sim_params['env_config']['sims_per_step']:
+            done['attack_agent'] = True
+
         if finish:
-            print('done')
             done['__all__'] = True
         else:
             done['__all__'] = False
@@ -171,8 +192,12 @@ class MultiEnv(MultiAgentEnv, Env):
         return obs, reward, done, infos
 
     def reset(self):
+        # TODOs: delete here
+        #self.tempo_controllers = {}
+
         self.env_time = 0
-        self.sim_params = self.k.update(reset=True)  # hotfix: return new sim_params sample in kernel?
+        self.k.update(reset=True)  # hotfix: return new sim_params sample in kernel?
+        self.sim_params = self.k.sim_params
         states = self.get_state()
 
         self.INIT_ACTION = {}

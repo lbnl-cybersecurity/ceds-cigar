@@ -9,6 +9,8 @@ import pickle
 import matplotlib.pyplot as plt
 from pycigar.utils.logging import logger
 import os
+import pycigar
+
 PATH = os.getcwd()
 
 
@@ -17,7 +19,12 @@ def policy_one(policy, file_name):
     Load the scenarios configuration file. This file contains the scenario information
     for the experiment.
     """
-    sim_params = input_parser('ieee37busdata', benchmark=True)
+    misc_inputs_path = pycigar.DATA_DIR + "/ieee37busdata/misc_inputs.csv"
+    dss_path = pycigar.DATA_DIR + "/ieee37busdata/ieee37.dss"
+    load_solar_path = pycigar.DATA_DIR + "/ieee37busdata/load_solar_data.csv"
+    breakpoints_path = pycigar.DATA_DIR + "/ieee37busdata/breakpoints.csv"
+
+    sim_params = input_parser(misc_inputs_path, dss_path, load_solar_path, breakpoints_path, benchmark=True)
     pycigar_params = {"exp_tag": "cooperative_multiagent_ppo",
                       "env_name": "CentralControlPVInverterEnv",
                       "simulator": "opendss"}
@@ -55,9 +62,14 @@ def policy_one(policy, file_name):
 
 
 def policy_two(policy, file_name):
-    sim_params = input_parser('ieee37busdata', benchmark=True)
+    misc_inputs_path = pycigar.DATA_DIR + "/ieee37busdata/misc_inputs.csv"
+    dss_path = pycigar.DATA_DIR + "/ieee37busdata/ieee37.dss"
+    load_solar_path = pycigar.DATA_DIR + "/ieee37busdata/load_solar_data.csv"
+    breakpoints_path = pycigar.DATA_DIR + "/ieee37busdata/breakpoints.csv"
+
+    sim_params = input_parser(misc_inputs_path, dss_path, load_solar_path, breakpoints_path, benchmark=True)
     pycigar_params = {"exp_tag": "cooperative_multiagent_ppo",
-                      "env_name": "NewCentralControlPVInverterEnv",
+                      "env_name": "CentralControlPVInverterEnv",
                       "simulator": "opendss"}
 
     create_env, env_name = make_create_env(pycigar_params, version=0)
@@ -219,7 +231,7 @@ if __name__ == '__main__':
     p = Process(0, policy_one, policy=dir_p1)
     p.start()
     p.join()
-    p = Process(1, policy_two, policy=dir_p2)
+    p = Process(1, policy_two, policy=dir_p1)
     p.start()
     p.join()
     p = Process(2, plot, file_name='result.png')
