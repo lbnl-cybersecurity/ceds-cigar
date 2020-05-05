@@ -58,9 +58,6 @@ class CentralLocalObservationWrapper(ObservationWrapper):
     def __init__(self, env, unbalance=False):
         super().__init__(env)
         self.unbalance = unbalance
-
-    @property
-    def observation_space(self):
         a_space = self.action_space
         if isinstance(a_space, Tuple):
             self.a_size = sum(a.n for a in a_space)
@@ -72,9 +69,9 @@ class CentralLocalObservationWrapper(ObservationWrapper):
         elif isinstance(a_space, Box):
             self.a_size = sum(a_space.shape)
             self.init_action = np.zeros(self.a_size)  # action is continuous relative, so init is 0
-        else:
-            raise NotImplementedError()
 
+    @property
+    def observation_space(self):
         return Box(low=-float('inf'), high=float('inf'), shape=(2 + self.a_size,), dtype=np.float64)
 
     def observation(self, observation, info):
