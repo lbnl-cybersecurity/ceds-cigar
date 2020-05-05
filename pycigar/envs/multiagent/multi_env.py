@@ -196,7 +196,8 @@ class MultiEnv(MultiAgentEnv, Env):
         #self.tempo_controllers = {}
 
         self.env_time = 0
-        self.sim_params = self.k.update(reset=True)  # hotfix: return new sim_params sample in kernel?
+        self.k.update(reset=True)  # hotfix: return new sim_params sample in kernel?
+        self.sim_params = self.k.sim_params
         states = self.get_state()
 
         self.INIT_ACTION = {}

@@ -103,12 +103,13 @@ class PVDevice(BaseDevice):
 
             self.y = 1e4 * self.y3[-1]
 
-            va = np.abs(k.node.nodes['s701a']['voltage'][k.time - 1])
-            vb = np.abs(k.node.nodes['s701b']['voltage'][k.time - 1])
-            vc = np.abs(k.node.nodes['s701c']['voltage'][k.time - 1])
-            mean = (va+vb+vc)/3
-            max_diff = max([abs(va - mean), abs(vb - mean), abs(vc - mean)])
-            self.u = max_diff / mean
+            if 's701a' in k.node.nodes and 's701b' in k.node.nodes and 's701c' in k.node.nodes:
+                va = np.abs(k.node.nodes['s701a']['voltage'][k.time - 1])
+                vb = np.abs(k.node.nodes['s701b']['voltage'][k.time - 1])
+                vc = np.abs(k.node.nodes['s701c']['voltage'][k.time - 1])
+                mean = (va+vb+vc)/3
+                max_diff = max([abs(va - mean), abs(vb - mean), abs(vc - mean)])
+                self.u = max_diff / mean
 
         T = self.delta_t
         lpf_m = self.low_pass_filter_measure

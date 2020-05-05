@@ -136,8 +136,6 @@ class Kernel(object):
             self.warm_up_k_step(50)
             logger().set_active()
 
-            return self.sim_params
-
         else:
             self.device.update(reset)  # calculate new PQ with new VBP, then push PV to node
             self.node.update(reset)  # with the load, update the load-pq to simulator
