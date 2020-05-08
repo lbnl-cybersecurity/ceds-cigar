@@ -4,7 +4,7 @@ import pycigar
 from pycigar.utils.input_parser import input_parser
 from pycigar.utils.registry import make_create_env
 from pycigar.utils.logging import logger
-
+import time
 import numpy as np
 
 
@@ -43,10 +43,31 @@ class TestCentralEnv(unittest.TestCase):
         for k in log:
             if 'voltage' in k:
                 diff = max(k['voltage']) - min(k['voltage'])
-                self.assertAlmostEqual(diff, 0)
+                self.assertAlmostEqual(diff, 0, msg='Voltage should be stable at the beginning')
 
+    def test_init_action_present(self):
+        self.env.reset()
+        self.assertTrue(hasattr(self.env, 'INIT_ACTION') and isinstance(self.env.INIT_ACTION, dict),
+                        msg='No INIT_ACTION dict in environment')
 
+    def test_env_time(self):
+        self.env.reset()
+        self.assertEqual(self.env.env_time, 0)
 
+    def test_sims_per_step(self):
+        self.env.reset()
+        done = False
+        while not done:
+            old_t = self.env.env_time
+            obs, r, done, _ = self.env.step(self.env.init_action)
+            self.assertEqual(self.env.env_time - old_t, self.env.sim_params['env_config']["sims_per_step"])
+
+    def test_sim_time(self):
+        self.env.reset()
+        t = time.time()
+        self.env.step(self.env.init_action)
+        tt = (time.time() - t) / self.env.sim_params['env_config']["sims_per_step"]
+        self.assertLessEqual(tt, 0.1, msg='Simulation time is greater than 100ms for one step')
 
 if __name__ == "__main__":
     unittest.main()

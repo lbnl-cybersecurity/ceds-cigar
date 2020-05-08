@@ -6,7 +6,7 @@ from pycigar.utils.logging import logger
 from pycigar.utils.registry import make_create_env
 
 
-class TestCentralEnv(unittest.TestCase):
+class TestLogger(unittest.TestCase):
     def setUp(self):
         pycigar_params = {'exp_tag': 'cooperative_multiagent_ppo',
                           'env_name': 'CentralControlPVInverterEnv',
