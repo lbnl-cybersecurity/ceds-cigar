@@ -104,10 +104,10 @@ def on_episode_end(info):
 
     env = info['env'].vector_env.envs[0]
     t_id = env.k.device.get_rl_device_ids()[0]
-    hack_start = int([k for k, v in env.k.scenario.hack_start_times.items() if 'adversary_' + t_id in v][0])
-    hack_end = int([k for k, v in env.k.scenario.hack_end_times.items() if 'adversary_' + t_id in v][0])
-    episode.custom_metrics["hack_start"] = hack_start
-    episode.custom_metrics["hack_end"] = hack_end
+    #hack_start = int([k for k, v in env.k.scenario.hack_start_times.items() if 'adversary_' + t_id in v][0])
+    #hack_end = int([k for k, v in env.k.scenario.hack_end_times.items() if 'adversary_' + t_id in v][0])
+    #episode.custom_metrics["hack_start"] = hack_start
+    #episode.custom_metrics["hack_end"] = hack_end
 
 
 def get_translation_and_slope(a_val):
@@ -151,12 +151,12 @@ def save_best_policy(trainer, episodes):
         df.to_csv(os.path.join(trainer.global_vars['reporter_dir'], 'best', 'last_eval_hists.csv'))
 
         # save info
-        start = ep.custom_metrics["hack_start"]
-        end = ep.custom_metrics["hack_end"]
+        #start = ep.custom_metrics["hack_start"]
+        #end = ep.custom_metrics["hack_end"]
         info = {
             'epoch': trainer.iteration,
-            'hack_start': start,
-            'hack_end': end,
+        #    'hack_start': start,
+        #    'hack_end': end,
             'reward': mean_r
         }
         with open(os.path.join(trainer.global_vars['reporter_dir'], 'best', 'info.json'), 'w', encoding='utf-8') as f:
