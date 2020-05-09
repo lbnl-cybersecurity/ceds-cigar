@@ -301,19 +301,21 @@ if __name__ == '__main__':
         config = deepcopy(full_config)
         run_hp_experiment(config, 'main')
 
+        #config = deepcopy(full_config)
+        #config['config']['env_config']['M'] = ray.tune.grid_search([0, 1, 2, 4, 8])
+        #run_hp_experiment(config, 'y_penalty')
+
+        #config = deepcopy(full_config)
+        #config['config']['env_config']['N'] = ray.tune.grid_search([0, 1, 2, 4, 8])
+        #run_hp_experiment(config, 'action_penalty')
+
+        #config = deepcopy(full_config)
+        #config['config']['env_config']['P'] = ray.tune.grid_search([0, 1, 2, 4, 8])
+        #run_hp_experiment(config, 'init_penalty')
+
+
+
         """
-        config = deepcopy(full_config)
-        config['config']['env_config']['N'] = ray.tune.grid_search([0, 1, 2, 4, 8])
-        run_hp_experiment(config, 'action_penalty')
-
-        config = deepcopy(full_config)
-        config['config']['env_config']['P'] = ray.tune.grid_search([0, 1, 2, 4, 8])
-        run_hp_experiment(config, 'init_penalty')
-
-        config = deepcopy(full_config)
-        config['config']['env_config']['M'] = ray.tune.grid_search([0, 1, 2, 4, 8])
-        run_hp_experiment(config, 'y_penalty')
-
         config = deepcopy(full_config)
         config['config']['gamma'] = ray.tune.grid_search([0, 0.2, 0.5, 0.9, 1])
         run_hp_experiment(config, 'gamma')

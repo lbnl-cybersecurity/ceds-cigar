@@ -3,7 +3,7 @@ from ray.tune.utils import merge_dicts
 
 from pycigar.envs.wrappers.wrapper import Wrapper
 from pycigar.envs.wrappers.wrappers_constants import *
-
+from pycigar.utils.logging import logger
 
 class ActionWrapper(Wrapper):
     def step(self, action, randomize_rl_update=None):
@@ -80,6 +80,8 @@ class SingleRelativeInitDiscreteActionWrapper(ActionWrapper):
         return Discrete(DISCRETIZE_RELATIVE)
 
     def action(self, action, rl_id, *_):
+        Logger = logger()
+        Logger.log('component_action', rl_id, self.INIT_ACTION[rl_id] - ACTION_RANGE + ACTION_STEP * action)
         return self.INIT_ACTION[rl_id] - ACTION_RANGE + ACTION_STEP * action
 
 

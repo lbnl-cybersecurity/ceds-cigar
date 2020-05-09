@@ -153,6 +153,8 @@ class CentralGlobalRewardWrapper(RewardWrapper):
         self.unbalance = unbalance
 
     def reward(self, reward, info):
+        Logger = logger()
+
         M = self.k.sim_params['M']
         N = self.k.sim_params['N']
         P = self.k.sim_params['P']
@@ -161,6 +163,10 @@ class CentralGlobalRewardWrapper(RewardWrapper):
         # we accumulate agents reward into global_reward and divide it with the number of agents.
         y_or_u = 'u' if self.unbalance else 'y'
 
+        component_y = 0
+        component_oa = 0
+        component_init = 0
+        component_pset_pmax = 0
         for key in info.keys():
             action = info[key]['current_action']
             if action is None:
@@ -180,10 +186,20 @@ class CentralGlobalRewardWrapper(RewardWrapper):
 
             r += -(M * info[key][y_or_u] + N * roa + P * np.linalg.norm(action - self.INIT_ACTION[key]) + 0.5 * (
                 1 - abs(info[key]['p_set_p_max'])) ** 2)
-            #r += -(M * info[key][y_or_u] + N * roa + P * np.linalg.norm(action - self.INIT_ACTION[key]) + 1.5e-6*info[key]['sbar_solar_irr'])
-            #print(0.5*(1 - abs(info[key]['p_set_p_max'])) ** 2/(1.5e-6*info[key]['sbar_solar_irr']))
+
+            component_y += -M * info[key][y_or_u]
+            component_oa += -N * roa
+            component_init += -P * np.linalg.norm(action - self.INIT_ACTION[key])
+            component_pset_pmax += -0.5 * (1 - abs(info[key]['p_set_p_max'])) ** 2
+
             global_reward += r
         global_reward = global_reward / len(list(info.keys()))
+
+        for _ in range(self.env.k.sim_params['env_config']['sims_per_step']):
+            Logger.log('component_reward', 'component_y', component_y)
+            Logger.log('component_reward', 'component_oa', component_oa)
+            Logger.log('component_reward', 'component_init', component_init)
+            Logger.log('component_reward', 'component_pset_pmax', component_pset_pmax)
 
         return global_reward
 

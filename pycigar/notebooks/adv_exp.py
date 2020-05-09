@@ -231,7 +231,7 @@ def run_train(config, reporter):
                 evaluate = attack_trainer._evaluate()
                 num_lose = sum(evaluate['evaluation']['hist_stats']['defense_win'])
                 num_match = len(evaluate['evaluation']['hist_stats']['defense_win'])
-                if (num_match - num_lose)/float(num_match) >=0.6:
+                if (num_match - num_lose)/float(num_match) >= 0.6:
                     del results['hist_stats']['logger']
                     if 'evaluation' in results:
                         del results['evaluation']['hist_stats']['logger']
