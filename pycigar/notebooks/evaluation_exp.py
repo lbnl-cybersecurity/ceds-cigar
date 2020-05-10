@@ -103,7 +103,7 @@ def on_episode_end(info):
     info['episode'].hist_data['logger'] = {'log_dict': tracking.log_dict, 'custom_metrics': tracking.custom_metrics}
 
     env = info['env'].vector_env.envs[0]
-    t_id = env.k.device.get_rl_device_ids()[0]
+    #t_id = env.k.device.get_rl_device_ids()[0]
     #hack_start = int([k for k, v in env.k.scenario.hack_start_times.items() if 'adversary_' + t_id in v][0])
     #hack_end = int([k for k, v in env.k.scenario.hack_end_times.items() if 'adversary_' + t_id in v][0])
     #episode.custom_metrics["hack_start"] = hack_start
@@ -134,21 +134,21 @@ def save_best_policy(trainer, episodes):
         f.savefig(os.path.join(trainer.global_vars['reporter_dir'], 'best', 'eval.png'))
 
         # save CSV
-        k = list(data.keys())[0]
-        ep_hist = pd.DataFrame(dict(v=data[data[k]['node']]['voltage'], y=data[k]['y'],
-                                    q_set=data[k]['q_set'], q_val=data[k]['q_out']))
-        a_hist = pd.DataFrame(data[k]['control_setting'], columns=['a1', 'a2', 'a3', 'a4', 'a5'])
-        adv_a_hist = pd.DataFrame(data['adversary_' + k]['control_setting'],
-                                  columns=['adv_a1', 'adv_a2', 'adv_a3', 'adv_a4', 'adv_a5'])
-        translation, slope = get_translation_and_slope(data[k]['control_setting'])
-        adv_translation, adv_slope = get_translation_and_slope(data['adversary_' + k]['control_setting'])
-        trans_slope_hist = pd.DataFrame(dict(translation=translation, slope=slope,
-                                             adv_translation=adv_translation, adv_slope=adv_slope))
+        #k = list(data.keys())[0]
+        #ep_hist = pd.DataFrame(dict(v=data[data[k]['node']]['voltage'], y=data[k]['y'],
+        #                            q_set=data[k]['q_set'], q_val=data[k]['q_out']))
+        #a_hist = pd.DataFrame(data[k]['control_setting'], columns=['a1', 'a2', 'a3', 'a4', 'a5'])
+        #adv_a_hist = pd.DataFrame(data['adversary_' + k]['control_setting'],
+        #                          columns=['adv_a1', 'adv_a2', 'adv_a3', 'adv_a4', 'adv_a5'])
+        #translation, slope = get_translation_and_slope(data[k]['control_setting'])
+        #adv_translation, adv_slope = get_translation_and_slope(data['adversary_' + k]['control_setting'])
+        #trans_slope_hist = pd.DataFrame(dict(translation=translation, slope=slope,
+        #                                     adv_translation=adv_translation, adv_slope=adv_slope))
 
-        df = ep_hist.join(a_hist, how='outer')
-        df = df.join(adv_a_hist, how='outer')
-        df = df.join(trans_slope_hist, how='outer')
-        df.to_csv(os.path.join(trainer.global_vars['reporter_dir'], 'best', 'last_eval_hists.csv'))
+        #df = ep_hist.join(a_hist, how='outer')
+        #df = df.join(adv_a_hist, how='outer')
+        #df = df.join(trans_slope_hist, how='outer')
+        #df.to_csv(os.path.join(trainer.global_vars['reporter_dir'], 'best', 'last_eval_hists.csv'))
 
         # save info
         #start = ep.custom_metrics["hack_start"]
