@@ -243,16 +243,6 @@ def plot_new(log_dict, custom_metrics, epoch='', unbalance=False):
                 ax[1, 1].plot(translation, color='tab:orange')
                 ax[1, 1].plot(slope, color='tab:red')
 
-        """
-        r = 20
-        ax[2, 1].plot(list(itertools.chain.from_iterable(itertools.repeat(x, r) for x in log_dict['component_observation']['component_y'])))
-        ax[3, 1].plot(list(itertools.chain.from_iterable(itertools.repeat(x, r) for x in log_dict['component_observation']['component_pset'])))
-        ax[4, 1].plot(list(itertools.chain.from_iterable(itertools.repeat(x, r) for x in log_dict['component_observation']['component_ymax'])))
-        component_y = np.array(list(itertools.chain.from_iterable(itertools.repeat(x, r) for x in log_dict['component_reward']['component_y'])))
-        component_oa = np.array(list(itertools.chain.from_iterable(itertools.repeat(x, r) for x in log_dict['component_reward']['component_oa'])))
-        component_init = np.array(list(itertools.chain.from_iterable(itertools.repeat(x, r) for x in log_dict['component_reward']['component_init'])))
-        component_pset_pmax = np.array(list(itertools.chain.from_iterable(itertools.repeat(x, r) for x in log_dict['component_reward']['component_pset_pmax'])))
-        """
         ax[2, 1].plot(log_dict['component_observation']['component_y'], label='obs_component_y')
         ax[3, 1].plot(log_dict['component_observation']['component_pset'], label='obs_component_pset')
         ax[4, 1].plot(log_dict['component_observation']['component_ymax'], label='obs_component_ymax')
@@ -262,10 +252,12 @@ def plot_new(log_dict, custom_metrics, epoch='', unbalance=False):
         component_pset_pmax = np.array(log_dict['component_reward']['component_pset_pmax'])
 
         total_reward = component_y + component_oa + component_init + component_pset_pmax
-        ax[5, 1].plot(component_y/total_reward, label='reward_component_y')
-        ax[5, 1].plot(component_oa/total_reward, label='reward_component_oa')
-        ax[5, 1].plot(component_init/total_reward, label='reward_component_init')
-        ax[5, 1].plot(component_pset_pmax/total_reward, label='reward_component_pset_pmax')
+
+        ax[5, 1].plot(-component_y, label='abs_reward_component_y')
+        ax[5, 1].plot(-component_oa, label='abs_reward_component_oa')
+        ax[5, 1].plot(-component_init, label='abs_reward_component_init')
+        ax[5, 1].plot(-component_pset_pmax, label='abs_reward_component_pset_pmax')
+        ax[5, 1].plot(-total_reward, label='abs_total_reward')
 
         x = range(len(component_y))
         y_stack = np.cumsum(np.array([component_y, component_oa, component_init, component_pset_pmax]), axis=0)   # a 3x10 array
@@ -273,7 +265,7 @@ def plot_new(log_dict, custom_metrics, epoch='', unbalance=False):
         ax[6, 1].fill_between(x, 0, y_stack[0,:], facecolor="#CC6666", alpha=.7, label='reward_component_y')
         ax[6, 1].fill_between(x, y_stack[0,:], y_stack[1,:], facecolor="#1DACD6", alpha=.7, label='reward_component_oa')
         ax[6, 1].fill_between(x, y_stack[1,:], y_stack[2,:], facecolor="#6E5160", label='reward_component_init')
-
+        ax[6, 1].fill_between(x, y_stack[2,:], y_stack[3,:], facecolor="#E3F59C", label='reward_component_pset_pmax')
         ax[0, 1].set_xlim(0, 700)
         ax[1, 1].set_xlim(0, 700)
         ax[2, 1].set_xlim(0, 700)
@@ -311,7 +303,7 @@ def plot_new(log_dict, custom_metrics, epoch='', unbalance=False):
         for j in range(2):
             ax[i,j].grid(b=True, which='both')
             ax[i,j].legend(loc=1, ncol=2)
-
+    ax[6, 1].legend(loc=4, ncol=2)
     plt.tight_layout()
     plt.subplots_adjust(top=0.95)
     return f

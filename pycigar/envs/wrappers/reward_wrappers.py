@@ -196,10 +196,10 @@ class CentralGlobalRewardWrapper(RewardWrapper):
         global_reward = global_reward / len(list(info.keys()))
 
         for _ in range(self.env.k.sim_params['env_config']['sims_per_step']):
-            Logger.log('component_reward', 'component_y', component_y)
-            Logger.log('component_reward', 'component_oa', component_oa)
-            Logger.log('component_reward', 'component_init', component_init)
-            Logger.log('component_reward', 'component_pset_pmax', component_pset_pmax)
+            Logger.log('component_reward', 'component_y', component_y / len(list(info.keys())))
+            Logger.log('component_reward', 'component_oa', component_oa / len(list(info.keys())))
+            Logger.log('component_reward', 'component_init', component_init / len(list(info.keys())))
+            Logger.log('component_reward', 'component_pset_pmax', component_pset_pmax / len(list(info.keys())))
 
         return global_reward
 
