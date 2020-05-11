@@ -1,55 +1,61 @@
 import unittest
 
-import pycigar
-from pycigar.utils.input_parser import input_parser
+import numpy as np
 from pycigar.utils.logging import logger
-from pycigar.utils.registry import make_create_env
 
 
 class TestLogger(unittest.TestCase):
     def setUp(self):
-        pycigar_params = {'exp_tag': 'cooperative_multiagent_ppo',
-                          'env_name': 'CentralControlPVInverterEnv',
-                          'simulator': 'opendss'}
+        self.logger = logger()
+        self.logger.set_active()
+        self.logger.reset()
 
-        create_env, env_name = make_create_env(pycigar_params, version=0)
+    def test_log(self):
+        values = [.1, -.1, None, 0, np.Inf]
+        for v in values:
+            self.logger.log('object1', 'param1', v)
+            self.logger.log('object1', 'param2', v)
+            self.logger.log('object2', 'param1', v)
 
-        misc_inputs_path = pycigar.DATA_DIR + "/ieee37busdata/misc_inputs.csv"
-        dss_path = pycigar.DATA_DIR + "/ieee37busdata/ieee37.dss"
-        load_solar_path = pycigar.DATA_DIR + "/ieee37busdata/load_solar_data.csv"
-        breakpoints_path = pycigar.DATA_DIR + "/ieee37busdata/breakpoints.csv"
+        self.assertListEqual(self.logger.log_dict['object1']['param1'], values)
+        self.assertListEqual(self.logger.log_dict['object1']['param2'], values)
+        self.assertListEqual(self.logger.log_dict['object2']['param1'], values)
 
-        sim_params = input_parser(misc_inputs_path, dss_path, load_solar_path, breakpoints_path)
-        self.env = create_env(sim_params)
+    def test_reset(self):
+        self.logger.log('object', 'param', .1)
+        self.logger.custom_metrics['custom'] = .1
+        self.logger.reset()
+        self.assertDictEqual(self.logger.log_dict, {}, 'Log dict should be empty after reset')
+        self.assertDictEqual(self.logger.custom_metrics, {}, 'Log custom metrics should be empty after reset')
 
-    def test_nodes(self):
-        obs = self.env.reset()
-        obs, r, done, _ = self.env.step(self.env.init_action)
+    def test_active(self):
+        values = [.1, -.1, None, 0, np.Inf]
+        self.logger.set_active(False)
+        for v in values:
+            self.logger.log('object1', 'param1', v)
+            self.logger.log('object1', 'param2', v)
+            self.logger.log('object2', 'param1', v)
 
-        log = logger().log_dict
-        for k in log:
-            if 'node' in k:
-                self.assertTrue(k['node'] in log, msg='Nodes should be logged')
+        self.logger.set_active()
+        for v in values:
+            self.logger.log('object1', 'param1', v)
+            self.logger.log('object1', 'param2', v)
+            self.logger.log('object2', 'param1', v)
 
-    def test_lengths(self):
-        obs = self.env.reset()
-        obs, r, done, _ = self.env.step(self.env.init_action)
-        log = logger().log_dict
-        for k in log:
-            if 'node' in log[k]:  # device
-                lengths = [len(log[k][s]) for s in
-                           ['y', 'u', 'p_set', 'q_set', 'p_out', 'q_out', 'control_setting', 'solar_irr']]
-                self.assertTrue(max(lengths) == min(lengths),
-                                msg='There may be a problem with device logging frequency')
-            elif 'kw' in log[k]:  # node
-                lengths = [len(log[k][s]) for s in
-                           ['p', 'q', 'kw', 'kvar', 'voltage']]
-                self.assertTrue(max(lengths) == min(lengths), msg='There may be a problem with node logging frequency')
+        self.assertListEqual(self.logger.log_dict['object1']['param1'], values)
+        self.assertListEqual(self.logger.log_dict['object1']['param2'], values)
+        self.assertListEqual(self.logger.log_dict['object2']['param1'], values)
 
-        if 'network' in log:
-            lengths = [len(log['network'][s]) for s in
-                       ['substation_power', 'loss', 'substation_top_voltage', 'substation_bottom_voltage']]
-            self.assertTrue(max(lengths) == min(lengths), msg='There may be a problem with network logging frequency')
+    def test_log_single(self):
+        values = [.1, -.1, None, 0, np.Inf]
+        for v in values:
+            self.logger.log_single('object1', 'param1', v)
+            self.logger.log_single('object1', 'param2', v)
+            self.logger.log_single('object2', 'param1', v)
+
+        self.assertEqual(self.logger.log_dict['object1']['param1'], values[-1])
+        self.assertEqual(self.logger.log_dict['object1']['param2'], values[-1])
+        self.assertEqual(self.logger.log_dict['object2']['param1'], values[-1])
 
 
 if __name__ == "__main__":
