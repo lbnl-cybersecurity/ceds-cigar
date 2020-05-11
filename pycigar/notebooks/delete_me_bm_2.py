@@ -60,8 +60,8 @@ def policy_one(policy, file_name, start=100, percentage_hack=0.45):
     f.savefig(os.path.join(PATH, file_name))
 
 if __name__ == '__main__':
-    dir_p1 = '/home/toanngo/Documents/GitHub/ceds-cigar/pycigar/notebooks/policy_eval_old-obs_P30_pset02_35'
-
+    file_name = 'newest_policy_M40_P18'
+    dir_p1 = os.path.join(PATH, file_name) #'/home/toanngo/Documents/GitHub/ceds-cigar/pycigar/notebooks/policy_eval_old-obs_P30_pset02_35'
     s = 100
     p_hack = 0.2
     policy_one(policy=dir_p1, file_name="{}-{}p.png".format(s, p_hack), start=s, percentage_hack=p_hack)
