@@ -60,7 +60,10 @@ class TestCentralEnv(unittest.TestCase):
         while not done:
             old_t = self.env.env_time
             obs, r, done, _ = self.env.step(self.env.init_action)
-            self.assertEqual(self.env.env_time - old_t, self.env.sim_params['env_config']["sims_per_step"])
+            if not done:
+                self.assertEqual(self.env.env_time - old_t, self.env.sim_params['env_config']["sims_per_step"])
+            else:
+                self.assertLessEqual(self.env.env_time - old_t, self.env.sim_params['env_config']["sims_per_step"])
 
     def test_sim_time(self):
         self.env.reset()
