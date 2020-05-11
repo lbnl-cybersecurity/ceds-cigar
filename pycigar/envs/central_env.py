@@ -57,6 +57,9 @@ class CentralEnv(Env):
             else:
                 Logger.custom_metrics['randomize_rl_update'].append(deepcopy(randomize_rl_update))
 
+        Logger = logger()
+        Logger.custom_metrics['start_time'] = self.k.start_time
+
         if rl_actions is None:
             rl_actions = self.old_actions
 

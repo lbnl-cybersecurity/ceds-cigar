@@ -197,7 +197,7 @@ def plot_new(log_dict, custom_metrics, epoch='', unbalance=False):
     if not unbalance:
         inv_k = next(k for k in log_dict if 'inverter' in k)
         f, ax = plt.subplots(7, 2, figsize=(30, 40))
-        title = '[epoch {}] total reward: {:.2f}'.format(epoch, sum(log_dict[inv_k]['reward']))
+        title = '[epoch {}][time {}][hack {}] total reward: {:.2f}'.format(epoch, custom_metrics['start_time'], custom_metrics['hack'], sum(log_dict[inv_k]['reward']))
         f.suptitle(title)
         ax[0, 0].plot(log_dict[log_dict[inv_k]['node']]['voltage'], color='tab:blue', label='voltage')
 

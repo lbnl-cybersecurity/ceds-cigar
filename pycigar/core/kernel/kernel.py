@@ -128,6 +128,8 @@ class Kernel(object):
             start_time = self.sim_params['scenario_config']['start_time']
             end_time = self.sim_params['scenario_config']['end_time']
             self.scenario.change_load_profile(start_time, end_time)
+            self.start_time = start_time
+            self.end_time = end_time
 
             self.node.update(reset)
             self.simulation.update(reset)
