@@ -28,8 +28,8 @@ class TestLogging(unittest.TestCase):
 
         log = logger().log_dict
         for k in log:
-            if 'node' in k:
-                self.assertTrue(k['node'] in log, msg='Nodes should be logged')
+            if 'node' in log[k]:
+                self.assertTrue(log[k]['node'] in log, msg='Nodes should be logged')
 
     def test_lengths(self):
         obs = self.env.reset()
