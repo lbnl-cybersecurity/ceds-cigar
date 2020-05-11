@@ -21,6 +21,7 @@ from pycigar.utils.input_parser import input_parser
 from pycigar.utils.logging import logger
 from pycigar.utils.output import plot_new
 from pycigar.utils.registry import make_create_env
+import matplotlib.pyplot as plt
 
 ActionTuple = namedtuple('Action', ['action', 'timestep'])
 
@@ -32,7 +33,7 @@ def parse_cli_args():
     parser.add_argument('--workers', type=int, default=7, help='number of cpu workers per run')
     parser.add_argument('--eval-rounds', type=int, default=4,
                         help='number of evaluation rounds to run to smooth random results')
-    parser.add_argument('--eval-interval', type=int, default=5,
+    parser.add_argument('--eval-interval', type=int, default=10,
                         help='do an evaluation every N epochs')
     parser.add_argument("--algo", help="use PPO or APPO", choices=['ppo', 'appo'],
                         nargs='?', const='ppo', default='ppo', type=str.lower)
@@ -59,7 +60,7 @@ def custom_eval_function(trainer, eval_workers):
         f = plot_new(episodes[i].hist_data['logger']['log_dict'], episodes[i].hist_data['logger']['custom_metrics'], trainer.iteration, trainer.global_vars['unbalance'])
         f.savefig(trainer.global_vars['reporter_dir'] + 'eval-epoch-' + str(trainer.iteration) + '_' + str(i+1) + '.png',
                 bbox_inches='tight')
-
+        plt.close(f)
     save_best_policy(trainer, episodes)
     return metrics
 
@@ -91,13 +92,13 @@ def on_episode_step(info):
 def on_episode_end(info):
     episode = info["episode"]
     actions = episode.user_data["true_actions"]
-    avg_mag = (np.array([t.action for t in actions[1:]]) - 2).mean()
+    #avg_mag = (np.array([t.action for t in actions[1:]]) - 2).mean()
     num_actions = len(actions) - 1
     if num_actions > 0:
         episode.custom_metrics['latest_action'] = actions[-1].timestep
         episode.custom_metrics['earliest_action'] = actions[1].timestep
 
-    episode.custom_metrics["avg_magnitude"] = avg_mag
+    #episode.custom_metrics["avg_magnitude"] = avg_mag
     episode.custom_metrics["num_actions_taken"] = num_actions
 
     tracking = logger()
@@ -128,12 +129,18 @@ def save_best_policy(trainer, episodes):
         if not trainer.global_vars['unbalance']:
             shutil.rmtree(os.path.join(trainer.global_vars['reporter_dir'], 'best', 'policy'), ignore_errors=True)
             trainer.get_policy().export_model(os.path.join(trainer.global_vars['reporter_dir'], 'best', 'policy'))
+
         # save plots
         ep = episodes[-1]
         data = ep.hist_data['logger']['log_dict']
         f = plot_new(data, ep.hist_data['logger']['custom_metrics'], trainer.iteration, trainer.global_vars['unbalance'])
         f.savefig(os.path.join(trainer.global_vars['reporter_dir'], 'best', 'eval.png'))
+        plt.close(f)
 
+    # save policy
+    if not trainer.global_vars['unbalance']:
+        shutil.rmtree(os.path.join(trainer.global_vars['reporter_dir'], 'latest', 'policy'), ignore_errors=True)
+        trainer.get_policy().export_model(os.path.join(trainer.global_vars['reporter_dir'], 'latest', 'policy'))
         # save CSV
         #k = list(data.keys())[0]
         #ep_hist = pd.DataFrame(dict(v=data[data[k]['node']]['voltage'], y=data[k]['y'],

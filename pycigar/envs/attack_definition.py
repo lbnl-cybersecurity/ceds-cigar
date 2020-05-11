@@ -55,7 +55,7 @@ class AttackDefinitionGeneratorEvaluation:
 
     def change_mode(self):
         res = self.scenarios[self.mode][1:]
-        print("mode: {}, {}, {}".format(self.mode, self.scenarios[self.mode], self.scenarios))
+        #print("mode: {}, {}, {}".format(self.mode, self.scenarios[self.mode], self.scenarios))
         self.mode += 1
         if self.mode == len(self.scenarios):
             self.mode = 0
