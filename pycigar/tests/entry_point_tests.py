@@ -1,5 +1,5 @@
 import unittest
-
+import sys
 import pycigar
 
 loader = unittest.TestLoader()
@@ -8,7 +8,9 @@ print(start_dir)
 suite = loader.discover(start_dir)
 
 runner = unittest.TextTestRunner()
-runner.run(suite)
+res = runner.run(suite)
+if not res.wasSuccessful():
+    sys.exit(1)
 
 # Test no-agent path
 pycigar.main(
