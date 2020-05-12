@@ -28,7 +28,7 @@ ActionTuple = namedtuple('Action', ['action', 'timestep'])
 
 def parse_cli_args():
     parser = argparse.ArgumentParser(description='Run distributed runs to better understand PyCIGAR hyperparameters')
-    parser.add_argument('--epochs', type=int, default=100, help='number of epochs per trial')
+    parser.add_argument('--epochs', type=int, default=200, help='number of epochs per trial')
     parser.add_argument('--save-path', type=str, default='~/hp_experiment3', help='where to save the results')
     parser.add_argument('--workers', type=int, default=7, help='number of cpu workers per run')
     parser.add_argument('--eval-rounds', type=int, default=4,
