@@ -55,7 +55,6 @@ class AttackDefinitionGeneratorEvaluation:
 
     def change_mode(self):
         res = self.scenarios[self.mode][1:]
-        #print("mode: {}, {}, {}".format(self.mode, self.scenarios[self.mode], self.scenarios))
         self.mode += 1
         if self.mode == len(self.scenarios):
             self.mode = 0
@@ -63,8 +62,8 @@ class AttackDefinitionGeneratorEvaluation:
         return res
 
     def new_dev_hack_info(self):
-        hack_start = random.randint(250, 250 + 10)  # random.randint(int(duration*2/5), int(duration*2/5)+10)
-        hack_end = random.randint(500, 500 + 10)  # random.randint(int(duration*4/5), int(duration*4/5)+10)
+        hack_start = 250 #random.randint(250, 250 + 10)  # random.randint(int(duration*2/5), int(duration*2/5)+10)
+        hack_end = 500 #random.randint(500, 500 + 10)  # random.randint(int(duration*4/5), int(duration*4/5)+10)
         percentage = self.scenarios[self.mode][0]
         res = [hack_start, percentage, hack_end]
 

@@ -141,6 +141,7 @@ def save_best_policy(trainer, episodes):
     if not trainer.global_vars['unbalance']:
         shutil.rmtree(os.path.join(trainer.global_vars['reporter_dir'], 'latest', 'policy'), ignore_errors=True)
         trainer.get_policy().export_model(os.path.join(trainer.global_vars['reporter_dir'], 'latest', 'policy'))
+        trainer.save(os.path.join(trainer.global_vars['reporter_dir'], 'checkpoint'))
         # save CSV
         #k = list(data.keys())[0]
         #ep_hist = pd.DataFrame(dict(v=data[data[k]['node']]['voltage'], y=data[k]['y'],
@@ -229,6 +230,7 @@ if __name__ == '__main__':
         breakpoints_path = pycigar.DATA_DIR + "/ieee37busdata_regulator_attack/breakpoints.csv"
 
     sim_params = input_parser(misc_inputs_path, dss_path, load_solar_path, breakpoints_path)
+    sim_params['env_config']['sims_per_step'] = 30
     base_config = {
         "env": env_name,
         "gamma": 0.5,
