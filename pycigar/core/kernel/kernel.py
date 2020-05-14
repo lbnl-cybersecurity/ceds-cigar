@@ -137,6 +137,7 @@ class Kernel(object):
 
             self.warm_up_k_step(50)
             logger().set_active()
+            logger().custom_metrics['start_time'] = self.start_time
 
         else:
             self.device.update(reset)  # calculate new PQ with new VBP, then push PV to node

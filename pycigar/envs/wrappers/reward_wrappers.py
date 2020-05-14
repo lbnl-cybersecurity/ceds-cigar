@@ -158,7 +158,7 @@ class CentralGlobalRewardWrapper(RewardWrapper):
         M = self.k.sim_params['M']
         N = self.k.sim_params['N']
         P = self.k.sim_params['P']
-
+        Q = self.k.sim_params['Q']
         global_reward = 0
         # we accumulate agents reward into global_reward and divide it with the number of agents.
         y_or_u = 'u' if self.unbalance else 'y'
@@ -184,13 +184,13 @@ class CentralGlobalRewardWrapper(RewardWrapper):
             else:
                 roa = 1
 
-            r += -(M * info[key]['y'] + N * roa + P * np.linalg.norm(action - self.INIT_ACTION[key]) + 0.5 * (
+            r += -(M * info[key]['y'] + N * roa + P * np.linalg.norm(action - self.INIT_ACTION[key]) + Q * (
                 1 - abs(info[key]['p_set_p_max'])) ** 2)
 
             component_y += -M * info[key]['y']
             component_oa += -N * roa
             component_init += -P * np.linalg.norm(action - self.INIT_ACTION[key])
-            component_pset_pmax += -0.5 * (1 - abs(info[key]['p_set_p_max'])) ** 2
+            component_pset_pmax += -Q * (1 - abs(info[key]['p_set_p_max'])) ** 2
 
             global_reward += r
         global_reward = global_reward / len(list(info.keys()))
