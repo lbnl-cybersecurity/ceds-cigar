@@ -166,7 +166,7 @@ def run_exp(config, reporter):
             print('Done case {} act {} M{} N{} P{} Q{}'.format(case, i, sim_params['M'], sim_params['N'], sim_params['P'], sim_params['Q']))
 
     f = plot_all(log_dicts, custom_metrics, sim_params)
-    f.savefig(os.path.join(reporter.logdir, 'eval_M{}_N{}_P{}_Q{}.png'.format(sim_params['M'], sim_params['N'], sim_params['P'], sim_params['Q'])), facecolor='white')
+    f.savefig(os.path.join(reporter.logdir, '..' ,'eval_M{}_N{}_P{}_Q{}.png'.format(sim_params['M'], sim_params['N'], sim_params['P'], sim_params['Q'])), facecolor='white')
     plt.close(f)
 
 def run_hp_experiment(full_config):
@@ -208,10 +208,14 @@ if __name__ == '__main__':
     }
 
     config = deepcopy(full_config)
-    config['config']['env_config']['M'] = ray.tune.grid_search([10, 15, 20])
+    #config['config']['env_config']['M'] = ray.tune.grid_search([10, 15, 20])
+    #config['config']['env_config']['N'] = ray.tune.grid_search([0.1])
+    #config['config']['env_config']['P'] = ray.tune.grid_search([18, 20, 25])
+    #config['config']['env_config']['Q'] = ray.tune.grid_search([100, 250, 500, 1000])
+    config['config']['env_config']['M'] = ray.tune.grid_search([10])
     config['config']['env_config']['N'] = ray.tune.grid_search([0.1])
-    config['config']['env_config']['P'] = ray.tune.grid_search([18, 20, 25])
-    config['config']['env_config']['Q'] = ray.tune.grid_search([100, 250, 500, 1000])
+    config['config']['env_config']['P'] = ray.tune.grid_search([18])
+    config['config']['env_config']['Q'] = ray.tune.grid_search([100])
     run_hp_experiment(config)
 
     ray.shutdown()
