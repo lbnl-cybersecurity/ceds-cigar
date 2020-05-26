@@ -11,6 +11,7 @@ import numpy as np
 import pandas as pd
 import pycigar
 import ray
+import matplotlib.pyplot as plt
 from pycigar.utils.input_parser import input_parser
 from pycigar.utils.logging import logger
 from pycigar.utils.output import plot_new
@@ -58,6 +59,7 @@ def custom_eval_function(trainer, eval_workers):
                  trainer.iteration, trainer.global_vars['unbalance'])
     f.savefig(trainer.global_vars['reporter_dir'] + 'eval-epoch-' + str(trainer.iteration) + '.png',
               bbox_inches='tight')
+    plt.close(f)
 
     save_best_policy(trainer, episodes)
     return metrics
@@ -133,7 +135,7 @@ def save_best_policy(trainer, episodes):
         f = plot_new(data, ep.hist_data['logger']['custom_metrics'], trainer.iteration,
                      trainer.global_vars['unbalance'])
         f.savefig(os.path.join(trainer.global_vars['reporter_dir'], 'best', 'eval.png'))
-
+        plt.close(f)
         # save CSV
         k = list(data.keys())[0]
         ep_hist = pd.DataFrame(dict(v=data[data[k]['node']]['voltage'], y=data[k]['y'],
