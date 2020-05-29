@@ -175,14 +175,15 @@ def save_best_policy(trainer, episodes):
 def run_train(config, reporter):
     trainer_cls = APPOTrainer if config['algo'] == 'appo' else PPOTrainer
     trainer = trainer_cls(config=config['config'])
-
+    #trainer.restore('/home/toanngo/checkpoint_50/checkpoint-50')
     # needed so that the custom eval fn knows where to save plots
     trainer.global_vars['reporter_dir'] = reporter.logdir
     trainer.global_vars['unbalance'] = config['unbalance']
 
     for _ in tqdm(range(config['epochs'])):
         results = trainer.train()
-        del results['hist_stats']['logger']  # don't send to tensorboard
+        if 'logger' in results['hist_stats']:
+            del results['hist_stats']['logger']  # don't send to tensorboard
         if 'evaluation' in results:
             del results['evaluation']['hist_stats']['logger']
         reporter(**results)
@@ -230,14 +231,14 @@ if __name__ == '__main__':
         breakpoints_path = pycigar.DATA_DIR + "/ieee37busdata_regulator_attack/breakpoints.csv"
 
     sim_params = input_parser(misc_inputs_path, dss_path, load_solar_path, breakpoints_path)
-    sim_params['env_config']['sims_per_step'] = 30
     base_config = {
         "env": env_name,
         "gamma": 0.5,
         'lr': 2e-4,
+        #"lr_schedule": [[0, 2e-2], [20000, 1e-4]],
         'env_config': deepcopy(sim_params),
-        'rollout_fragment_length': 50,
-        'train_batch_size': 500,
+        'rollout_fragment_length': 24,
+        'train_batch_size': 24*args.workers, #256, #250
         'clip_param': 0.1,
         'lambda': 0.95,
         'vf_clip_param': 100,
@@ -251,13 +252,12 @@ if __name__ == '__main__':
 
         'model': {
             'fcnet_activation': 'tanh',
-            'fcnet_hiddens': [128, 64, 32],
+            'fcnet_hiddens': [32, 32], #[16, 16],
             'free_log_std': False,
             'vf_share_layers': True,
             'use_lstm': False,
             'state_shape': None,
             'framestack': False,
-            'zero_mean': True,
         },
 
         # ==== EXPLORATION ====
@@ -286,6 +286,7 @@ if __name__ == '__main__':
         },
     }
     # eval environment should not be random across workers
+    base_config['env_config']['attack_randomization']['generator'] = 'AttackDefinitionGeneratorEvaluationRandom'
     base_config['evaluation_config']['env_config']['attack_randomization']['generator'] = 'AttackDefinitionGeneratorEvaluation'
 
     if args.unbalance:
@@ -308,8 +309,13 @@ if __name__ == '__main__':
 
     if args.algo == 'ppo':
 
+        #for i in range(5):
+        #    config = deepcopy(full_config)
+        #    run_hp_experiment(config, 'round_' + str(i))
+
         config = deepcopy(full_config)
-        run_hp_experiment(config, 'main')
+        config['config']['lr'] = ray.tune.grid_search([5e-3, 7e-3, 9e-3,])
+        run_hp_experiment(config, 'lr')
 
         #config = deepcopy(full_config)
         #config['config']['env_config']['M'] = ray.tune.grid_search([0, 1, 2, 4, 8])

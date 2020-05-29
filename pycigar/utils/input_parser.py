@@ -19,7 +19,7 @@ def input_parser(misc_inputs_path, dss_path, load_solar_path, breakpoints_path=N
 
         'env_config': {
             'clip_actions': True,
-            'sims_per_step': 20
+            'sims_per_step': 30
         },
         'attack_randomization': {
             'generator': 'AttackDefinitionGenerator'
@@ -120,7 +120,6 @@ def input_parser(misc_inputs_path, dss_path, load_solar_path, breakpoints_path=N
             device['adversary_controller'] = 'adaptive_fixed_controller'
         else:
             device['adversary_controller'] = 'rl_controller'
-
         device['adversary_custom_configs'] = {}
         device['adversary_custom_configs']['default_control_setting'] = [1.014, 1.015, 1.015, 1.016, 1.017]
         device['hack'] = [250, percentage_hack, 500]

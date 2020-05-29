@@ -225,13 +225,13 @@ def plot_new(log_dict, custom_metrics, epoch='', unbalance=False):
         ax[3, 0].set_ylim([-0.06, 0.06])
         ax[4, 0].set_ylim([-0.06, 0.06])
 
-        ax[0, 0].set_xlim(180, 500)
-        ax[1, 0].set_xlim(180, 500)
-        ax[2, 0].set_xlim(180, 500)
-        ax[3, 0].set_xlim(180, 500)
-        ax[4, 0].set_xlim(180, 500)
-        ax[5, 0].set_xlim(180, 500)
-        ax[6, 0].set_xlim(180, 500)
+        #ax[0, 0].set_xlim(180, 500)
+        #ax[1, 0].set_xlim(180, 500)
+        #ax[2, 0].set_xlim(180, 500)
+        #ax[3, 0].set_xlim(180, 500)
+        #ax[4, 0].set_xlim(180, 500)
+        #ax[5, 0].set_xlim(180, 500)
+        #ax[6, 0].set_xlim(180, 500)
 
         for inv in log_dict:
             if 'adversary_' not in inv and 'inverter_' in inv:
@@ -266,13 +266,13 @@ def plot_new(log_dict, custom_metrics, epoch='', unbalance=False):
         ax[6, 1].fill_between(x, y_stack[0,:], y_stack[1,:], facecolor="#1DACD6", alpha=.7, label='reward_component_oa')
         ax[6, 1].fill_between(x, y_stack[1,:], y_stack[2,:], facecolor="#6E5160", label='reward_component_init')
         ax[6, 1].fill_between(x, y_stack[2,:], y_stack[3,:], facecolor="#E3F59C", label='reward_component_pset_pmax')
-        ax[0, 1].set_xlim(0, 700)
-        ax[1, 1].set_xlim(0, 700)
-        ax[2, 1].set_xlim(0, 700)
-        ax[3, 1].set_xlim(0, 700)
-        ax[4, 1].set_xlim(0, 700)
-        ax[5, 1].set_xlim(0, 700)
-        ax[6, 1].set_xlim(0, 700)
+        #ax[0, 1].set_xlim(0, 700)
+        #ax[1, 1].set_xlim(0, 700)
+        #ax[2, 1].set_xlim(0, 700)
+        #ax[3, 1].set_xlim(0, 700)
+        #ax[4, 1].set_xlim(0, 700)
+        #ax[5, 1].set_xlim(0, 700)
+        #ax[6, 1].set_xlim(0, 700)
 
     else:
         inv_ks = [k for k in log_dict if k.startswith('inverter_s701') or k.startswith('inverter_s728')]
