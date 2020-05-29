@@ -39,14 +39,16 @@ class StorageDevice(BaseDevice):
         else:
             logger().custom_metrics['init_control_settings'] = {device_id: np.array(self.control_setting)}
         
-        sekf.p_con = deque([0, 0],maxlen=2)
+        self.p_con = deque([0, 0],maxlen=2)
         self.p_in = deque([0, 0],maxlen=2)
         self.p_out = deque([0, 0],maxlen=2)
         
-        self.total_capacity_kWh = 100
+        self.total_capacity = 100*1000*3600
         
-        self.current_capacity_kWh = np.zeros(2)
-        self.SOC = np.zeros(2)
+        self.current_capacity = 0*1000*3600
+        self.current_capacity = 80*1000*3600        
+        
+        self.SOC = self.current_capacity/self.total_capacity
         
         
         #self.solar_generation = None
@@ -119,15 +121,40 @@ class StorageDevice(BaseDevice):
             
         
         if self.control_mdoe == 'external':
-            self.current_capacity_kWh = self.current_capacity_kWh + Ts*self.p_con[0]
+#             if self.current_capacity + Ts*self.p_con[0] >= self.total_capacity:                
+#                 self.current_capacity = self.current_capacity + Ts*self.p_con[0]
+#             else:
+#                 self.current_capacity = self.current_capacity + Ts*self.p_con[0]
+            self.current_capacity = self.current_capacity + Ts*self.p_con[0]
+            if self.current_capacity >= self.total_capacity:
+                self.current_capacity = self.current_capacity
+            if self.current_capacity <= 0:
+                    self.current_capacity = self.current_capacity
         if self.control_mode == 'charge':
-            self.current_capacity_kWh = self.current_capacity_kWh + Ts*self.p_in[0]
+            self.current_capacity = self.current_capacity + Ts*self.p_in[0]
+            if self.current_capacity >= self.total_capacity:
+                self.current_capacity = self.current_capacity
+            if self.current_capacity <= 0:
+                    self.current_capacity = self.current_capacity
         if self.control_mode == 'discharge':
-            self.current_capacity_kWh = self.current_capacity_kWh - Ts*self.p_out[0]
+            self.current_capacity = self.current_capacity - Ts*self.p_out[0]
+            if self.current_capacity >= self.total_capacity:
+                self.current_capacity = self.current_capacity
+            if self.current_capacity <= 0:
+                    self.current_capacity = self.current_capacity
         if self.control_mode == 'voltwatt':
+            if self.current_capacity >= self.total_capacity:
+                self.current_capacity = self.current_capacity
+            if self.current_capacity <= 0:
+                    self.current_capacity = self.current_capacity
             pass
         
-        self.SOC = self.current_capacity_kWh/self.total_capacity_kWh
+#         if self.current_capacity >= self.total_capacity:
+#                 self.current_capacity = self.current_capacity
+#         if self.current_capacity <= 0:
+#                 self.current_capacity = self.current_capacity
+        
+        self.SOC = self.current_capacity/self.total_capacity
         
         p_con.append(0)
         p_in.append(0)
@@ -259,17 +286,18 @@ class StorageDevice(BaseDevice):
 
     def log(self):
         
-        log history
+        # log history
         Logger = logger()
         Logger.log(self.device_id, 'control_mode', self.control_mode)
-        Logger.log(self.device_id, 'current_capacity_kWh', self.current_capacity_kWh)
+        Logger.log(self.device_id, 'current_capacity', self.current_capacity)
         Logger.log(self.device_id, 'SOC', self.SOC)
+        Logger.log(self.device_id, 'p_con', self.p_con)
         Logger.log(self.device_id, 'p_in', self.p_in)
         Logger.log(self.device_id, 'p_out', self.p_out)
         
-        Logger.log(self.device_id, 'q_out', self.q_out[1])
-        Logger.log(self.device_id, 'control_setting', self.control_setting)
-        Logger.log(self.device_id, 'solar_irr', self.solar_irr)
+#         Logger.log(self.device_id, 'q_out', self.q_out[1])
+#         Logger.log(self.device_id, 'control_setting', self.control_setting)
+#         Logger.log(self.device_id, 'solar_irr', self.solar_irr)
         if hasattr(self, 'node_id'):
             Logger.log_single(self.device_id, 'node', self.node_id)
         
