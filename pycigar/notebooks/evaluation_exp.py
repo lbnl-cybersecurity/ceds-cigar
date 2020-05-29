@@ -124,6 +124,7 @@ def save_best_policy(trainer, episodes):
     mean_r = np.array([ep.episode_reward for ep in episodes]).mean()
     if 'best_eval_reward' not in trainer.global_vars or trainer.global_vars['best_eval_reward'] < mean_r:
         os.makedirs(os.path.join(trainer.global_vars['reporter_dir'], 'best'), exist_ok=True)
+        os.makedirs(os.path.join(trainer.global_vars['reporter_dir'], 'latest'), exist_ok=True)
         trainer.global_vars['best_eval_reward'] = mean_r
         # save policy
         if not trainer.global_vars['unbalance']:
