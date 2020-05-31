@@ -124,7 +124,6 @@ def save_best_policy(trainer, episodes):
     mean_r = np.array([ep.episode_reward for ep in episodes]).mean()
     if 'best_eval_reward' not in trainer.global_vars or trainer.global_vars['best_eval_reward'] < mean_r:
         os.makedirs(os.path.join(trainer.global_vars['reporter_dir'], 'best'), exist_ok=True)
-        os.makedirs(os.path.join(trainer.global_vars['reporter_dir'], 'latest'), exist_ok=True)
         trainer.global_vars['best_eval_reward'] = mean_r
         # save policy
         if not trainer.global_vars['unbalance']:
@@ -235,7 +234,7 @@ if __name__ == '__main__':
     base_config = {
         "env": env_name,
         "gamma": 0.5,
-        'lr': 2e-4,
+        'lr': 2e-3,
         #"lr_schedule": [[0, 2e-2], [20000, 1e-4]],
         'env_config': deepcopy(sim_params),
         'rollout_fragment_length': 24,
@@ -310,13 +309,19 @@ if __name__ == '__main__':
 
     if args.algo == 'ppo':
 
+        config = deepcopy(full_config)
+        run_hp_experiment(config, 'frame')
         #for i in range(5):
         #    config = deepcopy(full_config)
         #    run_hp_experiment(config, 'round_' + str(i))
 
-        config = deepcopy(full_config)
-        config['config']['lr'] = ray.tune.grid_search([5e-3, 7e-3, 9e-3,])
-        run_hp_experiment(config, 'lr')
+        #config = deepcopy(full_config)
+        #config['config']['lr'] = ray.tune.grid_search([5e-3, 7e-3, 9e-3,])
+        #run_hp_experiment(config, 'lr')
+
+        #config = deepcopy(full_config)
+        #config['config']['model']['fcnet_hiddens'] = ray.tune.grid_search([[64, 64], [16, 16], [128, 64, 32]])
+        #run_hp_experiment(config, 'model')
 
         #config = deepcopy(full_config)
         #config['config']['env_config']['M'] = ray.tune.grid_search([0, 1, 2, 4, 8])
