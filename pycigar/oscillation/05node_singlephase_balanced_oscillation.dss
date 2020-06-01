@@ -21,14 +21,14 @@ New Transformer.SubXF Phases=3 Windings=2 Xhl=8
 ! Redirect IEEELineCodes.dss
 
 New linecode.721bal nphases=1 BaseFreq=60
-~ rmatrix = [0.055 | 0.0 0.0 | 0.0 0.0 0.0]
-~ xmatrix = [0.035 | -0.0 0.0 | -0.0 -0.0 0.0]
-~ cmatrix = [80.0 | 0 0.0 | 0 0 0.0]
+~ rmatrix = [0.050 | 0.0 0.0 | 0.0 0.0 0.0]
+~ xmatrix = [0.030 | -0.0 0.0 | -0.0 -0.0 0.0]
+! ~ cmatrix = [80.0 | 0 0.0 | 0 0 0.0]
 
 New linecode.722bal nphases=1 BaseFreq=60
-~ rmatrix = [0.085 | 0.0 0.0 | 0.0 0.0 0.0]
-~ xmatrix = [0.055 | -0.0 0.0 | -0.0 -0.0 0.0]
-~ cmatrix = [65.0 | 0 0.0 | 0 0 0.0]
+~ rmatrix = [0.060 | 0.0 0.0 | 0.0 0.0 0.0]
+~ xmatrix = [0.040 | -0.0 0.0 | -0.0 -0.0 0.0]
+! ~ cmatrix = [65.0 | 0 0.0 | 0 0 0.0]
 
 ! Lines
 New Line.line_A01_A02 Phases=1 Bus1=A01.1 Bus2=A02.1 LineCode=721bal Length=2.00
