@@ -65,6 +65,26 @@ class Env(gym.Env):
         pass
 
     def step(self, rl_actions, randomize_rl_update=None):
+        """Move the environment one step forward.
+
+        Parameters
+        ----------
+        rl_actions : dict
+            A dictionary of actions of each agents controlled by RL algorithms
+
+        randomize_rl_update : dict, None
+            By default, RL devices will be randomly updated in a few seconds
+            Providing this dictionary of update time will fix the random update
+            This is used for benchmarking
+
+        Returns
+        -------
+        Tuple
+            A tuple of (obs, reward, done, infos).
+            obs: a dictionary of new observation from the environment.
+            reward: a dictionary of reward received by agents.
+            done: bool
+        """
         raise NotImplementedError
 
     def reset(self):

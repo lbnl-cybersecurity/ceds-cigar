@@ -4,7 +4,7 @@ from pycigar.utils.logging import logger
 
 class RegulatorDevice(BaseDevice):
     def __init__(self, device_id, additional_params=None):
-        """Instantiate an PV device."""
+        """Instantiate an Regulator device."""
         BaseDevice.__init__(self, device_id, additional_params)
 
         self.max_tap_change = additional_params.get('max_tap_change', 16)
@@ -29,6 +29,7 @@ class RegulatorDevice(BaseDevice):
         pass
 
     def log(self):
+        """See parent class."""
         Logger = logger()
         Logger.log(self.device_id, 'max_tap_change', self.max_tap_change)
         Logger.log(self.device_id, 'forward_band', self.kernel_api.get_regulator_forwardband(self.device_id))

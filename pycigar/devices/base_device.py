@@ -68,4 +68,7 @@ class BaseDevice:
         raise NotImplementedError
 
     def log(self):
+        """Log information at device level.
+        This function need to be called at the end of __init__() and update() to log information.
+        """
         pass

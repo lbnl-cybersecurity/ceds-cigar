@@ -26,20 +26,7 @@ class CentralEnv(Env):
                 self.k.device.apply_control(rl_id, action)
 
     def step(self, rl_actions, randomize_rl_update=None):
-        """Move the environment one step forward.
-
-        Parameters
-        ----------
-        rl_actions : dict
-            A dictionary of actions of each agents controlled by RL algorithms.
-
-        Returns
-        -------
-        Tuple
-            A tuple of (obs, reward, done, infos).
-            obs: a dictionary of new observation from the environment.
-            reward: a dictionary of reward received by agents.
-            done: bool
+        """See parent class.
         """
         observations = []
         self.old_actions = {}
