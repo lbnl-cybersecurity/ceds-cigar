@@ -1,11 +1,13 @@
 from pycigar.core.kernel.scenario import KernelScenario
 from pycigar.devices import PVDevice
 from pycigar.devices import RegulatorDevice
+from pycigar.devices import BatteryStorageDevice
 
 from pycigar.controllers import AdaptiveInverterController
 from pycigar.controllers import FixedController
 from pycigar.controllers import AdaptiveFixedController
 from pycigar.controllers import UnbalancedFixedController
+from pycigar.controllers import BatteryStorageController01
 
 from pycigar.controllers import RLController
 import os
@@ -89,6 +91,9 @@ class OpenDSSScenario(KernelScenario):
                 for device in node['devices']:
                     if device['type'] == 'pv_device':
                         device_type = PVDevice
+                    elif device['type'] == 'battery_storage_device':
+                        device_type = BatteryStorageDevice
+                        
                     if 'controller' in device:
                         if device['controller'] == 'adaptive_inverter_controller':
                             device_controller = AdaptiveInverterController
@@ -100,6 +105,8 @@ class OpenDSSScenario(KernelScenario):
                             device_controller = AdaptiveFixedController
                         elif device['controller'] == 'unbalanced_fixed_controller':
                             device_controller = UnbalancedFixedController
+                        elif device['controller'] == 'battery_storage_controller_01':
+                            device_controller = BatteryStorageController01
 
                         device_configs = device['custom_configs']
                     else:

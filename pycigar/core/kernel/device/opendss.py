@@ -1,6 +1,7 @@
 from pycigar.core.kernel.device import KernelDevice
 from pycigar.devices import PVDevice
 from pycigar.devices import RegulatorDevice
+from pycigar.devices import BatteryStorageDevice
 
 from pycigar.controllers import AdaptiveInverterController
 from pycigar.controllers import FixedController
@@ -9,6 +10,9 @@ from pycigar.controllers import AdaptiveFixedController
 from pycigar.controllers import UnbalancedFixedController
 
 from pycigar.controllers import RLController
+
+from pycigar.controllers import BatteryStorageController01
+
 import numpy as np
 
 
@@ -78,6 +82,8 @@ class OpenDSSDevice(KernelDevice):
         self.fixed_device_ids = []
 
         self.regulator_device_ids = []
+        
+        self.battery_storage_device_ids = []
 
     def pass_api(self, kernel_api):
         """See parent class."""
@@ -123,6 +129,13 @@ class OpenDSSDevice(KernelDevice):
             self.regulator_device_ids.append(device_id)
             self.all_device_ids.extend(device_id)
             return None
+        
+#         if device[0] == BatteryStorageDevice:
+#             device_obj = device[0](device_id, device[1])
+#             self.devices[device_id] = {"device": device_obj}
+# #             self.battery_storage_device_ids.append(device_id)
+#             self.all_device_ids.extend(device_id)
+#             return None
 
         # create ally device
         if hack is None:
@@ -130,6 +143,7 @@ class OpenDSSDevice(KernelDevice):
         else:
             device[1]["percentage_control"] = 1 - hack[1]
         device_obj = device[0](device_id, device[1])
+        
         if device[0] == PVDevice:
             self.pv_device_ids.append(device_id)
 
@@ -141,6 +155,8 @@ class OpenDSSDevice(KernelDevice):
             self.fixed_device_ids.append(device_id)
         elif controller[0] == RLController:
             self.rl_device_ids.append(device_id)
+        elif controller[0] == BatteryStorageController01:
+            self.battery_storage_device_ids.append(device_id)
 
         self.devices[device_id] = {
             "device": device_obj,
@@ -283,6 +299,16 @@ class OpenDSSDevice(KernelDevice):
             List of RL device ids
         """
         return self.rl_device_ids
+    
+    def get_battery_storage_device_ids(self):
+        """Return the list  of PV device ids controlled by RL agents.
+
+        Returns
+        -------
+        list
+            List of RL device ids
+        """
+        return self.battery_storage_device_ids
 
     def get_solar_generation(self, device_id):
         """Return the solar generation value at the current timestep.

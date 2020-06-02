@@ -11,7 +11,7 @@ DEFAULT_CONTROL_SETTING = np.array([0.98, 1.01, 1.02, 1.05, 1.07])
 step_buffer = 4
 
 
-class StorageDevice(BaseDevice):
+class BatteryStorageDevice(BaseDevice):
     
     def __init__(self, device_id, additional_params):
         """Instantiate a Storage device."""
@@ -43,10 +43,14 @@ class StorageDevice(BaseDevice):
         self.p_in = deque([0, 0],maxlen=2)
         self.p_out = deque([0, 0],maxlen=2)
         
+        self.p_con = 0
+        self.p_in = 0
+        self.p_out = 0
+        
         self.total_capacity = 100*1000*3600
         
         self.current_capacity = 0*1000*3600
-        self.current_capacity = 80*1000*3600        
+        self.current_capacity = 85*1000*3600        
         
         self.SOC = self.current_capacity/self.total_capacity
         
@@ -119,8 +123,20 @@ class StorageDevice(BaseDevice):
             self.Vlp[-1] = 1/self.lpfz[1,-1]*(np.sum(self.lpfz[1,0:-1]*self.Vlp[0:-1]) + \
                                               np.sum(self.lpfz[0,:]*[self.v_meas_km1, self.v_meas_k]))
             
+        if self.control_mode == 'auto_minmax_cycle':
+            if self.SOC <= 0.2:
+                self.mode = 'charge'
+                self.current_capacity = self.current_capacity + Ts*self.p_in[0]
+            if self.SOC >= 0.8:
+                self.mode = 'discharge'
+                self.current_capacity = self.current_capacity - Ts*self.p_out[0]
+            if self.current_capacity <= 0:
+                self.current_capacity = 0
+            if self.current_capacity >= self.total_capacity:
+                self.current_capacity = self.total_capacity    
+            self.SOC = self.current_capacity/self.total_capacity
         
-        if self.control_mdoe == 'external':
+        if self.control_mode == 'external':
 #             if self.current_capacity + Ts*self.p_con[0] >= self.total_capacity:                
 #                 self.current_capacity = self.current_capacity + Ts*self.p_con[0]
 #             else:
@@ -129,24 +145,45 @@ class StorageDevice(BaseDevice):
             if self.current_capacity >= self.total_capacity:
                 self.current_capacity = self.current_capacity
             if self.current_capacity <= 0:
-                    self.current_capacity = self.current_capacity
+                self.current_capacity = self.current_capacity
+                
         if self.control_mode == 'charge':
-            self.current_capacity = self.current_capacity + Ts*self.p_in[0]
-            if self.current_capacity >= self.total_capacity:
-                self.current_capacity = self.current_capacity
+            
+            self.p_in = 100
+            self.p_out = 0
+            
+            self.current_capacity = self.current_capacity + Ts*self.p_in
+            
+            
             if self.current_capacity <= 0:
-                    self.current_capacity = self.current_capacity
+                self.current_capacity = 0
+            if self.current_capacity >= self.total_capacity:
+                self.current_capacity = self.total_capacity    
+            self.SOC = self.current_capacity/self.total_capacity
+            
+            k.node.nodes[node_id]['PQ_injection']['P'] += self.p_in
+                
         if self.control_mode == 'discharge':
-            self.current_capacity = self.current_capacity - Ts*self.p_out[0]
-            if self.current_capacity >= self.total_capacity:
-                self.current_capacity = self.current_capacity
+            
+            self.p_in = 0
+            self.p_out = 150
+            
+            self.current_capacity = self.current_capacity - Ts*self.p_out
+            
+            
             if self.current_capacity <= 0:
-                    self.current_capacity = self.current_capacity
+                self.current_capacity = 0
+            if self.current_capacity >= self.total_capacity:
+                self.current_capacity = self.total_capacity    
+            self.SOC = self.current_capacity/self.total_capacity
+            
+            k.node.nodes[node_id]['PQ_injection']['P'] += -self.p_out
+                
         if self.control_mode == 'voltwatt':
             if self.current_capacity >= self.total_capacity:
                 self.current_capacity = self.current_capacity
             if self.current_capacity <= 0:
-                    self.current_capacity = self.current_capacity
+                self.current_capacity = self.current_capacity
             pass
         
 #         if self.current_capacity >= self.total_capacity:
@@ -156,9 +193,14 @@ class StorageDevice(BaseDevice):
         
         self.SOC = self.current_capacity/self.total_capacity
         
-        p_con.append(0)
-        p_in.append(0)
-        p_out.append(0)
+        self.log()
+        
+#         p_con.append(0)
+#         p_in.append(0)
+#         p_out.append(0)
+                
+#         k.node.nodes[node_id]['PQ_injection']['P'] += self.p_out[1]
+#         k.node.nodes[node_id]['PQ_injection']['Q'] += self.q_out[1]
         
         '''
         """See parent class."""
@@ -282,7 +324,7 @@ class StorageDevice(BaseDevice):
 
     def set_control_setting(self, control_setting):
         """See parent class."""
-        self.control_setting = control_setting
+        self.control_mode = control_setting
 
     def log(self):
         
