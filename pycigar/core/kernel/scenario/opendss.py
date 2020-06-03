@@ -93,7 +93,7 @@ class OpenDSSScenario(KernelScenario):
                         device_type = PVDevice
                     elif device['type'] == 'battery_storage_device':
                         device_type = BatteryStorageDevice
-                        
+
                     if 'controller' in device:
                         if device['controller'] == 'adaptive_inverter_controller':
                             device_controller = AdaptiveInverterController
@@ -124,6 +124,8 @@ class OpenDSSScenario(KernelScenario):
                             adversary_device_controller = AdaptiveFixedController
                         elif device['adversary_controller'] == 'unbalanced_fixed_controller':
                             adversary_device_controller = UnbalancedFixedController
+                        elif device['adversary_controller'] == 'battery_storage_controller_01':
+                            adversary_device_controller = BatteryStorageController01
 
                         adversary_device_configs = device['adversary_custom_configs']
                         if sim_params['tune_search'] is True:
@@ -143,6 +145,7 @@ class OpenDSSScenario(KernelScenario):
                         else:
                             dev_hack_info = self.snapshot_randomization[device['name']]
 
+                    print(adversary_device_controller)
                     adversary_id = self.master_kernel.device.add(name=device['name'],
                                                                  connect_to=node['name'],
                                                                  device=(device_type, device_configs),
