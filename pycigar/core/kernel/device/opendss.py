@@ -242,6 +242,9 @@ class OpenDSSDevice(KernelDevice):
             for reg_device in self.regulator_device_ids:
                 self.devices[reg_device]["device"].update(self.master_kernel)
 
+            for battery_storage_device in self.battery_storage_device_ids:
+                self.devices[battery_storage_device]["device"].update(self.master_kernel)
+
     def update_kernel_device_info(self, device_id):
         if device_id in self.pv_device_ids:
             if isinstance(self.devices[device_id]["controller"], RLController):
