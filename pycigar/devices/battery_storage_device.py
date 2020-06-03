@@ -47,10 +47,10 @@ class BatteryStorageDevice(BaseDevice):
         self.p_in = 0
         self.p_out = 0
         
-        self.total_capacity = 100*1000*3600
+        self.total_capacity = 10*1000*3600
         
         self.current_capacity = 0*1000*3600
-        self.current_capacity = 85*1000*3600        
+        self.current_capacity = 8.5*1000*3600        
         
         self.SOC = self.current_capacity/self.total_capacity
         
@@ -72,11 +72,11 @@ class BatteryStorageDevice(BaseDevice):
         '''
         
         # Lowpass filter for voltage
-        Ts = 1        
-        fl = 0.25
-        lp1s, temp = signal_processing.butterworth_lowpass(1, 2 * np.pi * 1 * fl)
+        self.Ts = 1        
+        self.fl = 0.25
+        lp1s, temp = signal_processing.butterworth_lowpass(1, 2 * np.pi * 1 * self.fl)
         self.lp1s = lp1s
-        self.lp1z = signal_processing.c2dbilinear(lp1s, Ts)
+        self.lp1z = signal_processing.c2dbilinear(self.lp1s, self.Ts)
         
         self.Vlp = deque([0]*self.lp1z.shape[1],maxlen=self.lp1z.shape[1])
 
@@ -112,23 +112,27 @@ class BatteryStorageDevice(BaseDevice):
             vk = np.abs(k.node.nodes[node_id]['voltage'][k.time - 1])
             vkm1 = np.abs(k.node.nodes[node_id]['voltage'][k.time - 2])
             
-            vkvk = np.zeros(self.lpfz.shape[1])
-            for k1 in range(0,self.lpfz.shape[1]):
-                vkvk[-1-k1] = np.abs(k.node.nodes[node_id]['voltage'][k.time - (k1-1)])
+#             vkvk = np.zeros(self.lp1z.shape[1])
+#             for k1 in range(0,self.lp1z.shape[1]):
+#                 vkvk[-1-k1] = np.abs(k.node.nodes[node_id]['voltage'][k.time - (k1-1)])
             
             self.v_meas_k = vk
             self.v_meas_km1 = vkm1
-            self.x.append(vk)
-            
-            self.Vlp[-1] = 1/self.lpfz[1,-1]*(np.sum(self.lpfz[1,0:-1]*self.Vlp[0:-1]) + \
-                                              np.sum(self.lpfz[0,:]*[self.v_meas_km1, self.v_meas_k]))
+#             self.x.append(vk)
+
+            if self.lp1z.shape[1] <= 2:
+                self.Vlp[-1] = 1/self.lp1z[1,-1]*(np.sum(self.lp1z[1,1]*self.Vlp[-1]) + \
+                                              np.sum(self.lp1z[0,:]*[self.v_meas_km1, self.v_meas_k]))
+            if self.lp1z.shape[1] >= 3:            
+                self.Vlp[-1] = 1/self.lp1z[1,-1]*(np.sum(self.lp1z[1,0:-1]*self.Vlp[0:-1]) + \
+                                              np.sum(self.lp1z[0,:]*[self.v_meas_km1, self.v_meas_k]))
             
         if self.control_mode == 'auto_minmax_cycle':
             if self.SOC <= 0.2:
-                self.mode = 'charge'
+                self.auto_minmax_cycle_mode = 'charge'
                 self.current_capacity = self.current_capacity + Ts*self.p_in[0]
             if self.SOC >= 0.8:
-                self.mode = 'discharge'
+                self.auto_minmax_cycle_mode = 'discharge'
                 self.current_capacity = self.current_capacity - Ts*self.p_out[0]
             if self.current_capacity <= 0:
                 self.current_capacity = 0
@@ -141,7 +145,7 @@ class BatteryStorageDevice(BaseDevice):
 #                 self.current_capacity = self.current_capacity + Ts*self.p_con[0]
 #             else:
 #                 self.current_capacity = self.current_capacity + Ts*self.p_con[0]
-            self.current_capacity = self.current_capacity + Ts*self.p_con[0]
+            self.current_capacity = self.current_capacity + self.Ts*self.p_con[0]
             if self.current_capacity >= self.total_capacity:
                 self.current_capacity = self.current_capacity
             if self.current_capacity <= 0:
@@ -149,10 +153,10 @@ class BatteryStorageDevice(BaseDevice):
                 
         if self.control_mode == 'charge':
             
-            self.p_in = 100
+            self.p_in = 100000
             self.p_out = 0
             
-            self.current_capacity = self.current_capacity + Ts*self.p_in
+            self.current_capacity = self.current_capacity + self.Ts*self.p_in
             
             
             if self.current_capacity <= 0:
@@ -161,14 +165,14 @@ class BatteryStorageDevice(BaseDevice):
                 self.current_capacity = self.total_capacity    
             self.SOC = self.current_capacity/self.total_capacity
             
-            k.node.nodes[node_id]['PQ_injection']['P'] += self.p_in
+            k.node.nodes[node_id]['PQ_injection']['P'] += self.p_in/1000
                 
         if self.control_mode == 'discharge':
             
             self.p_in = 0
-            self.p_out = 150
+            self.p_out = 150000
             
-            self.current_capacity = self.current_capacity - Ts*self.p_out
+            self.current_capacity = self.current_capacity - self.Ts*self.p_out
             
             
             if self.current_capacity <= 0:
@@ -177,7 +181,7 @@ class BatteryStorageDevice(BaseDevice):
                 self.current_capacity = self.total_capacity    
             self.SOC = self.current_capacity/self.total_capacity
             
-            k.node.nodes[node_id]['PQ_injection']['P'] += -self.p_out
+            k.node.nodes[node_id]['PQ_injection']['P'] += -self.p_out/1000
                 
         if self.control_mode == 'voltwatt':
             if self.current_capacity >= self.total_capacity:
@@ -199,8 +203,8 @@ class BatteryStorageDevice(BaseDevice):
 #         p_in.append(0)
 #         p_out.append(0)
                 
-#         k.node.nodes[node_id]['PQ_injection']['P'] += self.p_out[1]
-#         k.node.nodes[node_id]['PQ_injection']['Q'] += self.q_out[1]
+#         k.node.nodes[node_id]['PQ_injection']['P'] += self.p_out/1000
+#         k.node.nodes[node_id]['PQ_injection']['Q'] += self.q_out/1000
         
         '''
         """See parent class."""

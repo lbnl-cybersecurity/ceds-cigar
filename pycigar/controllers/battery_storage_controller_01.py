@@ -24,9 +24,13 @@ class BatteryStorageController01(BaseController):
         """See parent class."""
         
         if env.k.device.devices[self.device_id]['device'].SOC <= 0.2:
+#             print('CHARGE')
             control_mode = 'charge'
-        if env.k.device.devices[self.device_id]['device'].SOC >= 0.8:
+        elif env.k.device.devices[self.device_id]['device'].SOC >= 0.8:
+#             print('DISCHARGE')
             control_mode = 'discharge'
+        else:
+            control_mode = env.k.device.devices[self.device_id]['device'].control_mode
         
         return control_mode
         
