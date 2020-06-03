@@ -6,17 +6,19 @@ from copy import deepcopy
 import numpy as np
 import pycigar
 import ray
+from pycigar.notebooks.utils import custom_eval_function, get_custom_callbacks, add_common_args
 from pycigar.utils.input_parser import input_parser
 from pycigar.utils.registry import make_create_env
 from ray import tune
 from ray.rllib.agents.ppo import PPOTrainer, APPOTrainer
 from ray.tune.registry import register_env
 from tqdm import tqdm
-from pycigar.notebooks.utils import custom_eval_function, get_custom_callbacks, add_common_args
+
 
 def parse_cli_args():
-    parser = argparse.ArgumentParser(description='Run distributed runs to better understand PyCIGAR hyperparameters')
+    parser = argparse.ArgumentParser(description='Experimentations of the unbalance attack')
     add_common_args(parser)
+
     return parser.parse_args()
 
 
@@ -26,7 +28,7 @@ def run_train(config, reporter):
 
     # needed so that the custom eval fn knows where to save plots
     trainer.global_vars['reporter_dir'] = reporter.logdir
-    trainer.global_vars['unbalance'] = False
+    trainer.global_vars['unbalance'] = True  # for plots
 
     for _ in tqdm(range(config['epochs'])):
         results = trainer.train()
@@ -54,18 +56,17 @@ def run_hp_experiment(full_config, name):
 if __name__ == '__main__':
     args = parse_cli_args()
 
-
     pycigar_params = {'exp_tag': 'cooperative_multiagent_ppo',
-                      'env_name': 'CentralControlPVInverterEnv',
+                      'env_name': 'CentralControlPhaseSpecificPVInverterEnv',
                       'simulator': 'opendss'}
 
     create_env, env_name = make_create_env(pycigar_params, version=0)
     register_env(env_name, create_env)
 
-    misc_inputs_path = pycigar.DATA_DIR + "/ieee37busdata/misc_inputs.csv"
-    dss_path = pycigar.DATA_DIR + "/ieee37busdata/ieee37.dss"
-    load_solar_path = pycigar.DATA_DIR + "/ieee37busdata/load_solar_data.csv"
-    breakpoints_path = pycigar.DATA_DIR + "/ieee37busdata/breakpoints.csv"
+    misc_inputs_path = pycigar.DATA_DIR + "/ieee37busdata_regulator_attack/misc_inputs.csv"
+    dss_path = pycigar.DATA_DIR + "/ieee37busdata_regulator_attack/ieee37.dss"
+    load_solar_path = pycigar.DATA_DIR + "/ieee37busdata_regulator_attack/load_solar_data.csv"
+    breakpoints_path = pycigar.DATA_DIR + "/ieee37busdata_regulator_attack/breakpoints.csv"
 
     sim_params = input_parser(misc_inputs_path, dss_path, load_solar_path, breakpoints_path)
     base_config = {
@@ -124,6 +125,13 @@ if __name__ == '__main__':
     base_config['evaluation_config']['env_config']['scenario_config']['multi_config'] = False
     del base_config['evaluation_config']['env_config']['attack_randomization']
 
+    for node in base_config['env_config']['scenario_config']['nodes']:
+        for d in node['devices']:
+            d['adversary_controller'] = 'unbalanced_fixed_controller'
+    for node in base_config['evaluation_config']['env_config']['scenario_config']['nodes']:
+        for d in node['devices']:
+            d['adversary_controller'] = 'unbalanced_fixed_controller'
+
     ray.init(local_mode=False)
 
     full_config = {
@@ -140,46 +148,10 @@ if __name__ == '__main__':
     full_config['config']['evaluation_config']['env_config']['P'] = tune.sample_from(
         lambda spec: np.random.choice([spec['config']['config']['env_config']['P']]))
 
-    if args.algo == 'ppo':
-
-        config = deepcopy(full_config)
-        run_hp_experiment(config, 'main')
-
-        """
-        config = deepcopy(full_config)
-        config['config']['env_config']['N'] = ray.tune.grid_search([0, 1, 2, 4, 8])
-        run_hp_experiment(config, 'action_penalty')
-
-        config = deepcopy(full_config)
-        config['config']['env_config']['P'] = ray.tune.grid_search([0, 1, 2, 4, 8])
-        run_hp_experiment(config, 'init_penalty')
-
-        config = deepcopy(full_config)
-        config['config']['env_config']['M'] = ray.tune.grid_search([0, 1, 2, 4, 8])
-        run_hp_experiment(config, 'y_penalty')
-
-        config = deepcopy(full_config)
-        config['config']['gamma'] = ray.tune.grid_search([0, 0.2, 0.5, 0.9, 1])
-        run_hp_experiment(config, 'gamma')
-
-        config = deepcopy(full_config)
-        config['config']['lambda'] = ray.tune.grid_search([0, 0.2, 0.5, 0.9, 1])
-        run_hp_experiment(config, 'lambda')
-
-        config = deepcopy(full_config)
-        config['config']['entropy_coeff'] = ray.tune.grid_search([0, 0.05, 0.1, 0.2, 0.5])
-        run_hp_experiment(config, 'entropy_coeff')
-
-        config = deepcopy(full_config)
-        config['config']['train_batch_size'] = ray.tune.grid_search([500, 1000, 2000, 4000])
-        run_hp_experiment(config, 'batch_size')
-
-        config = deepcopy(full_config)
-        config['config']['lr'] = ray.tune.grid_search([2e-6, 2e-5, 2e-4, 2e-3, 2e-2])
-        run_hp_experiment(config, 'lr')
-        """
-    elif args.algo == 'appo':
-        config = deepcopy(full_config)
-        run_hp_experiment(config, 'appo')
+    config = deepcopy(full_config)
+    config['config']['env_config']['M'] = 2500
+    config['config']['env_config']['N'] = 30
+    config['config']['env_config']['P'] = 0
+    run_hp_experiment(config, 'main_N30')
 
     ray.shutdown()
