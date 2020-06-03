@@ -1,3 +1,4 @@
+import argparse
 import json
 import math
 import os
@@ -142,3 +143,15 @@ def get_custom_callbacks():
         "on_episode_step": on_episode_step,
         "on_episode_end": on_episode_end,
     }
+
+
+def add_common_args(parser: argparse.ArgumentParser):
+    parser.add_argument('--epochs', type=int, default=2, help='number of epochs per trial')
+    parser.add_argument('--save-path', type=str, default='~/hp_experiment3', help='where to save the results')
+    parser.add_argument('--workers', type=int, default=3, help='number of cpu workers per run')
+    parser.add_argument('--eval-rounds', type=int, default=1,
+                        help='number of evaluation rounds to run to smooth random results')
+    parser.add_argument('--eval-interval', type=int, default=5,
+                        help='do an evaluation every N epochs')
+    parser.add_argument("--algo", help="use PPO or APPO", choices=['ppo', 'appo'],
+                        nargs='?', const='ppo', default='ppo', type=str.lower)
