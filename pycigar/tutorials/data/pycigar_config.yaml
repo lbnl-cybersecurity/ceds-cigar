@@ -2,6 +2,10 @@
 tune_search: False
 hack_setting: {'default_control_setting': [1.039, 1.04, 1.04, 1.041, 1.042]}
 
+env_config:
+  clip_actions: True,
+  sims_per_step: 20
+
 simulation_config:
   network_model_directory: './data/ieee3.dss'
   custom_configs:  {solution_mode: 1,
