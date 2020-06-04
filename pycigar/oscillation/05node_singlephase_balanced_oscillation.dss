@@ -38,19 +38,23 @@ New Line.line_A03_A05 Phases=1 Bus1=A03.1 Bus2=A05.1 LineCode=722bal Length=1.00
 New Line.line_A05_A06 Phases=1 Bus1=A05.1 Bus2=A06.1 LineCode=722bal Length=1.00
 
 ! spot loads
-New Load.load_A02_a Bus1=A02.1 Phases=1 Conn=Wye Model=1 kV=4.800 kW=140.0 kVAR=70.0
+New Load.load_A02_a Bus1=A02.1 Phases=1 Conn=Wye Model=1 kV=4.800 kW=150.0 kVAR=50.0
 ! New Load.SA02b Bus1=A02.2 Phases=1 Conn=Wye Model=1 kV=4.800 kW=140.0 kVAR=70.0
 ! New Load.SA02c Bus1=A02.3 Phases=1 Conn=Wye Model=1 kV=4.800 kW=140.0 kVAR=70.0
 
-New Load.load_A04_a Bus1=A04.1 Phases=1 Conn=Wye Model=1 kV=4.800 kW=300.0 kVAR=100.0
+New Load.load_A03_a Bus1=A03.1 Phases=1 Conn=Wye Model=1 kV=4.800 kW=150.0 kVAR=50.0
+! New Load.SA03b Bus1=A03.2 Phases=1 Conn=Wye Model=1 kV=4.800 kW=300.0 kVAR=100.0
+! New Load.SA03c Bus1=A03.3 Phases=1 Conn=Wye Model=1 kV=4.800 kW=300.0 kVAR=100.0
+
+New Load.load_A04_a Bus1=A04.1 Phases=1 Conn=Wye Model=1 kV=4.800 kW=150.0 kVAR=50.0
 ! New Load.SA04b Bus1=A04.2 Phases=1 Conn=Wye Model=1 kV=4.800 kW=300.0 kVAR=100.0
 ! New Load.SA04c Bus1=A04.3 Phases=1 Conn=Wye Model=1 kV=4.800 kW=300.0 kVAR=100.0
 
-New Load.load_A05_a Bus1=A05.1 Phases=1 Conn=Wye Model=1 kV=4.800 kW=300.0 kVAR=100.0
+! New Load.load_A05_a Bus1=A05.1 Phases=1 Conn=Wye Model=1 kV=4.800 kW=150.0 kVAR=50.0
 ! New Load.SA05b Bus1=A05.2 Phases=1 Conn=Wye Model=1 kV=4.800 kW=300.0 kVAR=100.0
 ! New Load.SA05c Bus1=A05.3 Phases=1 Conn=Wye Model=1 kV=4.800 kW=300.0 kVAR=100.0
 
-New Load.load_A06_a Bus1=A06.1 Phases=1 Conn=Wye Model=1 kV=4.800 kW=300.0 kVAR=100.0
+New Load.load_A06_a Bus1=A06.1 Phases=1 Conn=Wye Model=1 kV=4.800 kW=150.0 kVAR=50.0
 ! New Load.SA06b Bus1=A06.2 Phases=1 Conn=Wye Model=1 kV=4.800 kW=300.0 kVAR=100.0
 ! New Load.SA06c Bus1=A06.3 Phases=1 Conn=Wye Model=1 kV=4.800 kW=300.0 kVAR=100.0
 
