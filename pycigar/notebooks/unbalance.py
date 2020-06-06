@@ -3,11 +3,15 @@ import os
 import pickle
 from copy import deepcopy
 
+import matplotlib.pyplot as plt
 import numpy as np
 import pycigar
 import ray
+import tensorflow as tf
 from pycigar.notebooks.utils import custom_eval_function, get_custom_callbacks, add_common_args
 from pycigar.utils.input_parser import input_parser
+from pycigar.utils.logging import logger
+from pycigar.utils.output import plot_new
 from pycigar.utils.registry import make_create_env
 from ray import tune
 from ray.rllib.agents.ppo import PPOTrainer, APPOTrainer
@@ -17,6 +21,8 @@ from tqdm import tqdm
 
 def parse_cli_args():
     parser = argparse.ArgumentParser(description='Experimentations of the unbalance attack')
+    parser.add_argument('--eval-saved', type=str, default='', help='eval a trained agent')
+    parser.add_argument('--no-attack', dest='noattack', action='store_true')
     add_common_args(parser)
 
     return parser.parse_args()
@@ -72,13 +78,13 @@ if __name__ == '__main__':
     base_config = {
         "env": env_name,
         "gamma": 0.5,
-        'lr': 2e-4,
+        'lr': 2e-3,
         'env_config': deepcopy(sim_params),
-        'rollout_fragment_length': 50,
+        'rollout_fragment_length': 35,
         'train_batch_size': 500,
-        'clip_param': 0.1,
+        'clip_param': 0.15,
         'lambda': 0.95,
-        'vf_clip_param': 100,
+        'vf_clip_param': 10000,
 
         'num_workers': args.workers,
         'num_cpus_per_worker': 1,
@@ -121,7 +127,8 @@ if __name__ == '__main__':
     }
     # eval environment should not be random across workers
     eval_start = 100  # random.randint(0, 3599 - 500)
-    base_config['evaluation_config']['env_config']['scenario_config']['start_end_time'] = [eval_start, eval_start + 750]
+    base_config['evaluation_config']['env_config']['scenario_config']['start_end_time'] = [eval_start,
+                                                                                           eval_start + 750]
     base_config['evaluation_config']['env_config']['scenario_config']['multi_config'] = False
     del base_config['evaluation_config']['env_config']['attack_randomization']
 
@@ -132,6 +139,27 @@ if __name__ == '__main__':
         for d in node['devices']:
             d['adversary_controller'] = 'unbalanced_fixed_controller'
 
+    if args.noattack:
+        for node in base_config['env_config']['scenario_config']['nodes']:
+            for d in node['devices']:
+                d['hack'] = [50, 0, 50]
+        for node in base_config['evaluation_config']['env_config']['scenario_config']['nodes']:
+            for d in node['devices']:
+                d['hack'] = [50, 0, 50]
+
+    for node in base_config['env_config']['scenario_config']['nodes'] \
+                + base_config['evaluation_config']['env_config']['scenario_config']['nodes']:
+        for d in node['devices']:
+            name = d['name']
+            c = np.array(d['custom_configs']['default_control_setting'])
+            # if name.endswith('a'):
+            #     c = c - 0.2 + 0.02 * 11
+            # elif name.endswith('b'):
+            #     c = c - 0.2 + 0.02 * 13
+            # elif name.endswith('c'):
+            #     c = c - 0.2 + 0.02 * 11
+            d['custom_configs']['default_control_setting'] = c
+
     ray.init(local_mode=False)
 
     full_config = {
@@ -141,17 +169,44 @@ if __name__ == '__main__':
         'algo': args.algo,
     }
 
-    full_config['config']['evaluation_config']['env_config']['M'] = tune.sample_from(
-        lambda spec: np.random.choice([spec['config']['config']['env_config']['M']]))
-    full_config['config']['evaluation_config']['env_config']['N'] = tune.sample_from(
-        lambda spec: np.random.choice([spec['config']['config']['env_config']['N']]))
-    full_config['config']['evaluation_config']['env_config']['P'] = tune.sample_from(
-        lambda spec: np.random.choice([spec['config']['config']['env_config']['P']]))
+    if args.eval_saved:
+        test_env = create_env(full_config['config']['evaluation_config']['env_config'])
+        tf.compat.v1.enable_eager_execution()
+        policy = tf.saved_model.load(os.path.expanduser(args.eval_saved))
+        infer = policy.signatures['serving_default']
+        done = False
+        obs = test_env.reset()
+        obs = obs.tolist()
+        while not done:
+            act_logits = infer(
+                prev_reward=tf.constant([0.], tf.float32),
+                observations=tf.constant([obs], tf.float32),
+                is_training=tf.constant(False),
+                seq_lens=tf.constant([0], tf.int32),
+                prev_action=tf.constant([0], tf.int64)
+            )['behaviour_logits'].numpy()
+            act = np.argmax(np.stack(np.array_split(act_logits[0], 3)), axis=1)
+            print(act)
+            obs, r, done, _ = test_env.step([10, 10, 10])
+            obs = obs.tolist()
 
-    config = deepcopy(full_config)
-    config['config']['env_config']['M'] = 2500
-    config['config']['env_config']['N'] = 30
-    config['config']['env_config']['P'] = 0
-    run_hp_experiment(config, 'main_N30')
+        Logger = logger()
+        f = plot_new(Logger.log_dict, Logger.custom_metrics, None, unbalance=True)
+        f.savefig('eval.png', bbox_inches='tight')
+        plt.close(f)
+
+    else:
+        full_config['config']['evaluation_config']['env_config']['M'] = tune.sample_from(
+            lambda spec: np.random.choice([spec['config']['config']['env_config']['M']]))
+        full_config['config']['evaluation_config']['env_config']['N'] = tune.sample_from(
+            lambda spec: np.random.choice([spec['config']['config']['env_config']['N']]))
+        full_config['config']['evaluation_config']['env_config']['P'] = tune.sample_from(
+            lambda spec: np.random.choice([spec['config']['config']['env_config']['P']]))
+
+        config = deepcopy(full_config)
+        config['config']['env_config']['M'] = 2500
+        config['config']['env_config']['N'] = 30
+        config['config']['env_config']['P'] = 0
+        run_hp_experiment(config, 'main_N30')
 
     ray.shutdown()
