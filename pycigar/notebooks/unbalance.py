@@ -128,9 +128,10 @@ if __name__ == '__main__':
     # eval environment should not be random across workers
     eval_start = 100  # random.randint(0, 3599 - 500)
     base_config['evaluation_config']['env_config']['scenario_config']['start_end_time'] = [eval_start,
-                                                                                           eval_start + 750]
+                                                                                           eval_start + 14000]
     base_config['evaluation_config']['env_config']['scenario_config']['multi_config'] = False
     del base_config['evaluation_config']['env_config']['attack_randomization']
+    del base_config['env_config']['attack_randomization']
 
     for node in base_config['env_config']['scenario_config']['nodes']:
         for d in node['devices']:
@@ -152,12 +153,13 @@ if __name__ == '__main__':
         for d in node['devices']:
             name = d['name']
             c = np.array(d['custom_configs']['default_control_setting'])
-            # if name.endswith('a'):
-            #     c = c - 0.2 + 0.02 * 11
-            # elif name.endswith('b'):
-            #     c = c - 0.2 + 0.02 * 13
-            # elif name.endswith('c'):
-            #     c = c - 0.2 + 0.02 * 11
+#            found by training with no attack
+            if name.endswith('a'):
+                c = c - 0.02
+            elif name.endswith('b'):
+                c = c + 0.02
+            elif name.endswith('c'):
+                c = c - 0.01
             d['custom_configs']['default_control_setting'] = c
 
     ray.init(local_mode=False)
@@ -187,7 +189,7 @@ if __name__ == '__main__':
             )['behaviour_logits'].numpy()
             act = np.argmax(np.stack(np.array_split(act_logits[0], 3)), axis=1)
             print(act)
-            obs, r, done, _ = test_env.step([10, 10, 10])
+            obs, r, done, _ = test_env.step(act)
             obs = obs.tolist()
 
         Logger = logger()
@@ -204,9 +206,12 @@ if __name__ == '__main__':
             lambda spec: np.random.choice([spec['config']['config']['env_config']['P']]))
 
         config = deepcopy(full_config)
-        config['config']['env_config']['M'] = 2500
+        config['config']['env_config']['M'] = 50000
         config['config']['env_config']['N'] = 30
         config['config']['env_config']['P'] = 0
+        config['config']['lr'] = 1e-3
+        config['config']['clip_param'] = 0.3
+
         run_hp_experiment(config, 'main_N30')
 
     ray.shutdown()
