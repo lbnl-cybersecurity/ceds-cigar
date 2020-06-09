@@ -111,7 +111,7 @@ if __name__ == '__main__':
         },
 
         # ==== EVALUATION ====
-        "evaluation_num_workers": 1,
+        "evaluation_num_workers": 0 if args.local_mode else 1,
         'evaluation_num_episodes': args.eval_rounds,
         "evaluation_interval": args.eval_interval,
         "custom_eval_function": custom_eval_function,
@@ -162,7 +162,7 @@ if __name__ == '__main__':
                 c = c - 0.01
             d['custom_configs']['default_control_setting'] = c
 
-    ray.init(local_mode=False)
+    ray.init(local_mode=args.local_mode)
 
     full_config = {
         'config': base_config,

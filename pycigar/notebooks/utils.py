@@ -154,3 +154,5 @@ def add_common_args(parser: argparse.ArgumentParser):
                         help='do an evaluation every N epochs')
     parser.add_argument("--algo", help="use PPO or APPO", choices=['ppo', 'appo'],
                         nargs='?', const='ppo', default='ppo', type=str.lower)
+    parser.add_argument('--local-mode', action='store_true')
+
