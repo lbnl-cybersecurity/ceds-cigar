@@ -170,6 +170,31 @@ class SingleRelativeInitPhaseSpecificDiscreteActionWrapper(ActionWrapper):
         return self.INIT_ACTION[rl_id] - ACTION_RANGE + ACTION_STEP * translation
 
 
+class SingleRelativeInitPhaseSpecificContinuousActionWrapper(ActionWrapper):
+    """
+    Action head is 4 values:
+        - one for VBP translation for inverters on phase a
+        - one for VBP translation for inverters on phase b
+        - one for VBP translation for inverters on phase b
+        - one for VBP translation for inverters on three phases
+    """
+
+    @property
+    def action_space(self):
+        return Box(-ACTION_RANGE, ACTION_RANGE, (3,), dtype=np.float64)
+
+    def action(self, action, rl_id, *_):
+        if rl_id.endswith('a'):
+            translation = action[0]
+        elif rl_id.endswith('b'):
+            translation = action[1]
+        elif rl_id.endswith('c'):
+            translation = action[2]
+        else:
+            translation = 0
+
+        return self.INIT_ACTION[rl_id] + translation
+
 #########################
 #    AUTO REGRESSIVE    #
 #########################

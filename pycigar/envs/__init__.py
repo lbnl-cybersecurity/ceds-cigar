@@ -6,5 +6,5 @@ from pycigar.envs.envs import *
 
 __all__ = ['Env', 'CentralEnv',
            'CentralControlPVInverterEnv', 'NewCentralControlPVInverterEnv', 'CentralControlPVInverterContinuousEnv',
-           'CentralControlPhaseSpecificPVInverterEnv'
+           'CentralControlPhaseSpecificPVInverterEnv', 'CentralControlPhaseSpecificContinuousPVInverterEnv'
            ]
