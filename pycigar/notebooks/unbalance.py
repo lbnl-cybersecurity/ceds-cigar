@@ -82,7 +82,7 @@ if __name__ == '__main__':
         "gamma": 0.5,
         'lr': 2e-3,
         'env_config': deepcopy(sim_params),
-        'rollout_fragment_length': 35,
+        'rollout_fragment_length': int(500 / args.workers),
         'train_batch_size': 500,
         'clip_param': 0.15,
         'lambda': 0.95,
