@@ -130,7 +130,7 @@ if __name__ == '__main__':
     # eval environment should not be random across workers
     eval_start = 100  # random.randint(0, 3599 - 500)
     base_config['evaluation_config']['env_config']['scenario_config']['start_end_time'] = [eval_start,
-                                                                                           eval_start + 14000]
+                                                                                           eval_start + 750]
     base_config['evaluation_config']['env_config']['scenario_config']['multi_config'] = False
     del base_config['evaluation_config']['env_config']['attack_randomization']
     del base_config['env_config']['attack_randomization']
