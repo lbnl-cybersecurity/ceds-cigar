@@ -31,7 +31,7 @@ New linecode.722bal nphases=1 BaseFreq=60
 ! ~ cmatrix = [65.0 | 0 0.0 | 0 0 0.0]
 
 ! Lines
-New Line.line_A01_A02 Phases=1 Bus1=A01.1 Bus2=A02.1 LineCode=721bal Length=2.00
+New Line.line_A01_A02 Phases=1 Bus1=A01.1 Bus2=A02.1 LineCode=721bal Length=1.00
 New Line.line_A02_A03 Phases=1 Bus1=A02.1 Bus2=A03.1 LineCode=722bal Length=1.00
 New Line.line_A03_A04 Phases=1 Bus1=A03.1 Bus2=A04.1 LineCode=722bal Length=1.00
 New Line.line_A03_A05 Phases=1 Bus1=A03.1 Bus2=A05.1 LineCode=722bal Length=1.00
