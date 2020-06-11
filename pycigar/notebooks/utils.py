@@ -44,8 +44,10 @@ def save_best_policy(trainer, episodes):
         os.makedirs(os.path.join(trainer.global_vars['reporter_dir'], 'best'), exist_ok=True)
         trainer.global_vars['best_eval_reward'] = mean_r
         # save policy
-        shutil.rmtree(os.path.join(trainer.global_vars['reporter_dir'], 'best', 'policy'), ignore_errors=True)
-        trainer.get_policy().export_model(os.path.join(trainer.global_vars['reporter_dir'], 'best', 'policy'))
+        policy_path = os.path.join(trainer.global_vars['reporter_dir'], 'best', 'policy')
+        if os.path.exists(policy_path):
+            shutil.rmtree(policy_path)
+        trainer.get_policy().export_model(policy_path)
         # save plots
         ep = episodes[-1]
         data = ep.hist_data['logger']['log_dict']
@@ -155,4 +157,8 @@ def add_common_args(parser: argparse.ArgumentParser):
     parser.add_argument("--algo", help="use PPO or APPO", choices=['ppo', 'appo'],
                         nargs='?', const='ppo', default='ppo', type=str.lower)
     parser.add_argument('--local-mode', action='store_true')
+    parser.add_argument('--redis-pwd', type=str)
+    parser.add_argument('--head-ip', type=str)
+
+
 

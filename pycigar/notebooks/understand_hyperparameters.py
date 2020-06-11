@@ -124,7 +124,10 @@ if __name__ == '__main__':
     base_config['evaluation_config']['env_config']['scenario_config']['multi_config'] = False
     del base_config['evaluation_config']['env_config']['attack_randomization']
 
-    ray.init(local_mode=args.local_mode)
+    if args.redis_pwd and args.head_ip:
+        ray.init(address=args.head_ip, redis_password=args.redis_pwd)
+    else:
+        ray.init(local_mode=args.local_mode)
 
     full_config = {
         'config': base_config,
