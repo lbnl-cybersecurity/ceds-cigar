@@ -48,12 +48,8 @@ def save_best_policy(trainer, episodes):
         policy_path = os.path.join(trainer.global_vars['reporter_dir'], 'best', 'policy')
         if os.path.exists(policy_path):
             shutil.rmtree(policy_path, ignore_errors=True)
-            print(os.path.exists(policy_path))
-            time.sleep(5)
-            print(os.path.exists(policy_path))
 
-
-        trainer.get_policy().export_model(policy_path)
+        trainer.get_policy().export_model(policy_path + '_' + str(trainer.iteration))
         # save plots
         ep = episodes[-1]
         data = ep.hist_data['logger']['log_dict']
