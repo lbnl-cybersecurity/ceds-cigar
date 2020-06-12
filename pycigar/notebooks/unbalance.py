@@ -82,8 +82,8 @@ if __name__ == '__main__':
         "gamma": 0.5,
         'lr': 2e-3,
         'env_config': deepcopy(sim_params),
-        'rollout_fragment_length': int(500 / args.workers),
-        'train_batch_size': 500,
+        'rollout_fragment_length': 35,
+        'train_batch_size': max(500, 35 * args.workers),
         'clip_param': 0.15,
         'lambda': 0.95,
         'vf_clip_param': 10000,
@@ -97,7 +97,7 @@ if __name__ == '__main__':
 
         'model': {
             'fcnet_activation': 'tanh',
-            'fcnet_hiddens': [128, 64, 32],
+            'fcnet_hiddens': [64, 64, 32],
             'free_log_std': False,
             'vf_share_layers': True,
             'use_lstm': False,
