@@ -3,6 +3,7 @@ import json
 import math
 import os
 import shutil
+import time
 from collections import namedtuple
 
 import matplotlib.pyplot as plt
@@ -46,12 +47,11 @@ def save_best_policy(trainer, episodes):
         # save policy
         policy_path = os.path.join(trainer.global_vars['reporter_dir'], 'best', 'policy')
         if os.path.exists(policy_path):
-            # do this instead of shutil for lawrencium
-            for root, dirs, files in os.walk(policy_path, topdown=False):
-                for name in files:
-                    os.remove(os.path.join(root, name))
-                for name in dirs:
-                    os.rmdir(os.path.join(root, name))
+            shutil.rmtree(policy_path, ignore_errors=True)
+            print(os.path.exists(policy_path))
+            time.sleep(5)
+            print(os.path.exists(policy_path))
+
 
         trainer.get_policy().export_model(policy_path)
         # save plots
@@ -165,6 +165,3 @@ def add_common_args(parser: argparse.ArgumentParser):
     parser.add_argument('--local-mode', action='store_true')
     parser.add_argument('--redis-pwd', type=str)
     parser.add_argument('--head-ip', type=str)
-
-
-
