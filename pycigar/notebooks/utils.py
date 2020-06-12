@@ -46,7 +46,11 @@ def save_best_policy(trainer, episodes):
         # save policy
         policy_path = os.path.join(trainer.global_vars['reporter_dir'], 'best', 'policy')
         if os.path.exists(policy_path):
-            shutil.rmtree(policy_path, ignore_errors=True)
+            # do this instead of shutil for lawrencium
+            for r, d, f in os.walk(policy_path):
+                for files in f:
+                    os.remove(os.path.join(r, files))
+                os.removedirs(r)
         trainer.get_policy().export_model(policy_path)
         # save plots
         ep = episodes[-1]
