@@ -176,6 +176,7 @@ def run_train(config, reporter):
     trainer_cls = APPOTrainer if config['algo'] == 'appo' else PPOTrainer
     trainer = trainer_cls(config=config['config'])
     #trainer.restore('/home/toanngo/checkpoint_50/checkpoint-50')
+    #trainer.restore('/home/toanngo/half_full_40/half_full_40_0/run_train/run_train_1_lr=0.001_2020-06-01_06-12-15zchm40ja/checkpoint/checkpoint_90/checkpoint-90')
     # needed so that the custom eval fn knows where to save plots
     trainer.global_vars['reporter_dir'] = reporter.logdir
     trainer.global_vars['unbalance'] = config['unbalance']
@@ -234,11 +235,12 @@ if __name__ == '__main__':
     base_config = {
         "env": env_name,
         "gamma": 0.5,
-        'lr': 2e-3,
+        'lr': 1e-3,
         #"lr_schedule": [[0, 2e-2], [20000, 1e-4]],
         'env_config': deepcopy(sim_params),
-        'rollout_fragment_length': 24,
-        'train_batch_size': 24*args.workers, #256, #250
+        'rollout_fragment_length': 20,
+        'train_batch_size': 20*args.workers, #256, #250
+        'sgd_minibatch_size': 20,
         'clip_param': 0.1,
         'lambda': 0.95,
         'vf_clip_param': 100,
@@ -309,11 +311,13 @@ if __name__ == '__main__':
 
     if args.algo == 'ppo':
 
-        config = deepcopy(full_config)
-        run_hp_experiment(config, 'frame')
+        for i in range(5):
+            config = deepcopy(full_config)
+            #config['config']['lr'] = ray.tune.grid_search([1e-3,])
+            run_hp_experiment(config, 'half_full_40_' + str(i))
         #for i in range(5):
         #    config = deepcopy(full_config)
-        #    run_hp_experiment(config, 'round_' + str(i))
+        #    run_hp_experiment(config, 'full_round_' + str(i))
 
         #config = deepcopy(full_config)
         #config['config']['lr'] = ray.tune.grid_search([5e-3, 7e-3, 9e-3,])

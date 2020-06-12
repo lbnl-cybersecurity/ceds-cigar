@@ -1,7 +1,7 @@
 import numpy as np
 
 # action space discretization
-DISCRETIZE = 30
+DISCRETIZE = 20
 # the initial action for inverter
 # INIT_ACTION = np.array([0.98, 1.01, 1.01, 1.04, 1.08])
 
@@ -22,7 +22,7 @@ ACTION_COMBINATION = [[x, y] for x in range(DISCRETIZE_RELATIVE) for y in range(
 ACTION_MAP = {k: a for k, a in enumerate(ACTION_COMBINATION)}
 
 # number of frames to keep
-NUM_FRAMES = 6
+NUM_FRAMES = 5
 
 
 #ACTION_MAX_SLOPE = 0.021

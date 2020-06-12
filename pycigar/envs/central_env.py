@@ -50,7 +50,7 @@ class CentralEnv(Env):
         if randomize_rl_update is None:
             randomize_rl_update = {}
             for rl_id in self.k.device.get_rl_device_ids():
-                randomize_rl_update[rl_id] = np.random.randint(low=0, high=3)
+                randomize_rl_update[rl_id] = np.random.randint(low=0, high=5)
             Logger = logger()
             if 'randomize_rl_update' not in Logger.custom_metrics:
                 Logger.custom_metrics['randomize_rl_update'] = [deepcopy(randomize_rl_update)]

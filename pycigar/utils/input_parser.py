@@ -19,7 +19,7 @@ def input_parser(misc_inputs_path, dss_path, load_solar_path, breakpoints_path=N
 
         'env_config': {
             'clip_actions': True,
-            'sims_per_step': 30
+            'sims_per_step': 35
         },
         'attack_randomization': {
             'generator': 'AttackDefinitionGenerator'

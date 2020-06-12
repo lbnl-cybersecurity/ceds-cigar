@@ -250,6 +250,10 @@ class GroupObservationWrapper(ObservationWrapper):
         if np.isnan(obs['attack_agent']).any():
             del obs['attack_agent']
 
+        Logger = logger()
+        for _ in range(self.env.k.sim_params['env_config']['sims_per_step']):
+            Logger.log('component_observation', 'component_y', obs['defense_agent'][0])
+            Logger.log('component_observation', 'component_pset', obs['defense_agent'][1])
         return obs
 
 class AdvFramestackObservationWrapper(ObservationWrapper):
@@ -289,5 +293,9 @@ class AdvFramestackObservationWrapper(ObservationWrapper):
         for key in self.frames[-1].keys():
             y_value_max = max([obs[key][0] for obs in self.frames if key in obs])
             new_obs[key] = np.insert(self.frames[-1][key], 0, y_value_max)
+
+        Logger = logger()
+        for _ in range(self.env.k.sim_params['env_config']['sims_per_step']):
+            Logger.log('component_observation', 'component_ymax', y_value_max)
 
         return new_obs
