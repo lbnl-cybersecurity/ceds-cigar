@@ -29,6 +29,8 @@ class PVDevice(BaseDevice):
         self.gain = additional_params.get('gain', 1e5)
         self.delta_t = additional_params.get('delta_t', 1)
         self.solar_min_value = additional_params.get('solar_min_value', 5)
+        self.is_butterworth_filter = additional_params.get('is_butterworth_filter', True)
+
         Logger = logger()
         if 'init_control_settings' in Logger.custom_metrics:
             logger().custom_metrics['init_control_settings'][device_id] = np.array(self.control_setting)
@@ -48,23 +50,35 @@ class PVDevice(BaseDevice):
         self.u = 0
 
         # init for signal processing on Voltage
-        Ts = 1
-        fosc = 0.15
-        hp1, temp = signal_processing.butterworth_highpass(2, 2 * np.pi * fosc / 1)
-        lp1, temp = signal_processing.butterworth_lowpass(4, 2 * np.pi * 1 * fosc)
-        bp1num = np.convolve(hp1[0, :], lp1[0, :])
-        bp1den = np.convolve(hp1[1, :], lp1[1, :])
-        bp1s = np.array([bp1num, bp1den])
-        self.BP1z = signal_processing.c2dbilinear(bp1s, Ts)
-        lpf2, temp = signal_processing.butterworth_lowpass(2, 2 * np.pi * fosc / 2)
-        self.LPF2z = signal_processing.c2dbilinear(lpf2, Ts)
-        self.nbp1 = self.BP1z.shape[1] - 1
-        self.nlpf2 = self.LPF2z.shape[1] - 1
+        if self.is_butterworth_filter:
+            Ts = 1
+            fosc = 0.15
+            hp1, temp = signal_processing.butterworth_highpass(2, 2 * np.pi * fosc / 1)
+            lp1, temp = signal_processing.butterworth_lowpass(4, 2 * np.pi * 1 * fosc)
+            bp1num = np.convolve(hp1[0, :], lp1[0, :])
+            bp1den = np.convolve(hp1[1, :], lp1[1, :])
+            bp1s = np.array([bp1num, bp1den])
+            self.BP1z = signal_processing.c2dbilinear(bp1s, Ts)
+            lpf2, temp = signal_processing.butterworth_lowpass(2, 2 * np.pi * fosc / 2)
+            self.LPF2z = signal_processing.c2dbilinear(lpf2, Ts)
+            self.nbp1 = self.BP1z.shape[1] - 1
+            self.nlpf2 = self.LPF2z.shape[1] - 1
 
-        self.y1 = deque([0] * len(self.BP1z[1, 0:-1]), maxlen=len(self.BP1z[1, 0:-1]))
-        self.y2 = deque([0] * len(self.LPF2z[0, :]), maxlen=len(self.LPF2z[0, :]))
-        self.y3 = deque([0] * len(self.LPF2z[1, 0:-1]), maxlen=len(self.LPF2z[1, 0:-1]))
-        self.x = deque([0] * (len(self.BP1z[0, :]) + step_buffer * 2), maxlen=(len(self.BP1z[0, :]) + step_buffer * 2))
+            self.y1 = deque([0] * len(self.BP1z[1, 0:-1]), maxlen=len(self.BP1z[1, 0:-1]))
+            self.y2 = deque([0] * len(self.LPF2z[0, :]), maxlen=len(self.LPF2z[0, :]))
+            self.y3 = deque([0] * len(self.LPF2z[1, 0:-1]), maxlen=len(self.LPF2z[1, 0:-1]))
+            self.x = deque([0] * (len(self.BP1z[0, :]) + step_buffer * 2), maxlen=(len(self.BP1z[0, :]) + step_buffer * 2))
+
+        else:
+            self.lpf_psi = deque([0]*2, maxlen=2)
+            self.lpf_epsilon = deque([0]*2, maxlen=2)
+            self.lpf_y1 = deque([0]*2, maxlen=2)
+            self.lpf_high_pass_filter = 1
+            self.lpf_low_pass_filter = 0.1
+            self.lpf_x = deque([0]*15, maxlen=15)
+            self.lpf_delta_t = self.delta_t
+            self.lpf_y = 0
+            self.x = deque([0]*15, maxlen=15)
 
     def update(self, k):
         """See parent class."""
@@ -97,11 +111,25 @@ class PVDevice(BaseDevice):
                     output = np.ones(15)
             filter_data = output[step_buffer:-step_buffer]
 
-            self.y1.append(1 / self.BP1z[1, -1] * (np.sum(-self.BP1z[1, 0:-1] * self.y1) + np.sum(self.BP1z[0, :] * filter_data)))
-            self.y2.append(self.y1[-1]**2)
-            self.y3.append(1 / self.LPF2z[1, -1] * (np.sum(-self.LPF2z[1, 0:-1] * self.y3) + np.sum(self.LPF2z[0, :] * self.y2)))
+            if self.is_butterworth_filter:
+                self.y1.append(1 / self.BP1z[1, -1] * (np.sum(-self.BP1z[1, 0:-1] * self.y1) + np.sum(self.BP1z[0, :] * filter_data)))
+                self.y2.append(self.y1[-1]**2)
+                self.y3.append(1 / self.LPF2z[1, -1] * (np.sum(-self.LPF2z[1, 0:-1] * self.y3) + np.sum(self.LPF2z[0, :] * self.y2)))
 
-            self.y = max(1e4 * self.y3[-1], 0)
+                self.y = max(1e4 * self.y3[-1], 0)
+            else:
+                lpf_psik = (filter_data[-1] - filter_data[-2] - (self.lpf_high_pass_filter * self.lpf_delta_t / 2 - 1) * self.lpf_psi[1]) / \
+                                (1 + self.lpf_high_pass_filter * self.lpf_delta_t / 2)
+                self.lpf_psi.append(lpf_psik)
+
+                lpf_epsilonk = self.gain * (lpf_psik ** 2)
+                self.lpf_epsilon.append(lpf_epsilonk)
+
+                y_value = (self.lpf_delta_t * self.lpf_low_pass_filter *
+                        (self.lpf_epsilon[1] + self.lpf_epsilon[0]) - (self.lpf_delta_t * self.lpf_low_pass_filter - 2) * self.lpf_y1[1]) / \
+                        (2 + self.lpf_delta_t * self.lpf_low_pass_filter)
+                self.lpf_y1.append(y_value)
+                self.y = y_value*0.04
 
             if 's701a' in k.node.nodes and 's701b' in k.node.nodes and 's701c' in k.node.nodes:
                 va = np.abs(k.node.nodes['s701a']['voltage'][k.time - 1])
@@ -193,6 +221,7 @@ class PVDevice(BaseDevice):
         # log history
         Logger = logger()
         Logger.log(self.device_id, 'y', self.y)
+
         Logger.log(self.device_id, 'u', self.u)
         Logger.log(self.device_id, 'p_set', self.p_set[1])
         Logger.log(self.device_id, 'q_set', self.q_set[1])

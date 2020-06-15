@@ -110,6 +110,8 @@ def input_parser(misc_inputs_path, dss_path, load_solar_path, breakpoints_path=N
         device['custom_configs']['delay_timer'] = 60
         device['custom_configs']['threshold'] = 0.05
         device['custom_configs']['adaptive_gain'] = 20
+        device['custom_configs']['is_butterworth_filter'] = False
+
         if benchmark:
             device['custom_configs']['low_pass_filter_measure'] = low_pass_filter_measure_mean
             device['custom_configs']['low_pass_filter_output'] = low_pass_filter_output_mean
