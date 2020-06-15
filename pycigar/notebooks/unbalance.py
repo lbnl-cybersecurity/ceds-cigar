@@ -164,8 +164,8 @@ if __name__ == '__main__':
                 c = c - 0.01
             d['custom_configs']['default_control_setting'] = c
 
-    if args.redis_pwd and args.head_ip:
-        ray.init(address=args.head_ip, redis_password=args.redis_pwd)
+    if args.redis_pwd:
+        ray.init(address='auto', redis_password=args.redis_pwd)
     else:
         ray.init(local_mode=args.local_mode)
 

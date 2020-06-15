@@ -160,4 +160,3 @@ def add_common_args(parser: argparse.ArgumentParser):
                         nargs='?', const='ppo', default='ppo', type=str.lower)
     parser.add_argument('--local-mode', action='store_true')
     parser.add_argument('--redis-pwd', type=str)
-    parser.add_argument('--head-ip', type=str)
