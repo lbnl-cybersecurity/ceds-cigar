@@ -181,9 +181,10 @@ class SingleRelativeInitPhaseSpecificContinuousActionWrapper(ActionWrapper):
 
     @property
     def action_space(self):
-        return Box(-ACTION_RANGE, ACTION_RANGE, (3,), dtype=np.float64)
+        return Box(-10.0, 10.0, (3,), dtype=np.float64)
 
     def action(self, action, rl_id, *_):
+        action = np.array(action) * ACTION_RANGE / 10.0
         if rl_id.endswith('a'):
             translation = action[0]
         elif rl_id.endswith('b'):
