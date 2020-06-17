@@ -215,11 +215,11 @@ if __name__ == '__main__':
 
         config = deepcopy(full_config)
         config['config']['env_config']['M'] = 50000
-        config['config']['env_config']['N'] = 30
-        config['config']['env_config']['P'] = 0
-        config['config']['lr'] = 1e-3
-        config['config']['clip_param'] = 0.15
+        config['config']['env_config']['N'] = tune.grid_search([10, 50, 200, 500])
+        config['config']['env_config']['P'] = tune.grid_search([10, 100, 1000, 2000])
+        config['config']['lr'] = 1e-4
+        config['config']['clip_param'] = 0.1
 
-        run_hp_experiment(config, 'main_N30')
+        run_hp_experiment(config, 'main')
 
     ray.shutdown()
