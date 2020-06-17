@@ -154,6 +154,7 @@ class BatteryStorageDevice(BaseDevice):
         if self.control_mode == 'charge':
             
             self.p_in = 100000
+            self.p_in = 150000
             self.p_out = 0
             
             self.current_capacity = self.current_capacity + self.Ts*self.p_in
@@ -171,6 +172,7 @@ class BatteryStorageDevice(BaseDevice):
             
             self.p_in = 0
             self.p_out = 150000
+            self.p_out = 200000
             
             self.current_capacity = self.current_capacity - self.Ts*self.p_out
             
