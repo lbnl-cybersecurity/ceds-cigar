@@ -215,8 +215,8 @@ if __name__ == '__main__':
 
         config = deepcopy(full_config)
         config['config']['env_config']['M'] = 50000
-        config['config']['env_config']['N'] = tune.grid_search([10, 50, 200, 500])
-        config['config']['env_config']['P'] = tune.grid_search([10, 100, 1000, 2000])
+        config['config']['env_config']['N'] = tune.grid_search([0, 10, 50, 100])
+        config['config']['env_config']['P'] = tune.grid_search([0, 10, 50, 100])
         config['config']['lr'] = 1e-4
         config['config']['clip_param'] = 0.1
 
