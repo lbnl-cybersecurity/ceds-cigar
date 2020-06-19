@@ -176,7 +176,7 @@ class CentralGlobalRewardWrapper(RewardWrapper):
             action = np.array(action)
             old_action = np.array(old_action)
             if isinstance(self.action_space, Box):
-                roa = np.linalg.norm(action - old_action)
+                roa = np.abs(action - old_action).sum()
             elif (action == old_action).all():
                 roa = 0
             else:
