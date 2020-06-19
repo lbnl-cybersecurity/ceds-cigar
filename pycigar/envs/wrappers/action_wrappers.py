@@ -5,6 +5,7 @@ from pycigar.envs.wrappers.wrapper import Wrapper
 from pycigar.envs.wrappers.wrappers_constants import *
 from pycigar.utils.logging import logger
 
+
 class ActionWrapper(Wrapper):
     def step(self, action, randomize_rl_update=None):
         rl_actions = {}
@@ -49,6 +50,7 @@ class ActionWrapper(Wrapper):
 #########################
 #         SINGLE        #
 #########################
+
 
 class SingleDiscreteActionWrapper(ActionWrapper):
     """
@@ -146,6 +148,7 @@ class SingleRelativeInitContinuousActionWrapper(ActionWrapper):
 #    UNBALANCE          #
 #########################
 
+
 class SingleRelativeInitPhaseSpecificDiscreteActionWrapper(ActionWrapper):
     """
     Action head is 4 values:
@@ -198,9 +201,11 @@ class SingleRelativeInitPhaseSpecificContinuousActionWrapper(ActionWrapper):
 
         return self.INIT_ACTION[rl_id] + translation
 
+
 #########################
 #    AUTO REGRESSIVE    #
 #########################
+
 
 class ARDiscreteActionWrapper(ActionWrapper):
     """
@@ -211,9 +216,15 @@ class ARDiscreteActionWrapper(ActionWrapper):
 
     @property
     def action_space(self):
-        return Tuple([Discrete(DISCRETIZE), Discrete(DISCRETIZE),
-                      Discrete(DISCRETIZE), Discrete(DISCRETIZE),
-                      Discrete(DISCRETIZE)])
+        return Tuple(
+            [
+                Discrete(DISCRETIZE),
+                Discrete(DISCRETIZE),
+                Discrete(DISCRETIZE),
+                Discrete(DISCRETIZE),
+                Discrete(DISCRETIZE),
+            ]
+        )
 
     def action(self, action, rl_id, *_):
         # This is used to form the discretized value into the valid action before feed into the environment.
@@ -239,15 +250,24 @@ class ARContinuousActionWrapper(ActionWrapper):
 #    MULTI-AGENT WRAPPER    #
 #############################
 
+
 class GroupActionWrapper(Wrapper):
     def step(self, action, randomize_rl_update=None):
         rl_actions = {}
         if isinstance(action, dict):
             # multi-agent env
             if 'defense_agent' in action:
-                rl_actions = {device_name: action['defense_agent'] for device_name in self.k.device.get_rl_device_ids() if 'adversary_' not in device_name}
+                rl_actions = {
+                    device_name: action['defense_agent']
+                    for device_name in self.k.device.get_rl_device_ids()
+                    if 'adversary_' not in device_name
+                }
             if 'attack_agent' in action:
-                rl_actions = {device_name: action['attack_agent'] for device_name in self.k.device.get_rl_device_ids() if 'adversary_' in device_name}
+                rl_actions = {
+                    device_name: action['attack_agent']
+                    for device_name in self.k.device.get_rl_device_ids()
+                    if 'adversary_' in device_name
+                }
 
         observation, reward, done, info = self.env.step(rl_actions, randomize_rl_update)
         return observation, reward, done, info

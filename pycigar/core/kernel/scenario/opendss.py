@@ -16,8 +16,8 @@ from pycigar.envs.attack_definition import AttackDefinitionGeneratorEvaluation
 from pycigar.envs.attack_definition import AttackDefinitionGeneratorEvaluationRandom
 from pycigar.utils.logging import logger
 
-class OpenDSSScenario(KernelScenario):
 
+class OpenDSSScenario(KernelScenario):
     def __init__(self, master_kernel):
         """See parent class."""
         KernelScenario.__init__(self, master_kernel)
@@ -42,17 +42,28 @@ class OpenDSSScenario(KernelScenario):
 
         # loading attack def generator
         if 'attack_randomization' in sim_params:
-            if self.attack_def_gen is None and sim_params['attack_randomization']['generator'] == 'AttackDefinitionGenerator':
+            if (
+                self.attack_def_gen is None
+                and sim_params['attack_randomization']['generator'] == 'AttackDefinitionGenerator'
+            ):
                 self.attack_def_gen = AttackDefinitionGenerator(start_time, end_time)
-            elif self.attack_def_gen is None and sim_params['attack_randomization']['generator'] == 'AttackDefinitionGeneratorEvaluation':
+            elif (
+                self.attack_def_gen is None
+                and sim_params['attack_randomization']['generator'] == 'AttackDefinitionGeneratorEvaluation'
+            ):
                 self.attack_def_gen = AttackDefinitionGeneratorEvaluation(start_time, end_time)
-            elif self.attack_def_gen is None and sim_params['attack_randomization']['generator'] == 'AttackDefinitionGeneratorEvaluationRandom':
+            elif (
+                self.attack_def_gen is None
+                and sim_params['attack_randomization']['generator'] == 'AttackDefinitionGeneratorEvaluationRandom'
+            ):
                 self.attack_def_gen = AttackDefinitionGeneratorEvaluationRandom(start_time, end_time)
         else:
             self.attack_def_gen = None
 
         # overwrite multi_config to have a new start_time and end_time
-        if isinstance(self.attack_def_gen, AttackDefinitionGeneratorEvaluation) or isinstance(self.attack_def_gen, AttackDefinitionGeneratorEvaluationRandom):
+        if isinstance(self.attack_def_gen, AttackDefinitionGeneratorEvaluation) or isinstance(
+            self.attack_def_gen, AttackDefinitionGeneratorEvaluationRandom
+        ):
             start_time, end_time = self.attack_def_gen.change_mode()
             self.master_kernel.sim_params['scenario_config']['start_time'] = start_time
             self.master_kernel.sim_params['scenario_config']['end_time'] = end_time
@@ -71,7 +82,9 @@ class OpenDSSScenario(KernelScenario):
         if 'solution_control_mode' in sim_params['simulation_config']:
             self.kernel_api.set_solution_control_mode(sim_params['simulation_config']['solution_control_mode'])
         if 'solution_max_control_iterations' in sim_params['simulation_config']:
-            self.kernel_api.set_solution_max_control_iterations(sim_params['simulation_config']['solution_max_control_iterations'])
+            self.kernel_api.set_solution_max_control_iterations(
+                sim_params['simulation_config']['solution_max_control_iterations']
+            )
 
         if 'solution_max_iterations' in sim_params['simulation_config']:
             self.kernel_api.set_solution_max_iterations(sim_params['simulation_config']['solution_max_iterations'])
@@ -138,13 +151,14 @@ class OpenDSSScenario(KernelScenario):
                         else:
                             dev_hack_info = self.snapshot_randomization[device['name']]
 
-                    adversary_id = self.master_kernel.device.add(name=device['name'],
-                                                                 connect_to=node['name'],
-                                                                 device=(device_type, device_configs),
-                                                                 controller=(device_controller, device_configs),
-                                                                 adversary_controller=(adversary_device_controller,
-                                                                                       adversary_device_configs),
-                                                                 hack=dev_hack_info)
+                    adversary_id = self.master_kernel.device.add(
+                        name=device['name'],
+                        connect_to=node['name'],
+                        device=(device_type, device_configs),
+                        controller=(device_controller, device_configs),
+                        adversary_controller=(adversary_device_controller, adversary_device_configs),
+                        hack=dev_hack_info,
+                    )
 
                     # at hack start timestep, add the adversary_controller id
                     if dev_hack_info[0] in self.hack_start_times:
@@ -166,12 +180,14 @@ class OpenDSSScenario(KernelScenario):
             device_configs = sim_params['scenario_config']['regulators']
             device_configs['kernel_api'] = self.kernel_api
             for regulator_id in regulator_names:
-                self.master_kernel.device.add(name=regulator_id,
-                                            connect_to=None,
-                                            device=(RegulatorDevice, device_configs),
-                                            controller=None,
-                                            adversary_controller=None,
-                                            hack=None)
+                self.master_kernel.device.add(
+                    name=regulator_id,
+                    connect_to=None,
+                    device=(RegulatorDevice, device_configs),
+                    controller=None,
+                    adversary_controller=None,
+                    hack=None,
+                )
 
         Logger = logger()
         Logger.custom_metrics['hack'] = dev_hack_info[1]
@@ -181,7 +197,9 @@ class OpenDSSScenario(KernelScenario):
     def update(self, reset):
         """See parent class."""
         for node in self.master_kernel.node.nodes:
-            self.master_kernel.node.nodes[node]['voltage'][self.master_kernel.time] = self.kernel_api.get_node_voltage(node)
+            self.master_kernel.node.nodes[node]['voltage'][self.master_kernel.time] = self.kernel_api.get_node_voltage(
+                node
+            )
             Logger = logger()
             Logger.log(node, 'voltage', self.master_kernel.node.nodes[node]['voltage'][self.master_kernel.time])
 
@@ -212,10 +230,9 @@ class OpenDSSScenario(KernelScenario):
 
                 self.master_kernel.device.update_kernel_device_info(adversary_id)
 
-    def change_load_profile(self, start_time, end_time,
-                            load_scaling_factor=1.5, solar_scaling_factor=1,
-                            network_data_directory_path=None,
-                            ):
+    def change_load_profile(
+        self, start_time, end_time, load_scaling_factor=1.5, solar_scaling_factor=1, network_data_directory_path=None,
+    ):
         sim_params = self.master_kernel.sim_params
         if sim_params:
             load_scaling_factor = sim_params['scenario_config']['custom_configs']['load_scaling_factor']
@@ -236,13 +253,21 @@ class OpenDSSScenario(KernelScenario):
                 if 'adversary' not in device_id:
                     node_id = self.master_kernel.device.get_node_connected_to(device_id)
                     percentage_control = self.master_kernel.device.get_device(device_id).percentage_control
-                    solar = np.array(profile[node_id + '_pv'])[start_time:end_time] * solar_scaling_factor * percentage_control
+                    solar = (
+                        np.array(profile[node_id + '_pv'])[start_time:end_time]
+                        * solar_scaling_factor
+                        * percentage_control
+                    )
                     self.master_kernel.device.set_device_internal_scenario(device_id, solar)
 
                     device_id = 'adversary_' + device_id
                     node_id = self.master_kernel.device.get_node_connected_to(device_id)
                     percentage_control = self.master_kernel.device.get_device(device_id).percentage_control
-                    solar = np.array(profile[node_id + '_pv'])[start_time:end_time] * solar_scaling_factor * percentage_control
+                    solar = (
+                        np.array(profile[node_id + '_pv'])[start_time:end_time]
+                        * solar_scaling_factor
+                        * percentage_control
+                    )
                     self.master_kernel.device.set_device_internal_scenario(device_id, solar)
         else:
             if network_data_directory_path is None:
@@ -261,11 +286,19 @@ class OpenDSSScenario(KernelScenario):
                 if 'adversary' not in device_id:
                     node_id = self.master_kernel.device.get_node_connected_to(device_id)
                     percentage_control = self.master_kernel.device.get_device(device_id).percentage_control
-                    solar = np.array(profile[node_id + '_pv'])[start_time:end_time] * solar_scaling_factor * percentage_control
+                    solar = (
+                        np.array(profile[node_id + '_pv'])[start_time:end_time]
+                        * solar_scaling_factor
+                        * percentage_control
+                    )
                     self.master_kernel.device.set_device_internal_scenario(device_id, solar)
 
                     device_id = 'adversary_' + device_id
                     node_id = self.master_kernel.device.get_node_connected_to(device_id)
                     percentage_control = self.master_kernel.device.get_device(device_id).percentage_control
-                    solar = np.array(profile[node_id + '_pv'])[start_time:end_time] * solar_scaling_factor * percentage_control
+                    solar = (
+                        np.array(profile[node_id + '_pv'])[start_time:end_time]
+                        * solar_scaling_factor
+                        * percentage_control
+                    )
                     self.master_kernel.device.set_device_internal_scenario(device_id, solar)

@@ -3,6 +3,7 @@ import random
 from typing import List, Union
 import numpy as np
 
+
 class AttackDefinitionGenerator:
     """Generates new attack definitions for a simulation scenario
 
@@ -28,6 +29,7 @@ class AttackDefinitionGenerator:
 
         return res
 
+
 class AttackDefinitionGeneratorEvaluation:
     """Generates new attack definitions for a simulation scenario
 
@@ -44,7 +46,7 @@ class AttackDefinitionGeneratorEvaluation:
         self.mode = 0
 
         duration = end_time - start_time
-        percentage = np.linspace(20, 45, 2)/100
+        percentage = np.linspace(20, 45, 2) / 100
         start_time = np.linspace(100, 11000, 2)
         self.scenarios = []
         for p in percentage:
@@ -62,12 +64,13 @@ class AttackDefinitionGeneratorEvaluation:
         return res
 
     def new_dev_hack_info(self):
-        hack_start = 250 #random.randint(250, 250 + 10)  # random.randint(int(duration*2/5), int(duration*2/5)+10)
-        hack_end = 500 #random.randint(500, 500 + 10)  # random.randint(int(duration*4/5), int(duration*4/5)+10)
+        hack_start = 250  # random.randint(250, 250 + 10)  # random.randint(int(duration*2/5), int(duration*2/5)+10)
+        hack_end = 500  # random.randint(500, 500 + 10)  # random.randint(int(duration*4/5), int(duration*4/5)+10)
         percentage = self.scenarios[self.mode][0]
         res = [hack_start, percentage, hack_end]
 
         return res
+
 
 class AttackDefinitionGeneratorEvaluationRandom:
     """Generates new attack definitions for a simulation scenario
@@ -85,7 +88,7 @@ class AttackDefinitionGeneratorEvaluationRandom:
         self.mode = 0
 
         duration = end_time - start_time
-        percentage = np.linspace(10, 50, 9)/100
+        percentage = np.linspace(10, 50, 9) / 100
         start_time = np.linspace(100, 11000, 10).astype(int)
         self.scenarios = []
         for p in percentage:
@@ -96,17 +99,18 @@ class AttackDefinitionGeneratorEvaluationRandom:
 
     def change_mode(self):
         res = self.scenarios[self.mode][1:]
-        self.mode = random.randint(0, len(self.scenarios)-1)
+        self.mode = random.randint(0, len(self.scenarios) - 1)
 
         return res
 
     def new_dev_hack_info(self):
-        hack_start = 250 #random.randint(250, 250 + 10)  # random.randint(int(duration*2/5), int(duration*2/5)+10)
-        hack_end = 500 #random.randint(500, 500 + 10)  # random.randint(int(duration*4/5), int(duration*4/5)+10)
+        hack_start = 250  # random.randint(250, 250 + 10)  # random.randint(int(duration*2/5), int(duration*2/5)+10)
+        hack_end = 500  # random.randint(500, 500 + 10)  # random.randint(int(duration*4/5), int(duration*4/5)+10)
         percentage = self.scenarios[self.mode][0]
         res = [hack_start, percentage, hack_end]
 
         return res
+
 
 if __name__ == "__main__":
     attack_def = AttackDefinitionGenerator(0, 1440)

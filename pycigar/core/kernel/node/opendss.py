@@ -1,7 +1,9 @@
-from pycigar.core.kernel.node import KernelNode
 import math
+
 import numpy as np
+from pycigar.core.kernel.node import KernelNode
 from pycigar.utils.logging import logger
+
 
 class OpenDSSNode(KernelNode):
     """See parent class."""
@@ -19,11 +21,7 @@ class OpenDSSNode(KernelNode):
         """Create the dictionary of nodes to track the node information."""
         node_ids = self.kernel_api.get_node_ids()
         for node in node_ids:
-            self.nodes[node] = {
-                "voltage": None,
-                "load": None,
-                "PQ_injection": {"P": 0, "Q": 0}
-            }
+            self.nodes[node] = {"voltage": None, "load": None, "PQ_injection": {"P": 0, "Q": 0}}
 
     def update(self, reset):
         """See parent class."""
@@ -35,29 +33,33 @@ class OpenDSSNode(KernelNode):
                 self.nodes[node]['PQ_injection'] = {"P": 0, "Q": 0}
                 self.kernel_api.set_node_kw(node, self.nodes[node]["load"][0])
                 self.kernel_api.set_node_kvar(node, self.nodes[node]["load"][0] * pf_converted)
-                self.log(node,
-                         self.nodes[node]['PQ_injection']['P'],
-                         self.nodes[node]['PQ_injection']['Q'],
-                         self.nodes[node]["load"][0], self.nodes[node]["load"][0] * pf_converted)
+                self.log(
+                    node,
+                    self.nodes[node]['PQ_injection']['P'],
+                    self.nodes[node]['PQ_injection']['Q'],
+                    self.nodes[node]["load"][0],
+                    self.nodes[node]["load"][0] * pf_converted,
+                )
 
         else:
             for node in self.nodes:
-                self.kernel_api.set_node_kw(node,
-                                            self.nodes[node]["load"]
-                                            [self.master_kernel.time] +
-                                            self.nodes[node]["PQ_injection"]['P'])
-                self.kernel_api.set_node_kvar(node,
-                                              self.nodes[node]["load"]
-                                              [self.master_kernel.time] * pf_converted +
-                                              self.nodes[node]["PQ_injection"]['Q'])
+                self.kernel_api.set_node_kw(
+                    node, self.nodes[node]["load"][self.master_kernel.time] + self.nodes[node]["PQ_injection"]['P']
+                )
+                self.kernel_api.set_node_kvar(
+                    node,
+                    self.nodes[node]["load"][self.master_kernel.time] * pf_converted
+                    + self.nodes[node]["PQ_injection"]['Q'],
+                )
 
-                self.log(node,
-                         self.nodes[node]['PQ_injection']['P'],
-                         self.nodes[node]['PQ_injection']['Q'],
-                         self.nodes[node]["load"][self.master_kernel.time] +
-                         self.nodes[node]["PQ_injection"]['P'],
-                         self.nodes[node]["load"][self.master_kernel.time] * pf_converted +
-                         self.nodes[node]["PQ_injection"]['Q'])
+                self.log(
+                    node,
+                    self.nodes[node]['PQ_injection']['P'],
+                    self.nodes[node]['PQ_injection']['Q'],
+                    self.nodes[node]["load"][self.master_kernel.time] + self.nodes[node]["PQ_injection"]['P'],
+                    self.nodes[node]["load"][self.master_kernel.time] * pf_converted
+                    + self.nodes[node]["PQ_injection"]['Q'],
+                )
 
     def log(self, node, p_injection, q_injection, node_kw, node_kvar):
         Logger = logger()

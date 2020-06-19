@@ -49,13 +49,16 @@ def run_train(config, reporter):
 
 
 def run_hp_experiment(full_config, name):
-    res = tune.run(run_train,
-                   config=full_config,
-                   resources_per_trial={'cpu': 1, 'gpu': 0,
-                                        'extra_cpu': full_config['config']['num_workers']
-                                                     + full_config['config']['evaluation_num_workers']},
-                   local_dir=os.path.join(os.path.expanduser(full_config['save_path']), name)
-                   )
+    res = tune.run(
+        run_train,
+        config=full_config,
+        resources_per_trial={
+            'cpu': 1,
+            'gpu': 0,
+            'extra_cpu': full_config['config']['num_workers'] + full_config['config']['evaluation_num_workers'],
+        },
+        local_dir=os.path.join(os.path.expanduser(full_config['save_path']), name),
+    )
     # save results
     with open(os.path.join(os.path.expanduser(full_config['save_path']), str(name) + '.pickle'), 'wb') as f:
         pickle.dump(res.trial_dataframes, f)
@@ -64,9 +67,11 @@ def run_hp_experiment(full_config, name):
 if __name__ == '__main__':
     args = parse_cli_args()
 
-    pycigar_params = {'exp_tag': 'cooperative_multiagent_ppo',
-                      'env_name': f'CentralControlPhaseSpecific{"Continuous" if args.continuous else ""}PVInverterEnv',
-                      'simulator': 'opendss'}
+    pycigar_params = {
+        'exp_tag': 'cooperative_multiagent_ppo',
+        'env_name': f'CentralControlPhaseSpecific{"Continuous" if args.continuous else ""}PVInverterEnv',
+        'simulator': 'opendss',
+    }
 
     create_env, env_name = make_create_env(pycigar_params, version=0)
     register_env(env_name, create_env)
@@ -87,14 +92,11 @@ if __name__ == '__main__':
         'clip_param': 0.15,
         'lambda': 0.95,
         'vf_clip_param': 10000,
-
         'num_workers': args.workers,
         'num_cpus_per_worker': 1,
         'num_cpus_for_driver': 1,
         'num_envs_per_worker': 1,
-
         'log_level': 'WARNING',
-
         'model': {
             'fcnet_activation': 'tanh',
             'fcnet_hiddens': [64, 64, 32],
@@ -105,13 +107,9 @@ if __name__ == '__main__':
             'framestack': False,
             'zero_mean': True,
         },
-
         # ==== EXPLORATION ====
         'explore': True,
-        'exploration_config': {
-            'type': 'StochasticSampling',  # default for PPO
-        },
-
+        'exploration_config': {'type': 'StochasticSampling',},  # default for PPO
         # ==== EVALUATION ====
         "evaluation_num_workers": 0 if args.local_mode else 1,
         'evaluation_num_episodes': args.eval_rounds,
@@ -123,14 +121,12 @@ if __name__ == '__main__':
             'explore': False,
             'env_config': deepcopy(sim_params),
         },
-
         # ==== CUSTOM METRICS ====
         "callbacks": get_custom_callbacks(),
     }
     # eval environment should not be random across workers
     eval_start = 100  # random.randint(0, 3599 - 500)
-    base_config['evaluation_config']['env_config']['scenario_config']['start_end_time'] = [eval_start,
-                                                                                           eval_start + 750]
+    base_config['evaluation_config']['env_config']['scenario_config']['start_end_time'] = [eval_start, eval_start + 750]
     base_config['evaluation_config']['env_config']['scenario_config']['multi_config'] = False
     del base_config['evaluation_config']['env_config']['attack_randomization']
     del base_config['env_config']['attack_randomization']
@@ -150,8 +146,10 @@ if __name__ == '__main__':
             for d in node['devices']:
                 d['hack'] = [50, 0, 50]
 
-    for node in base_config['env_config']['scenario_config']['nodes'] \
-                + base_config['evaluation_config']['env_config']['scenario_config']['nodes']:
+    for node in (
+        base_config['env_config']['scenario_config']['nodes']
+        + base_config['evaluation_config']['env_config']['scenario_config']['nodes']
+    ):
         for d in node['devices']:
             name = d['name']
             c = np.array(d['custom_configs']['default_control_setting'])
@@ -189,11 +187,11 @@ if __name__ == '__main__':
         obs = obs.tolist()
         while not done:
             act_logits = infer(
-                prev_reward=tf.constant([0.], tf.float32),
+                prev_reward=tf.constant([0.0], tf.float32),
                 observations=tf.constant([obs], tf.float32),
                 is_training=tf.constant(False),
                 seq_lens=tf.constant([0], tf.int32),
-                prev_action=tf.constant([0], tf.int64)
+                prev_action=tf.constant([0], tf.int64),
             )['behaviour_logits'].numpy()
             act = np.argmax(np.stack(np.array_split(act_logits[0], 3)), axis=1)
             print(act)
@@ -207,11 +205,14 @@ if __name__ == '__main__':
 
     else:
         full_config['config']['evaluation_config']['env_config']['M'] = tune.sample_from(
-            lambda spec: np.random.choice([spec['config']['config']['env_config']['M']]))
+            lambda spec: np.random.choice([spec['config']['config']['env_config']['M']])
+        )
         full_config['config']['evaluation_config']['env_config']['N'] = tune.sample_from(
-            lambda spec: np.random.choice([spec['config']['config']['env_config']['N']]))
+            lambda spec: np.random.choice([spec['config']['config']['env_config']['N']])
+        )
         full_config['config']['evaluation_config']['env_config']['P'] = tune.sample_from(
-            lambda spec: np.random.choice([spec['config']['config']['env_config']['P']]))
+            lambda spec: np.random.choice([spec['config']['config']['env_config']['P']])
+        )
 
         config = deepcopy(full_config)
         config['config']['env_config']['M'] = 50000

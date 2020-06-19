@@ -5,6 +5,7 @@ from pycigar.envs.wrappers.wrapper import Wrapper
 from pycigar.envs.wrappers.wrappers_constants import *
 from pycigar.utils.logging import logger
 
+
 class ObservationWrapper(Wrapper):
     def reset(self):
         observation = self.env.reset()
@@ -41,6 +42,7 @@ class ObservationWrapper(Wrapper):
 #                           CENTRAL WRAPPER                               #
 ###########################################################################
 
+
 class CentralLocalObservationWrapper(ObservationWrapper):
     """ ATTENTION: this wrapper is only used with single head RELATIVE ACTION wrappers (control only 1 breakpoint).
     Observation: a dictionary of local observation for each agent, in the form of {'id_1': obs1, 'id_2': obs2,...}.
@@ -75,8 +77,8 @@ class CentralLocalObservationWrapper(ObservationWrapper):
     def observation(self, observation, info):
         if info:
             old_actions = info[list(info.keys())[0]]['raw_action']
-            #p_set = np.mean([info[k]['p_set'] for k in self.k.device.get_rl_device_ids()])
-            p_set = np.mean([1.5e-3*info[k]['sbar_solar_irr'] for k in self.k.device.get_rl_device_ids()])
+            # p_set = np.mean([info[k]['p_set'] for k in self.k.device.get_rl_device_ids()])
+            p_set = np.mean([1.5e-3 * info[k]['sbar_solar_irr'] for k in self.k.device.get_rl_device_ids()])
         else:
             old_actions = self.init_action
             p_set = 0
@@ -141,11 +143,7 @@ class CentralFramestackObservationWrapper(ObservationWrapper):
         if type(obss) is Box:
             self.frames = deque([], maxlen=NUM_FRAMES)
             shp = obss.shape
-            obss = Box(
-                low=-float('inf'),
-                high=float('inf'),
-                shape=(shp[0] + 1,),
-                dtype=np.float64)
+            obss = Box(low=-float('inf'), high=float('inf'), shape=(shp[0] + 1,), dtype=np.float64)
         return obss
 
     def reset(self):
@@ -175,6 +173,7 @@ class CentralFramestackObservationWrapper(ObservationWrapper):
 ###########################################################################
 #                         MULTI-AGENT WRAPPER                             #
 ###########################################################################
+
 
 class AdvObservationWrapper(ObservationWrapper):
     def __init__(self, env, unbalance=False):
@@ -240,11 +239,13 @@ class AdvObservationWrapper(ObservationWrapper):
         if self.unbalance:
             observation = {
                 key: np.array([observation[key]['u'] / 0.1, p_set[key], (voltage[key] - 1) * 10, *old_a_encoded[key]])
-                for key in observation}
+                for key in observation
+            }
         else:
             observation = {
-                key: np.array([observation[key]['y'], p_set[key], (voltage[key] - 1) * 10, *old_a_encoded[key]]) for key
-                in observation}  # use baseline 1 for voltage and scale by 10
+                key: np.array([observation[key]['y'], p_set[key], (voltage[key] - 1) * 10, *old_a_encoded[key]])
+                for key in observation
+            }  # use baseline 1 for voltage and scale by 10
 
         return observation
 
@@ -260,10 +261,12 @@ class GroupObservationWrapper(ObservationWrapper):
 
     def observation(self, observation, info):
         obs = {}
-        obs['defense_agent'] = np.mean(np.array([observation[key] for key in observation if 'adversary_' not in key]),
-                                       axis=0)
-        obs['attack_agent'] = np.mean(np.array([observation[key] for key in observation if 'adversary_' in key]),
-                                      axis=0)
+        obs['defense_agent'] = np.mean(
+            np.array([observation[key] for key in observation if 'adversary_' not in key]), axis=0
+        )
+        obs['attack_agent'] = np.mean(
+            np.array([observation[key] for key in observation if 'adversary_' in key]), axis=0
+        )
 
         if np.isnan(obs['defense_agent']).any():
             del obs['defense_agent']
@@ -288,11 +291,7 @@ class AdvFramestackObservationWrapper(ObservationWrapper):
         if type(obss) is Box:
             self.frames = deque([], maxlen=NUM_FRAMES)
             shp = obss.shape
-            obss = Box(
-                low=-float('inf'),
-                high=float('inf'),
-                shape=(shp[0] + 1,),
-                dtype=np.float64)
+            obss = Box(low=-float('inf'), high=float('inf'), shape=(shp[0] + 1,), dtype=np.float64)
         return obss
 
     def reset(self):

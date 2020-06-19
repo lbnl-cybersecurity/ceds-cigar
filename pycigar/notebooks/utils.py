@@ -21,18 +21,24 @@ def custom_eval_function(trainer, eval_workers):
             eval_workers.local_worker().sample()
 
     else:
-        num_rounds = int(math.ceil(trainer.config["evaluation_num_episodes"] /
-                                   trainer.config["evaluation_num_workers"]))
+        num_rounds = int(
+            math.ceil(trainer.config["evaluation_num_episodes"] / trainer.config["evaluation_num_workers"])
+        )
         for i in range(num_rounds):
             ray.get([w.sample.remote() for w in eval_workers.remote_workers()])
 
     episodes, _ = collect_episodes(eval_workers.local_worker(), eval_workers.remote_workers())
     metrics = summarize_episodes(episodes)
 
-    f = plot_new(episodes[-1].hist_data['logger']['log_dict'], episodes[-1].hist_data['logger']['custom_metrics'],
-                 trainer.iteration, trainer.global_vars['unbalance'])
-    f.savefig(trainer.global_vars['reporter_dir'] + 'eval-epoch-' + str(trainer.iteration) + '.png',
-              bbox_inches='tight')
+    f = plot_new(
+        episodes[-1].hist_data['logger']['log_dict'],
+        episodes[-1].hist_data['logger']['custom_metrics'],
+        trainer.iteration,
+        trainer.global_vars['unbalance'],
+    )
+    f.savefig(
+        trainer.global_vars['reporter_dir'] + 'eval-epoch-' + str(trainer.iteration) + '.png', bbox_inches='tight'
+    )
     plt.close(f)
 
     save_best_policy(trainer, episodes)
@@ -53,21 +59,25 @@ def save_best_policy(trainer, episodes):
         # save plots
         ep = episodes[-1]
         data = ep.hist_data['logger']['log_dict']
-        f = plot_new(data, ep.hist_data['logger']['custom_metrics'], trainer.iteration,
-                     trainer.global_vars['unbalance'])
+        f = plot_new(
+            data, ep.hist_data['logger']['custom_metrics'], trainer.iteration, trainer.global_vars['unbalance']
+        )
         f.savefig(os.path.join(trainer.global_vars['reporter_dir'], 'best', 'eval.png'))
         plt.close(f)
         # save CSV
         k = list(data.keys())[0]
-        ep_hist = pd.DataFrame(dict(v=data[data[k]['node']]['voltage'], y=data[k]['y'],
-                                    q_set=data[k]['q_set'], q_val=data[k]['q_out']))
+        ep_hist = pd.DataFrame(
+            dict(v=data[data[k]['node']]['voltage'], y=data[k]['y'], q_set=data[k]['q_set'], q_val=data[k]['q_out'])
+        )
         a_hist = pd.DataFrame(data[k]['control_setting'], columns=['a1', 'a2', 'a3', 'a4', 'a5'])
-        adv_a_hist = pd.DataFrame(data['adversary_' + k]['control_setting'],
-                                  columns=['adv_a1', 'adv_a2', 'adv_a3', 'adv_a4', 'adv_a5'])
+        adv_a_hist = pd.DataFrame(
+            data['adversary_' + k]['control_setting'], columns=['adv_a1', 'adv_a2', 'adv_a3', 'adv_a4', 'adv_a5']
+        )
         translation, slope = get_translation_and_slope(data[k]['control_setting'])
         adv_translation, adv_slope = get_translation_and_slope(data['adversary_' + k]['control_setting'])
-        trans_slope_hist = pd.DataFrame(dict(translation=translation, slope=slope,
-                                             adv_translation=adv_translation, adv_slope=adv_slope))
+        trans_slope_hist = pd.DataFrame(
+            dict(translation=translation, slope=slope, adv_translation=adv_translation, adv_slope=adv_slope)
+        )
 
         df = ep_hist.join(a_hist, how='outer')
         df = df.join(adv_a_hist, how='outer')
@@ -77,12 +87,7 @@ def save_best_policy(trainer, episodes):
         # save info
         start = ep.custom_metrics["hack_start"]
         end = ep.custom_metrics["hack_end"]
-        info = {
-            'epoch': trainer.iteration,
-            'hack_start': start,
-            'hack_end': end,
-            'reward': mean_r
-        }
+        info = {'epoch': trainer.iteration, 'hack_start': start, 'hack_end': end, 'reward': mean_r}
         with open(os.path.join(trainer.global_vars['reporter_dir'], 'best', 'info.json'), 'w', encoding='utf-8') as f:
             json.dump(info, f, ensure_ascii=False, indent=4)
 
@@ -152,11 +157,12 @@ def add_common_args(parser: argparse.ArgumentParser):
     parser.add_argument('--epochs', type=int, default=2, help='number of epochs per trial')
     parser.add_argument('--save-path', type=str, default='~/hp_experiment3', help='where to save the results')
     parser.add_argument('--workers', type=int, default=3, help='number of cpu workers per run')
-    parser.add_argument('--eval-rounds', type=int, default=1,
-                        help='number of evaluation rounds to run to smooth random results')
-    parser.add_argument('--eval-interval', type=int, default=5,
-                        help='do an evaluation every N epochs')
-    parser.add_argument("--algo", help="use PPO or APPO", choices=['ppo', 'appo'],
-                        nargs='?', const='ppo', default='ppo', type=str.lower)
+    parser.add_argument(
+        '--eval-rounds', type=int, default=1, help='number of evaluation rounds to run to smooth random results'
+    )
+    parser.add_argument('--eval-interval', type=int, default=5, help='do an evaluation every N epochs')
+    parser.add_argument(
+        "--algo", help="use PPO or APPO", choices=['ppo', 'appo'], nargs='?', const='ppo', default='ppo', type=str.lower
+    )
     parser.add_argument('--local-mode', action='store_true')
     parser.add_argument('--redis-pwd', type=str)

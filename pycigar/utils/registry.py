@@ -9,8 +9,7 @@ def make_create_env(pycigar_params, version=0):
     def create_env(config):
         """ the env config is passed to this fn by rllib (env_config key) """
 
-        single_agent_envs = [env for env in dir(pycigar.envs)
-                             if not env.startswith('__')]
+        single_agent_envs = [env for env in dir(pycigar.envs) if not env.startswith('__')]
 
         assert isinstance(pycigar_params["env_name"], str)
         if pycigar_params['env_name'] in single_agent_envs:
@@ -22,9 +21,8 @@ def make_create_env(pycigar_params, version=0):
             register(
                 id=env_name,
                 entry_point=env_loc + ':{}'.format(pycigar_params["env_name"]),
-                kwargs={
-                    "simulator": pycigar_params['simulator']
-                })
+                kwargs={"simulator": pycigar_params['simulator']},
+            )
         except Exception:
             pass
 

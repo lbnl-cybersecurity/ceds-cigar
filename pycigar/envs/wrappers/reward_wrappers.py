@@ -5,7 +5,6 @@ from pycigar.utils.logging import logger
 from gym.spaces import Box
 
 
-
 class RewardWrapper(Wrapper):
     def step(self, action, randomize_rl_update=None):
         observation, reward, done, info = self.env.step(action, randomize_rl_update)
@@ -39,6 +38,7 @@ class LocalRewardWrapper(RewardWrapper):
     """
     The reward for each agent. It depends on agent local observation.
     """
+
     def __init__(self, env, unbalance=False):
         super().__init__(env)
         self.unbalance = unbalance
@@ -68,8 +68,12 @@ class LocalRewardWrapper(RewardWrapper):
             else:
                 roa = 1
 
-            r = -(M * info[key][y_or_u] + N * roa + P * np.linalg.norm(action - self.INIT_ACTION[key]) + 0.5 * (
-                1 - abs(info[key]['p_set_p_max'])) ** 2)
+            r = -(
+                M * info[key][y_or_u]
+                + N * roa
+                + P * np.linalg.norm(action - self.INIT_ACTION[key])
+                + 0.5 * (1 - abs(info[key]['p_set_p_max'])) ** 2
+            )
             rewards[key] = r
 
         return rewards
@@ -93,14 +97,21 @@ class GlobalRewardWrapper(RewardWrapper):
                 old_action = self.INIT_ACTION[key]
             y = info[key]['y']
             r = 0
-            r = -(M * y ** 2 + N * np.sum((action - old_action) ** 2) + P * np.sum(
-                (action - self.INIT_ACTION[key]) ** 2)) / 100
+            r = (
+                -(
+                    M * y ** 2
+                    + N * np.sum((action - old_action) ** 2)
+                    + P * np.sum((action - self.INIT_ACTION[key]) ** 2)
+                )
+                / 100
+            )
             global_reward += r
         global_reward = global_reward / len(list(info.keys()))
         for key in info.keys():
             rewards.update({key: global_reward})
 
         return rewards
+
 
 class SearchGlobalRewardWrapper(RewardWrapper):
     def reward(self, reward, info):
@@ -122,8 +133,16 @@ class SearchGlobalRewardWrapper(RewardWrapper):
             r = 0
             # if y > 0.025:
             #    r = -500
-            r += -((M * y ** 2 + N * np.sum((action - old_action) ** 2) + P * np.sum(
-                (action - self.INIT_ACTION[key]) ** 2))) / 100
+            r += (
+                -(
+                    (
+                        M * y ** 2
+                        + N * np.sum((action - old_action) ** 2)
+                        + P * np.sum((action - self.INIT_ACTION[key]) ** 2)
+                    )
+                )
+                / 100
+            )
             global_reward += r
         global_reward = global_reward / len(list(info.keys()))
         for key in info.keys():
@@ -188,8 +207,12 @@ class CentralGlobalRewardWrapper(RewardWrapper):
             else:
                 roa = 1
 
-            r += -(M * info[key][y_or_u] + N * roa + P * np.linalg.norm(action - self.INIT_ACTION[key]) + Q * (
-                1 - abs(info[key]['p_set_p_max'])) ** 2)
+            r += -(
+                M * info[key][y_or_u]
+                + N * roa
+                + P * np.linalg.norm(action - self.INIT_ACTION[key])
+                + Q * (1 - abs(info[key]['p_set_p_max'])) ** 2
+            )
 
             component_y += -M * info[key][y_or_u]
             component_oa += -N * roa
@@ -213,6 +236,7 @@ class CentralGlobalRewardWrapper(RewardWrapper):
 #                         MULTI-AGENT WRAPPER                             #
 ###########################################################################
 
+
 class GroupRewardWrapper(RewardWrapper):
     def __init__(self, env, unbalance=False):
         super().__init__(env)
@@ -234,6 +258,7 @@ class AdvLocalRewardWrapper(RewardWrapper):
     """
     The reward for each agent. It depends on agent local observation.
     """
+
     def __init__(self, env, unbalance=False):
         super().__init__(env)
         self.unbalance = unbalance
@@ -275,8 +300,12 @@ class AdvLocalRewardWrapper(RewardWrapper):
 
             if 'adversary_' not in key:
                 count += 1
-                r = -(M * info[key][y_or_u] + N * roa + P * np.linalg.norm(action - self.INIT_ACTION[key]) + Q * (
-                    1 - abs(info[key]['p_set_p_max'])) ** 2)
+                r = -(
+                    M * info[key][y_or_u]
+                    + N * roa
+                    + P * np.linalg.norm(action - self.INIT_ACTION[key])
+                    + Q * (1 - abs(info[key]['p_set_p_max'])) ** 2
+                )
 
                 component_y += -M * info[key]['y']
                 component_oa += -N * roa
@@ -286,18 +315,18 @@ class AdvLocalRewardWrapper(RewardWrapper):
                 adv_count += 1
                 r = M * info[key][y_or_u] - N * roa
                 adv_component_y += M * info[key]['y']
-                adv_component_oa += - N * roa
+                adv_component_oa += -N * roa
             rewards[key] = r
 
         for _ in range(self.env.k.sim_params['env_config']['sims_per_step']):
-            Logger.log('component_reward', 'component_y', component_y/float(count))
-            Logger.log('component_reward', 'component_oa', component_oa/float(count))
-            Logger.log('component_reward', 'component_init', component_init/float(count))
-            Logger.log('component_reward', 'component_pset_pmax', component_pset_pmax/float(count))
+            Logger.log('component_reward', 'component_y', component_y / float(count))
+            Logger.log('component_reward', 'component_oa', component_oa / float(count))
+            Logger.log('component_reward', 'component_init', component_init / float(count))
+            Logger.log('component_reward', 'component_pset_pmax', component_pset_pmax / float(count))
 
             if adv_count != 0:
-                Logger.log('adv_component_reward', 'adv_component_y', adv_component_y/float(adv_count))
-                Logger.log('adv_component_reward', 'adv_component_oa', adv_component_oa/float(adv_count))
+                Logger.log('adv_component_reward', 'adv_component_y', adv_component_y / float(adv_count))
+                Logger.log('adv_component_reward', 'adv_component_oa', adv_component_oa / float(adv_count))
             else:
                 Logger.log('adv_component_reward', 'adv_component_y', 0)
                 Logger.log('adv_component_reward', 'adv_component_oa', 0)

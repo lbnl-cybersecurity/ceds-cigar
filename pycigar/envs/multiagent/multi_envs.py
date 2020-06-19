@@ -7,13 +7,13 @@ from pycigar.envs.wrappers.wrapper import Wrapper
 
 class AdvEnv(Wrapper):
     def __init__(self, **kwargs):
-        env = MultiEnv(**kwargs)                           # receive a dict of rl_id: action
+        env = MultiEnv(**kwargs)  # receive a dict of rl_id: action
         env = AllRelativeInitDiscreteActionWrapper(env)
         env = AdvObservationWrapper(env)
         env = AdvLocalRewardWrapper(env)
-        env = GroupActionWrapper(env)                      # grouping layer
+        env = GroupActionWrapper(env)  # grouping layer
         env = GroupRewardWrapper(env)
-        env = GroupObservationWrapper(env)                 # grouping layer
+        env = GroupObservationWrapper(env)  # grouping layer
         env = GroupInfoWrapper(env)
         env = AdvFramestackObservationWrapper(env)
         self.env = env
@@ -37,6 +37,7 @@ class GroupInfoWrapper(Wrapper):
             del new_info['attack_agent']
 
         return new_info
+
 
 class AdvMultiEnv(MultiEnv):
     def __init__(self, **kwargs):

@@ -41,8 +41,7 @@ class Env(gym.Env):
         self.simulator = simulator
 
         # initialize the kernel
-        self.k = Kernel(simulator=self.simulator,
-                        sim_params=sim_params)
+        self.k = Kernel(simulator=self.simulator, sim_params=sim_params)
 
         # start an instance of the simulator (ex. OpenDSS)
         kernel_api = self.k.simulation.start_simulation()
@@ -109,15 +108,9 @@ class Env(gym.Env):
         if isinstance(self.action_space, Box):
             if type(rl_actions) is dict:
                 for key, action in rl_actions.items():
-                    rl_actions[key] = np.clip(
-                        action,
-                        a_min=self.action_space.low,
-                        a_max=self.action_space.high)
+                    rl_actions[key] = np.clip(action, a_min=self.action_space.low, a_max=self.action_space.high)
             else:
-                rl_actions = np.clip(
-                    rl_actions,
-                    a_min=self.action_space.low,
-                    a_max=self.action_space.high)
+                rl_actions = np.clip(rl_actions, a_min=self.action_space.low, a_max=self.action_space.high)
         return rl_actions
 
     def apply_rl_actions(self, rl_actions=None):

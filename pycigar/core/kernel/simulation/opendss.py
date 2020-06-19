@@ -1,5 +1,6 @@
 from pycigar.core.kernel.simulation import KernelSimulation
 import os
+
 # import time
 # import logging
 # import subprocess
@@ -12,7 +13,6 @@ RETRIES_ON_ERROR = 10
 
 
 class OpenDSSSimulation(KernelSimulation):
-
     def __init__(self, master_kernel):
         """See parent class."""
         KernelSimulation.__init__(self, master_kernel)
