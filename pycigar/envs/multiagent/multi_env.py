@@ -53,10 +53,10 @@ class MultiEnv(MultiAgentEnv, Env):
             randomize_rl_update[rl_id] = np.random.randint(low=0, high=3)
 
         # TODOs: disable defense action here
-        if rl_actions != {}:
-            for key in rl_actions:
-                if 'adversary_' not in key:
-                    rl_actions[key] = self.k.device.get_control_setting(key) #[1.014, 1.015, 1.015, 1.016, 1.017]
+        #if rl_actions != {}:
+        #    for key in rl_actions:
+        #        if 'adversary_' not in key:
+        #            rl_actions[key] = self.k.device.get_control_setting(key) #[1.014, 1.015, 1.015, 1.016, 1.017]
 
         for _ in range(self.sim_params['env_config']['sims_per_step']):
             self.env_time += 1

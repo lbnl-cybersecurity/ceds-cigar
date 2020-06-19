@@ -38,7 +38,7 @@ def input_parser(misc_inputs_path, dss_path, load_solar_path, breakpoints_path=N
         'M': 50,  # weight for y-value in reward function
         'N': 10,  # weight for taking different action from the initial action
         'P': 10,  # weight for taking different action from last timestep action
-
+        'Q': 0.5,
         'tune_search': False,
         'hack_setting': {'default_control_setting': [1.039, 1.04, 1.04, 1.041, 1.042]},
 
@@ -89,6 +89,7 @@ def input_parser(misc_inputs_path, dss_path, load_solar_path, breakpoints_path=N
     M = misc_inputs_data['Oscillation Penalty'][1]
     N = misc_inputs_data['Action Penalty'][1]
     P = misc_inputs_data['Deviation from Optimal Penalty'][1]
+    Q = misc_inputs_data['PsetPmax Penalty'][1]
     power_factor = misc_inputs_data['power factor'][1]
     load_scaling_factor = misc_inputs_data['load scaling factor'][1]
     solar_scaling_factor = misc_inputs_data['solar scaling factor'][1]
@@ -96,6 +97,7 @@ def input_parser(misc_inputs_path, dss_path, load_solar_path, breakpoints_path=N
     json_query['M'] = M
     json_query['N'] = N
     json_query['P'] = P
+    json_query['Q'] = Q
     json_query['scenario_config']['custom_configs']['load_scaling_factor'] = load_scaling_factor
     json_query['scenario_config']['custom_configs']['solar_scaling_factor'] = solar_scaling_factor
     json_query['scenario_config']['custom_configs']['power_factor'] = power_factor
@@ -133,6 +135,8 @@ def input_parser(misc_inputs_path, dss_path, load_solar_path, breakpoints_path=N
         device['custom_configs']['delay_timer'] = 60
         device['custom_configs']['threshold'] = 0.05
         device['custom_configs']['adaptive_gain'] = 20
+        device['custom_configs']['is_butterworth_filter'] = False
+
         if benchmark:
             device['custom_configs']['low_pass_filter_measure'] = low_pass_filter_measure_mean
             device['custom_configs']['low_pass_filter_output'] = low_pass_filter_output_mean
@@ -143,7 +147,6 @@ def input_parser(misc_inputs_path, dss_path, load_solar_path, breakpoints_path=N
             device['adversary_controller'] = 'adaptive_fixed_controller'
         else:
             device['adversary_controller'] = 'rl_controller'
-
         device['adversary_custom_configs'] = {}
         device['adversary_custom_configs']['default_control_setting'] = [1.014, 1.015, 1.015, 1.016, 1.017]
         device['hack'] = [250, percentage_hack, 500]

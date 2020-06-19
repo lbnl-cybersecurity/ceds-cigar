@@ -4,7 +4,7 @@ from gym.spaces.box import Box
 from pycigar.envs.base import Env
 from pycigar.utils.logging import logger
 from copy import deepcopy
-
+import time
 
 class CentralEnv(Env):
     def __init__(self, *args, **kwargs):
@@ -21,12 +21,24 @@ class CentralEnv(Env):
 
     def _apply_rl_actions(self, rl_actions):
         if rl_actions:
-            for rl_id, actions in rl_actions.items():
-                action = actions
-                self.k.device.apply_control(rl_id, action)
+                self.k.device.apply_control(list(rl_actions.keys()), list(rl_actions.values()))
 
     def step(self, rl_actions, randomize_rl_update=None):
-        """See parent class.
+
+        """Move the environment one step forward.
+
+        Parameters
+        ----------
+        rl_actions : dict
+            A dictionary of actions of each agents controlled by RL algorithms.
+
+        Returns
+        -------
+        Tuple
+            A tuple of (obs, reward, done, infos).
+            obs: a dictionary of new observation from the environment.
+            reward: a dictionary of reward received by agents.
+            done: bool
         """
         observations = []
         self.old_actions = {}
@@ -35,9 +47,11 @@ class CentralEnv(Env):
 
         # need to refactor this bulk
         if randomize_rl_update is None:
-            randomize_rl_update = {}
-            for rl_id in self.k.device.get_rl_device_ids():
-                randomize_rl_update[rl_id] = np.random.randint(low=0, high=3)
+            #randomize_rl_update = {}
+            #for rl_id in self.k.device.get_rl_device_ids():
+            #    randomize_rl_update[rl_id] = np.random.randint(low=0, high=5)
+            randomize_rl_update = np.random.randint(5, size=len(self.k.device.get_rl_device_ids()))
+
             Logger = logger()
             if 'randomize_rl_update' not in Logger.custom_metrics:
                 Logger.custom_metrics['randomize_rl_update'] = [deepcopy(randomize_rl_update)]
@@ -48,21 +62,11 @@ class CentralEnv(Env):
             rl_actions = self.old_actions
 
         for _ in range(self.sim_params['env_config']["sims_per_step"]):
+            start_time = time.time()
             self.env_time += 1
-            # perform action update for PV inverter device controlled by RL control
-            temp_rl_actions = {}
-            for rl_id in self.k.device.get_rl_device_ids():
-                temp_rl_actions[rl_id] = rl_actions[rl_id]
-            rl_dict = {}
-            for rl_id in temp_rl_actions.keys():
-                if randomize_rl_update[rl_id] == 0:
-                    rl_dict[rl_id] = temp_rl_actions[rl_id]
-                else:
-                    randomize_rl_update[rl_id] -= 1
-
-            for rl_id in rl_dict.keys():
-                del temp_rl_actions[rl_id]
-
+            rl_ids_key = np.array(self.k.device.get_rl_device_ids())[randomize_rl_update == 0]
+            randomize_rl_update -= 1
+            rl_dict = {k:rl_actions[k] for k in rl_ids_key}
             self.apply_rl_actions(rl_dict)
 
             # perform action update for PV inverter device
@@ -95,6 +99,10 @@ class CentralEnv(Env):
 
             if self.k.time >= self.k.t:
                 break
+
+            if 'step_only_time' not in logger().custom_metrics:
+                    logger().custom_metrics['step_only_time'] = 0
+            logger().custom_metrics['step_only_time'] += time.time() - start_time
 
         obs = {k: np.mean([d[k] for d in observations]) for k in observations[0]}
 
@@ -130,7 +138,6 @@ class CentralEnv(Env):
             reward = self.compute_reward(rl_actions, fail=not converged)
 
         return obs, reward, done, infos
-
     def get_state(self):
         obs = []
         for rl_id in self.k.device.get_rl_device_ids():

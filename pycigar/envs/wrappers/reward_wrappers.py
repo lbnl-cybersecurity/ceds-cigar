@@ -155,14 +155,20 @@ class CentralGlobalRewardWrapper(RewardWrapper):
         self.unbalance = unbalance
 
     def reward(self, reward, info):
+        Logger = logger()
+
         M = self.k.sim_params['M']
         N = self.k.sim_params['N']
         P = self.k.sim_params['P']
-
+        Q = self.k.sim_params['Q']
         global_reward = 0
         # we accumulate agents reward into global_reward and divide it with the number of agents.
         y_or_u = 'u' if self.unbalance else 'y'
 
+        component_y = 0
+        component_oa = 0
+        component_init = 0
+        component_pset_pmax = 0
         for key in info.keys():
             action = info[key]['current_action']
             if action is None:
@@ -182,12 +188,23 @@ class CentralGlobalRewardWrapper(RewardWrapper):
             else:
                 roa = 1
 
-            r += -(M * info[key][y_or_u] + N * roa + P * np.linalg.norm(action - self.INIT_ACTION[key]) + 0.5 * (
+            r += -(M * info[key][y_or_u] + N * roa + P * np.linalg.norm(action - self.INIT_ACTION[key]) + Q * (
                 1 - abs(info[key]['p_set_p_max'])) ** 2)
-            #r += -(M * info[key][y_or_u] + N * roa + P * np.linalg.norm(action - self.INIT_ACTION[key]) + 1.5e-6*info[key]['sbar_solar_irr'])
-            #print(0.5*(1 - abs(info[key]['p_set_p_max'])) ** 2/(1.5e-6*info[key]['sbar_solar_irr']))
+
+            component_y += -M * info[key][y_or_u]
+            component_oa += -N * roa
+            component_init += -P * np.linalg.norm(action - self.INIT_ACTION[key])
+            component_pset_pmax += -Q * (1 - abs(info[key]['p_set_p_max'])) ** 2
+
             global_reward += r
         global_reward = global_reward / len(list(info.keys()))
+
+        n = len(list(info.keys()))
+        for _ in range(self.env.k.sim_params['env_config']['sims_per_step']):
+            Logger.log('component_reward', 'component_y', component_y / n)
+            Logger.log('component_reward', 'component_oa', component_oa / n)
+            Logger.log('component_reward', 'component_init', component_init / n)
+            Logger.log('component_reward', 'component_pset_pmax', component_pset_pmax / n)
 
         return global_reward
 
@@ -222,13 +239,23 @@ class AdvLocalRewardWrapper(RewardWrapper):
         self.unbalance = unbalance
 
     def reward(self, reward, info):
+        Logger = logger()
         M = self.k.sim_params['M']
         N = self.k.sim_params['N']
         P = self.k.sim_params['P']
-
+        Q = self.k.sim_params['Q']
         rewards = {}
         y_or_u = 'u' if self.unbalance else 'y'
         # for each agent, we set the reward as under, note that agent reward is only a function of local information.
+        component_y = 0
+        component_oa = 0
+        component_init = 0
+        component_pset_pmax = 0
+        count = 0
+
+        adv_component_y = 0
+        adv_component_oa = 0
+        adv_count = 0
 
         for key in info.keys():
             action = info[key]['current_action']
@@ -247,10 +274,32 @@ class AdvLocalRewardWrapper(RewardWrapper):
                 roa = 1
 
             if 'adversary_' not in key:
-                r = -(M * info[key][y_or_u] + N * roa + P * np.linalg.norm(action - self.INIT_ACTION[key]) + 0.5 * (
+                count += 1
+                r = -(M * info[key][y_or_u] + N * roa + P * np.linalg.norm(action - self.INIT_ACTION[key]) + Q * (
                     1 - abs(info[key]['p_set_p_max'])) ** 2)
+
+                component_y += -M * info[key]['y']
+                component_oa += -N * roa
+                component_init += -P * np.linalg.norm(action - self.INIT_ACTION[key])
+                component_pset_pmax += -Q * (1 - abs(info[key]['p_set_p_max'])) ** 2
             else:
+                adv_count += 1
                 r = M * info[key][y_or_u] - N * roa
+                adv_component_y += M * info[key]['y']
+                adv_component_oa += - N * roa
             rewards[key] = r
+
+        for _ in range(self.env.k.sim_params['env_config']['sims_per_step']):
+            Logger.log('component_reward', 'component_y', component_y/float(count))
+            Logger.log('component_reward', 'component_oa', component_oa/float(count))
+            Logger.log('component_reward', 'component_init', component_init/float(count))
+            Logger.log('component_reward', 'component_pset_pmax', component_pset_pmax/float(count))
+
+            if adv_count != 0:
+                Logger.log('adv_component_reward', 'adv_component_y', adv_component_y/float(adv_count))
+                Logger.log('adv_component_reward', 'adv_component_oa', adv_component_oa/float(adv_count))
+            else:
+                Logger.log('adv_component_reward', 'adv_component_y', 0)
+                Logger.log('adv_component_reward', 'adv_component_oa', 0)
 
         return rewards

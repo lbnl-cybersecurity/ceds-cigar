@@ -122,7 +122,7 @@ def main(misc_inputs_path, dss_path, load_solar_path, breakpoints_path, test, po
         # ==== EVALUATION ====
         "evaluation_num_workers": 1,
         'evaluation_num_episodes': 2,
-        "evaluation_interval": 5,
+        "evaluation_interval": 1,
         "custom_eval_function": custom_eval_function,
         'evaluation_config': {
             "seed": 42,
@@ -145,7 +145,7 @@ def main(misc_inputs_path, dss_path, load_solar_path, breakpoints_path, test, po
         base_config['evaluation_num_episodes'] = 2
         full_config = {
             'config': base_config,
-            'epochs': 100,
+            'epochs': 1,
             'save_path': output,
         }
         config = deepcopy(full_config)

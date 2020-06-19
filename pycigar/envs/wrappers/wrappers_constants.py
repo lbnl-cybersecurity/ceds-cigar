@@ -1,7 +1,7 @@
 import numpy as np
 
 # action space discretization
-DISCRETIZE = 30
+DISCRETIZE = 20
 # the initial action for inverter
 # INIT_ACTION = np.array([0.98, 1.01, 1.01, 1.04, 1.08])
 
@@ -14,7 +14,7 @@ ACTION_MIN_SLOPE = 0.02  # actually the slope is stepper when value is small
 ACTION_MAX_SLOPE = 0.07
 
 # number of frames to keep
-NUM_FRAMES = 10
+NUM_FRAMES = 5
 
 
 ACTION_RANGE = 0.2

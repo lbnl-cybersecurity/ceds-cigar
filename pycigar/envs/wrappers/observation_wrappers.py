@@ -3,7 +3,7 @@ from collections import deque
 from gym.spaces import Box, Tuple, Discrete
 from pycigar.envs.wrappers.wrapper import Wrapper
 from pycigar.envs.wrappers.wrappers_constants import *
-
+from pycigar.utils.logging import logger
 
 class ObservationWrapper(Wrapper):
     def reset(self):
@@ -75,8 +75,8 @@ class CentralLocalObservationWrapper(ObservationWrapper):
     def observation(self, observation, info):
         if info:
             old_actions = info[list(info.keys())[0]]['raw_action']
-            # p_set = np.mean([info[k]['p_set'] for k in self.k.device.get_rl_device_ids()])
-            p_set = np.mean([1.5e-6 * info[k]['sbar_solar_irr'] for k in self.k.device.get_rl_device_ids()])
+            #p_set = np.mean([info[k]['p_set'] for k in self.k.device.get_rl_device_ids()])
+            p_set = np.mean([1.5e-3*info[k]['sbar_solar_irr'] for k in self.k.device.get_rl_device_ids()])
         else:
             old_actions = self.init_action
             p_set = 0
@@ -94,6 +94,11 @@ class CentralLocalObservationWrapper(ObservationWrapper):
             old_a_encoded[old_actions] = 1
         elif isinstance(self.action_space, Box):
             old_a_encoded = old_actions.flatten()
+
+        Logger = logger()
+        for _ in range(self.env.k.sim_params['env_config']['sims_per_step']):
+            Logger.log('component_observation', 'component_y', observation['y'])
+            Logger.log('component_observation', 'component_pset', p_set)
 
         if self.unbalance:
             observation = np.array([observation['u'] / 0.1, p_set, *old_a_encoded])
@@ -160,6 +165,10 @@ class CentralFramestackObservationWrapper(ObservationWrapper):
     def _get_ob(self):
         y_value_max = max([obs[0] for obs in self.frames])
         new_obs = np.insert(self.frames[-1], 0, y_value_max)
+
+        Logger = logger()
+        for _ in range(self.env.k.sim_params['env_config']['sims_per_step']):
+            Logger.log('component_observation', 'component_ymax', y_value_max)
         return new_obs
 
 
@@ -261,6 +270,10 @@ class GroupObservationWrapper(ObservationWrapper):
         if np.isnan(obs['attack_agent']).any():
             del obs['attack_agent']
 
+        Logger = logger()
+        for _ in range(self.env.k.sim_params['env_config']['sims_per_step']):
+            Logger.log('component_observation', 'component_y', obs['defense_agent'][0])
+            Logger.log('component_observation', 'component_pset', obs['defense_agent'][1])
         return obs
 
 
@@ -301,5 +314,9 @@ class AdvFramestackObservationWrapper(ObservationWrapper):
         for key in self.frames[-1].keys():
             y_value_max = max([obs[key][0] for obs in self.frames if key in obs])
             new_obs[key] = np.insert(self.frames[-1][key], 0, y_value_max)
+
+        Logger = logger()
+        for _ in range(self.env.k.sim_params['env_config']['sims_per_step']):
+            Logger.log('component_observation', 'component_ymax', y_value_max)
 
         return new_obs
