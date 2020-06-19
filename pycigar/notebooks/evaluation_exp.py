@@ -128,7 +128,7 @@ def save_best_policy(trainer, episodes):
         # save policy
         if not trainer.global_vars['unbalance']:
             shutil.rmtree(os.path.join(trainer.global_vars['reporter_dir'], 'best', 'policy'), ignore_errors=True)
-            trainer.get_policy().export_model(os.path.join(trainer.global_vars['reporter_dir'], 'best', 'policy'))
+            trainer.get_policy().export_model(os.path.join(trainer.global_vars['reporter_dir'], 'best', 'policy' + '_' + str(trainer.iteration)))
 
         # save plots
         ep = episodes[-1]
@@ -140,7 +140,7 @@ def save_best_policy(trainer, episodes):
     # save policy
     if not trainer.global_vars['unbalance']:
         shutil.rmtree(os.path.join(trainer.global_vars['reporter_dir'], 'latest', 'policy'), ignore_errors=True)
-        trainer.get_policy().export_model(os.path.join(trainer.global_vars['reporter_dir'], 'latest', 'policy'))
+        trainer.get_policy().export_model(os.path.join(trainer.global_vars['reporter_dir'], 'latest', 'policy' + '_' + str(trainer.iteration)))
         trainer.save(os.path.join(trainer.global_vars['reporter_dir'], 'checkpoint'))
         # save CSV
         #k = list(data.keys())[0]
@@ -240,7 +240,6 @@ if __name__ == '__main__':
         'env_config': deepcopy(sim_params),
         'rollout_fragment_length': 20,
         'train_batch_size': 20*args.workers, #256, #250
-        'sgd_minibatch_size': 20,
         'clip_param': 0.1,
         'lambda': 0.95,
         'vf_clip_param': 100,
@@ -311,9 +310,9 @@ if __name__ == '__main__':
 
     if args.algo == 'ppo':
 
-        for i in range(5):
+        for i in range(2):
             config = deepcopy(full_config)
-            #config['config']['lr'] = ray.tune.grid_search([1e-3,])
+            config['config']['lr'] = ray.tune.grid_search([1e-3,1e-3,1e-3,1e-3,])
             run_hp_experiment(config, 'half_full_40_' + str(i))
         #for i in range(5):
         #    config = deepcopy(full_config)
