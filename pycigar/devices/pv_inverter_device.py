@@ -7,8 +7,8 @@ from pycigar.devices.base_device import BaseDevice
 
 from pycigar.utils.logging import logger
 
-DEFAULT_CONTROL_SETTING = np.array([0.98, 1.01, 1.02, 1.05, 1.07])
-step_buffer = 4
+DEFAULT_CONTROL_SETTING = [0.98, 1.01, 1.02, 1.05, 1.07]
+STEP_BUFFER = 4
 
 
 class PVDevice(BaseDevice):
@@ -33,15 +33,15 @@ class PVDevice(BaseDevice):
 
         Logger = logger()
         if 'init_control_settings' in Logger.custom_metrics:
-            logger().custom_metrics['init_control_settings'][device_id] = np.array(self.control_setting)
+            logger().custom_metrics['init_control_settings'][device_id] = self.control_setting
         else:
-            logger().custom_metrics['init_control_settings'] = {device_id: np.array(self.control_setting)}
+            logger().custom_metrics['init_control_settings'] = {device_id: self.control_setting}
 
-        self.p_set = np.zeros(2)
-        self.q_set = np.zeros(2)
-        self.p_out = np.zeros(2)
-        self.q_out = np.zeros(2)
-        self.low_pass_filter_v = np.zeros(2)
+        self.p_set = deque([0]*2, maxlen=2)
+        self.q_set = deque([0]*2, maxlen=2)
+        self.p_out = deque([0]*2, maxlen=2)
+        self.q_out = deque([0]*2, maxlen=2)
+        self.low_pass_filter_v = deque([0]*2, maxlen=2)
 
         self.solar_irr = 0
         self.psi = 0
@@ -67,7 +67,8 @@ class PVDevice(BaseDevice):
             self.y1 = deque([0] * len(self.BP1z[1, 0:-1]), maxlen=len(self.BP1z[1, 0:-1]))
             self.y2 = deque([0] * len(self.LPF2z[0, :]), maxlen=len(self.LPF2z[0, :]))
             self.y3 = deque([0] * len(self.LPF2z[1, 0:-1]), maxlen=len(self.LPF2z[1, 0:-1]))
-            self.x = deque([0] * (len(self.BP1z[0, :]) + step_buffer * 2), maxlen=(len(self.BP1z[0, :]) + step_buffer * 2))
+            #self.x = deque([0] * (len(self.BP1z[0, :]) + STEP_BUFFER * 2), maxlen=(len(self.BP1z[0, :]) + STEP_BUFFER * 2))
+            self.x = deque([0]*15, maxlen=15)
 
         else:
             self.lpf_psi = deque([0]*2, maxlen=2)
@@ -83,33 +84,37 @@ class PVDevice(BaseDevice):
     def update(self, k):
         """See parent class."""
         # TODO: eliminate this magic number
-        self.Sbar = 1.1 * np.max(self.solar_generation)
+        if not hasattr(self, 'Sbar'):
+            self.Sbar = 1.1 * np.max(self.solar_generation)
         VBP = self.control_setting
-
+        #print(type(VBP))
         # record voltage magnitude measurement
-        node_id = k.device.get_node_connected_to(self.device_id)
-        self.node_id = node_id
-        Sbar = self.Sbar
-        solar_irr = self.solar_generation[k.time]
-        self.solar_irr = solar_irr
-        solar_minval = self.solar_min_value
-        step = np.hstack((1 * np.ones(11), np.linspace(1, -1, 7), -1 * np.ones(11)))
+        if not hasattr(self, 'node_id'):
+            self.node_id = k.device.get_node_connected_to(self.device_id)
+
+        self.solar_irr = self.solar_generation[k.time]
+
+        if not hasattr(self, 'step'):
+            self.step = np.hstack((1 * np.ones(11), np.linspace(1, -1, 7), -1 * np.ones(11)))
+
         if k.time > 1:
-            vk = np.abs(k.node.nodes[node_id]['voltage'][k.time - 1])
-            vkm1 = np.abs(k.node.nodes[node_id]['voltage'][k.time - 2])
-            self.v_meas_k = vk
-            self.v_meas_km1 = vkm1
-            self.x.append(vk)
-            # print(" \n X \n")
-            # print(self.x)
-            output = np.array(self.x).copy()
-            # if k.time > 12:
-            if np.max(output[step_buffer:-step_buffer]) - np.min(output[step_buffer:-step_buffer]) > 0.004:
-                norm_data = -1 + 2 * (list(output) - np.min(list(output))) / (np.max(list(output)) - np.min(list(output)))
-                step_corr = np.convolve(norm_data, step, mode='valid')
-                if np.max(abs(step_corr)) > 10:
+            vk = abs(k.node.nodes[self.node_id]['voltage'][k.time - 1])
+            vkm1 = abs(k.node.nodes[self.node_id]['voltage'][k.time - 2])
+
+            #self.x.append(vk)
+            if k.time >= 16:
+                output = abs(k.node.nodes[self.node_id]['voltage'][k.time-16:k.time - 1])
+            else:
+                self.x.append(vk)
+                output = np.array(self.x)
+
+            if np.max(output[STEP_BUFFER:-STEP_BUFFER]) - np.min(output[STEP_BUFFER:-STEP_BUFFER]) > 0.004:
+                norm_data = -1 + 2 * (output - np.min(output)) / (np.max(output) - np.min(output))
+                step_corr = np.convolve(norm_data, self.step, mode='valid')
+
+                if max(abs(step_corr)) > 10:
                     output = np.ones(15)
-            filter_data = output[step_buffer:-step_buffer]
+            filter_data = output[STEP_BUFFER:-STEP_BUFFER]
 
             if self.is_butterworth_filter:
                 self.y1.append(1 / self.BP1z[1, -1] * (np.sum(-self.BP1z[1, 0:-1] * self.y1) + np.sum(self.BP1z[0, :] * filter_data)))
@@ -132,11 +137,11 @@ class PVDevice(BaseDevice):
                 self.y = y_value*0.04
 
             if 's701a' in k.node.nodes and 's701b' in k.node.nodes and 's701c' in k.node.nodes:
-                va = np.abs(k.node.nodes['s701a']['voltage'][k.time - 1])
-                vb = np.abs(k.node.nodes['s701b']['voltage'][k.time - 1])
-                vc = np.abs(k.node.nodes['s701c']['voltage'][k.time - 1])
+                va = abs(k.node.nodes['s701a']['voltage'][k.time - 1])
+                vb = abs(k.node.nodes['s701b']['voltage'][k.time - 1])
+                vc = abs(k.node.nodes['s701c']['voltage'][k.time - 1])
                 mean = (va+vb+vc)/3
-                max_diff = max([abs(va - mean), abs(vb - mean), abs(vc - mean)])
+                max_diff = max(abs(va - mean), abs(vb - mean), abs(vc - mean))
                 self.u = max_diff / mean
 
         T = self.delta_t
@@ -146,19 +151,16 @@ class PVDevice(BaseDevice):
         pk = 0
         qk = 0
         if k.time > 1:
-            # compute v_lpf (lowpass filter)
-            # gammakcalc = (T*lpf*(Vmagk + Vmagkm1) - (T*lpf - 2)*gammakm1)
-            # /(2 + T*lpf)
-            low_pass_filter_v = self.low_pass_filter_v[1] = (T * lpf_m * (self.v_meas_k + self.v_meas_km1) -
-                                                             (T * lpf_m - 2) * (self.low_pass_filter_v[0])) / \
-                                                            (2 + T * lpf_m)
+            low_pass_filter_v = (T * lpf_m * (vk + vkm1) -
+                                (T * lpf_m - 2) * (self.low_pass_filter_v[1])) / \
+                                (2 + T * lpf_m)
 
             # compute p_set and q_set
-            if solar_irr >= solar_minval:
+            if self.solar_irr >= self.solar_min_value:
                 if low_pass_filter_v <= VBP[4]:
                     # no curtailment
-                    pk = -solar_irr
-                    q_avail = (Sbar ** 2 - pk ** 2) ** (1 / 2)
+                    pk = -self.solar_irr
+                    q_avail = (self.Sbar ** 2 - pk ** 2) ** (1 / 2)
 
                     # determine VAR support
                     if low_pass_filter_v <= VBP[0]:
@@ -177,33 +179,29 @@ class PVDevice(BaseDevice):
                         qk = c * (low_pass_filter_v - VBP[2])
                     elif VBP[3] < low_pass_filter_v < VBP[4]:
                         # partial real power curtailment
-                        d = -solar_irr / (VBP[4] - VBP[3])
+                        d = -self.solar_irr / (VBP[4] - VBP[3])
                         pk = d * (VBP[4] - low_pass_filter_v)
-                        qk = (Sbar ** 2 - pk ** 2) ** (1 / 2)
+                        qk = (self.Sbar ** 2 - pk ** 2) ** (1 / 2)
                 elif low_pass_filter_v >= VBP[4]:
                     # full real power curtailment for VAR support
                     pk = 0
-                    qk = Sbar
+                    qk = self.Sbar
 
-            self.p_set[1] = pk
-            self.q_set[1] = qk
+            self.p_set.append(pk)
+            self.q_set.append(qk)
 
             # compute p_out and q_out
-            self.p_out[1] = (T * lpf_o * (self.p_set[1] + self.p_set[0]) - (T * lpf_o - 2) * (self.p_out[0])) / \
-                            (2 + T * lpf_o)
-            self.q_out[1] = (T * lpf_o * (self.q_set[1] + self.q_set[0]) - (T * lpf_o - 2) * (self.q_out[0])) / \
-                            (2 + T * lpf_o)
+            self.p_out.append((T * lpf_o * (self.p_set[1] + self.p_set[0]) - (T * lpf_o - 2) * (self.p_out[1])) / \
+                            (2 + T * lpf_o))
+            self.q_out.append((T * lpf_o * (self.q_set[1] + self.q_set[0]) - (T * lpf_o - 2) * (self.q_out[1])) / \
+                            (2 + T * lpf_o))
 
-            self.p_set[0] = self.p_set[1]
-            self.q_set[0] = self.q_set[1]
-            self.p_out[0] = self.p_out[1]
-            self.q_out[0] = self.q_out[1]
-            self.low_pass_filter_v[0] = self.low_pass_filter_v[1]
+            self.low_pass_filter_v.append(low_pass_filter_v)
 
         # import old V to x
         # inject to node
-        k.node.nodes[node_id]['PQ_injection']['P'] += self.p_out[1]
-        k.node.nodes[node_id]['PQ_injection']['Q'] += self.q_out[1]
+        k.node.nodes[self.node_id]['PQ_injection']['P'] += self.p_out[1]
+        k.node.nodes[self.node_id]['PQ_injection']['Q'] += self.q_out[1]
 
         # log necessary info
         self.log()

@@ -3,7 +3,6 @@ import math
 import numpy as np
 from pycigar.utils.logging import logger
 
-
 class OpenDSSNode(KernelNode):
     """See parent class."""
 

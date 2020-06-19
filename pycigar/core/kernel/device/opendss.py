@@ -11,7 +11,6 @@ from pycigar.controllers import UnbalancedFixedController
 from pycigar.controllers import RLController
 import numpy as np
 
-
 class OpenDSSDevice(KernelDevice):
     """See parent class.
 
@@ -495,9 +494,9 @@ class OpenDSSDevice(KernelDevice):
             device_id = [device_id]
             control_setting = [control_setting]
 
-        for i, device_id in enumerate(device_id):
+        for i, d_id in enumerate(device_id):
             if control_setting[i] is not None:
-                device = self.devices[device_id]['device']
+                device = self.devices[d_id]['device']
                 device.set_control_setting(control_setting[i])
 
     def set_device_internal_scenario(self, device_id, internal_scenario):

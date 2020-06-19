@@ -16,7 +16,6 @@ from pycigar.envs.attack_definition import AttackDefinitionGeneratorEvaluation
 from pycigar.envs.attack_definition import AttackDefinitionGeneratorEvaluationRandom
 from pycigar.utils.logging import logger
 
-
 class OpenDSSScenario(KernelScenario):
 
     def __init__(self, master_kernel):
