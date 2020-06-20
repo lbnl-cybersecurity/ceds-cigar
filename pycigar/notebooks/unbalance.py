@@ -216,10 +216,10 @@ if __name__ == '__main__':
 
         config = deepcopy(full_config)
         config['config']['env_config']['M'] = 50000
-        config['config']['env_config']['N'] = tune.grid_search([0, 10, 50, 100])
-        config['config']['env_config']['P'] = tune.grid_search([0, 10, 50, 100])
-        config['config']['lr'] = 1e-4
-        config['config']['clip_param'] = 0.1
+        config['config']['env_config']['N'] = 50
+        config['config']['env_config']['P'] = 100
+        config['config']['lr'] = 1e-3
+        config['config']['clip_param'] = 0.2
 
         run_hp_experiment(config, 'main')
 

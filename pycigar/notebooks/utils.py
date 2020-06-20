@@ -65,7 +65,8 @@ def save_best_policy(trainer, episodes):
         f.savefig(os.path.join(trainer.global_vars['reporter_dir'], 'best', 'eval.png'))
         plt.close(f)
         # save CSV
-        k = list(data.keys())[0]
+        k = [k for k in data if k.startswith('inverter_s701')][0]
+
         ep_hist = pd.DataFrame(
             dict(v=data[data[k]['node']]['voltage'], y=data[k]['y'], q_set=data[k]['q_set'], q_val=data[k]['q_out'])
         )
