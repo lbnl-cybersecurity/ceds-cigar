@@ -156,7 +156,7 @@ class CentralGlobalRewardWrapper(RewardWrapper):
         M = self.k.sim_params['M']
         N = self.k.sim_params['N']
         P = self.k.sim_params['P']
-
+        Q = self.k.sim_params['Q']
         global_reward = 0
         # we accumulate agents reward into global_reward and divide it with the number of agents.
         y_or_u = 'u' if self.unbalance else 'y'
@@ -178,10 +178,9 @@ class CentralGlobalRewardWrapper(RewardWrapper):
             else:
                 roa = 1
 
-            r += -(M * info[key][y_or_u] + N * roa + P * np.linalg.norm(action - self.INIT_ACTION[key]) + 0.5 * (
+            r += -(M * info[key][y_or_u] + N * roa + P * np.linalg.norm(action - self.INIT_ACTION[key]) + Q * (
                 1 - abs(info[key]['p_set_p_max'])) ** 2)
-            #r += -(M * info[key][y_or_u] + N * roa + P * np.linalg.norm(action - self.INIT_ACTION[key]) + 1.5e-6*info[key]['sbar_solar_irr'])
-            #print(0.5*(1 - abs(info[key]['p_set_p_max'])) ** 2/(1.5e-6*info[key]['sbar_solar_irr']))
+
             global_reward += r
         global_reward = global_reward / len(list(info.keys()))
 
@@ -221,7 +220,7 @@ class AdvLocalRewardWrapper(RewardWrapper):
         M = self.k.sim_params['M']
         N = self.k.sim_params['N']
         P = self.k.sim_params['P']
-
+        Q = self.k.sim_params['Q']
         rewards = {}
         y_or_u = 'u' if self.unbalance else 'y'
         # for each agent, we set the reward as under, note that agent reward is only a function of local information.
@@ -243,7 +242,7 @@ class AdvLocalRewardWrapper(RewardWrapper):
                 roa = 1
 
             if 'adversary_' not in key:
-                r = -(M * info[key][y_or_u] + N * roa + P * np.linalg.norm(action - self.INIT_ACTION[key]) + 0.5 * (
+                r = -(M * info[key][y_or_u] + N * roa + P * np.linalg.norm(action - self.INIT_ACTION[key]) + Q * (
                     1 - abs(info[key]['p_set_p_max'])) ** 2)
             else:
                 r = M * info[key][y_or_u] - N * roa

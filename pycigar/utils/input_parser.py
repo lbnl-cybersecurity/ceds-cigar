@@ -4,31 +4,6 @@ import numpy as np
 
 
 def input_parser(misc_inputs_path, dss_path, load_solar_path, breakpoints_path=None, benchmark=False, percentage_hack=0.45, adv=False):
-    """Take multiple .csv files and parse them into the .yml file that required by pycigar.
-
-    Parameters
-    ----------
-    misc_inputs_path : str
-        directory to miscellaneous settings for the experiment. Example can be found at ./data/ieee37busdata/misc_inputs.csv
-    dss_path : str
-        directory to .dss file. Example can be found at ./data/ieee37busdata/ieee37.dss
-    load_solar_path : str
-        directory to load and solar profiles for different inverters. Example can be found at ./data/ieee37busdata/load_solar_data.csv
-    breakpoints_path : str, optional
-        directory to default settings of different inverters. Defaults to None to use the default settings in this function, by default None
-    benchmark : bool, optional
-        whether the experiment is in benchmark mode. If true, disable the randomization at inverters filter. Defaults to False, by default False
-    percentage_hack : float, optional
-        percentage hack for all devices. Defaults to 0.45. Only have meaning when benchmark is True, by default 0.45
-    adv : bool, optional
-        whether the experiment is adversarial training. Defaults to False. If True, set the advesarial devices to use RL controllers, by default False
-
-    Returns
-    -------
-    dict
-        a dictionary contains full information to run the experiment
-    """
-
     file_misc_inputs_path = misc_inputs_path
     file_dss_path = dss_path
     file_load_solar_path = load_solar_path
@@ -38,13 +13,13 @@ def input_parser(misc_inputs_path, dss_path, load_solar_path, breakpoints_path=N
         'M': 50,  # weight for y-value in reward function
         'N': 10,  # weight for taking different action from the initial action
         'P': 10,  # weight for taking different action from last timestep action
-
+        'Q': 0.5,
         'tune_search': False,
         'hack_setting': {'default_control_setting': [1.039, 1.04, 1.04, 1.041, 1.042]},
 
         'env_config': {
             'clip_actions': True,
-            'sims_per_step': 20
+            'sims_per_step': 35
         },
         'attack_randomization': {
             'generator': 'AttackDefinitionGenerator'
@@ -89,6 +64,7 @@ def input_parser(misc_inputs_path, dss_path, load_solar_path, breakpoints_path=N
     M = misc_inputs_data['Oscillation Penalty'][1]
     N = misc_inputs_data['Action Penalty'][1]
     P = misc_inputs_data['Deviation from Optimal Penalty'][1]
+    Q = misc_inputs_data['PsetPmax Penalty'][1]
     power_factor = misc_inputs_data['power factor'][1]
     load_scaling_factor = misc_inputs_data['load scaling factor'][1]
     solar_scaling_factor = misc_inputs_data['solar scaling factor'][1]
@@ -96,6 +72,7 @@ def input_parser(misc_inputs_path, dss_path, load_solar_path, breakpoints_path=N
     json_query['M'] = M
     json_query['N'] = N
     json_query['P'] = P
+    json_query['Q'] = Q
     json_query['scenario_config']['custom_configs']['load_scaling_factor'] = load_scaling_factor
     json_query['scenario_config']['custom_configs']['solar_scaling_factor'] = solar_scaling_factor
     json_query['scenario_config']['custom_configs']['power_factor'] = power_factor
@@ -133,6 +110,8 @@ def input_parser(misc_inputs_path, dss_path, load_solar_path, breakpoints_path=N
         device['custom_configs']['delay_timer'] = 60
         device['custom_configs']['threshold'] = 0.05
         device['custom_configs']['adaptive_gain'] = 20
+        device['custom_configs']['is_butterworth_filter'] = False
+
         if benchmark:
             device['custom_configs']['low_pass_filter_measure'] = low_pass_filter_measure_mean
             device['custom_configs']['low_pass_filter_output'] = low_pass_filter_output_mean
@@ -143,7 +122,6 @@ def input_parser(misc_inputs_path, dss_path, load_solar_path, breakpoints_path=N
             device['adversary_controller'] = 'adaptive_fixed_controller'
         else:
             device['adversary_controller'] = 'rl_controller'
-
         device['adversary_custom_configs'] = {}
         device['adversary_custom_configs']['default_control_setting'] = [1.014, 1.015, 1.015, 1.016, 1.017]
         device['hack'] = [250, percentage_hack, 500]
