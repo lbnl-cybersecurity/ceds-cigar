@@ -12,7 +12,7 @@ import ray
 from pycigar.utils.logging import logger
 from pycigar.utils.output import plot_new
 from ray.rllib.evaluation.metrics import collect_episodes, summarize_episodes
-
+from ray.rllib.agents.callbacks import DefaultCallbacks
 
 def custom_eval_function(trainer, eval_workers):
     if trainer.config["evaluation_num_workers"] == 0:
@@ -92,32 +92,31 @@ def get_translation_and_slope(a_val):
     return translation, slope
 
 
-def get_custom_callbacks():
-    ActionTuple = namedtuple('Action', ['action', 'timestep'])
+class CustomCallbacks(DefaultCallbacks):
+    def __init__(self, legacy_callbacks_dict=None):
+        super().__init__(legacy_callbacks_dict=legacy_callbacks_dict)
+        self.ActionTuple = namedtuple('Action', ['action', 'timestep'])
 
-    def on_episode_start(info):
-        episode = info["episode"]
+    def on_episode_start(self, worker, base_env, policies, episode, **kwargs):
         episode.user_data["num_actions_taken"] = 0
         episode.user_data["magnitudes"] = []
-        episode.user_data["true_actions"] = [ActionTuple(2, -1)]  # 2 is the init action
+        episode.user_data["true_actions"] = [self.ActionTuple(2, -1)]  # 2 is the init action
         episode.hist_data["y"] = []
 
         # get the base env
-        env = info['env'].get_unwrapped()[0]
+        env = base_env.get_unwrapped()[0]
         episode.user_data["tracking_id"] = env.k.device.get_rl_device_ids()[0]
 
-    def on_episode_step(info):
-        episode = info["episode"]
+    def on_episode_step(self, worker, base_env, episode, **kwargs):
         action = episode.last_action_for()
         if (action != episode.user_data["true_actions"][-1].action).all():
-            episode.user_data["true_actions"].append(ActionTuple(action, episode.length))
+            episode.user_data["true_actions"].append(self.ActionTuple(action, episode.length))
 
         if episode.last_info_for() is not None:
             y = episode.last_info_for()[episode.user_data["tracking_id"]]['y']
             episode.hist_data["y"].append(y)
 
-    def on_episode_end(info):
-        episode = info["episode"]
+    def on_episode_end(self, worker, base_env, policies, episode, **kwargs):
         actions = episode.user_data["true_actions"]
         avg_mag = (np.array([t.action for t in actions[1:]]) - 2).mean()
         num_actions = len(actions) - 1
@@ -129,20 +128,14 @@ def get_custom_callbacks():
         episode.custom_metrics["num_actions_taken"] = num_actions
 
         tracking = logger()
-        info['episode'].hist_data['logger'] = {'log_dict': tracking.log_dict, 'custom_metrics': tracking.custom_metrics}
+        episode.hist_data['logger'] = {'log_dict': tracking.log_dict, 'custom_metrics': tracking.custom_metrics}
 
-        env = info['env'].vector_env.envs[0]
+        env = base_env.vector_env.envs[0]
         t_id = env.k.device.get_rl_device_ids()[0]
         hack_start = int([k for k, v in env.k.scenario.hack_start_times.items() if 'adversary_' + t_id in v][0])
         hack_end = int([k for k, v in env.k.scenario.hack_end_times.items() if 'adversary_' + t_id in v][0])
         episode.custom_metrics["hack_start"] = hack_start
         episode.custom_metrics["hack_end"] = hack_end
-
-    return {
-        "on_episode_start": on_episode_start,
-        "on_episode_step": on_episode_step,
-        "on_episode_end": on_episode_end,
-    }
 
 
 def add_common_args(parser: argparse.ArgumentParser):

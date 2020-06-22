@@ -11,8 +11,8 @@ dependencies:
     - setuptools==41.0.0
     - pip
     - pip:
-        - ray==0.8.4
-        - tensorflow==2.0.0
+        - ray==0.8.5
+        - tensorflow
         - gym==0.17.1
         - pyprind==2.11.2
         - nose2==0.8.0

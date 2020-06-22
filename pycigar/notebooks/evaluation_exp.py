@@ -17,7 +17,7 @@ from ray.tune.registry import register_env
 from tqdm import tqdm
 
 import pycigar
-from pycigar.notebooks.utils import custom_eval_function, get_custom_callbacks, add_common_args
+from pycigar.notebooks.utils import custom_eval_function, add_common_args, CustomCallbacks
 from pycigar.utils.input_parser import input_parser
 from pycigar.utils.logging import logger
 from pycigar.utils.output import plot_new
@@ -87,6 +87,7 @@ if __name__ == '__main__':
         'env_config': deepcopy(sim_params),
         'rollout_fragment_length': 20,
         'train_batch_size': min(500, 20*args.workers),
+        'sgd_minibatch_size': 20,
         'clip_param': 0.1,
         'lambda': 0.95,
         'vf_clip_param': 100,
@@ -128,7 +129,7 @@ if __name__ == '__main__':
         },
 
         # ==== CUSTOM METRICS ====
-        "callbacks": get_custom_callbacks(),
+        "callbacks": CustomCallbacks,
     }
     # eval environment should not be random across workers
     base_config['env_config']['attack_randomization']['generator'] = 'AttackDefinitionGeneratorEvaluationRandom'

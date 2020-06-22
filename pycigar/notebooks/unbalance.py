@@ -6,7 +6,7 @@ from copy import deepcopy
 import numpy as np
 import pycigar
 import ray
-from pycigar.notebooks.utils import custom_eval_function, get_custom_callbacks, add_common_args
+from pycigar.notebooks.utils import custom_eval_function, add_common_args, CustomCallbacks
 from pycigar.utils.input_parser import input_parser
 from pycigar.utils.registry import make_create_env
 from ray import tune
@@ -117,7 +117,7 @@ if __name__ == '__main__':
         },
 
         # ==== CUSTOM METRICS ====
-        "callbacks": get_custom_callbacks(),
+        "callbacks": CustomCallbacks,
     }
     # eval environment should not be random across workers
     eval_start = 100  # random.randint(0, 3599 - 500)
