@@ -5,7 +5,7 @@ opencv-python
 ray==0.8.5
 gym
 numpy
-scipy
+scipy==1.4.1
 lxml
 pyprind
 nose2
