@@ -14,7 +14,7 @@ ACTION_MIN_SLOPE = 0.02  # actually the slope is stepper when value is small
 ACTION_MAX_SLOPE = 0.07
 
 # number of frames to keep
-NUM_FRAMES = 10
+NUM_FRAMES = 6
 
 
 ACTION_RANGE = 0.2
