@@ -6,6 +6,7 @@ from pycigar.core.kernel.device import OpenDSSDevice
 from pycigar.utils.exeptions import FatalPyCIGARError
 import numpy as np
 import random
+import pandas as pd
 from pycigar.utils.logging import logger
 
 
@@ -65,6 +66,8 @@ class Kernel(object):
         # initialize logger
         logger()
 
+        self.data_length = pd.read_csv(self.sim_params['scenario_config']['network_data_directory']).shape[0] - 1
+
         if simulator == "opendss":
             self.simulation = OpenDSSSimulation(self)
             self.scenario = OpenDSSScenario(self)
@@ -104,7 +107,7 @@ class Kernel(object):
                 self.t = self.sim_params['scenario_config']['start_end_time']
                 if 'start_time' not in self.sim_params['scenario_config']:
                     # generate random times (once)
-                    start_time = random.randint(0, 14399 - self.t)
+                    start_time = random.randint(0, self.data_length - self.t)
                     end_time = start_time + self.t
                 else:
                     # restore previous times
@@ -114,7 +117,7 @@ class Kernel(object):
             else:
                 # generate random times (everytimes)
                 self.t = self.sim_params['scenario_config']['start_end_time']
-                start_time = random.randint(0, 14399 - self.t)
+                start_time = random.randint(0, self.data_length - self.t)
                 end_time = start_time + self.t
 
             self.sim_params['scenario_config']['start_time'] = start_time
