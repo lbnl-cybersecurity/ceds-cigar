@@ -46,7 +46,7 @@ def save_best_policy(trainer, episodes):
         # save policy
         if not trainer.global_vars['unbalance']:
             shutil.rmtree(os.path.join(trainer.global_vars['reporter_dir'], 'best', 'policy-' + str(trainer.iteration)), ignore_errors=True)
-            trainer.get_policy().export_model(os.path.join(trainer.global_vars['reporter_dir'], 'policy-' + str(trainer.iteration)))
+            trainer.get_policy().export_model(os.path.join(trainer.global_vars['reporter_dir'], 'best', 'policy-' + str(trainer.iteration)))
         # save plots
         ep = episodes[-1]
         data = ep.hist_data['logger']['log_dict']
