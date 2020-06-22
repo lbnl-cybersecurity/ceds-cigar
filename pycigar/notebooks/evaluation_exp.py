@@ -87,7 +87,6 @@ if __name__ == '__main__':
         'env_config': deepcopy(sim_params),
         'rollout_fragment_length': 20,
         'train_batch_size': min(500, 20*args.workers),
-        'sgd_minibatch_size': 20,
         'clip_param': 0.1,
         'lambda': 0.95,
         'vf_clip_param': 100,
