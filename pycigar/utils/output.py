@@ -220,7 +220,7 @@ def plot_new(log_dict, custom_metrics, epoch='', unbalance=False):
         ax[6, 0].plot(log_dict[inv_k]['sbar_pset'], color='tab:blue', label='sbar pset')
 
         ax[0, 0].set_ylim([0.93, 1.07])
-        ax[1, 0].set_ylim([0, 0.8])
+        #ax[1, 0].set_ylim([0, 0.8])
         ax[2, 0].set_ylim([-280, 280])
         ax[3, 0].set_ylim([-0.06, 0.06])
         ax[4, 0].set_ylim([-0.06, 0.06])
