@@ -9,7 +9,7 @@ solar scaling factor,3
 measurement filter time constant mean,1.2
 measurement filter time constant std,0.2
 output filter time constant mean,0.1
-output filter time constant std,0.02
+output filter time constant std,0.01
 bp1 default,0.98
 bp2 default,1.01
 bp3 default,1.01
