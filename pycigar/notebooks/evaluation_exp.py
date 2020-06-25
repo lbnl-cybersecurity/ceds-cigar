@@ -232,6 +232,7 @@ if __name__ == '__main__':
         breakpoints_path = pycigar.DATA_DIR + "/ieee37busdata_regulator_attack/breakpoints.csv"
 
     sim_params = input_parser(misc_inputs_path, dss_path, load_solar_path, breakpoints_path)
+    sim_params_eval = input_parser(misc_inputs_path, dss_path, load_solar_path, breakpoints_path, benchmark=False)
     base_config = {
         "env": env_name,
         "gamma": 0.5,
@@ -276,7 +277,7 @@ if __name__ == '__main__':
             "seed": 42,
             # IMPORTANT NOTE: For policy gradients, this might not be the optimal policy
             'explore': False,
-            'env_config': deepcopy(sim_params),
+            'env_config': deepcopy(sim_params_eval),
         },
 
         # ==== CUSTOM METRICS ====

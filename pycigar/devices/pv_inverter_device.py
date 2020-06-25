@@ -23,8 +23,14 @@ class PVDevice(BaseDevice):
         self.Sbar = None
 
         self.control_setting = additional_params.get('default_control_setting', DEFAULT_CONTROL_SETTING)
-        self.low_pass_filter_measure = additional_params.get('low_pass_filter_measure', 1)
-        self.low_pass_filter_output = additional_params.get('low_pass_filter_output', 0.1)
+        self.low_pass_filter_measure_mean = additional_params.get('low_pass_filter_measure_mean', 1.2)
+        self.low_pass_filter_output_mean = additional_params.get('low_pass_filter_output_mean', 0.1)
+        self.low_pass_filter_measure_std = additional_params.get('low_pass_filter_measure_std', 0.2)
+        self.low_pass_filter_output_std = additional_params.get('low_pass_filter_output_std', 0.02)
+
+        self.low_pass_filter_measure = self.low_pass_filter_measure_std * np.random.randn() + self.low_pass_filter_measure_mean
+        self.low_pass_filter_output = self.low_pass_filter_measure_std * np.random.randn() + self.low_pass_filter_measure_mean
+
         self.low_pass_filter = additional_params.get('low_pass_filter', 0.1)
         self.high_pass_filter = additional_params.get('high_pass_filter', 1)
         self.gain = additional_params.get('gain', 1e5)
