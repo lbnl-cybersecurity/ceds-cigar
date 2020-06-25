@@ -7,7 +7,6 @@ def input_parser(
     misc_inputs_path, dss_path, load_solar_path, breakpoints_path=None, benchmark=False, percentage_hack=0.45, adv=False
 ):
     """Take multiple .csv files and parse them into the .yml file that required by pycigar.
-
     Parameters
     ----------
     misc_inputs_path : str
@@ -24,7 +23,6 @@ def input_parser(
         percentage hack for all devices. Defaults to 0.45. Only have meaning when benchmark is True, by default 0.45
     adv : bool, optional
         whether the experiment is adversarial training. Defaults to False. If True, set the advesarial devices to use RL controllers, by default False
-
     Returns
     -------
     dict

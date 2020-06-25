@@ -71,7 +71,7 @@ class OpenDSSScenario(KernelScenario):
         # load simulation and opendss file
         # network_model_directory_path = os.path.join(config.DATA_DIR, sim_params['simulation_config']['network_model_directory'])
         network_model_directory_path = sim_params['simulation_config']['network_model_directory']
-        self.kernel_api.simulation_command('Redirect ' + network_model_directory_path)
+        self.kernel_api.simulation_command('Redirect ' + '"' + network_model_directory_path + '"')
 
         if 'solution_mode' in sim_params['simulation_config']:
             self.kernel_api.set_solution_mode(sim_params['simulation_config']['solution_mode'])

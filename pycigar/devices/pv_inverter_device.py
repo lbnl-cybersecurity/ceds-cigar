@@ -225,7 +225,6 @@ class PVDevice(BaseDevice):
         self.control_setting = control_setting
 
     def log(self):
-        """See parent class."""
         # log history
         Logger = logger()
         Logger.log(self.device_id, 'y', self.y)

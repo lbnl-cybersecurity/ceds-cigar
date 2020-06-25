@@ -8,7 +8,7 @@ import numpy as np
 import pycigar
 import ray
 import tensorflow as tf
-from pycigar.notebooks.utils import custom_eval_function, get_custom_callbacks, add_common_args
+from pycigar.notebooks.utils import custom_eval_function, CustomCallbacks, add_common_args
 from pycigar.utils.input_parser import input_parser
 from pycigar.utils.logging import logger
 from pycigar.utils.output import plot_new
@@ -122,7 +122,7 @@ if __name__ == '__main__':
             'env_config': deepcopy(sim_params),
         },
         # ==== CUSTOM METRICS ====
-        "callbacks": get_custom_callbacks(),
+        "callbacks": CustomCallbacks,
     }
     # eval environment should not be random across workers
     eval_start = 100  # random.randint(0, 3599 - 500)

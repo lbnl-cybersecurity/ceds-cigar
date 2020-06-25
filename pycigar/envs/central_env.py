@@ -6,7 +6,6 @@ from pycigar.utils.logging import logger
 from copy import deepcopy
 import time
 
-
 class CentralEnv(Env):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -47,9 +46,6 @@ class CentralEnv(Env):
 
         # need to refactor this bulk
         if randomize_rl_update is None:
-            # randomize_rl_update = {}
-            # for rl_id in self.k.device.get_rl_device_ids():
-            #    randomize_rl_update[rl_id] = np.random.randint(low=0, high=5)
             randomize_rl_update = np.random.randint(5, size=len(self.k.device.get_rl_device_ids()))
 
             Logger = logger()

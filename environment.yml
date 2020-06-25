@@ -2,7 +2,7 @@ name: pycigar
 
 dependencies:
     - python==3.7.6
-    - scipy==1.1.0
+    - scipy==1.4.1
     - lxml==4.2.4
     - six==1.11.0
     - path.py
@@ -11,8 +11,8 @@ dependencies:
     - setuptools==41.0.0
     - pip
     - pip:
-        - ray==0.8.4
-        - tensorflow==2.0.0
+        - ray==0.8.5
+        - tensorflow
         - gym==0.17.1
         - pyprind==2.11.2
         - nose2==0.8.0
