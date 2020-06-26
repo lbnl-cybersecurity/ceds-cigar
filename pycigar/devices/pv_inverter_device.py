@@ -29,7 +29,7 @@ class PVDevice(BaseDevice):
         self.low_pass_filter_output_std = additional_params.get('low_pass_filter_output_std', 0.02)
 
         self.low_pass_filter_measure = self.low_pass_filter_measure_std * np.random.randn() + self.low_pass_filter_measure_mean
-        self.low_pass_filter_output = self.low_pass_filter_measure_std * np.random.randn() + self.low_pass_filter_measure_mean
+        self.low_pass_filter_output = self.low_pass_filter_output_std * np.random.randn() + self.low_pass_filter_output_mean
 
         self.low_pass_filter = additional_params.get('low_pass_filter', 0.1)
         self.high_pass_filter = additional_params.get('high_pass_filter', 1)
