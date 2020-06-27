@@ -332,3 +332,13 @@ class AdvLocalRewardWrapper(RewardWrapper):
                 Logger.log('adv_component_reward', 'adv_component_oa', 0)
 
         return rewards
+
+
+class PhaseSpecificRewardWrapper(RewardWrapper):
+    def __init__(self, env):
+        super().__init__(env)
+        self.global_reward = CentralGlobalRewardWrapper(env, unbalance=True)
+
+    def reward(self, reward, info):
+        global_r = self.global_reward.reward(reward, info)
+        return {k: global_r for k in info}

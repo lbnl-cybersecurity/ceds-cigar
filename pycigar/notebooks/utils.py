@@ -14,6 +14,7 @@ from pycigar.utils.logging import logger
 from pycigar.utils.output import plot_new
 from ray.rllib.evaluation.metrics import collect_episodes, summarize_episodes
 from ray.rllib.agents.callbacks import DefaultCallbacks
+from ray.rllib.env.base_env import _MultiAgentEnvToBaseEnv
 
 def custom_eval_function(trainer, eval_workers):
     if trainer.config["evaluation_num_workers"] == 0:
@@ -134,7 +135,10 @@ class CustomCallbacks(DefaultCallbacks):
         tracking = logger()
         episode.hist_data['logger'] = {'log_dict': tracking.log_dict, 'custom_metrics': tracking.custom_metrics}
 
-        env = base_env.vector_env.envs[0]
+        if isinstance(base_env, _MultiAgentEnvToBaseEnv):
+            env = base_env.envs[0]
+        else:
+            env = base_env.vector_env.envs[0]
         t_id = env.k.device.get_rl_device_ids()[0]
         hack_start = int([k for k, v in env.k.scenario.hack_start_times.items() if 'adversary_' + t_id in v][0])
         hack_end = int([k for k, v in env.k.scenario.hack_end_times.items() if 'adversary_' + t_id in v][0])

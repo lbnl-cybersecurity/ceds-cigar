@@ -63,3 +63,38 @@ class AdvMultiEnv(MultiEnv):
         if name.startswith('_'):
             raise AttributeError("attempted to get missing private attribute '{}'".format(name))
         return getattr(self.env, name)
+
+
+
+class PhaseSpecificContinuousMultiEnv(MultiEnv):
+    def __init__(self, **kwargs):
+        env = MultiEnv(**kwargs)
+        env = RelativeInitContinuousActionWrapper(env)
+        env = AdvObservationWrapper(env)
+        env = AdvFramestackObservationWrapper(env)
+        env = PhaseSpecificRewardWrapper(env)
+        # env = CentralGlobalRewardWrapper(env, unbalance=True)
+        # env = CentralLocalObservationWrapper(env, unbalance=True)
+        # env = CentralFramestackObservationWrapper(env)
+        self.env = env
+        self.env.action_space
+        self.env.observation_space
+
+    def reset(self):
+        return self.env.reset()
+
+    def step(self, action_dict):
+        return self.env.step(action_dict)
+
+    @property
+    def action_space(self):
+        return self.env.action_space
+
+    @property
+    def observation_space(self):
+        return self.env.observation_space
+
+    def __getattr__(self, name):
+        if name.startswith('_'):
+            raise AttributeError("attempted to get missing private attribute '{}'".format(name))
+        return getattr(self.env, name)

@@ -167,6 +167,7 @@ class MultiEnv(MultiAgentEnv, Env):
             key: {
                 'voltage': self.k.node.get_node_voltage(self.k.device.get_node_connected_to(key)),
                 'y': obs[key]['y'],
+                'u': obs[key]['u'],
                 'p_inject': self.k.device.get_device_p_injection(key),
                 'p_max': self.k.device.get_device_p_injection(key),
                 'env_time': self.env_time,

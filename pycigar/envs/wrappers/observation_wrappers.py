@@ -319,3 +319,14 @@ class AdvFramestackObservationWrapper(ObservationWrapper):
             Logger.log('component_observation', 'component_ymax', y_value_max)
 
         return new_obs
+
+class PhaseSpecificObservationWrapper(ObservationWrapper):
+    def __init__(self, env):
+        super().__init__(env)
+
+    @property
+    def observation_space(self):
+        return Box(low=-float('inf'), high=float('inf'), shape=(1,), dtype=np.float64)
+
+    def observation(self, observation, info):
+        return { k: np.array([observation[k]['voltage']]) for k in observation }

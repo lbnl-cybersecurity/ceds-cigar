@@ -271,3 +271,12 @@ class GroupActionWrapper(Wrapper):
 
         observation, reward, done, info = self.env.step(rl_actions, randomize_rl_update)
         return observation, reward, done, info
+
+
+class RelativeInitContinuousActionWrapper(ActionWrapper):
+    @property
+    def action_space(self):
+        return Box(-10.0, 10.0, (1,), dtype=np.float64)
+
+    def action(self, action, rl_id, *_):
+        return self.INIT_ACTION[rl_id] + action[0] * ACTION_RANGE / 10.0
