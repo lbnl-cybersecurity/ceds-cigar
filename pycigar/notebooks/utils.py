@@ -51,7 +51,8 @@ def save_best_policy(trainer, episodes):
         if os.path.exists(policy_path):
             shutil.rmtree(policy_path, ignore_errors=True)
 
-        trainer.get_policy().export_model(policy_path + '_' + str(trainer.iteration))
+        if trainer.get_policy() is not None:
+            trainer.get_policy().export_model(policy_path + '_' + str(trainer.iteration))
         # save plots
         ep = episodes[-1]
         data = ep.hist_data['logger']['log_dict']
@@ -153,7 +154,7 @@ def add_common_args(parser: argparse.ArgumentParser):
     parser.add_argument(
         '--eval-rounds', type=int, default=1, help='number of evaluation rounds to run to smooth random results'
     )
-    parser.add_argument('--eval-interval', type=int, default=5, help='do an evaluation every N epochs')
+    parser.add_argument('--eval-interval', type=int, default=1, help='do an evaluation every N epochs')
     parser.add_argument(
         "--algo", help="use PPO or APPO", choices=['ppo', 'appo'], nargs='?', const='ppo', default='ppo', type=str.lower
     )

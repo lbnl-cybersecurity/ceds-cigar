@@ -93,7 +93,6 @@ class DoNothingPolicy(Policy):
 
 if __name__ == '__main__':
     args = parse_cli_args()
-    args.local_mode = True
 
     pycigar_params = {
         'exp_tag': 'cooperative_multiagent_ppo',
@@ -155,7 +154,7 @@ if __name__ == '__main__':
             'env_config': deepcopy(sim_params),
         },
         # ==== CUSTOM METRICS ====
-        #"callbacks": CustomCallbacks,
+        "callbacks": CustomCallbacks,
         # ==== MULTI AGENT ====
         "multiagent": {
             "policies_to_train": ["phase_a", "phase_b", "phase_c"],
