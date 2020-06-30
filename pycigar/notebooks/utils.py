@@ -15,6 +15,7 @@ from pycigar.utils.output import plot_new
 from ray.rllib.evaluation.metrics import collect_episodes, summarize_episodes
 from ray.rllib.agents.callbacks import DefaultCallbacks
 from ray.rllib.env.base_env import _MultiAgentEnvToBaseEnv
+from pathlib import Path
 
 def custom_eval_function(trainer, eval_workers):
     if trainer.config["evaluation_num_workers"] == 0:
@@ -43,23 +44,35 @@ def custom_eval_function(trainer, eval_workers):
 
 def save_best_policy(trainer, episodes):
     mean_r = np.array([ep.episode_reward for ep in episodes]).mean()
-    if 'best_eval_reward' not in trainer.global_vars or trainer.global_vars['best_eval_reward'] < mean_r:
-        os.makedirs(os.path.join(trainer.global_vars['reporter_dir'], 'best'), exist_ok=True)
+    if trainer.global_vars.get('best_eval_reward', -np.Inf) < mean_r:
         trainer.global_vars['best_eval_reward'] = mean_r
-        # save policy
-        policy_path = os.path.join(trainer.global_vars['reporter_dir'], 'best', 'policy')
-        if os.path.exists(policy_path):
-            shutil.rmtree(policy_path, ignore_errors=True)
+        best_dir = Path(trainer.global_vars['reporter_dir']) / 'best'
+        best_dir.mkdir(exist_ok=True)
 
-        if trainer.get_policy() is not None:
-            trainer.get_policy().export_model(policy_path + '_' + str(trainer.iteration))
+        # save policy
+        def save_policy_to_path(path):
+            if path.exists():
+                shutil.rmtree(str(path), ignore_errors=True)
+
+            if trainer.get_policy() is not None:
+                trainer.get_policy().export_model(str(path))
+            else:
+                for k, p in trainer.optimizer.policies.items():
+                    p_path = path / k
+                    p.export_model(str(p_path))
+
+        try:
+            save_policy_to_path(best_dir / 'policy')
+        except Exception: # hack for lawrencium
+            save_policy_to_path(best_dir / f'policy_{trainer.iteration}')
+
         # save plots
         ep = episodes[-1]
         data = ep.hist_data['logger']['log_dict']
         f = plot_new(
             data, ep.hist_data['logger']['custom_metrics'], trainer.iteration, trainer.global_vars['unbalance']
         )
-        f.savefig(os.path.join(trainer.global_vars['reporter_dir'], 'best', 'eval.png'))
+        f.savefig(str(best_dir / 'eval.png'))
         plt.close(f)
         # save CSV
         k = [k for k in data if k.startswith('inverter_s701')][0]
@@ -80,7 +93,7 @@ def save_best_policy(trainer, episodes):
         df = ep_hist.join(a_hist, how='outer')
         df = df.join(adv_a_hist, how='outer')
         df = df.join(trans_slope_hist, how='outer')
-        df.to_csv(os.path.join(trainer.global_vars['reporter_dir'], 'best', 'last_eval_hists.csv'))
+        df.to_csv(str(best_dir / 'last_eval_hists.csv'))
 
         # save info
         start = ep.custom_metrics["hack_start"]
