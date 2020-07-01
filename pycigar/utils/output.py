@@ -197,7 +197,7 @@ def pycigar_output_specs(env):
     return output_specs
 
 
-def plot_new(log_dict, custom_metrics, epoch='', unbalance=False):
+def plot_new(log_dict, custom_metrics, epoch='', unbalance=False, multiagent=False):
     def get_translation_and_slope(a_val, init_a):
         points = np.array(a_val)
         slope = points[:, 1] - points[:, 0]
@@ -310,11 +310,23 @@ def plot_new(log_dict, custom_metrics, epoch='', unbalance=False):
             ax[0].plot(log_dict[log_dict[k]['node']]['voltage'], label='voltage ({})'.format(k))
             ax[1].plot(log_dict[k]['u'], label='unbalance observer ({})'.format(k))
 
-            translation, slope = get_translation_and_slope(
-                log_dict[k]['control_setting'], custom_metrics['init_control_settings'][k]
-            )
-            ax[2 + i].plot(translation, label='RL translation ({})'.format(k))
-            ax[2 + i].plot(slope, label='RL slope (a2-a1) ({})'.format(k))
+            if not multiagent:
+                translation, slope = get_translation_and_slope(
+                    log_dict[k]['control_setting'], custom_metrics['init_control_settings'][k]
+                )
+                ax[2 + i].plot(translation, label='RL translation ({})'.format(k))
+                ax[2 + i].plot(slope, label='RL slope (a2-a1) ({})'.format(k))
+
+        if multiagent:
+            phases = ['a', 'b', 'c']
+            for k in log_dict:
+                if k.startswith('inverter'):
+                    idx = phases.index(k[-1]) if k[-1] in phases else 3
+                    translation, slope = get_translation_and_slope(
+                        log_dict[k]['control_setting'], custom_metrics['init_control_settings'][k]
+                    )
+                    ax[2 + idx].plot(translation, label=k)
+                    #ax[2 + idx].plot(slope, label='RL slope (a2-a1) ({})'.format(k))
 
         if reg:
             ax[-1].plot(log_dict[reg]['tap_number'], label=reg)

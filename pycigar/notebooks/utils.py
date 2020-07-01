@@ -33,7 +33,13 @@ def custom_eval_function(trainer, eval_workers):
     metrics = summarize_episodes(episodes)
 
     for i in range(len(episodes)):
-        f = plot_new(episodes[i].hist_data['logger']['log_dict'], episodes[i].hist_data['logger']['custom_metrics'], trainer.iteration, trainer.global_vars['unbalance'])
+        f = plot_new(
+            episodes[i].hist_data['logger']['log_dict'],
+            episodes[i].hist_data['logger']['custom_metrics'],
+            trainer.iteration,
+            trainer.global_vars.get('unbalance', False),
+            trainer.global_vars.get('multiagent', False),
+        )
         f.savefig(trainer.global_vars['reporter_dir'] + 'eval-epoch-' + str(trainer.iteration) + '_' + str(i+1) + '.png',
                 bbox_inches='tight')
         plt.close(f)
@@ -70,7 +76,9 @@ def save_best_policy(trainer, episodes):
         ep = episodes[-1]
         data = ep.hist_data['logger']['log_dict']
         f = plot_new(
-            data, ep.hist_data['logger']['custom_metrics'], trainer.iteration, trainer.global_vars['unbalance']
+            data, ep.hist_data['logger']['custom_metrics'], trainer.iteration,
+            trainer.global_vars.get('unbalance', False),
+            trainer.global_vars.get('multiagent', False),
         )
         f.savefig(str(best_dir / 'eval.png'))
         plt.close(f)

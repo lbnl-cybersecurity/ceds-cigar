@@ -29,6 +29,8 @@ def run_train(config, reporter):
     # needed so that the custom eval fn knows where to save plots
     trainer.global_vars['reporter_dir'] = reporter.logdir
     trainer.global_vars['unbalance'] = True  # for plots
+    trainer.global_vars['multiagent'] = True  # for plots
+
 
     for _ in tqdm(range(config['epochs'])):
         results = trainer.train()
