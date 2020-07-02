@@ -70,7 +70,7 @@ class PhaseSpecificContinuousMultiEnv(MultiEnv):
     def __init__(self, **kwargs):
         env = MultiEnv(**kwargs)
         env = RelativeInitContinuousActionWrapper(env)
-        env = AdvObservationWrapper(env)
+        env = AdvObservationWrapper(env, unbalance=True)
         env = AdvFramestackObservationWrapper(env)
         env = PhaseSpecificRewardWrapper(env)
         # env = CentralGlobalRewardWrapper(env, unbalance=True)
