@@ -333,12 +333,44 @@ class AdvLocalRewardWrapper(RewardWrapper):
 
         return rewards
 
-
 class PhaseSpecificRewardWrapper(RewardWrapper):
-    def __init__(self, env):
+    def __init__(self, env, unbalance=False):
         super().__init__(env)
-        self.global_reward = CentralGlobalRewardWrapper(env, unbalance=True)
+        self.unbalance = unbalance
 
     def reward(self, reward, info):
-        global_r = self.global_reward.reward(reward, info)
-        return {k: global_r for k in info}
+        Logger = logger()
+
+        M = self.k.sim_params['M']
+        N = self.k.sim_params['N']
+        P = self.k.sim_params['P']
+        Q = self.k.sim_params['Q']
+        y_or_u = 'u' if self.unbalance else 'y'
+
+        r = {}
+        for key in info:
+            action = info[key]['current_action']
+            if action is None:
+                action = self.INIT_ACTION[key]
+
+            old_action = info[key]['old_action']
+            if old_action is None:
+                old_action = self.INIT_ACTION[key]
+
+            action = np.array(action)
+            old_action = np.array(old_action)
+            if isinstance(self.action_space, Box):
+                roa = np.abs(action - old_action).sum()
+            elif (action == old_action).all():
+                roa = 0
+            else:
+                roa = 1
+
+            r[key] = -(
+                M * info[key][y_or_u]
+                + N * roa
+                + P * np.linalg.norm(action - self.INIT_ACTION[key])
+                + Q * (1 - abs(info[key]['p_set_p_max'])) ** 2
+            )
+
+        return r

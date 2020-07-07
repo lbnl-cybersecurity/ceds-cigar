@@ -72,7 +72,7 @@ class PhaseSpecificContinuousMultiEnv(MultiEnv):
         env = RelativeInitContinuousActionWrapper(env)
         env = AdvObservationWrapper(env, unbalance=True)
         env = AdvFramestackObservationWrapper(env)
-        env = PhaseSpecificRewardWrapper(env)
+        env = PhaseSpecificRewardWrapper(env, unbalance=True)
         # env = CentralGlobalRewardWrapper(env, unbalance=True)
         # env = CentralLocalObservationWrapper(env, unbalance=True)
         # env = CentralFramestackObservationWrapper(env)
