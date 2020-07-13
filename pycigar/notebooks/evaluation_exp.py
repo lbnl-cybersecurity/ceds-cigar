@@ -309,61 +309,9 @@ if __name__ == '__main__':
         'unbalance': args.unbalance
     }
 
-    if args.algo == 'ppo':
-
-        for i in range(2):
-            config = deepcopy(full_config)
-            config['config']['lr'] = ray.tune.grid_search([1e-3,1e-3,1e-3,1e-3,])
-            run_hp_experiment(config, 'half_full_40_' + str(i))
-        #for i in range(5):
-        #    config = deepcopy(full_config)
-        #    run_hp_experiment(config, 'full_round_' + str(i))
-
-        #config = deepcopy(full_config)
-        #config['config']['lr'] = ray.tune.grid_search([5e-3, 7e-3, 9e-3,])
-        #run_hp_experiment(config, 'lr')
-
-        #config = deepcopy(full_config)
-        #config['config']['model']['fcnet_hiddens'] = ray.tune.grid_search([[64, 64], [16, 16], [128, 64, 32]])
-        #run_hp_experiment(config, 'model')
-
-        #config = deepcopy(full_config)
-        #config['config']['env_config']['M'] = ray.tune.grid_search([0, 1, 2, 4, 8])
-        #run_hp_experiment(config, 'y_penalty')
-
-        #config = deepcopy(full_config)
-        #config['config']['env_config']['N'] = ray.tune.grid_search([0, 1, 2, 4, 8])
-        #run_hp_experiment(config, 'action_penalty')
-
-        #config = deepcopy(full_config)
-        #config['config']['env_config']['P'] = ray.tune.grid_search([0, 1, 2, 4, 8])
-        #run_hp_experiment(config, 'init_penalty')
-
-
-
-        """
+    for i in range(4):
         config = deepcopy(full_config)
-        config['config']['gamma'] = ray.tune.grid_search([0, 0.2, 0.5, 0.9, 1])
-        run_hp_experiment(config, 'gamma')
-
-        config = deepcopy(full_config)
-        config['config']['lambda'] = ray.tune.grid_search([0, 0.2, 0.5, 0.9, 1])
-        run_hp_experiment(config, 'lambda')
-
-        config = deepcopy(full_config)
-        config['config']['entropy_coeff'] = ray.tune.grid_search([0, 0.05, 0.1, 0.2, 0.5])
-        run_hp_experiment(config, 'entropy_coeff')
-
-        config = deepcopy(full_config)
-        config['config']['train_batch_size'] = ray.tune.grid_search([500, 1000, 2000, 4000])
-        run_hp_experiment(config, 'batch_size')
-
-        config = deepcopy(full_config)
-        config['config']['lr'] = ray.tune.grid_search([2e-6, 2e-5, 2e-4, 2e-3, 2e-2])
-        run_hp_experiment(config, 'lr')
-        """
-    elif args.algo == 'appo':
-        config = deepcopy(full_config)
-        run_hp_experiment(config, 'appo')
+        config['config']['lr'] = ray.tune.grid_search([1e-3, 1e-3, 1e-3])
+        run_hp_experiment(config, 'main')
 
     ray.shutdown()

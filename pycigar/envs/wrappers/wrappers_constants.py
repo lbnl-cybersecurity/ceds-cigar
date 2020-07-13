@@ -22,7 +22,7 @@ ACTION_COMBINATION = [[x, y] for x in range(DISCRETIZE_RELATIVE) for y in range(
 ACTION_MAP = {k: a for k, a in enumerate(ACTION_COMBINATION)}
 
 # number of frames to keep
-NUM_FRAMES = 5
+NUM_FRAMES = 6
 
 
 #ACTION_MAX_SLOPE = 0.021
