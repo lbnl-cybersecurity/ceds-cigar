@@ -21,9 +21,7 @@ def custom_eval_function(trainer, eval_workers):
     def set_hack(env, hack):
         for node in env.k.sim_params['scenario_config']['nodes']:
             for d in node['devices']:
-                print(d['hack'][1])
                 d['hack'][1] = hack
-                print(d['hack'][1])
 
     if trainer.config["evaluation_num_workers"] == 0:
         hacks = [0.45] * trainer.config["evaluation_num_episodes"]
@@ -59,26 +57,37 @@ def custom_eval_function(trainer, eval_workers):
                 bbox_inches='tight')
         plt.close(f)
 
-    save_best_policy(trainer, episodes)
+    for m in ["reward_sum", "reward_min", "neg_y_u_sum", "neg_y_u_max"]:
+        save_best_policy(trainer, episodes, m)
     return metrics
 
-#
-# def get_metric_from_episodes(trainer, episodes, metric):
-#     assert metric in ["reward_sum", "reward_min", "neg_y_u_sum", "neg_y_u_max"]
-#     if metric == "reward_sum":
-#         return np.array([ep.episode_reward for ep in episodes]).sum()
-#     elif metric == "reward_min":
-#         return np.array([ep.episode_reward for ep in episodes]).min()
-#     elif metric == "neg_y_u_sum":
-#         pass
+
+def get_metric_from_episodes(trainer, episodes, metric):
+    assert metric in ["reward_sum", "reward_min", "neg_y_u_sum", "neg_y_u_max"]
+
+    y_u = 'u' if trainer.global_vars.get('unbalance', False) else 'y'
+    log_dicts = [ep.hist_data['logger']['log_dict'] for ep in episodes]
+    sum_us = [np.mean([sum(log_dict[k][y_u]) for k in log_dict if y_u in log_dict[k]]) for log_dict in log_dicts]
+
+    if metric == "reward_sum":
+        return np.array([ep.episode_reward for ep in episodes]).sum()
+    elif metric == "reward_min":
+        return np.array([ep.episode_reward for ep in episodes]).min()
+    elif metric == "neg_y_u_sum":
+        return sum(sum_us)
+    elif metric == "neg_y_u_max":
+        return max(sum_us)
 
 
-def save_best_policy(trainer, episodes):
-    sum_r = np.array([ep.episode_reward for ep in episodes]).sum()
-    if trainer.global_vars.get('best_eval_reward', -np.Inf) < sum_r:
-        trainer.global_vars['best_eval_reward'] = sum_r
-        best_dir = Path(trainer.global_vars['reporter_dir']) / 'best'
-        best_dir.mkdir(exist_ok=True)
+def save_best_policy(trainer, episodes, metric_name):
+    metric = get_metric_from_episodes(trainer, episodes, metric_name)
+    if 'best_eval' not in trainer.global_vars:
+        trainer.global_vars['best_eval'] = {}
+
+    if trainer.global_vars['best_eval'].get(metric_name, -np.Inf) < metric:
+        trainer.global_vars['best_eval'][metric_name] = metric
+        best_dir = Path(trainer.global_vars['reporter_dir']) / 'best' / metric_name
+        best_dir.mkdir(exist_ok=True, parents=True)
 
         # save policy
         def save_policy_to_path(path):
@@ -98,15 +107,17 @@ def save_best_policy(trainer, episodes):
             save_policy_to_path(best_dir / f'policy_{trainer.iteration}')
 
         # save plots
+        for i, ep in enumerate(episodes):
+            data = ep.hist_data['logger']['log_dict']
+            f = plot_new(
+                data, ep.hist_data['logger']['custom_metrics'], trainer.iteration,
+                trainer.global_vars.get('unbalance', False),
+                trainer.global_vars.get('multiagent', False),
+            )
+            f.savefig(str(best_dir / f'eval_{i}.png'))
+            plt.close(f)
+
         ep = episodes[-1]
-        data = ep.hist_data['logger']['log_dict']
-        f = plot_new(
-            data, ep.hist_data['logger']['custom_metrics'], trainer.iteration,
-            trainer.global_vars.get('unbalance', False),
-            trainer.global_vars.get('multiagent', False),
-        )
-        f.savefig(str(best_dir / 'eval.png'))
-        plt.close(f)
         # save CSV
         k = [k for k in data if k.startswith('inverter_s701')][0]
 
@@ -131,7 +142,7 @@ def save_best_policy(trainer, episodes):
         # save info
         start = ep.custom_metrics["hack_start"]
         end = ep.custom_metrics["hack_end"]
-        info = {'epoch': trainer.iteration, 'hack_start': start, 'hack_end': end, 'reward': sum_r / len(episodes)}
+        info = {'epoch': trainer.iteration, 'hack_start': start, 'hack_end': end, 'metric': metric}
         with open(os.path.join(trainer.global_vars['reporter_dir'], 'best', 'info.json'), 'w', encoding='utf-8') as f:
             json.dump(info, f, ensure_ascii=False, indent=4)
 
