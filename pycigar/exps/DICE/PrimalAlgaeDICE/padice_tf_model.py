@@ -42,11 +42,13 @@ class PADICETFModel(TFModelV2):
             tf.keras.layers.Dense(
                 units=hidden,
                 activation=getattr(tf.nn, actor_hidden_activation, None),
+                kernel_initializer='orthogonal',
                 name="action_{}".format(i + 1))
             for i, hidden in enumerate(actor_hiddens)
         ] + [
             tf.keras.layers.Dense(
-                units=action_outs, activation=None, name="action_out")
+                units=action_outs, activation=None, name="action_out",
+                kernel_initializer='orthogonal'),
         ])
 
         self.shift_and_log_scale_diag = self.action_model(self.model_out)
@@ -64,11 +66,12 @@ class PADICETFModel(TFModelV2):
                 tf.keras.layers.Dense(
                     units=units,
                     activation=getattr(tf.nn, critic_hidden_activation, None),
+                    kernel_initializer='orthogonal',
                     name="{}_hidden_{}".format(name, i))
                 for i, units in enumerate(critic_hiddens)
             ] + [
                 tf.keras.layers.Dense(
-                    units=q_outs, activation=None, name="{}_out".format(name))
+                    units=q_outs, activation=None, kernel_initializer='orthogonal', name="{}_out".format(name))
             ])
 
             if self.discrete:
