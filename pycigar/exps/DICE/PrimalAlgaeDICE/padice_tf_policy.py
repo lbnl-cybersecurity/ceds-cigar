@@ -19,7 +19,7 @@ from padice_dynamic_tf_policy_template import build_tf_policy
 # tf1, tf, tfv = try_import_tf()
 tf = try_import_tf()
 tfp = try_import_tfp()
-
+import padice
 
 OBS_0 = "obs_0"
 
@@ -49,7 +49,10 @@ def build_padice_model(policy, obs_space, action_space, config):
         actor_hidden_activation=config["policy_model"]["fcnet_activation"],
         actor_hiddens=config["policy_model"]["fcnet_hiddens"],
         critic_hidden_activation=config["Q_model"]["fcnet_activation"],
-        critic_hiddens=config["Q_model"]["fcnet_hiddens"])
+        critic_hiddens=config["Q_model"]["fcnet_hiddens"],
+        twin_q=config["twin_q"],
+        initial_alpha=config["initial_alpha"],
+        target_entropy=config["target_entropy"])
 
     policy.target_model = ModelCatalog.get_model_v2(
     obs_space=obs_space,
@@ -62,7 +65,10 @@ def build_padice_model(policy, obs_space, action_space, config):
     actor_hidden_activation=config["policy_model"]["fcnet_activation"],
     actor_hiddens=config["policy_model"]["fcnet_hiddens"],
     critic_hidden_activation=config["Q_model"]["fcnet_activation"],
-    critic_hiddens=config["Q_model"]["fcnet_hiddens"])
+    critic_hiddens=config["Q_model"]["fcnet_hiddens"],
+    twin_q=config["twin_q"],
+    initial_alpha=config["initial_alpha"],
+    target_entropy=config["target_entropy"])
 
     return policy.model
 
@@ -134,11 +140,12 @@ def padice_actor_critic_loss(policy, model, _, train_batch):
     # a0 of current policy given s0
     action_dist_t0 = action_dist_class(model.get_policy_output(model_out_t0), policy.model)
     policy_t0 = action_dist_t0.sample() if not deterministic else action_dist_t0.deterministic_sample()
-    log_pis_t0 = tf.expand_dims(action_dist_t0.logp(policy_t0), -1)
+    log_pis_t0 = action_dist_t0.logp(policy_t0)
     # a_tp1 of current policy given s_tp1
     action_dist_tp1 = action_dist_class(model.get_policy_output(model_out_tp1), policy.model)
     policy_tp1 = action_dist_tp1.sample() if not deterministic else action_dist_tp1.deterministic_sample()
-    log_pis_tp1 = tf.expand_dims(action_dist_tp1.logp(policy_tp1), -1)
+    log_pis_tp1 = action_dist_tp1.logp(policy_tp1)
+
     if model.discrete:
         q_t0_det_policy = model.get_q_values(model_out_t0)
         one_hot = tf.one_hot(policy_t0, depth=q_t0_det_policy.shape.as_list()[-1])
@@ -160,10 +167,16 @@ def padice_actor_critic_loss(policy, model, _, train_batch):
         q_t0_det_policy = tf.squeeze(model.get_q_values(model_out_t0, policy_t0), -1)
         # Q-values for the actually selected actions.
         q_t_det_policy = tf.squeeze(model.get_q_values(model_out_t, train_batch[SampleBatch.ACTIONS]), -1)
-
         q_tp1_det_policy = tf.squeeze(model.get_q_values(model_out_tp1, policy_tp1), -1)
         q_tp1_target_policy = tf.squeeze(policy.target_model.get_q_values(target_model_out_tp1, policy_tp1), -1)
 
+        if policy.config['twin_q']:
+            # Q-values for the s_t0, a_t0
+            twin_q_t0_det_policy = tf.squeeze(model.get_q_values(model_out_t0, policy_t0), -1)
+            # Q-values for the actually selected actions.
+            twin_q_t_det_policy = tf.squeeze(model.get_q_values(model_out_t, train_batch[SampleBatch.ACTIONS]), -1)
+            twin_q_tp1_det_policy = tf.squeeze(model.get_q_values(model_out_tp1, policy_tp1), -1)
+            twin_q_tp1_target_policy = tf.squeeze(policy.target_model.get_q_values(target_model_out_tp1, policy_tp1), -1)
     # Q-values for the s_tp1, a_tp1 of target network
     q_tp1_target_policy = q_tp1_target_policy*0.95 + q_tp1_det_policy*0.05
     q_tp1_target_policy = q_tp1_target_policy - model.alpha*log_pis_tp1
@@ -180,9 +193,9 @@ def padice_actor_critic_loss(policy, model, _, train_batch):
     alpha_loss = -tf.reduce_mean(model.alpha*(log_pis_tp1 + model.target_entropy))  # check if we need to tf.stop_grad here. I think we should, but gg imp did not.
 
     # td_eror uses to update priority queue
-    td_error = tf.math.abs(q_t_det_policy - q_t_target_policy)
+    #td_error = tf.math.abs(q_t_det_policy - q_t_target_policy)
 
-    policy.td_error = td_error
+    #policy.td_error = td_error
     policy.critic_loss = critic_loss
     policy.actor_loss = actor_loss
     policy.alpha_loss = alpha_loss
@@ -248,7 +261,7 @@ def apply_gradients(policy, optimizer, grads_and_vars):
 
 def stats(policy, train_batch):
     return {
-        "mean_td_error": tf.reduce_mean(policy.td_error),
+        #"mean_td_error": tf.reduce_mean(policy.td_error),
         "actor_loss": tf.reduce_mean(policy.actor_loss),
         "critic_loss": tf.reduce_mean(policy.critic_loss),
         "alpha_loss": tf.reduce_mean(policy.alpha_loss),
@@ -323,7 +336,7 @@ def validate_spaces(pid, observation_space, action_space, config):
 
 PADICETFPolicy = build_tf_policy(
     name="PADICETFPolicy",
-    get_default_config=lambda: ray.rllib.agents.sac.sac.DEFAULT_CONFIG,
+    get_default_config=lambda: padice.DEFAULT_CONFIG,
     make_model=build_padice_model,
     postprocess_fn=None,
     action_distribution_fn=get_distribution_inputs_and_class,
@@ -331,9 +344,9 @@ PADICETFPolicy = build_tf_policy(
     stats_fn=stats,
     gradients_fn=gradients_fn,
     apply_gradients_fn=apply_gradients,
-    extra_learn_fetches_fn=lambda policy: {"td_error": policy.td_error},
+    #extra_learn_fetches_fn=lambda policy: {"td_error": policy.td_error},
     mixins=[
-        TargetNetworkMixin, ActorCriticOptimizerMixin, ComputePADICEErrorMixin
+        TargetNetworkMixin, ActorCriticOptimizerMixin, #ComputePADICEErrorMixin
     ],
     #validate_spaces=validate_spaces,
     before_init=setup_early_mixins,
