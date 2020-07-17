@@ -23,7 +23,7 @@ OPTIMIZER_SHARED_CONFIGS = [
 
 DEFAULT_CONFIG = with_common_config({
     # === Model ===
-    "twin_q": False,
+    "twin_q": True,
     "use_state_preprocessor": False,
     # RLlib model options for the Q function(s).
     "Q_model": {
@@ -63,6 +63,7 @@ DEFAULT_CONFIG = with_common_config({
 
     # Alpha in PADICE
     "alpha0": 0.01,
+    "exponent": 1.5,
 
     # === Replay buffer ===
     # Size of the replay buffer. Note that if async_updates is set, then
