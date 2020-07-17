@@ -18,40 +18,65 @@ from ray.rllib.env.base_env import _MultiAgentEnvToBaseEnv
 from pathlib import Path
 
 def custom_eval_function(trainer, eval_workers):
+    def set_hack(env, hack):
+        for node in env.k.sim_params['scenario_config']['nodes']:
+            for d in node['devices']:
+                print(d['hack'][1])
+                d['hack'][1] = hack
+                print(d['hack'][1])
+
     if trainer.config["evaluation_num_workers"] == 0:
+        hacks = [0.45] * trainer.config["evaluation_num_episodes"]
+        eval_workers.local_worker().foreach_env(lambda env: set_hack(env, hacks[0]))
+
         for _ in range(trainer.config["evaluation_num_episodes"]):
             eval_workers.local_worker().sample()
-
     else:
         num_rounds = int(
             math.ceil(trainer.config["evaluation_num_episodes"] / trainer.config["evaluation_num_workers"])
         )
+        workers = eval_workers.remote_workers()
+        hacks = np.linspace(0.1, 0.5, trainer.config["evaluation_num_workers"]).tolist() * trainer.config["evaluation_num_episodes"]
+
+        for w, h in zip(workers, hacks):
+            w.foreach_env.remote(lambda env: set_hack(env, h))
+
         for i in range(num_rounds):
             ray.get([w.sample.remote() for w in eval_workers.remote_workers()])
 
     episodes, _ = collect_episodes(eval_workers.local_worker(), eval_workers.remote_workers())
     metrics = summarize_episodes(episodes)
 
-    for i in range(len(episodes)):
+    for ep, hack in zip(episodes[:max(1, trainer.config["evaluation_num_workers"])+1], hacks):
         f = plot_new(
-            episodes[i].hist_data['logger']['log_dict'],
-            episodes[i].hist_data['logger']['custom_metrics'],
+            ep.hist_data['logger']['log_dict'],
+            ep.hist_data['logger']['custom_metrics'],
             trainer.iteration,
             trainer.global_vars.get('unbalance', False),
             trainer.global_vars.get('multiagent', False),
         )
-        f.savefig(trainer.global_vars['reporter_dir'] + 'eval-epoch-' + str(trainer.iteration) + '_' + str(i+1) + '.png',
+        f.savefig(trainer.global_vars['reporter_dir'] + f'eval-epoch-{trainer.iteration}-hack-{hack:.2f}.png',
                 bbox_inches='tight')
         plt.close(f)
 
     save_best_policy(trainer, episodes)
     return metrics
 
+#
+# def get_metric_from_episodes(trainer, episodes, metric):
+#     assert metric in ["reward_sum", "reward_min", "neg_y_u_sum", "neg_y_u_max"]
+#     if metric == "reward_sum":
+#         return np.array([ep.episode_reward for ep in episodes]).sum()
+#     elif metric == "reward_min":
+#         return np.array([ep.episode_reward for ep in episodes]).min()
+#     elif metric == "neg_y_u_sum":
+#         pass
+
 
 def save_best_policy(trainer, episodes):
-    mean_r = np.array([ep.episode_reward for ep in episodes]).mean()
-    if trainer.global_vars.get('best_eval_reward', -np.Inf) < mean_r:
-        trainer.global_vars['best_eval_reward'] = mean_r
+    sum_r = np.array([ep.episode_reward for ep in episodes]).sum()
+    if trainer.global_vars.get('best_eval_reward', -np.Inf) < sum_r:
+        trainer.global_vars['best_eval_reward'] = sum_r
         best_dir = Path(trainer.global_vars['reporter_dir']) / 'best'
         best_dir.mkdir(exist_ok=True)
 
@@ -106,7 +131,7 @@ def save_best_policy(trainer, episodes):
         # save info
         start = ep.custom_metrics["hack_start"]
         end = ep.custom_metrics["hack_end"]
-        info = {'epoch': trainer.iteration, 'hack_start': start, 'hack_end': end, 'reward': mean_r}
+        info = {'epoch': trainer.iteration, 'hack_start': start, 'hack_end': end, 'reward': sum_r / len(episodes)}
         with open(os.path.join(trainer.global_vars['reporter_dir'], 'best', 'info.json'), 'w', encoding='utf-8') as f:
             json.dump(info, f, ensure_ascii=False, indent=4)
 
