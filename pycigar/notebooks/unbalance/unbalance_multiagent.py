@@ -147,7 +147,7 @@ if __name__ == '__main__':
         # ==== EVALUATION ====
         "evaluation_num_workers": 0 if args.local_mode else 5,
         'evaluation_num_episodes': args.eval_rounds,
-        "evaluation_interval": 1,#args.eval_interval,
+        "evaluation_interval": args.eval_interval,
         "custom_eval_function": custom_eval_function,
         'evaluation_config': {
             "seed": 42,
