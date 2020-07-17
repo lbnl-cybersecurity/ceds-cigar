@@ -46,6 +46,8 @@ def custom_eval_function(trainer, eval_workers):
     metrics = summarize_episodes(episodes)
 
     for ep, hack in zip(episodes[:max(1, trainer.config["evaluation_num_workers"])+1], hacks):
+        dir = Path(trainer.global_vars['reporter_dir']) / f'hack_{hack}'
+        dir.mkdir(exist_ok=True, parents=True)
         f = plot_new(
             ep.hist_data['logger']['log_dict'],
             ep.hist_data['logger']['custom_metrics'],
@@ -53,7 +55,7 @@ def custom_eval_function(trainer, eval_workers):
             trainer.global_vars.get('unbalance', False),
             trainer.global_vars.get('multiagent', False),
         )
-        f.savefig(trainer.global_vars['reporter_dir'] + f'eval-epoch-{trainer.iteration}-hack-{hack:.2f}.png',
+        f.savefig(str(dir / f'eval-epoch-{trainer.iteration}-hack-{hack:.2f}.png'),
                 bbox_inches='tight')
         plt.close(f)
 
@@ -143,7 +145,7 @@ def save_best_policy(trainer, episodes, metric_name):
         start = ep.custom_metrics["hack_start"]
         end = ep.custom_metrics["hack_end"]
         info = {'epoch': trainer.iteration, 'hack_start': start, 'hack_end': end, 'metric': metric}
-        with open(os.path.join(trainer.global_vars['reporter_dir'], 'best', 'info.json'), 'w', encoding='utf-8') as f:
+        with open(str(best_dir / 'info.json'), 'w', encoding='utf-8') as f:
             json.dump(info, f, ensure_ascii=False, indent=4)
 
 
