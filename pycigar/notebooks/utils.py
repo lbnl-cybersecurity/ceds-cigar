@@ -79,7 +79,7 @@ def custom_eval_function(trainer: Trainer, eval_workers: WorkerSet):
     if trainer.config["evaluation_num_workers"] == 0:
         hack_mags = local_worker_single_hack_eval(eval_workers, num_episodes, hack_magnitude=0.45)
     else:
-        hack_mags = local_worker_single_hack_eval(eval_workers, num_episodes)
+        hack_mags = remote_workers_multi_hacks_eval(eval_workers, num_episodes)
 
     episodes, _ = collect_episodes(eval_workers.local_worker(), eval_workers.remote_workers())
 
