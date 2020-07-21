@@ -129,16 +129,16 @@ import os
 import pycigar
 
 start = 100
-percentage_hack = 0.2
+percentage_hack = 0.45
 
 """
 Load the scenarios configuration file. This file contains the scenario information
 for the experiment.
 """
-misc_inputs_path = pycigar.DATA_DIR + "/ieee37busdata/misc_inputs.csv"
-dss_path = pycigar.DATA_DIR + "/ieee37busdata/ieee37.dss"
-load_solar_path = pycigar.DATA_DIR + "/ieee37busdata/load_solar_data.csv"
-breakpoints_path = pycigar.DATA_DIR + "/ieee37busdata/breakpoints.csv"
+misc_inputs_path = pycigar.DATA_DIR + "/ieee240busdata/misc_inputs.csv" #"/ieee37busdata/misc_inputs.csv"
+dss_path = pycigar.DATA_DIR + "/ieee240busdata/Master.dss" #"/ieee37busdata/ieee37.dss"
+load_solar_path = pycigar.DATA_DIR + "/ieee240busdata/load_solar_data.csv" #"/ieee37busdata/load_solar_data.csv"
+breakpoints_path = pycigar.DATA_DIR + "/ieee240busdata/breakpoints.csv" #"/ieee37busdata/breakpoints.csv"
 
 sim_params = input_parser(misc_inputs_path, dss_path, load_solar_path, breakpoints_path, benchmark=True, percentage_hack=percentage_hack)
 pycigar_params = {"exp_tag": "cooperative_multiagent_ppo",
