@@ -2,17 +2,16 @@ import argparse
 import os
 import pickle
 from copy import deepcopy
+from pathlib import Path
 
 import numpy as np
 import pycigar
 import ray
+from pycigar.notebooks.utils import add_common_args, get_base_config
 from pycigar.utils.input_parser import input_parser
-from pycigar.utils.registry import make_create_env
 from ray import tune
 from ray.rllib.agents.ppo import PPOTrainer, APPOTrainer
-from ray.tune.registry import register_env
 from tqdm import tqdm
-from pycigar.notebooks.utils import custom_eval_function, get_custom_callbacks, add_common_args
 
 
 def parse_cli_args():
@@ -57,78 +56,28 @@ def run_hp_experiment(full_config, name):
 
 if __name__ == '__main__':
     args = parse_cli_args()
+    feeder_path = Path(pycigar.DATA_DIR) / 'ieee37busdata'
 
-    pycigar_params = {
-        'exp_tag': 'cooperative_multiagent_ppo',
-        'env_name': 'CentralControlPVInverterEnv',
-        'simulator': 'opendss',
-    }
+    sim_params = input_parser(misc_inputs_path=str(feeder_path / 'misc_inputs.csv'),
+                              dss_path=str(feeder_path / 'ieee37.dss'),
+                              load_solar_path=str(feeder_path / 'load_solar_data.csv'),
+                              breakpoints_path=str(feeder_path / 'breakpoints.csv'))
+    base_config, create_env = \
+        get_base_config(env_name='CentralControlPVInverterEnv',
+                        cli_args=args,
+                        sim_params=sim_params)
 
-    create_env, env_name = make_create_env(pycigar_params, version=0)
-    register_env(env_name, create_env)
-
-    misc_inputs_path = pycigar.DATA_DIR + "/ieee37busdata/misc_inputs.csv"
-    dss_path = pycigar.DATA_DIR + "/ieee37busdata/ieee37.dss"
-    load_solar_path = pycigar.DATA_DIR + "/ieee37busdata/load_solar_data.csv"
-    breakpoints_path = pycigar.DATA_DIR + "/ieee37busdata/breakpoints.csv"
-
-    sim_params = input_parser(misc_inputs_path, dss_path, load_solar_path, breakpoints_path)
-    base_config = {
-        "env": env_name,
-        "gamma": 0.5,
-        'lr': 2e-4,
-        'env_config': deepcopy(sim_params),
-        'rollout_fragment_length': 50,
-        'train_batch_size': 500,
-        'clip_param': 0.1,
-        'lambda': 0.95,
-        'vf_clip_param': 100,
-        'num_workers': args.workers,
-        'num_cpus_per_worker': 1,
-        'num_cpus_for_driver': 1,
-        'num_envs_per_worker': 1,
-        'log_level': 'WARNING',
-        'model': {
-            'fcnet_activation': 'tanh',
-            'fcnet_hiddens': [128, 64, 32],
-            'free_log_std': False,
-            'vf_share_layers': True,
-            'use_lstm': False,
-            'state_shape': None,
-            'framestack': False,
-            'zero_mean': True,
-        },
-        # ==== EXPLORATION ====
-        'explore': True,
-        'exploration_config': {'type': 'StochasticSampling',},  # default for PPO
-        # ==== EVALUATION ====
-        "evaluation_num_workers": 0 if args.local_mode else 1,
-        'evaluation_num_episodes': args.eval_rounds,
-        "evaluation_interval": args.eval_interval,
-        "custom_eval_function": custom_eval_function,
-        'evaluation_config': {
-            "seed": 42,
-            # IMPORTANT NOTE: For policy gradients, this might not be the optimal policy
-            'explore': False,
-            'env_config': deepcopy(sim_params),
-        },
-        # ==== CUSTOM METRICS ====
-        "callbacks": get_custom_callbacks(),
-    }
-    # eval environment should not be random across workers
-    eval_start = 100  # random.randint(0, 3599 - 500)
-    base_config['evaluation_config']['env_config']['scenario_config']['start_end_time'] = [eval_start, eval_start + 750]
-    base_config['evaluation_config']['env_config']['scenario_config']['multi_config'] = False
-    del base_config['evaluation_config']['env_config']['attack_randomization']
-
-    if args.redis_pwd and args.head_ip:
-        ray.init(address=args.head_ip, redis_password=args.redis_pwd)
+    if args.redis_pwd:
+        # for running in a cluster
+        ray.init(address='auto', redis_password=args.redis_pwd)
+        print("Nodes in the Ray cluster:")
+        print(ray.nodes())
     else:
         ray.init(local_mode=args.local_mode)
 
     full_config = {
         'config': base_config,
-            'epochs': args.epochs,
+        'epochs': args.epochs,
         'save_path': args.save_path,
         'algo': args.algo,
     }
