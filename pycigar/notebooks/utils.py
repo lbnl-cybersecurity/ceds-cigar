@@ -3,6 +3,7 @@ import json
 import math
 import shutil
 from collections import namedtuple
+from copy import deepcopy
 from enum import Enum
 from pathlib import Path
 from typing import List
@@ -13,15 +14,19 @@ import pandas as pd
 import ray
 from pycigar.utils.logging import logger
 from pycigar.utils.output import plot_new
+from pycigar.utils.registry import make_create_env
 from ray.rllib.agents import Trainer
 from ray.rllib.agents.callbacks import DefaultCallbacks
 from ray.rllib.env.base_env import _MultiAgentEnvToBaseEnv
 from ray.rllib.evaluation.metrics import collect_episodes, summarize_episodes
 from ray.rllib.evaluation.rollout_metrics import RolloutMetrics
 from ray.rllib.evaluation.worker_set import WorkerSet
+from ray.rllib.utils import merge_dicts
+from ray.tune.registry import register_env
 
 
 class EvalMetric(Enum):
+    """Metrics to be maximized for the routine selecting the best policy over evaluation rounds"""
     REWARD_SUM = 1
     REWARD_MIN = 2
     REWARD_MAX = 3
@@ -30,9 +35,36 @@ class EvalMetric(Enum):
     NEG_Y_U_MIN = 6
 
 
+def get_metric_from_episodes(trainer: Trainer, episodes: List[RolloutMetrics], metric: EvalMetric) -> float:
+    y_u = 'u' if trainer.global_vars.get('unbalance', False) else 'y'
+    log_dicts = [ep.hist_data['logger']['log_dict'] for ep in episodes]
+
+    # mean of [the sum of the y or u over the simulation] over all inverters
+    sum_yu = [
+        np.mean([
+            sum(log_dict[k][y_u])
+            for k in log_dict if y_u in log_dict[k]])
+        for log_dict in log_dicts]
+
+    if metric == EvalMetric.REWARD_SUM:
+        return sum([ep.episode_reward for ep in episodes])
+    elif metric == EvalMetric.REWARD_MIN:
+        return min([ep.episode_reward for ep in episodes])
+    elif metric == EvalMetric.REWARD_MAX:
+        return max([ep.episode_reward for ep in episodes])
+    elif metric == EvalMetric.NEG_Y_U_SUM:
+        return -sum(sum_yu)
+    elif metric == EvalMetric.NEG_Y_U_MAX:
+        return -max(sum_yu)
+    elif metric == EvalMetric.NEG_Y_U_MIN:
+        return -min(sum_yu)
+    else:
+        raise NotImplementedError('Unsupported metric ' + metric)
+
+
 def _set_env_hack(env, hack_magnitude: float):
-    # set the hack magnitude for a given env
-    # Warning: this may not work when called more than 1 time on a worker
+    """Set the hack magnitude for a given env.
+    Warning: this may not work when called more than 1 time on a worker"""
     for node in env.k.sim_params["scenario_config"]["nodes"]:
         for d in node["devices"]:
             d["hack"][1] = hack_magnitude
@@ -107,41 +139,15 @@ def custom_eval_function(trainer: Trainer, eval_workers: WorkerSet):
     return metrics
 
 
-def get_metric_from_episodes(trainer: Trainer, episodes: List[RolloutMetrics], metric: EvalMetric) -> float:
-    y_u = 'u' if trainer.global_vars.get('unbalance', False) else 'y'
-    log_dicts = [ep.hist_data['logger']['log_dict'] for ep in episodes]
-
-    # mean of [the sum of the y or u over the simulation] over all inverters
-    sum_yu = [
-        np.mean([
-            sum(log_dict[k][y_u])
-            for k in log_dict if y_u in log_dict[k]])
-        for log_dict in log_dicts]
-
-    if metric == EvalMetric.REWARD_SUM:
-        return sum([ep.episode_reward for ep in episodes])
-    elif metric == EvalMetric.REWARD_MIN:
-        return min([ep.episode_reward for ep in episodes])
-    elif metric == EvalMetric.REWARD_MAX:
-        return max([ep.episode_reward for ep in episodes])
-    elif metric == EvalMetric.NEG_Y_U_SUM:
-        return -sum(sum_yu)
-    elif metric == EvalMetric.NEG_Y_U_MAX:
-        return -max(sum_yu)
-    elif metric == EvalMetric.NEG_Y_U_MIN:
-        return -min(sum_yu)
-    else:
-        raise NotImplementedError('Unsupported metric ' + metric)
-
-
 def save_best_policy(trainer: Trainer, episodes: List[RolloutMetrics], metric: EvalMetric):
+    """Save the best policy if the metric value is higher than for the last best policy"""
     metric_value = get_metric_from_episodes(trainer, episodes, metric)
     if 'best_eval' not in trainer.global_vars:
         trainer.global_vars['best_eval'] = {}
 
     if trainer.global_vars['best_eval'].get(metric.name, -np.Inf) < metric_value:
         trainer.global_vars['best_eval'][metric.name] = metric_value
-        best_dir = Path(trainer.global_vars['reporter_dir']) / 'best' / metric.name
+        best_dir = Path(trainer.global_vars['reporter_dir']) / 'best' / metric.name.lower()
         best_dir.mkdir(exist_ok=True, parents=True)
 
         # save policy
@@ -276,3 +282,71 @@ def add_common_args(parser: argparse.ArgumentParser):
     )
     parser.add_argument('--local-mode', action='store_true')
     parser.add_argument('--redis-pwd', type=str)
+
+
+def get_base_config(env_name: str, cli_args: argparse.Namespace, sim_params: dict, config_update: dict = {}):
+    """Factoring of the config code that was duplicated in every experiment file"""
+    pycigar_params = {
+        'exp_tag': 'experiment_ppo',
+        'env_name': env_name,
+        'simulator': 'opendss',
+    }
+
+    create_env, env_name = make_create_env(pycigar_params, version=0)
+    register_env(env_name, create_env)
+
+    # sometimes needed to init stuff, it really shouldn't be needed
+    test_env = create_env(sim_params)
+    obs_space = test_env.observation_space
+    act_space = test_env.action_space
+
+    base_config = {
+        "env": env_name,
+        "gamma": 0.5,
+        'lr': 2e-3,
+        'env_config': deepcopy(sim_params),
+        'rollout_fragment_length': 35,
+        'train_batch_size': max(500, 35 * cli_args.workers),
+        'clip_param': 0.15,
+        'lambda': 0.95,
+        'vf_clip_param': 10000,
+        'num_workers': cli_args.workers,
+        'num_cpus_per_worker': 1,
+        'num_cpus_for_driver': 1,
+        'num_envs_per_worker': 1,
+        'log_level': 'WARNING',
+        'model': {
+            'fcnet_activation': 'tanh',
+            'fcnet_hiddens': [64, 64, 32],
+            'free_log_std': False,
+            'vf_share_layers': True,
+            'use_lstm': False,
+            'state_shape': None,
+            'framestack': False,
+            'zero_mean': True,
+        },
+        # ==== EXPLORATION ====
+        'explore': True,
+        'exploration_config': {'type': 'StochasticSampling', },  # default for PPO
+        # ==== EVALUATION ====
+        "evaluation_num_workers": 0 if cli_args.local_mode else 5,
+        'evaluation_num_episodes': cli_args.eval_rounds,
+        "evaluation_interval": cli_args.eval_interval,
+        "custom_eval_function": custom_eval_function,
+        'evaluation_config': {
+            "seed": 42,
+            # IMPORTANT NOTE: For policy gradients, this might not be the optimal policy
+            'explore': False,
+            'env_config': deepcopy(sim_params),
+        },
+        # ==== CUSTOM METRICS ====
+        "callbacks": CustomCallbacks,
+    }
+    eval_start = 100
+    base_config['evaluation_config']['env_config']['scenario_config']['start_end_time'] = [eval_start, eval_start + 750]
+    base_config['evaluation_config']['env_config']['scenario_config']['multi_config'] = False
+    del base_config['env_config']['attack_randomization']
+    del base_config['evaluation_config']['env_config']['attack_randomization']
+
+    config = merge_dicts(base_config, config_update)
+    return config, create_env
