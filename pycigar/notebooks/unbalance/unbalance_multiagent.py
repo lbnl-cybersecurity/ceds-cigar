@@ -15,7 +15,7 @@ from ray.rllib.agents.ppo.ppo_tf_policy import PPOTFPolicy
 from ray.rllib.policy.policy import Policy
 from tqdm import tqdm
 
-from notebooks.unbalance.unbalance import set_unbalance_attack, adjust_default_curves
+from pycigar.notebooks.unbalance.unbalance import set_unbalance_attack, adjust_default_curves
 
 
 def parse_cli_args():
