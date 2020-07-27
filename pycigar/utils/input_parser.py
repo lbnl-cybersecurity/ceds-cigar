@@ -136,11 +136,14 @@ def input_parser(misc_inputs_path, dss_path, load_solar_path, breakpoints_path=N
         device['custom_configs']['is_butterworth_filter'] = False
 
         if benchmark:
-            device['custom_configs']['low_pass_filter_measure'] = low_pass_filter_measure_mean
-            device['custom_configs']['low_pass_filter_output'] = low_pass_filter_output_mean
+            device['custom_configs']['low_pass_filter_measure_mean'] = low_pass_filter_measure_mean
+            device['custom_configs']['low_pass_filter_output_mean'] = low_pass_filter_output_mean
         else:
-            device['custom_configs']['low_pass_filter_measure'] = low_pass_filter_measure_std * np.random.randn() + low_pass_filter_measure_mean
-            device['custom_configs']['low_pass_filter_output'] = low_pass_filter_output_std * np.random.randn() + low_pass_filter_output_mean
+            device['custom_configs']['low_pass_filter_measure_mean'] = low_pass_filter_measure_mean
+            device['custom_configs']['low_pass_filter_output_mean'] = low_pass_filter_output_mean
+            device['custom_configs']['low_pass_filter_measure_std'] = low_pass_filter_measure_std
+            device['custom_configs']['low_pass_filter_output_std'] = low_pass_filter_output_std
+
         if not adv:
             device['adversary_controller'] = 'adaptive_fixed_controller'
         else:
