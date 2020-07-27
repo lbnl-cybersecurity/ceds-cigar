@@ -21,7 +21,7 @@ class AdaptiveFixedController(BaseController):
         )
         self.additional_params = additional_params
         self.trigger = False
-        self.hack_curve = np.array([-0.0001, 0.000, 0.000, 0.0001, 0.0002])
+        self.hack_curve = np.array([-0.001, 0.000, 0.000, 0.001, 0.002])
         self.average_span = 10
 
         self.action = None
