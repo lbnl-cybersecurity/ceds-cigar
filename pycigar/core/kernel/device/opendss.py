@@ -516,3 +516,8 @@ class OpenDSSDevice(KernelDevice):
         device = self.get_device(device_id)
         if isinstance(device, PVDevice):
             device.solar_generation = internal_scenario
+
+    def set_device_sbar(self, device_id, sbar):
+        device = self.get_device(device_id)
+        if isinstance(device, PVDevice):
+            device.Sbar = 1.1*sbar

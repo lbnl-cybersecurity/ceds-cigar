@@ -20,6 +20,7 @@ class PVDevice(BaseDevice):
             additional_params
         )
         self.solar_generation = None
+        self.Sbar = None
 
         self.control_setting = additional_params.get('default_control_setting', DEFAULT_CONTROL_SETTING)
         self.low_pass_filter_measure = additional_params.get('low_pass_filter_measure', 1)
@@ -83,11 +84,8 @@ class PVDevice(BaseDevice):
 
     def update(self, k):
         """See parent class."""
-        # TODO: eliminate this magic number
-        if not hasattr(self, 'Sbar'):
-            self.Sbar = 1.1 * np.max(self.solar_generation)
         VBP = self.control_setting
-        #print(type(VBP))
+
         # record voltage magnitude measurement
         if not hasattr(self, 'node_id'):
             self.node_id = k.device.get_node_connected_to(self.device_id)
@@ -226,7 +224,7 @@ class PVDevice(BaseDevice):
         Logger.log(self.device_id, 'p_out', self.p_out[1])
         Logger.log(self.device_id, 'q_out', self.q_out[1])
         Logger.log(self.device_id, 'control_setting', self.control_setting)
-        if hasattr(self, 'Sbar'):
+        if self.Sbar:
             Logger.log(self.device_id, 'sbar_solarirr', 1.5e-3*(abs(self.Sbar ** 2 - max(10, self.solar_irr) ** 2)) ** (1 / 2))
             Logger.log(self.device_id, 'sbar_pset', self.p_set[1] / self.Sbar)
 
