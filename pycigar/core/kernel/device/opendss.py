@@ -506,8 +506,8 @@ class OpenDSSDevice(KernelDevice):
                 device = self.devices[device_id]['device']
                 device.set_control_setting(control_setting[i])
 
-            if self.master_kernel.sim_params['vectorized_mode']:
-                self.vectorized_pv_inverter_device.set_control_setting(device_id, control_setting[i])
+                if self.master_kernel.sim_params['vectorized_mode']:
+                    self.vectorized_pv_inverter_device.set_control_setting(device_id, control_setting[i])
 
 
     def set_device_internal_scenario(self, device_id, internal_scenario):

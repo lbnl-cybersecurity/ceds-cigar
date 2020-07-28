@@ -7,6 +7,7 @@ import pycigar.utils.signal_processing as signal_processing
 from pycigar.devices.base_device import BaseDevice
 
 from pycigar.utils.logging import logger
+from copy import copy
 
 DEFAULT_CONTROL_SETTING = [0.98, 1.01, 1.02, 1.05, 1.07]
 STEP_BUFFER = 4
@@ -43,16 +44,6 @@ class VectorizedPVDevice:
         self.lpf_delta_t = 1
         self.gain = 1e5
         self.solar_min_value = 5
-
-
-        #self.p_set = deque([np.array([0]*len(self.list_device))]*2, maxlen=2)
-        #self.q_set = deque([np.array([0]*len(self.list_device))]*2, maxlen=2)
-        #self.p_out = deque([np.array([0]*len(self.list_device))]*2, maxlen=2)
-        #self.q_out = deque([np.array([0]*len(self.list_device))]*2, maxlen=2)
-        #self.low_pass_filter_v = deque([np.array([0]*len(self.list_device))]*2, maxlen=2)
-        #self.lpf_psi = deque([np.array([0]*len(self.list_device))]*2, maxlen=2)
-        #self.lpf_epsilon = deque([np.array([0]*len(self.list_device))]*2, maxlen=2)
-        #self.lpf_y1 = deque([np.array([0]*len(self.list_device))]*2, maxlen=2)
 
         self.p_set = np.array([0]*len(self.list_device))
         self.q_set = np.array([0]*len(self.list_device))
@@ -241,7 +232,7 @@ class VectorizedPVDevice:
             Logger.log(device_id, 'q_set', self.q_set[i])
             Logger.log(device_id, 'p_out', self.p_out[i])
             Logger.log(device_id, 'q_out', self.q_out[i])
-            Logger.log(device_id, 'control_setting', self.VBP[i])
+            Logger.log(device_id, 'control_setting', copy(self.VBP[i]))
             if self.Sbar != []:
                 Logger.log(device_id, 'sbar_solarirr', 1.5e-3*(abs(self.Sbar[i] ** 2 - max(10, self.solar_irr[i]) ** 2)) ** (1 / 2))
                 Logger.log(device_id, 'sbar_pset', self.p_set[i] / self.Sbar[i])
