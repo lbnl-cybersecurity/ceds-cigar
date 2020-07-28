@@ -3,7 +3,7 @@ import pandas as pd
 import numpy as np
 
 
-def input_parser(misc_inputs_path, dss_path, load_solar_path, breakpoints_path=None, benchmark=False, percentage_hack=0.45, adv=False):
+def input_parser(misc_inputs_path, dss_path, load_solar_path, breakpoints_path=None, benchmark=False, percentage_hack=0.45, adv=False, vectorized_mode=False):
     """Take multiple .csv files and parse them into the .yml file that required by pycigar.
     Parameters
     ----------
@@ -38,6 +38,8 @@ def input_parser(misc_inputs_path, dss_path, load_solar_path, breakpoints_path=N
         'P': 10,  # weight for taking different action from last timestep action
         'Q': 0.5,
         'tune_search': False,
+        'vectorized_mode': False,
+
         'hack_setting': {'default_control_setting': [1.039, 1.04, 1.04, 1.041, 1.042]},
 
         'env_config': {
@@ -96,6 +98,7 @@ def input_parser(misc_inputs_path, dss_path, load_solar_path, breakpoints_path=N
     json_query['N'] = N
     json_query['P'] = P
     json_query['Q'] = Q
+    json_query['vectorized_mode'] = vectorized_mode
     json_query['scenario_config']['custom_configs']['load_scaling_factor'] = load_scaling_factor
     json_query['scenario_config']['custom_configs']['solar_scaling_factor'] = solar_scaling_factor
     json_query['scenario_config']['custom_configs']['power_factor'] = power_factor

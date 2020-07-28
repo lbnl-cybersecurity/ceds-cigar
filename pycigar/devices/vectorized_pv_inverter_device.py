@@ -72,6 +72,9 @@ class VectorizedPVDevice:
     def update(self, k):
 
         self.solar_irr = self.solar_generation[:, k.time]
+        pk = np.zeros(len(self.list_device))
+        qk = np.zeros(len(self.list_device))
+        q_avail = np.zeros(len(self.list_device))
 
         if not hasattr(self, 'step'):
             self.step = np.hstack((1 * np.ones(11), np.linspace(1, -1, 7), -1 * np.ones(11)))[:, None].T
@@ -92,12 +95,11 @@ class VectorizedPVDevice:
 
             mask1 = np.max(output[:, STEP_BUFFER:-STEP_BUFFER], axis=1) - np.min(output[:, STEP_BUFFER:-STEP_BUFFER], axis=1) > 0.004
             norm_data = -1 + 2 * (output - np.min(output, axis=1)[:, None]) / (np.max(output, axis=1) - np.min(output, axis=1))[:, None]
-            #step_corr = signal.fftconvolve(norm_data, self.step, mode='valid', axes=1)
-            step_corr = np.array([np.convolve(norm_data[i], np.squeeze(self.step), mode='valid') for i in range(norm_data.shape[0])])
+            step_corr = signal.fftconvolve(norm_data, self.step, mode='valid', axes=1)
             mask2 = np.max(np.abs(step_corr), axis=1) > 10
             mask = mask1 & mask2
 
-            filter_data = np.where(np.broadcast_to(mask[:, None], (mask.shape[0], 15)), output, self.output_one)[:, STEP_BUFFER:-STEP_BUFFER]
+            filter_data = np.where(np.broadcast_to(mask[:, None], (mask.shape[0], 15)), self.output_one, output)[:, STEP_BUFFER:-STEP_BUFFER]
 
 
             lpf_psik = (filter_data[:, -1] - filter_data[:, -2] - (self.lpf_high_pass_filter * self.lpf_delta_t / 2 - 1) * self.lpf_psi) / \
@@ -111,20 +113,19 @@ class VectorizedPVDevice:
                     (2 + self.lpf_delta_t * self.lpf_low_pass_filter)
             self.lpf_epsilon = lpf_epsilonk
             self.lpf_y1 = y_value
-            self.y = y_value*0.04*3
+            self.y = y_value*0.04
 
-        T = self.lpf_delta_t
-        lpf_m = self.low_pass_filter_measure
-        lpf_o = self.low_pass_filter_output
+            if 's701a' in k.node.nodes and 's701b' in k.node.nodes and 's701c' in k.node.nodes:
+                va = abs(k.node.nodes['s701a']['voltage'][k.time - 1])
+                vb = abs(k.node.nodes['s701b']['voltage'][k.time - 1])
+                vc = abs(k.node.nodes['s701c']['voltage'][k.time - 1])
+                mean = (va+vb+vc)/3
+                max_diff = max(abs(va - mean), abs(vb - mean), abs(vc - mean))
+                self.u = max_diff / mean
 
-        pk = np.zeros(len(self.list_device))
-        qk = np.zeros(len(self.list_device))
-        q_avail = np.zeros(len(self.list_device))
-
-        if k.time > 1:
-            low_pass_filter_v = (T * lpf_m * (vk + vkm1) -
-                                (T * lpf_m - 2) * (self.low_pass_filter_v)) / \
-                                (2 + T * lpf_m)
+            low_pass_filter_v = (self.lpf_delta_t * self.low_pass_filter_measure * (vk + vkm1) -
+                                (self.lpf_delta_t * self.low_pass_filter_measure - 2) * (self.low_pass_filter_v)) / \
+                                (2 + self.lpf_delta_t * self.low_pass_filter_measure)
 
             # compute p_set and q_set
             solar_idx = self.solar_irr >= self.solar_min_value
@@ -158,10 +159,10 @@ class VectorizedPVDevice:
 
 
             # compute p_out and q_out
-            self.p_out = ((T * lpf_o * (pk + self.p_set) - (T * lpf_o - 2) * (self.p_out)) / \
-                            (2 + T * lpf_o))
-            self.q_out = ((T * lpf_o * (qk + self.q_set) - (T * lpf_o - 2) * (self.q_out)) / \
-                            (2 + T * lpf_o))
+            self.p_out = ((self.lpf_delta_t * self.low_pass_filter_output * (pk + self.p_set) - (self.lpf_delta_t * self.low_pass_filter_output - 2) * (self.p_out)) / \
+                            (2 + self.lpf_delta_t * self.low_pass_filter_output))
+            self.q_out = ((self.lpf_delta_t * self.low_pass_filter_output * (qk + self.q_set) - (self.lpf_delta_t * self.low_pass_filter_output - 2) * (self.q_out)) / \
+                            (2 + self.lpf_delta_t * self.low_pass_filter_output))
 
             self.p_set = pk
             self.q_set = qk
