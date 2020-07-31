@@ -45,6 +45,7 @@ class logger(metaclass=Singleton):
     logger
         the logging instance.
     """
+
     log_dict = {}
     custom_metrics = {}
     active = False

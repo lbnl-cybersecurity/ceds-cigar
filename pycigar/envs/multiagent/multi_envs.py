@@ -7,13 +7,13 @@ from pycigar.envs.wrappers.wrapper import Wrapper
 
 class AdvEnv(Wrapper):
     def __init__(self, **kwargs):
-        env = MultiEnv(**kwargs)                           # receive a dict of rl_id: action
+        env = MultiEnv(**kwargs)  # receive a dict of rl_id: action
         env = AllRelativeInitDiscreteActionWrapper(env)
         env = AdvObservationWrapper(env)
         env = AdvLocalRewardWrapper(env)
-        env = GroupActionWrapper(env)                      # grouping layer
+        env = GroupActionWrapper(env)  # grouping layer
         env = GroupRewardWrapper(env)
-        env = GroupObservationWrapper(env)                 # grouping layer
+        env = GroupObservationWrapper(env)  # grouping layer
         env = GroupInfoWrapper(env)
         env = AdvFramestackObservationWrapper(env)
         self.env = env
@@ -38,9 +38,45 @@ class GroupInfoWrapper(Wrapper):
 
         return new_info
 
+
 class AdvMultiEnv(MultiEnv):
     def __init__(self, **kwargs):
         self.env = AdvEnv(**kwargs)
+        self.env.action_space
+        self.env.observation_space
+
+    def reset(self):
+        return self.env.reset()
+
+    def step(self, action_dict):
+        return self.env.step(action_dict)
+
+    @property
+    def action_space(self):
+        return self.env.action_space
+
+    @property
+    def observation_space(self):
+        return self.env.observation_space
+
+    def __getattr__(self, name):
+        if name.startswith('_'):
+            raise AttributeError("attempted to get missing private attribute '{}'".format(name))
+        return getattr(self.env, name)
+
+
+
+class PhaseSpecificContinuousMultiEnv(MultiEnv):
+    def __init__(self, **kwargs):
+        env = MultiEnv(**kwargs)
+        env = RelativeInitContinuousActionWrapper(env)
+        env = AdvObservationWrapper(env, unbalance=True)
+        env = AdvFramestackObservationWrapper(env)
+        env = PhaseSpecificRewardWrapper(env, unbalance=True)
+        # env = CentralGlobalRewardWrapper(env, unbalance=True)
+        # env = CentralLocalObservationWrapper(env, unbalance=True)
+        # env = CentralFramestackObservationWrapper(env)
+        self.env = env
         self.env.action_space
         self.env.observation_space
 

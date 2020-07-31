@@ -7,6 +7,7 @@ import numpy as np
 
 # Butterworth polynomial
 
+
 def butterworth_polynomial(n=1, w0=1.0):
     a0ncoeff = np.zeros([int(n / 2), 3])
 
@@ -23,7 +24,7 @@ def butterworth_polynomial(n=1, w0=1.0):
     for k1 in range(0, int(n / 2)):
         a0nnorm = np.convolve(a0nnorm, a0ncoeff[k1, :])
     for k1 in range(0, len(a0nnorm)):
-        a0n[k1] = a0nnorm[k1] * w0**(n - k1)
+        a0n[k1] = a0nnorm[k1] * w0 ** (n - k1)
     return a0n, a0nnorm
 
 
@@ -31,7 +32,7 @@ def butterworth_lowpass(n=1, w0=1.0):
     a0n, a0nnorm = butterworth_polynomial(n, w0)
     b0nnorm = np.zeros(n + 1)
     b0nnorm[0] = 1
-    b0n = b0nnorm * w0**n
+    b0n = b0nnorm * w0 ** n
     g0n = np.array([b0n, a0n])
     g0nnorm = np.array([b0nnorm, a0nnorm])
 
@@ -55,7 +56,7 @@ def butterworth_bandpass(n=1, w0=1.0):
         a0n, a0nnorm = butterworth_polynomial(n, w0)
         b0nnorm = np.zeros(n + 1)
         b0nnorm[int(n / 2)] = np.sqrt(2)
-        b0n = b0nnorm * w0**(n / 2)
+        b0n = b0nnorm * w0 ** (n / 2)
     g0n = np.array([b0n, a0n])
     g0nnorm = np.array([b0nnorm, a0nnorm])
     return g0n, g0nnorm
@@ -68,13 +69,14 @@ def butterworth_bandstop(n=1, w0=1.0):
         a0n, a0nnorm = butterworth_polynomial(n, w0)
         b0nnorm = np.zeros(n + 1)
         b0nnorm[0] = 1
-        b0nnorm[-1] = np.real(-1j**n)
+        b0nnorm[-1] = np.real(-(1j ** n))
         b0n = np.zeros(n + 1)
-        b0n[0] = w0**n
-        b0n[-1] = np.real(-1j**n)
+        b0n[0] = w0 ** n
+        b0n[-1] = np.real(-(1j ** n))
     g0n = np.array([b0n, a0n])
     g0nnorm = np.array([b0nnorm, a0nnorm])
     return g0n, g0nnorm
+
 
 ###########################################################################
 # ##################              C2D               #######################
@@ -115,11 +117,11 @@ def c2dZOH(g0n, T):
         # substitute s = (1/T)(z - 1)
         zz = np.polynomial.polynomial.polypow([-1, 1], k1)
         # multiply by T^n
-        zz = zz * T**(n - k1)
+        zz = zz * T ** (n - k1)
         # multiply by coefficient of b_{k1}
         zz = zz * b0n[k1]
         # separate ascending powers of z and place into array
-        B0n[k1, 0:k1 + 1] = zz
+        B0n[k1, 0 : k1 + 1] = zz
 
     # transform for denominator
     # iterate through coefficients of a(s), and therefore powers of s
@@ -131,7 +133,7 @@ def c2dZOH(g0n, T):
         # multiply by coefficient of a_{k1}
         zz = zz * a0n[k1]
         # separate ascending powers of z and place into array
-        A0n[k1, 0:k1 + 1] = zz
+        A0n[k1, 0 : k1 + 1] = zz
 
     # gather powers of z to obtain coefficients of G(z) = B(z)/A(z)
     B0n = np.sum(B0n, axis=0)
@@ -143,6 +145,7 @@ def c2dZOH(g0n, T):
 
     G0n = np.array([B0n, A0n])
     return G0n
+
 
 # Bilinear transform
 
@@ -167,7 +170,7 @@ def c2dbilinear(g0n, T):
         zptemp = np.polynomial.polynomial.polypow([1, 1], n - k1)
         zz = np.convolve(zmtemp, zptemp)
         # multiply all terms by (T/2)^n
-        zz = zz * (T / 2)**(n - k1)
+        zz = zz * (T / 2) ** (n - k1)
         # mulitply by coefficient b_{k1}
         zz = zz * b0n[k1]
         # separate ascending powers of z and place into array
@@ -182,7 +185,7 @@ def c2dbilinear(g0n, T):
         zptemp = np.polynomial.polynomial.polypow([1, 1], n - k1)
         zz = np.convolve(zmtemp, zptemp)
         # multiply all terms by (T/2)^n
-        zz = zz * (T / 2)**(n - k1)
+        zz = zz * (T / 2) ** (n - k1)
         # mulitply by coefficient b_{k1}
         zz = zz * a0n[k1]
         # separate ascending powers of z and place into array
@@ -204,6 +207,7 @@ def c2dbilinear(g0n, T):
 # ##################              D2C               #######################
 ###########################################################################
 
+
 def d2cZOH(G0n, T):
 
     B0n = G0n[0, :]
@@ -218,12 +222,12 @@ def d2cZOH(G0n, T):
     for k1 in range(0, n + 1):
         zz = np.polynomial.polynomial.polypow([1, T], k1)
         zz = zz * A0n[k1]
-        a0n[k1, 0:k1 + 1] = zz
+        a0n[k1, 0 : k1 + 1] = zz
 
     for k1 in range(0, m + 1):
         zz = np.polynomial.polynomial.polypow([1, T], k1)
         zz = zz * B0n[k1]
-        b0n[k1, 0:k1 + 1] = zz
+        b0n[k1, 0 : k1 + 1] = zz
 
     a0n = np.sum(a0n, axis=0)
     b0n = np.sum(b0n, axis=0)
@@ -234,6 +238,7 @@ def d2cZOH(G0n, T):
     g0n = np.array([b0n, a0n])
 
     return g0n
+
 
 # Bilinear transform
 
@@ -274,6 +279,7 @@ def d2cbilinear(G0n, T):
 
     return g0n
 
+
 ###########################################################################
 # ##################              FILTERS           #######################
 # #########################################################################
@@ -287,8 +293,8 @@ def lowpass(n=1, w0=2 * np.pi, zeta=1):
         b0n = np.array([w0, 0])
         a0n = np.array([w0, 1])
     elif n == 2:
-        b0n = np.array([w0**2, 0, 0])
-        a0n = np.array([w0**2, 2 * zeta * w0, 1])
+        b0n = np.array([w0 ** 2, 0, 0])
+        a0n = np.array([w0 ** 2, 2 * zeta * w0, 1])
     elif n >= 3:
         pass
 
@@ -306,7 +312,7 @@ def highpass(n=1, w0=2 * np.pi, zeta=1):
         a0n = np.array([w0, 1])
     elif n == 2:
         b0n = np.array([0, 0, 1])
-        a0n = np.array([w0**2, 2 * zeta * w0, 1])
+        a0n = np.array([w0 ** 2, 2 * zeta * w0, 1])
     elif n >= 3:
         pass
 
@@ -321,7 +327,7 @@ def bandpass(n=2, w0=2 * np.pi, zeta=1):
         pass
     elif n == 2:
         b0n = np.array([0, 2 * zeta * w0, 0])
-        a0n = np.array([w0**2, 2 * zeta * w0, 1])
+        a0n = np.array([w0 ** 2, 2 * zeta * w0, 1])
     elif n >= 3:
         pass
 
@@ -335,8 +341,8 @@ def bandstop(n=2, w0=2 * np.pi, zeta=1):
     if n <= 1:
         pass
     elif n == 2:
-        b0n = np.array([w0**2, 0, 1])
-        a0n = np.array([w0**2, 2 * zeta * w0, 1])
+        b0n = np.array([w0 ** 2, 0, 1])
+        a0n = np.array([w0 ** 2, 2 * zeta * w0, 1])
     elif n >= 3:
         pass
 

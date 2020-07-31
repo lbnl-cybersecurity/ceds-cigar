@@ -178,7 +178,7 @@ class PowerOpenDSSAPI(object):
 
     def check_simulation_converged(self):
         """Check if the solver has converged."""
-        output, = self._send_command(commands.CHECK_SIMULATION_CONVERGED, in_format=None, values=None, out_format='?')
+        (output,) = self._send_command(commands.CHECK_SIMULATION_CONVERGED, in_format=None, values=None, out_format='?')
         return output
 
     def get_node_ids(self):
@@ -188,7 +188,7 @@ class PowerOpenDSSAPI(object):
 
     def get_node_voltage(self, node_id):
         """Get node voltage given a node id."""
-        response, = self._send_command(commands.GET_NODE_VOLTAGE, in_format='str', values=node_id, out_format='f')
+        (response,) = self._send_command(commands.GET_NODE_VOLTAGE, in_format='str', values=node_id, out_format='f')
         return response
 
     def set_node_kw(self, node_id, value):

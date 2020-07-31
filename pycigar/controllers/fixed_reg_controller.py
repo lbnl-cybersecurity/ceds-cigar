@@ -14,10 +14,7 @@ class FixedController(BaseController):
 
     def __init__(self, device_id, additional_params):
         """Instantiate an fixed Controller."""
-        BaseController.__init__(
-            self,
-            device_id
-        )
+        BaseController.__init__(self, device_id)
         self.additional_params = additional_params
 
     def get_action(self, env):

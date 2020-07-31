@@ -10,10 +10,7 @@ class RLController(BaseController):
 
     def __init__(self, device_id, additional_params):
         """Instantiate an RL Controller."""
-        BaseController.__init__(
-            self,
-            device_id
-        )
+        BaseController.__init__(self, device_id)
 
     def get_action(self, env):
         """See parent class."""
