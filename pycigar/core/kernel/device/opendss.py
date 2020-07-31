@@ -1,6 +1,7 @@
 from pycigar.core.kernel.device import KernelDevice
 from pycigar.devices import PVDevice
 from pycigar.devices import RegulatorDevice
+from pycigar.devices.vectorized_pv_inverter_device import VectorizedPVDevice
 
 from pycigar.controllers import AdaptiveInverterController
 from pycigar.controllers import FixedController
@@ -214,13 +215,17 @@ class OpenDSSDevice(KernelDevice):
 
                 elif isinstance(self.devices[device_id]['device'], RegulatorDevice):
                     self.devices[device_id]['device'].reset()
-
+            if self.master_kernel.sim_params['vectorized_mode']:
+                self.vectorized_pv_inverter_device = VectorizedPVDevice(self.master_kernel)
         else:
             # get the injection here
             # get the new VBP, then push PV to node
             # update pv device
-            for pv_device in self.pv_device_ids:
-                self.devices[pv_device]["device"].update(self.master_kernel)
+            if self.master_kernel.sim_params['vectorized_mode']:
+                self.vectorized_pv_inverter_device.update(self.master_kernel)
+            else:
+                for pv_device in self.pv_device_ids:
+                    self.devices[pv_device]["device"].update(self.master_kernel)
 
             for reg_device in self.regulator_device_ids:
                 self.devices[reg_device]["device"].update(self.master_kernel)
@@ -494,10 +499,13 @@ class OpenDSSDevice(KernelDevice):
             device_id = [device_id]
             control_setting = [control_setting]
 
-        for i, d_id in enumerate(device_id):
+        for i, device_id in enumerate(device_id):
             if control_setting[i] is not None:
-                device = self.devices[d_id]['device']
+                device = self.devices[device_id]['device']
                 device.set_control_setting(control_setting[i])
+
+                if self.master_kernel.sim_params['vectorized_mode']:
+                    self.vectorized_pv_inverter_device.set_control_setting(device_id, control_setting[i])
 
     def set_device_internal_scenario(self, device_id, internal_scenario):
         """Set device internal scenario.

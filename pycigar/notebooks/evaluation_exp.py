@@ -214,7 +214,7 @@ if __name__ == '__main__':
                           'simulator': 'opendss'}
     else:
         pycigar_params = {'exp_tag': 'cooperative_multiagent_ppo',
-                          'env_name': 'CentralControlPVInverterEnv',
+                          'env_name': 'CentralControlPVInverterContinuousEnv',
                           'simulator': 'opendss'}
 
     create_env, env_name = make_create_env(pycigar_params, version=0)
@@ -311,7 +311,7 @@ if __name__ == '__main__':
 
     for i in range(4):
         config = deepcopy(full_config)
-        config['config']['lr'] = ray.tune.grid_search([1e-3, 1e-3, 1e-3])
+        config['config']['lr'] = ray.tune.grid_search([1e-3])
         run_hp_experiment(config, 'main')
 
     ray.shutdown()

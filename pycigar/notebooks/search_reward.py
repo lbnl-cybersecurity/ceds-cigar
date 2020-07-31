@@ -119,8 +119,8 @@ def run_exp(config, reporter):
             obs = test_env.reset()
             obs = obs.tolist()
             j = 0
-            begin_hack = 13
-            end_hack = 25
+            begin_hack = 7 #13
+            end_hack =  13 #25
             act_step_down = 1
             act_step_up = 3
             act = act_init = 2
@@ -212,10 +212,10 @@ if __name__ == '__main__':
     #config['config']['env_config']['N'] = ray.tune.grid_search([0.1])
     #config['config']['env_config']['P'] = ray.tune.grid_search([18, 20, 25])
     #config['config']['env_config']['Q'] = ray.tune.grid_search([100, 250, 500, 1000])
-    config['config']['env_config']['M'] = ray.tune.grid_search([10])
-    config['config']['env_config']['N'] = ray.tune.grid_search([0.1])
-    config['config']['env_config']['P'] = ray.tune.grid_search([18])
-    config['config']['env_config']['Q'] = ray.tune.grid_search([100])
+    config['config']['env_config']['M'] = ray.tune.grid_search([5, 10, 15])
+    config['config']['env_config']['N'] = ray.tune.grid_search([0.05, 0.1, 0.2])
+    config['config']['env_config']['P'] = ray.tune.grid_search([10, 15, 18])
+    config['config']['env_config']['Q'] = ray.tune.grid_search([50, 100, 150])
     run_hp_experiment(config)
 
     ray.shutdown()

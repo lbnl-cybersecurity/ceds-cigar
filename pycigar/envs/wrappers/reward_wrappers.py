@@ -2,7 +2,7 @@ import numpy as np
 
 from pycigar.envs.wrappers.wrapper import Wrapper
 from pycigar.utils.logging import logger
-
+from gym.spaces import Box
 
 class RewardWrapper(Wrapper):
     def step(self, action, randomize_rl_update=None):
@@ -179,7 +179,9 @@ class CentralGlobalRewardWrapper(RewardWrapper):
 
             action = np.array(action)
             old_action = np.array(old_action)
-            if (action == old_action).all():
+            if isinstance(self.action_space, Box):
+                roa = np.abs(action - old_action).sum()
+            elif (action == old_action).all():
                 roa = 0
             else:
                 roa = 1

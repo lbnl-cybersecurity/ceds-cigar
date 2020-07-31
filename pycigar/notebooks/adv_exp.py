@@ -33,7 +33,7 @@ from pycigar.utils.logging import logger
 from pycigar.utils.output import plot_adv
 from pycigar.utils.registry import make_create_env
 from copy import copy
-
+import matplotlib.pyplot as plt
 
 ActionTuple = namedtuple('Action', ['action', 'timestep'])
 
@@ -42,9 +42,9 @@ def parse_cli_args():
     parser.add_argument('--epochs', type=int, default=2, help='number of epochs per trial')
     parser.add_argument('--save-path', type=str, default='~/adv_exp', help='where to save the results')
     parser.add_argument('--workers', type=int, default=1, help='number of cpu workers per run')
-    parser.add_argument('--eval-rounds', type=int, default=10,
+    parser.add_argument('--eval-rounds', type=int, default=1,
                         help='number of evaluation rounds to run to smooth random results')
-    parser.add_argument('--eval-interval', type=int, default=10,
+    parser.add_argument('--eval-interval', type=int, default=1,
                         help='do an evaluation every N epochs')
     parser.add_argument("--algo", help="use PPO or APPO", choices=['ppo', 'appo'],
                         nargs='?', const='ppo', default='ppo', type=str.lower)
@@ -66,9 +66,22 @@ def custom_eval_function(trainer, eval_workers):
     episodes, _ = collect_episodes(eval_workers.local_worker(), eval_workers.remote_workers())
     metrics = summarize_episodes(episodes)
 
-    f = plot_adv(episodes[-1].hist_data['logger']['log_dict'], episodes[-1].hist_data['logger']['custom_metrics'], trainer.iteration, trainer.global_vars['adv'])
-    f.savefig(trainer.global_vars['reporter_dir'] + 'eval-epoch-' + str(trainer.iteration) + '.png',
-              bbox_inches='tight')
+    #f = plot_adv(episodes[-1].hist_data['logger']['log_dict'], episodes[-1].hist_data['logger']['custom_metrics'], trainer.iteration, trainer.global_vars['adv'])
+    #f.savefig(trainer.global_vars['reporter_dir'] + 'eval-epoch-' + str(trainer.iteration) + '.png',
+    #          bbox_inches='tight')
+
+    for i in range(len(episodes)):
+        f = plot_adv(episodes[i].hist_data['logger']['log_dict'],
+                     episodes[i].hist_data['logger']['custom_metrics'],
+                     trainer.iteration,
+                     trainer.global_vars['adv'],
+                     episodes[i].hist_data['defense_win'][0],
+                     episodes[i].hist_data['num_def_win'][0],
+                     episodes[i].hist_data['num_total'][0],
+                     trainer.config['multiagent']['policies_to_train'][0])
+        f.savefig(trainer.global_vars['reporter_dir'] + trainer.config['multiagent']['policies_to_train'][0] +'_eval-epoch-' + str(trainer.iteration) + '_' + str(i+1) + '.png',
+                bbox_inches='tight')
+        plt.close(f)
 
     save_best_policy(trainer, episodes)
     return metrics
@@ -91,7 +104,7 @@ def on_episode_step(info):
             episode.user_data["hack_length"] = len(episode._agent_reward_history['attack_agent'])
             y = episode.last_observation_for('attack_agent')[1]
             # TODOs: check this condition for average y value
-            if y < 0.07:
+            if y < 0.1:
                 episode.user_data["defense_win"] += 1
 
 
@@ -100,7 +113,9 @@ def on_episode_end(info):
 
     tracking = logger()
     if episode.user_data["hack_length"] != 0:
-        episode.hist_data['defense_win'] = [True] if episode.user_data['defense_win']/ float(episode.user_data['hack_length']) > 0.6 else [False] # defense agent win 60% of the hack period
+        episode.hist_data['defense_win'] = [True] if episode.user_data['defense_win']/ float(episode.user_data['hack_length']) > 0.55 else [False] # defense agent win 55% of the hack period
+        episode.hist_data['num_def_win'] = [episode.user_data['defense_win']]
+        episode.hist_data['num_total'] = [episode.user_data['hack_length']]
     episode.hist_data['logger'] = {'log_dict': tracking.log_dict, 'custom_metrics': tracking.custom_metrics}
 
 def save_best_policy(trainer, episodes):
@@ -149,6 +164,11 @@ def save_best_policy(trainer, episodes):
         with open(os.path.join(trainer.global_vars['reporter_dir'], 'best', 'info.json'), 'w', encoding='utf-8') as f:
             json.dump(info, f, ensure_ascii=False, indent=4)
 
+    # save policy
+    shutil.rmtree(os.path.join(trainer.global_vars['reporter_dir'], 'latest', train_policy + '_policy'), ignore_errors=True)
+    trainer.get_policy(train_policy).export_model(os.path.join(trainer.global_vars['reporter_dir'], 'latest', train_policy + '_policy'))
+    trainer.save(os.path.join(trainer.global_vars['reporter_dir'], 'checkpoint'))
+
 
 class ConstantPolicy(Policy):
 
@@ -165,7 +185,7 @@ class ConstantPolicy(Policy):
                         episodes=None,
                         **kwargs):
 
-        return [(1,2,3,4,5) for x in obs_batch], [], {}
+        return [(1,2,3,4,5) for _ in obs_batch], [], {}
 
     def learn_on_batch(self, samples):
         pass
@@ -185,17 +205,15 @@ def select_policy(agent_id):
 def run_train(config, reporter):
     if not config['adv']:
         trainer_cls = APPOTrainer if config['algo'] == 'appo' else PPOTrainer
-        config['config']['multiagent']['policies']['defense'] = (None,
-                                                                 config['config']['multiagent']['policies']['defense'][1],
-                                                                 config['config']['multiagent']['policies']['defense'][2],
-                                                                 {})
         config['config']['multiagent']['policies_to_train'] = ['defense']
+
         trainer = trainer_cls(config=config['config'])
 
         # needed so that the custom eval fn knows where to save plots
         trainer.global_vars['reporter_dir'] = reporter.logdir
         trainer.global_vars['adv'] = config['adv']
 
+        trainer.restore('/home/toanngo/adv_exp_eval/attack_train_0/run_train/run_train_0_lr=0.0002_2020-06-04_20-06-51873lpndk/checkpoint/checkpoint_150/checkpoint-150')
         for _ in tqdm(range(config['epochs'])):
             results = trainer.train()
             del results['hist_stats']['logger']  # don't send to tensorboard
@@ -211,6 +229,7 @@ def run_train(config, reporter):
         defense_config['config']['multiagent']['policies_to_train'] = ['defense']
         attack_config = copy(config)
         attack_config['config']['multiagent']['policies_to_train'] = ['attack']
+        attack_config['config']['lr'] = 2e-4
 
         defense_trainer = trainer_cls(config=defense_config['config'])
         attack_trainer = trainer_cls(config=attack_config['config'])
@@ -220,35 +239,39 @@ def run_train(config, reporter):
         attack_trainer.global_vars['reporter_dir']= reporter.logdir
         attack_trainer.global_vars['adv'] = config['adv']
 
-        for i in tqdm(range(config['epochs'])):
-            if i == 0:
-                # load pretrained defense_trainer
-                pass
+        attack_trainer.restore('/home/toanngo/adv_exp_eval/attack_train_0/run_train/run_train_0_lr=0.0002_2020-06-04_20-06-51873lpndk/checkpoint/checkpoint_150/checkpoint-150')
+        #attack_trainer.restore('/home/toanngo/adv_exp/attack_train_0/run_train/run_train_0_lr=0.0002_2020-06-04_17-37-51tnhs__mc/checkpoint/checkpoint_1/checkpoint-1')
+        #attack_trainer.restore('/home/toanngo/adv_exp/attack_train_0/run_train/run_train_0_lr=0.0002_2020-06-03_15-07-56gu3vvuwd/checkpoint/checkpoint_150/checkpoint-150')
+        #defense_trainer.restore('/home/toanngo/delete_me/full_round_0/run_train/run_train_0_2020-05-31_02-34-49_nehthkh/checkpoint/checkpoint_200/checkpoint-200')
 
-            while True:
+        for i in tqdm(range(config['epochs'])):
+
+            for _ in range(150):
                 attack_trainer.get_policy('defense').set_weights(attack_trainer.get_policy('defense').get_weights())
                 results = attack_trainer.train()
                 evaluate = attack_trainer._evaluate()
                 num_lose = sum(evaluate['evaluation']['hist_stats']['defense_win'])
                 num_match = len(evaluate['evaluation']['hist_stats']['defense_win'])
-                if (num_match - num_lose)/float(num_match) >= 0.6:
-                    del results['hist_stats']['logger']
-                    if 'evaluation' in results:
-                        del results['evaluation']['hist_stats']['logger']
-                    reporter(**results)
-                    break
-            while True:
+                #if (num_match - num_lose)/float(num_match) >= 0.6:
+                #    del results['hist_stats']['logger']
+                #    if 'evaluation' in results:
+                #        del results['evaluation']['hist_stats']['logger']
+                #    reporter(**results)
+                #    break
+
+            for _ in range(1):
+                print("#####################################################################################################")
                 defense_trainer.get_policy('attack').set_weights(attack_trainer.get_policy('attack').get_weights())
                 results = defense_trainer.train()
                 evaluate = defense_trainer._evaluate()
                 num_win = sum(evaluate['evaluation']['hist_stats']['defense_win'])
                 num_match = len(evaluate['evaluation']['hist_stats']['defense_win'])
-                if num_win/float(num_match) >=0.6:
-                    del results['hist_stats']['logger']
-                    if 'evaluation' in results:
-                        del results['evaluation']['hist_stats']['logger']
-                    reporter(**results)
-                    break
+                #if num_win/float(num_match) >= 0.6:
+                #    del results['hist_stats']['logger']
+                #    if 'evaluation' in results:
+                #        del results['evaluation']['hist_stats']['logger']
+                #    reporter(**results)
+                #    break
 
         defense_trainer.stop()
         attack_trainer.stop()
@@ -298,10 +321,10 @@ if __name__ == "__main__":
         'num_envs_per_worker': 1,
         'log_level': 'WARNING',
         "gamma": 0.5,
-        'lr': 2e-4,
+        'lr': 2e-3,
         'no_done_at_end': False,
-        'rollout_fragment_length': 50,
-        'train_batch_size': 200,
+        'rollout_fragment_length': 20,
+        'train_batch_size': 20*args.workers,
         'clip_param': 0.1,
         'lambda': 0.95,
         'vf_clip_param': 100,
@@ -314,7 +337,7 @@ if __name__ == "__main__":
                             {
                     'model': {
                         'fcnet_activation': 'tanh',
-                        'fcnet_hiddens': [256, 128, 128, 64],
+                        'fcnet_hiddens': [32, 32],
                         'free_log_std': False,
                         'vf_share_layers': True,
                         'use_lstm': False,
@@ -329,7 +352,7 @@ if __name__ == "__main__":
                            {
                         'model': {
                         'fcnet_activation': 'tanh',
-                        'fcnet_hiddens': [256, 128, 128, 64],
+                        'fcnet_hiddens': [32, 32],
                         'free_log_std': False,
                         'vf_share_layers': True,
                         'use_lstm': False,
@@ -367,12 +390,14 @@ if __name__ == "__main__":
         },
     }
     # eval environment should not be random across workers
-    eval_start = 100  # random.randint(0, 3599 - 500)
-    base_config['evaluation_config']['env_config']['scenario_config']['start_end_time'] = [eval_start, eval_start + 750]
-    base_config['evaluation_config']['env_config']['scenario_config']['multi_config'] = False
-    del base_config['evaluation_config']['env_config']['attack_randomization']
+    #eval_start = 100  # random.randint(0, 3599 - 500)
+    #base_config['evaluation_config']['env_config']['scenario_config']['start_end_time'] = [eval_start, eval_start + 750]
+    #base_config['evaluation_config']['env_config']['scenario_config']['multi_config'] = False
+    #del base_config['evaluation_config']['env_config']['attack_randomization']
+    base_config['env_config']['attack_randomization']['generator'] = 'AttackDefinitionGeneratorEvaluationRandom'
+    base_config['evaluation_config']['env_config']['attack_randomization']['generator'] = 'AttackDefinitionGeneratorEvaluation'
 
-    ray.init(local_mode=True)
+    ray.init(local_mode=False)
     full_config = {
         'config': base_config,
         'epochs': args.epochs,
@@ -382,5 +407,10 @@ if __name__ == "__main__":
     }
 
     if args.algo == 'ppo':
+        i = 0
+        #for i in range(5):
+        config = deepcopy(full_config)
+        config['config']['lr'] = ray.tune.grid_search([2e-3,])
+        run_defense_vs_attack(config, 'attack_train_' + str(i))
         config = deepcopy(full_config)
         run_defense_vs_attack(config, 'attack_train')

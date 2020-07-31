@@ -56,11 +56,13 @@ def policy_one(policy, file_name, start=100, percentage_hack=0.45):
     log_dict = logger().log_dict
     custom_metrics = logger().custom_metrics
 
+    #v = log_dict['s701a']['voltage']
+    #np.savetxt('voltage_100_02.txt', v)
     f = pycigar.utils.output.plot_new(log_dict, custom_metrics)
     f.savefig(os.path.join(PATH, file_name))
 
 if __name__ == '__main__':
-    file_name = 'newest_policy_M40_P18'
+    file_name = 'policy_delete_me'
     dir_p1 = os.path.join(PATH, file_name) #'/home/toanngo/Documents/GitHub/ceds-cigar/pycigar/notebooks/policy_eval_old-obs_P30_pset02_35'
     s = 100
     p_hack = 0.2

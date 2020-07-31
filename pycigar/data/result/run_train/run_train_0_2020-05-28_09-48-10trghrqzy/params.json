@@ -1,0 +1,2555 @@
+{
+  "config": {
+    "clip_param": 0.1,
+    "custom_eval_function": "<function main.<locals>.custom_eval_function at 0x7f8902324dd0>",
+    "env": "CentralControlPVInverterEnv-v0",
+    "env_config": {
+      "M": 20.0,
+      "N": 0.1,
+      "P": 18.0,
+      "Q": 50.0,
+      "attack_randomization": {
+        "generator": "AttackDefinitionGenerator"
+      },
+      "env_config": {
+        "clip_actions": true,
+        "sims_per_step": 30
+      },
+      "hack_setting": {
+        "default_control_setting": [
+          1.039,
+          1.04,
+          1.04,
+          1.041,
+          1.042
+        ]
+      },
+      "scenario_config": {
+        "custom_configs": {
+          "load_generation_noise": false,
+          "load_scaling_factor": 1.5,
+          "power_factor": 0.9,
+          "slack_bus_voltage": 1.02,
+          "solar_scaling_factor": 3.0
+        },
+        "multi_config": true,
+        "network_data_directory": "/home/toanngo/Documents/GitHub/ceds-cigar/pycigar/data/ieee37busdata/load_solar_data.csv",
+        "nodes": [
+          {
+            "devices": [
+              {
+                "adversary_controller": "adaptive_fixed_controller",
+                "adversary_custom_configs": {
+                  "default_control_setting": [
+                    1.014,
+                    1.015,
+                    1.015,
+                    1.016,
+                    1.017
+                  ]
+                },
+                "controller": "rl_controller",
+                "custom_configs": {
+                  "adaptive_gain": 20,
+                  "default_control_setting": [
+                    0.9743519554944856,
+                    1.0043519554944855,
+                    1.0043519554944855,
+                    1.0343519554944856,
+                    1.0643519554944856
+                  ],
+                  "delay_timer": 60,
+                  "low_pass_filter_measure": 1.0968423542930181,
+                  "low_pass_filter_output": 0.247108255740197,
+                  "threshold": 0.05
+                },
+                "hack": [
+                  250,
+                  0.45,
+                  500
+                ],
+                "name": "inverter_s701a",
+                "type": "pv_device"
+              }
+            ],
+            "load_profile": null,
+            "name": "s701a"
+          },
+          {
+            "devices": [
+              {
+                "adversary_controller": "adaptive_fixed_controller",
+                "adversary_custom_configs": {
+                  "default_control_setting": [
+                    1.014,
+                    1.015,
+                    1.015,
+                    1.016,
+                    1.017
+                  ]
+                },
+                "controller": "rl_controller",
+                "custom_configs": {
+                  "adaptive_gain": 20,
+                  "default_control_setting": [
+                    0.9514155584811896,
+                    0.9814155584811898,
+                    0.9814155584811898,
+                    1.01141555848119,
+                    1.04141555848119
+                  ],
+                  "delay_timer": 60,
+                  "low_pass_filter_measure": 1.217678715378858,
+                  "low_pass_filter_output": 0.21168142784499158,
+                  "threshold": 0.05
+                },
+                "hack": [
+                  250,
+                  0.45,
+                  500
+                ],
+                "name": "inverter_s701b",
+                "type": "pv_device"
+              }
+            ],
+            "load_profile": null,
+            "name": "s701b"
+          },
+          {
+            "devices": [
+              {
+                "adversary_controller": "adaptive_fixed_controller",
+                "adversary_custom_configs": {
+                  "default_control_setting": [
+                    1.014,
+                    1.015,
+                    1.015,
+                    1.016,
+                    1.017
+                  ]
+                },
+                "controller": "rl_controller",
+                "custom_configs": {
+                  "adaptive_gain": 20,
+                  "default_control_setting": [
+                    0.9789420157221018,
+                    1.0089420157221018,
+                    1.0089420157221018,
+                    1.038942015722102,
+                    1.0689420157221021
+                  ],
+                  "delay_timer": 60,
+                  "low_pass_filter_measure": 1.258872672439471,
+                  "low_pass_filter_output": 0.20213138817957896,
+                  "threshold": 0.05
+                },
+                "hack": [
+                  250,
+                  0.45,
+                  500
+                ],
+                "name": "inverter_s701c",
+                "type": "pv_device"
+              }
+            ],
+            "load_profile": null,
+            "name": "s701c"
+          },
+          {
+            "devices": [
+              {
+                "adversary_controller": "adaptive_fixed_controller",
+                "adversary_custom_configs": {
+                  "default_control_setting": [
+                    1.014,
+                    1.015,
+                    1.015,
+                    1.016,
+                    1.017
+                  ]
+                },
+                "controller": "rl_controller",
+                "custom_configs": {
+                  "adaptive_gain": 20,
+                  "default_control_setting": [
+                    0.9956054272474926,
+                    1.0256054272474926,
+                    1.0256054272474926,
+                    1.0556054272474926,
+                    1.0856054272474926
+                  ],
+                  "delay_timer": 60,
+                  "low_pass_filter_measure": 1.580418257492484,
+                  "low_pass_filter_output": 0.20243998531405663,
+                  "threshold": 0.05
+                },
+                "hack": [
+                  250,
+                  0.45,
+                  500
+                ],
+                "name": "inverter_s712c",
+                "type": "pv_device"
+              }
+            ],
+            "load_profile": null,
+            "name": "s712c"
+          },
+          {
+            "devices": [
+              {
+                "adversary_controller": "adaptive_fixed_controller",
+                "adversary_custom_configs": {
+                  "default_control_setting": [
+                    1.014,
+                    1.015,
+                    1.015,
+                    1.016,
+                    1.017
+                  ]
+                },
+                "controller": "rl_controller",
+                "custom_configs": {
+                  "adaptive_gain": 20,
+                  "default_control_setting": [
+                    0.9932244623309844,
+                    1.0232244623309843,
+                    1.0232244623309843,
+                    1.0532244623309843,
+                    1.0832244623309846
+                  ],
+                  "delay_timer": 60,
+                  "low_pass_filter_measure": 0.9945613641629165,
+                  "low_pass_filter_output": 0.18468486060767692,
+                  "threshold": 0.05
+                },
+                "hack": [
+                  250,
+                  0.45,
+                  500
+                ],
+                "name": "inverter_s713c",
+                "type": "pv_device"
+              }
+            ],
+            "load_profile": null,
+            "name": "s713c"
+          },
+          {
+            "devices": [
+              {
+                "adversary_controller": "adaptive_fixed_controller",
+                "adversary_custom_configs": {
+                  "default_control_setting": [
+                    1.014,
+                    1.015,
+                    1.015,
+                    1.016,
+                    1.017
+                  ]
+                },
+                "controller": "rl_controller",
+                "custom_configs": {
+                  "adaptive_gain": 20,
+                  "default_control_setting": [
+                    0.9652756493505776,
+                    0.9952756493505776,
+                    0.9952756493505776,
+                    1.0252756493505777,
+                    1.0552756493505775
+                  ],
+                  "delay_timer": 60,
+                  "low_pass_filter_measure": 1.1211383703482471,
+                  "low_pass_filter_output": 0.1629358738837699,
+                  "threshold": 0.05
+                },
+                "hack": [
+                  250,
+                  0.45,
+                  500
+                ],
+                "name": "inverter_s714a",
+                "type": "pv_device"
+              }
+            ],
+            "load_profile": null,
+            "name": "s714a"
+          },
+          {
+            "devices": [
+              {
+                "adversary_controller": "adaptive_fixed_controller",
+                "adversary_custom_configs": {
+                  "default_control_setting": [
+                    1.014,
+                    1.015,
+                    1.015,
+                    1.016,
+                    1.017
+                  ]
+                },
+                "controller": "rl_controller",
+                "custom_configs": {
+                  "adaptive_gain": 20,
+                  "default_control_setting": [
+                    0.9620285384241872,
+                    0.9920285384241874,
+                    0.9920285384241874,
+                    1.0220285384241874,
+                    1.0520285384241874
+                  ],
+                  "delay_timer": 60,
+                  "low_pass_filter_measure": 1.112881641200985,
+                  "low_pass_filter_output": 0.21901466706150483,
+                  "threshold": 0.05
+                },
+                "hack": [
+                  250,
+                  0.45,
+                  500
+                ],
+                "name": "inverter_s714b",
+                "type": "pv_device"
+              }
+            ],
+            "load_profile": null,
+            "name": "s714b"
+          },
+          {
+            "devices": [
+              {
+                "adversary_controller": "adaptive_fixed_controller",
+                "adversary_custom_configs": {
+                  "default_control_setting": [
+                    1.014,
+                    1.015,
+                    1.015,
+                    1.016,
+                    1.017
+                  ]
+                },
+                "controller": "rl_controller",
+                "custom_configs": {
+                  "adaptive_gain": 20,
+                  "default_control_setting": [
+                    0.9369441386427396,
+                    0.9669441386427396,
+                    0.9669441386427396,
+                    0.9969441386427396,
+                    1.0269441386427396
+                  ],
+                  "delay_timer": 60,
+                  "low_pass_filter_measure": 1.263702367379052,
+                  "low_pass_filter_output": 0.21385370922584787,
+                  "threshold": 0.05
+                },
+                "hack": [
+                  250,
+                  0.45,
+                  500
+                ],
+                "name": "inverter_s718a",
+                "type": "pv_device"
+              }
+            ],
+            "load_profile": null,
+            "name": "s718a"
+          },
+          {
+            "devices": [
+              {
+                "adversary_controller": "adaptive_fixed_controller",
+                "adversary_custom_configs": {
+                  "default_control_setting": [
+                    1.014,
+                    1.015,
+                    1.015,
+                    1.016,
+                    1.017
+                  ]
+                },
+                "controller": "rl_controller",
+                "custom_configs": {
+                  "adaptive_gain": 20,
+                  "default_control_setting": [
+                    0.9824489054171176,
+                    1.0124489054171175,
+                    1.0124489054171175,
+                    1.0424489054171175,
+                    1.0724489054171176
+                  ],
+                  "delay_timer": 60,
+                  "low_pass_filter_measure": 0.9098177872172979,
+                  "low_pass_filter_output": 0.17931702030382662,
+                  "threshold": 0.05
+                },
+                "hack": [
+                  250,
+                  0.45,
+                  500
+                ],
+                "name": "inverter_s720c",
+                "type": "pv_device"
+              }
+            ],
+            "load_profile": null,
+            "name": "s720c"
+          },
+          {
+            "devices": [
+              {
+                "adversary_controller": "adaptive_fixed_controller",
+                "adversary_custom_configs": {
+                  "default_control_setting": [
+                    1.014,
+                    1.015,
+                    1.015,
+                    1.016,
+                    1.017
+                  ]
+                },
+                "controller": "rl_controller",
+                "custom_configs": {
+                  "adaptive_gain": 20,
+                  "default_control_setting": [
+                    0.9508340616560458,
+                    0.9808340616560458,
+                    0.9808340616560458,
+                    1.0108340616560458,
+                    1.040834061656046
+                  ],
+                  "delay_timer": 60,
+                  "low_pass_filter_measure": 0.9902328430040915,
+                  "low_pass_filter_output": 0.21547460644164787,
+                  "threshold": 0.05
+                },
+                "hack": [
+                  250,
+                  0.45,
+                  500
+                ],
+                "name": "inverter_s722b",
+                "type": "pv_device"
+              }
+            ],
+            "load_profile": null,
+            "name": "s722b"
+          },
+          {
+            "devices": [
+              {
+                "adversary_controller": "adaptive_fixed_controller",
+                "adversary_custom_configs": {
+                  "default_control_setting": [
+                    1.014,
+                    1.015,
+                    1.015,
+                    1.016,
+                    1.017
+                  ]
+                },
+                "controller": "rl_controller",
+                "custom_configs": {
+                  "adaptive_gain": 20,
+                  "default_control_setting": [
+                    0.9779818563942916,
+                    1.0079818563942915,
+                    1.0079818563942915,
+                    1.0379818563942915,
+                    1.0679818563942918
+                  ],
+                  "delay_timer": 60,
+                  "low_pass_filter_measure": 1.0169942907609237,
+                  "low_pass_filter_output": 0.16130180938003547,
+                  "threshold": 0.05
+                },
+                "hack": [
+                  250,
+                  0.45,
+                  500
+                ],
+                "name": "inverter_s722c",
+                "type": "pv_device"
+              }
+            ],
+            "load_profile": null,
+            "name": "s722c"
+          },
+          {
+            "devices": [
+              {
+                "adversary_controller": "adaptive_fixed_controller",
+                "adversary_custom_configs": {
+                  "default_control_setting": [
+                    1.014,
+                    1.015,
+                    1.015,
+                    1.016,
+                    1.017
+                  ]
+                },
+                "controller": "rl_controller",
+                "custom_configs": {
+                  "adaptive_gain": 20,
+                  "default_control_setting": [
+                    0.9934879397260936,
+                    1.0234879397260936,
+                    1.0234879397260936,
+                    1.0534879397260937,
+                    1.0834879397260937
+                  ],
+                  "delay_timer": 60,
+                  "low_pass_filter_measure": 1.369923514921699,
+                  "low_pass_filter_output": 0.15300760232350868,
+                  "threshold": 0.05
+                },
+                "hack": [
+                  250,
+                  0.45,
+                  500
+                ],
+                "name": "inverter_s724b",
+                "type": "pv_device"
+              }
+            ],
+            "load_profile": null,
+            "name": "s724b"
+          },
+          {
+            "devices": [
+              {
+                "adversary_controller": "adaptive_fixed_controller",
+                "adversary_custom_configs": {
+                  "default_control_setting": [
+                    1.014,
+                    1.015,
+                    1.015,
+                    1.016,
+                    1.017
+                  ]
+                },
+                "controller": "rl_controller",
+                "custom_configs": {
+                  "adaptive_gain": 20,
+                  "default_control_setting": [
+                    0.9525569154609396,
+                    0.9825569154609396,
+                    0.9825569154609396,
+                    1.0125569154609395,
+                    1.0425569154609395
+                  ],
+                  "delay_timer": 60,
+                  "low_pass_filter_measure": 1.1058953719849742,
+                  "low_pass_filter_output": 0.18698946205507055,
+                  "threshold": 0.05
+                },
+                "hack": [
+                  250,
+                  0.45,
+                  500
+                ],
+                "name": "inverter_s725b",
+                "type": "pv_device"
+              }
+            ],
+            "load_profile": null,
+            "name": "s725b"
+          },
+          {
+            "devices": [
+              {
+                "adversary_controller": "adaptive_fixed_controller",
+                "adversary_custom_configs": {
+                  "default_control_setting": [
+                    1.014,
+                    1.015,
+                    1.015,
+                    1.016,
+                    1.017
+                  ]
+                },
+                "controller": "rl_controller",
+                "custom_configs": {
+                  "adaptive_gain": 20,
+                  "default_control_setting": [
+                    0.9939192297912656,
+                    1.0239192297912658,
+                    1.0239192297912658,
+                    1.0539192297912658,
+                    1.083919229791266
+                  ],
+                  "delay_timer": 60,
+                  "low_pass_filter_measure": 0.9751487936777254,
+                  "low_pass_filter_output": 0.22633192991165496,
+                  "threshold": 0.05
+                },
+                "hack": [
+                  250,
+                  0.45,
+                  500
+                ],
+                "name": "inverter_s727c",
+                "type": "pv_device"
+              }
+            ],
+            "load_profile": null,
+            "name": "s727c"
+          },
+          {
+            "devices": [
+              {
+                "adversary_controller": "adaptive_fixed_controller",
+                "adversary_custom_configs": {
+                  "default_control_setting": [
+                    1.014,
+                    1.015,
+                    1.015,
+                    1.016,
+                    1.017
+                  ]
+                },
+                "controller": "rl_controller",
+                "custom_configs": {
+                  "adaptive_gain": 20,
+                  "default_control_setting": [
+                    0.95435361599782,
+                    0.98435361599782,
+                    0.98435361599782,
+                    1.01435361599782,
+                    1.04435361599782
+                  ],
+                  "delay_timer": 60,
+                  "low_pass_filter_measure": 1.2714431316864687,
+                  "low_pass_filter_output": 0.18258877025475034,
+                  "threshold": 0.05
+                },
+                "hack": [
+                  250,
+                  0.45,
+                  500
+                ],
+                "name": "inverter_s728",
+                "type": "pv_device"
+              }
+            ],
+            "load_profile": null,
+            "name": "s728"
+          },
+          {
+            "devices": [
+              {
+                "adversary_controller": "adaptive_fixed_controller",
+                "adversary_custom_configs": {
+                  "default_control_setting": [
+                    1.014,
+                    1.015,
+                    1.015,
+                    1.016,
+                    1.017
+                  ]
+                },
+                "controller": "rl_controller",
+                "custom_configs": {
+                  "adaptive_gain": 20,
+                  "default_control_setting": [
+                    0.99570869781663,
+                    1.02570869781663,
+                    1.02570869781663,
+                    1.05570869781663,
+                    1.0857086978166302
+                  ],
+                  "delay_timer": 60,
+                  "low_pass_filter_measure": 1.2822279765015605,
+                  "low_pass_filter_output": 0.2376834341068696,
+                  "threshold": 0.05
+                },
+                "hack": [
+                  250,
+                  0.45,
+                  500
+                ],
+                "name": "inverter_s729a",
+                "type": "pv_device"
+              }
+            ],
+            "load_profile": null,
+            "name": "s729a"
+          },
+          {
+            "devices": [
+              {
+                "adversary_controller": "adaptive_fixed_controller",
+                "adversary_custom_configs": {
+                  "default_control_setting": [
+                    1.014,
+                    1.015,
+                    1.015,
+                    1.016,
+                    1.017
+                  ]
+                },
+                "controller": "rl_controller",
+                "custom_configs": {
+                  "adaptive_gain": 20,
+                  "default_control_setting": [
+                    0.9825480849139356,
+                    1.0125480849139357,
+                    1.0125480849139357,
+                    1.0425480849139357,
+                    1.0725480849139355
+                  ],
+                  "delay_timer": 60,
+                  "low_pass_filter_measure": 1.3452353436926128,
+                  "low_pass_filter_output": 0.19100270002498212,
+                  "threshold": 0.05
+                },
+                "hack": [
+                  250,
+                  0.45,
+                  500
+                ],
+                "name": "inverter_s730c",
+                "type": "pv_device"
+              }
+            ],
+            "load_profile": null,
+            "name": "s730c"
+          },
+          {
+            "devices": [
+              {
+                "adversary_controller": "adaptive_fixed_controller",
+                "adversary_custom_configs": {
+                  "default_control_setting": [
+                    1.014,
+                    1.015,
+                    1.015,
+                    1.016,
+                    1.017
+                  ]
+                },
+                "controller": "rl_controller",
+                "custom_configs": {
+                  "adaptive_gain": 20,
+                  "default_control_setting": [
+                    0.9979843558090696,
+                    1.0279843558090698,
+                    1.0279843558090698,
+                    1.0579843558090698,
+                    1.0879843558090698
+                  ],
+                  "delay_timer": 60,
+                  "low_pass_filter_measure": 1.5002210342108488,
+                  "low_pass_filter_output": 0.18921456212281218,
+                  "threshold": 0.05
+                },
+                "hack": [
+                  250,
+                  0.45,
+                  500
+                ],
+                "name": "inverter_s731b",
+                "type": "pv_device"
+              }
+            ],
+            "load_profile": null,
+            "name": "s731b"
+          },
+          {
+            "devices": [
+              {
+                "adversary_controller": "adaptive_fixed_controller",
+                "adversary_custom_configs": {
+                  "default_control_setting": [
+                    1.014,
+                    1.015,
+                    1.015,
+                    1.016,
+                    1.017
+                  ]
+                },
+                "controller": "rl_controller",
+                "custom_configs": {
+                  "adaptive_gain": 20,
+                  "default_control_setting": [
+                    0.9492988219415618,
+                    0.9792988219415618,
+                    0.9792988219415618,
+                    1.0092988219415615,
+                    1.0392988219415618
+                  ],
+                  "delay_timer": 60,
+                  "low_pass_filter_measure": 1.039014506280757,
+                  "low_pass_filter_output": 0.2241180927021465,
+                  "threshold": 0.05
+                },
+                "hack": [
+                  250,
+                  0.45,
+                  500
+                ],
+                "name": "inverter_s732c",
+                "type": "pv_device"
+              }
+            ],
+            "load_profile": null,
+            "name": "s732c"
+          },
+          {
+            "devices": [
+              {
+                "adversary_controller": "adaptive_fixed_controller",
+                "adversary_custom_configs": {
+                  "default_control_setting": [
+                    1.014,
+                    1.015,
+                    1.015,
+                    1.016,
+                    1.017
+                  ]
+                },
+                "controller": "rl_controller",
+                "custom_configs": {
+                  "adaptive_gain": 20,
+                  "default_control_setting": [
+                    0.9970688339551368,
+                    1.0270688339551368,
+                    1.0270688339551368,
+                    1.0570688339551368,
+                    1.0870688339551369
+                  ],
+                  "delay_timer": 60,
+                  "low_pass_filter_measure": 1.4087273582258661,
+                  "low_pass_filter_output": 0.194049508211057,
+                  "threshold": 0.05
+                },
+                "hack": [
+                  250,
+                  0.45,
+                  500
+                ],
+                "name": "inverter_s733a",
+                "type": "pv_device"
+              }
+            ],
+            "load_profile": null,
+            "name": "s733a"
+          },
+          {
+            "devices": [
+              {
+                "adversary_controller": "adaptive_fixed_controller",
+                "adversary_custom_configs": {
+                  "default_control_setting": [
+                    1.014,
+                    1.015,
+                    1.015,
+                    1.016,
+                    1.017
+                  ]
+                },
+                "controller": "rl_controller",
+                "custom_configs": {
+                  "adaptive_gain": 20,
+                  "default_control_setting": [
+                    0.981368615514464,
+                    1.011368615514464,
+                    1.011368615514464,
+                    1.0413686155144641,
+                    1.0713686155144642
+                  ],
+                  "delay_timer": 60,
+                  "low_pass_filter_measure": 0.9254746415652226,
+                  "low_pass_filter_output": 0.19056149073840192,
+                  "threshold": 0.05
+                },
+                "hack": [
+                  250,
+                  0.45,
+                  500
+                ],
+                "name": "inverter_s734c",
+                "type": "pv_device"
+              }
+            ],
+            "load_profile": null,
+            "name": "s734c"
+          },
+          {
+            "devices": [
+              {
+                "adversary_controller": "adaptive_fixed_controller",
+                "adversary_custom_configs": {
+                  "default_control_setting": [
+                    1.014,
+                    1.015,
+                    1.015,
+                    1.016,
+                    1.017
+                  ]
+                },
+                "controller": "rl_controller",
+                "custom_configs": {
+                  "adaptive_gain": 20,
+                  "default_control_setting": [
+                    0.9723405016583844,
+                    1.0023405016583844,
+                    1.0023405016583844,
+                    1.0323405016583844,
+                    1.0623405016583845
+                  ],
+                  "delay_timer": 60,
+                  "low_pass_filter_measure": 1.1964114775748032,
+                  "low_pass_filter_output": 0.20468413622796924,
+                  "threshold": 0.05
+                },
+                "hack": [
+                  250,
+                  0.45,
+                  500
+                ],
+                "name": "inverter_s735c",
+                "type": "pv_device"
+              }
+            ],
+            "load_profile": null,
+            "name": "s735c"
+          },
+          {
+            "devices": [
+              {
+                "adversary_controller": "adaptive_fixed_controller",
+                "adversary_custom_configs": {
+                  "default_control_setting": [
+                    1.014,
+                    1.015,
+                    1.015,
+                    1.016,
+                    1.017
+                  ]
+                },
+                "controller": "rl_controller",
+                "custom_configs": {
+                  "adaptive_gain": 20,
+                  "default_control_setting": [
+                    0.9994258690400089,
+                    1.0294258690400089,
+                    1.0294258690400089,
+                    1.0594258690400091,
+                    1.0894258690400092
+                  ],
+                  "delay_timer": 60,
+                  "low_pass_filter_measure": 1.1323512819076382,
+                  "low_pass_filter_output": 0.19687332884127617,
+                  "threshold": 0.05
+                },
+                "hack": [
+                  250,
+                  0.45,
+                  500
+                ],
+                "name": "inverter_s736b",
+                "type": "pv_device"
+              }
+            ],
+            "load_profile": null,
+            "name": "s736b"
+          },
+          {
+            "devices": [
+              {
+                "adversary_controller": "adaptive_fixed_controller",
+                "adversary_custom_configs": {
+                  "default_control_setting": [
+                    1.014,
+                    1.015,
+                    1.015,
+                    1.016,
+                    1.017
+                  ]
+                },
+                "controller": "rl_controller",
+                "custom_configs": {
+                  "adaptive_gain": 20,
+                  "default_control_setting": [
+                    0.9534740387633488,
+                    0.9834740387633488,
+                    0.9834740387633488,
+                    1.0134740387633487,
+                    1.0434740387633488
+                  ],
+                  "delay_timer": 60,
+                  "low_pass_filter_measure": 1.2431652541909308,
+                  "low_pass_filter_output": 0.20947118870255602,
+                  "threshold": 0.05
+                },
+                "hack": [
+                  250,
+                  0.45,
+                  500
+                ],
+                "name": "inverter_s737a",
+                "type": "pv_device"
+              }
+            ],
+            "load_profile": null,
+            "name": "s737a"
+          },
+          {
+            "devices": [
+              {
+                "adversary_controller": "adaptive_fixed_controller",
+                "adversary_custom_configs": {
+                  "default_control_setting": [
+                    1.014,
+                    1.015,
+                    1.015,
+                    1.016,
+                    1.017
+                  ]
+                },
+                "controller": "rl_controller",
+                "custom_configs": {
+                  "adaptive_gain": 20,
+                  "default_control_setting": [
+                    1.0106252042503694,
+                    1.0406252042503694,
+                    1.0406252042503694,
+                    1.0706252042503694,
+                    1.1006252042503697
+                  ],
+                  "delay_timer": 60,
+                  "low_pass_filter_measure": 0.959901674547617,
+                  "low_pass_filter_output": 0.21683809103608714,
+                  "threshold": 0.05
+                },
+                "hack": [
+                  250,
+                  0.45,
+                  500
+                ],
+                "name": "inverter_s738a",
+                "type": "pv_device"
+              }
+            ],
+            "load_profile": null,
+            "name": "s738a"
+          },
+          {
+            "devices": [
+              {
+                "adversary_controller": "adaptive_fixed_controller",
+                "adversary_custom_configs": {
+                  "default_control_setting": [
+                    1.014,
+                    1.015,
+                    1.015,
+                    1.016,
+                    1.017
+                  ]
+                },
+                "controller": "rl_controller",
+                "custom_configs": {
+                  "adaptive_gain": 20,
+                  "default_control_setting": [
+                    0.9636906683132482,
+                    0.9936906683132484,
+                    0.9936906683132484,
+                    1.0236906683132485,
+                    1.0536906683132483
+                  ],
+                  "delay_timer": 60,
+                  "low_pass_filter_measure": 1.0154618574169065,
+                  "low_pass_filter_output": 0.20913501683921976,
+                  "threshold": 0.05
+                },
+                "hack": [
+                  250,
+                  0.45,
+                  500
+                ],
+                "name": "inverter_s740c",
+                "type": "pv_device"
+              }
+            ],
+            "load_profile": null,
+            "name": "s740c"
+          },
+          {
+            "devices": [
+              {
+                "adversary_controller": "adaptive_fixed_controller",
+                "adversary_custom_configs": {
+                  "default_control_setting": [
+                    1.014,
+                    1.015,
+                    1.015,
+                    1.016,
+                    1.017
+                  ]
+                },
+                "controller": "rl_controller",
+                "custom_configs": {
+                  "adaptive_gain": 20,
+                  "default_control_setting": [
+                    0.9882595729786696,
+                    1.0182595729786696,
+                    1.0182595729786696,
+                    1.0482595729786697,
+                    1.0782595729786697
+                  ],
+                  "delay_timer": 60,
+                  "low_pass_filter_measure": 1.4435715097509378,
+                  "low_pass_filter_output": 0.23288005796920863,
+                  "threshold": 0.05
+                },
+                "hack": [
+                  250,
+                  0.45,
+                  500
+                ],
+                "name": "inverter_s741c",
+                "type": "pv_device"
+              }
+            ],
+            "load_profile": null,
+            "name": "s741c"
+          },
+          {
+            "devices": [
+              {
+                "adversary_controller": "adaptive_fixed_controller",
+                "adversary_custom_configs": {
+                  "default_control_setting": [
+                    1.014,
+                    1.015,
+                    1.015,
+                    1.016,
+                    1.017
+                  ]
+                },
+                "controller": "rl_controller",
+                "custom_configs": {
+                  "adaptive_gain": 20,
+                  "default_control_setting": [
+                    0.9858504862605592,
+                    1.0158504862605593,
+                    1.0158504862605593,
+                    1.045850486260559,
+                    1.0758504862605591
+                  ],
+                  "delay_timer": 60,
+                  "low_pass_filter_measure": 1.4298662013774517,
+                  "low_pass_filter_output": 0.188713621783588,
+                  "threshold": 0.05
+                },
+                "hack": [
+                  250,
+                  0.45,
+                  500
+                ],
+                "name": "inverter_s742a",
+                "type": "pv_device"
+              }
+            ],
+            "load_profile": null,
+            "name": "s742a"
+          },
+          {
+            "devices": [
+              {
+                "adversary_controller": "adaptive_fixed_controller",
+                "adversary_custom_configs": {
+                  "default_control_setting": [
+                    1.014,
+                    1.015,
+                    1.015,
+                    1.016,
+                    1.017
+                  ]
+                },
+                "controller": "rl_controller",
+                "custom_configs": {
+                  "adaptive_gain": 20,
+                  "default_control_setting": [
+                    0.9665629286295844,
+                    0.9965629286295844,
+                    0.9965629286295844,
+                    1.0265629286295843,
+                    1.0565629286295843
+                  ],
+                  "delay_timer": 60,
+                  "low_pass_filter_measure": 1.3839000023625283,
+                  "low_pass_filter_output": 0.18003493000598136,
+                  "threshold": 0.05
+                },
+                "hack": [
+                  250,
+                  0.45,
+                  500
+                ],
+                "name": "inverter_s742b",
+                "type": "pv_device"
+              }
+            ],
+            "load_profile": null,
+            "name": "s742b"
+          },
+          {
+            "devices": [
+              {
+                "adversary_controller": "adaptive_fixed_controller",
+                "adversary_custom_configs": {
+                  "default_control_setting": [
+                    1.014,
+                    1.015,
+                    1.015,
+                    1.016,
+                    1.017
+                  ]
+                },
+                "controller": "rl_controller",
+                "custom_configs": {
+                  "adaptive_gain": 20,
+                  "default_control_setting": [
+                    0.9875488199846794,
+                    1.0175488199846794,
+                    1.0175488199846794,
+                    1.0475488199846794,
+                    1.0775488199846794
+                  ],
+                  "delay_timer": 60,
+                  "low_pass_filter_measure": 1.3230757963140376,
+                  "low_pass_filter_output": 0.21522165426238418,
+                  "threshold": 0.05
+                },
+                "hack": [
+                  250,
+                  0.45,
+                  500
+                ],
+                "name": "inverter_s744a",
+                "type": "pv_device"
+              }
+            ],
+            "load_profile": null,
+            "name": "s744a"
+          }
+        ],
+        "regulators": {
+          "forward_band": 2.0,
+          "max_tap_change": 0.0,
+          "tap_delay": 2.0,
+          "tap_number": 0.0
+        },
+        "start_end_time": 750
+      },
+      "simulation_config": {
+        "custom_configs": {
+          "power_factor": 0.9,
+          "solution_control_mode": -1,
+          "solution_max_control_iterations": 1000000,
+          "solution_max_iterations": 30000,
+          "solution_mode": 1,
+          "solution_number": 1,
+          "solution_step_size": 1
+        },
+        "network_model_directory": "/home/toanngo/Documents/GitHub/ceds-cigar/pycigar/data/ieee37busdata/ieee37.dss"
+      },
+      "tune_search": false
+    },
+    "evaluation_config": {
+      "env_config": {
+        "M": 20.0,
+        "N": 0.1,
+        "P": 18.0,
+        "Q": 50.0,
+        "env_config": {
+          "clip_actions": true,
+          "sims_per_step": 30
+        },
+        "hack_setting": {
+          "default_control_setting": [
+            1.039,
+            1.04,
+            1.04,
+            1.041,
+            1.042
+          ]
+        },
+        "scenario_config": {
+          "custom_configs": {
+            "load_generation_noise": false,
+            "load_scaling_factor": 1.5,
+            "power_factor": 0.9,
+            "slack_bus_voltage": 1.02,
+            "solar_scaling_factor": 3.0
+          },
+          "multi_config": false,
+          "network_data_directory": "/home/toanngo/Documents/GitHub/ceds-cigar/pycigar/data/ieee37busdata/load_solar_data.csv",
+          "nodes": [
+            {
+              "devices": [
+                {
+                  "adversary_controller": "adaptive_fixed_controller",
+                  "adversary_custom_configs": {
+                    "default_control_setting": [
+                      1.014,
+                      1.015,
+                      1.015,
+                      1.016,
+                      1.017
+                    ]
+                  },
+                  "controller": "rl_controller",
+                  "custom_configs": {
+                    "adaptive_gain": 20,
+                    "default_control_setting": [
+                      0.9743519554944856,
+                      1.0043519554944855,
+                      1.0043519554944855,
+                      1.0343519554944856,
+                      1.0643519554944856
+                    ],
+                    "delay_timer": 60,
+                    "low_pass_filter_measure": 1.0968423542930181,
+                    "low_pass_filter_output": 0.247108255740197,
+                    "threshold": 0.05
+                  },
+                  "hack": [
+                    250,
+                    0.45,
+                    500
+                  ],
+                  "name": "inverter_s701a",
+                  "type": "pv_device"
+                }
+              ],
+              "load_profile": null,
+              "name": "s701a"
+            },
+            {
+              "devices": [
+                {
+                  "adversary_controller": "adaptive_fixed_controller",
+                  "adversary_custom_configs": {
+                    "default_control_setting": [
+                      1.014,
+                      1.015,
+                      1.015,
+                      1.016,
+                      1.017
+                    ]
+                  },
+                  "controller": "rl_controller",
+                  "custom_configs": {
+                    "adaptive_gain": 20,
+                    "default_control_setting": [
+                      0.9514155584811896,
+                      0.9814155584811898,
+                      0.9814155584811898,
+                      1.01141555848119,
+                      1.04141555848119
+                    ],
+                    "delay_timer": 60,
+                    "low_pass_filter_measure": 1.217678715378858,
+                    "low_pass_filter_output": 0.21168142784499158,
+                    "threshold": 0.05
+                  },
+                  "hack": [
+                    250,
+                    0.45,
+                    500
+                  ],
+                  "name": "inverter_s701b",
+                  "type": "pv_device"
+                }
+              ],
+              "load_profile": null,
+              "name": "s701b"
+            },
+            {
+              "devices": [
+                {
+                  "adversary_controller": "adaptive_fixed_controller",
+                  "adversary_custom_configs": {
+                    "default_control_setting": [
+                      1.014,
+                      1.015,
+                      1.015,
+                      1.016,
+                      1.017
+                    ]
+                  },
+                  "controller": "rl_controller",
+                  "custom_configs": {
+                    "adaptive_gain": 20,
+                    "default_control_setting": [
+                      0.9789420157221018,
+                      1.0089420157221018,
+                      1.0089420157221018,
+                      1.038942015722102,
+                      1.0689420157221021
+                    ],
+                    "delay_timer": 60,
+                    "low_pass_filter_measure": 1.258872672439471,
+                    "low_pass_filter_output": 0.20213138817957896,
+                    "threshold": 0.05
+                  },
+                  "hack": [
+                    250,
+                    0.45,
+                    500
+                  ],
+                  "name": "inverter_s701c",
+                  "type": "pv_device"
+                }
+              ],
+              "load_profile": null,
+              "name": "s701c"
+            },
+            {
+              "devices": [
+                {
+                  "adversary_controller": "adaptive_fixed_controller",
+                  "adversary_custom_configs": {
+                    "default_control_setting": [
+                      1.014,
+                      1.015,
+                      1.015,
+                      1.016,
+                      1.017
+                    ]
+                  },
+                  "controller": "rl_controller",
+                  "custom_configs": {
+                    "adaptive_gain": 20,
+                    "default_control_setting": [
+                      0.9956054272474926,
+                      1.0256054272474926,
+                      1.0256054272474926,
+                      1.0556054272474926,
+                      1.0856054272474926
+                    ],
+                    "delay_timer": 60,
+                    "low_pass_filter_measure": 1.580418257492484,
+                    "low_pass_filter_output": 0.20243998531405663,
+                    "threshold": 0.05
+                  },
+                  "hack": [
+                    250,
+                    0.45,
+                    500
+                  ],
+                  "name": "inverter_s712c",
+                  "type": "pv_device"
+                }
+              ],
+              "load_profile": null,
+              "name": "s712c"
+            },
+            {
+              "devices": [
+                {
+                  "adversary_controller": "adaptive_fixed_controller",
+                  "adversary_custom_configs": {
+                    "default_control_setting": [
+                      1.014,
+                      1.015,
+                      1.015,
+                      1.016,
+                      1.017
+                    ]
+                  },
+                  "controller": "rl_controller",
+                  "custom_configs": {
+                    "adaptive_gain": 20,
+                    "default_control_setting": [
+                      0.9932244623309844,
+                      1.0232244623309843,
+                      1.0232244623309843,
+                      1.0532244623309843,
+                      1.0832244623309846
+                    ],
+                    "delay_timer": 60,
+                    "low_pass_filter_measure": 0.9945613641629165,
+                    "low_pass_filter_output": 0.18468486060767692,
+                    "threshold": 0.05
+                  },
+                  "hack": [
+                    250,
+                    0.45,
+                    500
+                  ],
+                  "name": "inverter_s713c",
+                  "type": "pv_device"
+                }
+              ],
+              "load_profile": null,
+              "name": "s713c"
+            },
+            {
+              "devices": [
+                {
+                  "adversary_controller": "adaptive_fixed_controller",
+                  "adversary_custom_configs": {
+                    "default_control_setting": [
+                      1.014,
+                      1.015,
+                      1.015,
+                      1.016,
+                      1.017
+                    ]
+                  },
+                  "controller": "rl_controller",
+                  "custom_configs": {
+                    "adaptive_gain": 20,
+                    "default_control_setting": [
+                      0.9652756493505776,
+                      0.9952756493505776,
+                      0.9952756493505776,
+                      1.0252756493505777,
+                      1.0552756493505775
+                    ],
+                    "delay_timer": 60,
+                    "low_pass_filter_measure": 1.1211383703482471,
+                    "low_pass_filter_output": 0.1629358738837699,
+                    "threshold": 0.05
+                  },
+                  "hack": [
+                    250,
+                    0.45,
+                    500
+                  ],
+                  "name": "inverter_s714a",
+                  "type": "pv_device"
+                }
+              ],
+              "load_profile": null,
+              "name": "s714a"
+            },
+            {
+              "devices": [
+                {
+                  "adversary_controller": "adaptive_fixed_controller",
+                  "adversary_custom_configs": {
+                    "default_control_setting": [
+                      1.014,
+                      1.015,
+                      1.015,
+                      1.016,
+                      1.017
+                    ]
+                  },
+                  "controller": "rl_controller",
+                  "custom_configs": {
+                    "adaptive_gain": 20,
+                    "default_control_setting": [
+                      0.9620285384241872,
+                      0.9920285384241874,
+                      0.9920285384241874,
+                      1.0220285384241874,
+                      1.0520285384241874
+                    ],
+                    "delay_timer": 60,
+                    "low_pass_filter_measure": 1.112881641200985,
+                    "low_pass_filter_output": 0.21901466706150483,
+                    "threshold": 0.05
+                  },
+                  "hack": [
+                    250,
+                    0.45,
+                    500
+                  ],
+                  "name": "inverter_s714b",
+                  "type": "pv_device"
+                }
+              ],
+              "load_profile": null,
+              "name": "s714b"
+            },
+            {
+              "devices": [
+                {
+                  "adversary_controller": "adaptive_fixed_controller",
+                  "adversary_custom_configs": {
+                    "default_control_setting": [
+                      1.014,
+                      1.015,
+                      1.015,
+                      1.016,
+                      1.017
+                    ]
+                  },
+                  "controller": "rl_controller",
+                  "custom_configs": {
+                    "adaptive_gain": 20,
+                    "default_control_setting": [
+                      0.9369441386427396,
+                      0.9669441386427396,
+                      0.9669441386427396,
+                      0.9969441386427396,
+                      1.0269441386427396
+                    ],
+                    "delay_timer": 60,
+                    "low_pass_filter_measure": 1.263702367379052,
+                    "low_pass_filter_output": 0.21385370922584787,
+                    "threshold": 0.05
+                  },
+                  "hack": [
+                    250,
+                    0.45,
+                    500
+                  ],
+                  "name": "inverter_s718a",
+                  "type": "pv_device"
+                }
+              ],
+              "load_profile": null,
+              "name": "s718a"
+            },
+            {
+              "devices": [
+                {
+                  "adversary_controller": "adaptive_fixed_controller",
+                  "adversary_custom_configs": {
+                    "default_control_setting": [
+                      1.014,
+                      1.015,
+                      1.015,
+                      1.016,
+                      1.017
+                    ]
+                  },
+                  "controller": "rl_controller",
+                  "custom_configs": {
+                    "adaptive_gain": 20,
+                    "default_control_setting": [
+                      0.9824489054171176,
+                      1.0124489054171175,
+                      1.0124489054171175,
+                      1.0424489054171175,
+                      1.0724489054171176
+                    ],
+                    "delay_timer": 60,
+                    "low_pass_filter_measure": 0.9098177872172979,
+                    "low_pass_filter_output": 0.17931702030382662,
+                    "threshold": 0.05
+                  },
+                  "hack": [
+                    250,
+                    0.45,
+                    500
+                  ],
+                  "name": "inverter_s720c",
+                  "type": "pv_device"
+                }
+              ],
+              "load_profile": null,
+              "name": "s720c"
+            },
+            {
+              "devices": [
+                {
+                  "adversary_controller": "adaptive_fixed_controller",
+                  "adversary_custom_configs": {
+                    "default_control_setting": [
+                      1.014,
+                      1.015,
+                      1.015,
+                      1.016,
+                      1.017
+                    ]
+                  },
+                  "controller": "rl_controller",
+                  "custom_configs": {
+                    "adaptive_gain": 20,
+                    "default_control_setting": [
+                      0.9508340616560458,
+                      0.9808340616560458,
+                      0.9808340616560458,
+                      1.0108340616560458,
+                      1.040834061656046
+                    ],
+                    "delay_timer": 60,
+                    "low_pass_filter_measure": 0.9902328430040915,
+                    "low_pass_filter_output": 0.21547460644164787,
+                    "threshold": 0.05
+                  },
+                  "hack": [
+                    250,
+                    0.45,
+                    500
+                  ],
+                  "name": "inverter_s722b",
+                  "type": "pv_device"
+                }
+              ],
+              "load_profile": null,
+              "name": "s722b"
+            },
+            {
+              "devices": [
+                {
+                  "adversary_controller": "adaptive_fixed_controller",
+                  "adversary_custom_configs": {
+                    "default_control_setting": [
+                      1.014,
+                      1.015,
+                      1.015,
+                      1.016,
+                      1.017
+                    ]
+                  },
+                  "controller": "rl_controller",
+                  "custom_configs": {
+                    "adaptive_gain": 20,
+                    "default_control_setting": [
+                      0.9779818563942916,
+                      1.0079818563942915,
+                      1.0079818563942915,
+                      1.0379818563942915,
+                      1.0679818563942918
+                    ],
+                    "delay_timer": 60,
+                    "low_pass_filter_measure": 1.0169942907609237,
+                    "low_pass_filter_output": 0.16130180938003547,
+                    "threshold": 0.05
+                  },
+                  "hack": [
+                    250,
+                    0.45,
+                    500
+                  ],
+                  "name": "inverter_s722c",
+                  "type": "pv_device"
+                }
+              ],
+              "load_profile": null,
+              "name": "s722c"
+            },
+            {
+              "devices": [
+                {
+                  "adversary_controller": "adaptive_fixed_controller",
+                  "adversary_custom_configs": {
+                    "default_control_setting": [
+                      1.014,
+                      1.015,
+                      1.015,
+                      1.016,
+                      1.017
+                    ]
+                  },
+                  "controller": "rl_controller",
+                  "custom_configs": {
+                    "adaptive_gain": 20,
+                    "default_control_setting": [
+                      0.9934879397260936,
+                      1.0234879397260936,
+                      1.0234879397260936,
+                      1.0534879397260937,
+                      1.0834879397260937
+                    ],
+                    "delay_timer": 60,
+                    "low_pass_filter_measure": 1.369923514921699,
+                    "low_pass_filter_output": 0.15300760232350868,
+                    "threshold": 0.05
+                  },
+                  "hack": [
+                    250,
+                    0.45,
+                    500
+                  ],
+                  "name": "inverter_s724b",
+                  "type": "pv_device"
+                }
+              ],
+              "load_profile": null,
+              "name": "s724b"
+            },
+            {
+              "devices": [
+                {
+                  "adversary_controller": "adaptive_fixed_controller",
+                  "adversary_custom_configs": {
+                    "default_control_setting": [
+                      1.014,
+                      1.015,
+                      1.015,
+                      1.016,
+                      1.017
+                    ]
+                  },
+                  "controller": "rl_controller",
+                  "custom_configs": {
+                    "adaptive_gain": 20,
+                    "default_control_setting": [
+                      0.9525569154609396,
+                      0.9825569154609396,
+                      0.9825569154609396,
+                      1.0125569154609395,
+                      1.0425569154609395
+                    ],
+                    "delay_timer": 60,
+                    "low_pass_filter_measure": 1.1058953719849742,
+                    "low_pass_filter_output": 0.18698946205507055,
+                    "threshold": 0.05
+                  },
+                  "hack": [
+                    250,
+                    0.45,
+                    500
+                  ],
+                  "name": "inverter_s725b",
+                  "type": "pv_device"
+                }
+              ],
+              "load_profile": null,
+              "name": "s725b"
+            },
+            {
+              "devices": [
+                {
+                  "adversary_controller": "adaptive_fixed_controller",
+                  "adversary_custom_configs": {
+                    "default_control_setting": [
+                      1.014,
+                      1.015,
+                      1.015,
+                      1.016,
+                      1.017
+                    ]
+                  },
+                  "controller": "rl_controller",
+                  "custom_configs": {
+                    "adaptive_gain": 20,
+                    "default_control_setting": [
+                      0.9939192297912656,
+                      1.0239192297912658,
+                      1.0239192297912658,
+                      1.0539192297912658,
+                      1.083919229791266
+                    ],
+                    "delay_timer": 60,
+                    "low_pass_filter_measure": 0.9751487936777254,
+                    "low_pass_filter_output": 0.22633192991165496,
+                    "threshold": 0.05
+                  },
+                  "hack": [
+                    250,
+                    0.45,
+                    500
+                  ],
+                  "name": "inverter_s727c",
+                  "type": "pv_device"
+                }
+              ],
+              "load_profile": null,
+              "name": "s727c"
+            },
+            {
+              "devices": [
+                {
+                  "adversary_controller": "adaptive_fixed_controller",
+                  "adversary_custom_configs": {
+                    "default_control_setting": [
+                      1.014,
+                      1.015,
+                      1.015,
+                      1.016,
+                      1.017
+                    ]
+                  },
+                  "controller": "rl_controller",
+                  "custom_configs": {
+                    "adaptive_gain": 20,
+                    "default_control_setting": [
+                      0.95435361599782,
+                      0.98435361599782,
+                      0.98435361599782,
+                      1.01435361599782,
+                      1.04435361599782
+                    ],
+                    "delay_timer": 60,
+                    "low_pass_filter_measure": 1.2714431316864687,
+                    "low_pass_filter_output": 0.18258877025475034,
+                    "threshold": 0.05
+                  },
+                  "hack": [
+                    250,
+                    0.45,
+                    500
+                  ],
+                  "name": "inverter_s728",
+                  "type": "pv_device"
+                }
+              ],
+              "load_profile": null,
+              "name": "s728"
+            },
+            {
+              "devices": [
+                {
+                  "adversary_controller": "adaptive_fixed_controller",
+                  "adversary_custom_configs": {
+                    "default_control_setting": [
+                      1.014,
+                      1.015,
+                      1.015,
+                      1.016,
+                      1.017
+                    ]
+                  },
+                  "controller": "rl_controller",
+                  "custom_configs": {
+                    "adaptive_gain": 20,
+                    "default_control_setting": [
+                      0.99570869781663,
+                      1.02570869781663,
+                      1.02570869781663,
+                      1.05570869781663,
+                      1.0857086978166302
+                    ],
+                    "delay_timer": 60,
+                    "low_pass_filter_measure": 1.2822279765015605,
+                    "low_pass_filter_output": 0.2376834341068696,
+                    "threshold": 0.05
+                  },
+                  "hack": [
+                    250,
+                    0.45,
+                    500
+                  ],
+                  "name": "inverter_s729a",
+                  "type": "pv_device"
+                }
+              ],
+              "load_profile": null,
+              "name": "s729a"
+            },
+            {
+              "devices": [
+                {
+                  "adversary_controller": "adaptive_fixed_controller",
+                  "adversary_custom_configs": {
+                    "default_control_setting": [
+                      1.014,
+                      1.015,
+                      1.015,
+                      1.016,
+                      1.017
+                    ]
+                  },
+                  "controller": "rl_controller",
+                  "custom_configs": {
+                    "adaptive_gain": 20,
+                    "default_control_setting": [
+                      0.9825480849139356,
+                      1.0125480849139357,
+                      1.0125480849139357,
+                      1.0425480849139357,
+                      1.0725480849139355
+                    ],
+                    "delay_timer": 60,
+                    "low_pass_filter_measure": 1.3452353436926128,
+                    "low_pass_filter_output": 0.19100270002498212,
+                    "threshold": 0.05
+                  },
+                  "hack": [
+                    250,
+                    0.45,
+                    500
+                  ],
+                  "name": "inverter_s730c",
+                  "type": "pv_device"
+                }
+              ],
+              "load_profile": null,
+              "name": "s730c"
+            },
+            {
+              "devices": [
+                {
+                  "adversary_controller": "adaptive_fixed_controller",
+                  "adversary_custom_configs": {
+                    "default_control_setting": [
+                      1.014,
+                      1.015,
+                      1.015,
+                      1.016,
+                      1.017
+                    ]
+                  },
+                  "controller": "rl_controller",
+                  "custom_configs": {
+                    "adaptive_gain": 20,
+                    "default_control_setting": [
+                      0.9979843558090696,
+                      1.0279843558090698,
+                      1.0279843558090698,
+                      1.0579843558090698,
+                      1.0879843558090698
+                    ],
+                    "delay_timer": 60,
+                    "low_pass_filter_measure": 1.5002210342108488,
+                    "low_pass_filter_output": 0.18921456212281218,
+                    "threshold": 0.05
+                  },
+                  "hack": [
+                    250,
+                    0.45,
+                    500
+                  ],
+                  "name": "inverter_s731b",
+                  "type": "pv_device"
+                }
+              ],
+              "load_profile": null,
+              "name": "s731b"
+            },
+            {
+              "devices": [
+                {
+                  "adversary_controller": "adaptive_fixed_controller",
+                  "adversary_custom_configs": {
+                    "default_control_setting": [
+                      1.014,
+                      1.015,
+                      1.015,
+                      1.016,
+                      1.017
+                    ]
+                  },
+                  "controller": "rl_controller",
+                  "custom_configs": {
+                    "adaptive_gain": 20,
+                    "default_control_setting": [
+                      0.9492988219415618,
+                      0.9792988219415618,
+                      0.9792988219415618,
+                      1.0092988219415615,
+                      1.0392988219415618
+                    ],
+                    "delay_timer": 60,
+                    "low_pass_filter_measure": 1.039014506280757,
+                    "low_pass_filter_output": 0.2241180927021465,
+                    "threshold": 0.05
+                  },
+                  "hack": [
+                    250,
+                    0.45,
+                    500
+                  ],
+                  "name": "inverter_s732c",
+                  "type": "pv_device"
+                }
+              ],
+              "load_profile": null,
+              "name": "s732c"
+            },
+            {
+              "devices": [
+                {
+                  "adversary_controller": "adaptive_fixed_controller",
+                  "adversary_custom_configs": {
+                    "default_control_setting": [
+                      1.014,
+                      1.015,
+                      1.015,
+                      1.016,
+                      1.017
+                    ]
+                  },
+                  "controller": "rl_controller",
+                  "custom_configs": {
+                    "adaptive_gain": 20,
+                    "default_control_setting": [
+                      0.9970688339551368,
+                      1.0270688339551368,
+                      1.0270688339551368,
+                      1.0570688339551368,
+                      1.0870688339551369
+                    ],
+                    "delay_timer": 60,
+                    "low_pass_filter_measure": 1.4087273582258661,
+                    "low_pass_filter_output": 0.194049508211057,
+                    "threshold": 0.05
+                  },
+                  "hack": [
+                    250,
+                    0.45,
+                    500
+                  ],
+                  "name": "inverter_s733a",
+                  "type": "pv_device"
+                }
+              ],
+              "load_profile": null,
+              "name": "s733a"
+            },
+            {
+              "devices": [
+                {
+                  "adversary_controller": "adaptive_fixed_controller",
+                  "adversary_custom_configs": {
+                    "default_control_setting": [
+                      1.014,
+                      1.015,
+                      1.015,
+                      1.016,
+                      1.017
+                    ]
+                  },
+                  "controller": "rl_controller",
+                  "custom_configs": {
+                    "adaptive_gain": 20,
+                    "default_control_setting": [
+                      0.981368615514464,
+                      1.011368615514464,
+                      1.011368615514464,
+                      1.0413686155144641,
+                      1.0713686155144642
+                    ],
+                    "delay_timer": 60,
+                    "low_pass_filter_measure": 0.9254746415652226,
+                    "low_pass_filter_output": 0.19056149073840192,
+                    "threshold": 0.05
+                  },
+                  "hack": [
+                    250,
+                    0.45,
+                    500
+                  ],
+                  "name": "inverter_s734c",
+                  "type": "pv_device"
+                }
+              ],
+              "load_profile": null,
+              "name": "s734c"
+            },
+            {
+              "devices": [
+                {
+                  "adversary_controller": "adaptive_fixed_controller",
+                  "adversary_custom_configs": {
+                    "default_control_setting": [
+                      1.014,
+                      1.015,
+                      1.015,
+                      1.016,
+                      1.017
+                    ]
+                  },
+                  "controller": "rl_controller",
+                  "custom_configs": {
+                    "adaptive_gain": 20,
+                    "default_control_setting": [
+                      0.9723405016583844,
+                      1.0023405016583844,
+                      1.0023405016583844,
+                      1.0323405016583844,
+                      1.0623405016583845
+                    ],
+                    "delay_timer": 60,
+                    "low_pass_filter_measure": 1.1964114775748032,
+                    "low_pass_filter_output": 0.20468413622796924,
+                    "threshold": 0.05
+                  },
+                  "hack": [
+                    250,
+                    0.45,
+                    500
+                  ],
+                  "name": "inverter_s735c",
+                  "type": "pv_device"
+                }
+              ],
+              "load_profile": null,
+              "name": "s735c"
+            },
+            {
+              "devices": [
+                {
+                  "adversary_controller": "adaptive_fixed_controller",
+                  "adversary_custom_configs": {
+                    "default_control_setting": [
+                      1.014,
+                      1.015,
+                      1.015,
+                      1.016,
+                      1.017
+                    ]
+                  },
+                  "controller": "rl_controller",
+                  "custom_configs": {
+                    "adaptive_gain": 20,
+                    "default_control_setting": [
+                      0.9994258690400089,
+                      1.0294258690400089,
+                      1.0294258690400089,
+                      1.0594258690400091,
+                      1.0894258690400092
+                    ],
+                    "delay_timer": 60,
+                    "low_pass_filter_measure": 1.1323512819076382,
+                    "low_pass_filter_output": 0.19687332884127617,
+                    "threshold": 0.05
+                  },
+                  "hack": [
+                    250,
+                    0.45,
+                    500
+                  ],
+                  "name": "inverter_s736b",
+                  "type": "pv_device"
+                }
+              ],
+              "load_profile": null,
+              "name": "s736b"
+            },
+            {
+              "devices": [
+                {
+                  "adversary_controller": "adaptive_fixed_controller",
+                  "adversary_custom_configs": {
+                    "default_control_setting": [
+                      1.014,
+                      1.015,
+                      1.015,
+                      1.016,
+                      1.017
+                    ]
+                  },
+                  "controller": "rl_controller",
+                  "custom_configs": {
+                    "adaptive_gain": 20,
+                    "default_control_setting": [
+                      0.9534740387633488,
+                      0.9834740387633488,
+                      0.9834740387633488,
+                      1.0134740387633487,
+                      1.0434740387633488
+                    ],
+                    "delay_timer": 60,
+                    "low_pass_filter_measure": 1.2431652541909308,
+                    "low_pass_filter_output": 0.20947118870255602,
+                    "threshold": 0.05
+                  },
+                  "hack": [
+                    250,
+                    0.45,
+                    500
+                  ],
+                  "name": "inverter_s737a",
+                  "type": "pv_device"
+                }
+              ],
+              "load_profile": null,
+              "name": "s737a"
+            },
+            {
+              "devices": [
+                {
+                  "adversary_controller": "adaptive_fixed_controller",
+                  "adversary_custom_configs": {
+                    "default_control_setting": [
+                      1.014,
+                      1.015,
+                      1.015,
+                      1.016,
+                      1.017
+                    ]
+                  },
+                  "controller": "rl_controller",
+                  "custom_configs": {
+                    "adaptive_gain": 20,
+                    "default_control_setting": [
+                      1.0106252042503694,
+                      1.0406252042503694,
+                      1.0406252042503694,
+                      1.0706252042503694,
+                      1.1006252042503697
+                    ],
+                    "delay_timer": 60,
+                    "low_pass_filter_measure": 0.959901674547617,
+                    "low_pass_filter_output": 0.21683809103608714,
+                    "threshold": 0.05
+                  },
+                  "hack": [
+                    250,
+                    0.45,
+                    500
+                  ],
+                  "name": "inverter_s738a",
+                  "type": "pv_device"
+                }
+              ],
+              "load_profile": null,
+              "name": "s738a"
+            },
+            {
+              "devices": [
+                {
+                  "adversary_controller": "adaptive_fixed_controller",
+                  "adversary_custom_configs": {
+                    "default_control_setting": [
+                      1.014,
+                      1.015,
+                      1.015,
+                      1.016,
+                      1.017
+                    ]
+                  },
+                  "controller": "rl_controller",
+                  "custom_configs": {
+                    "adaptive_gain": 20,
+                    "default_control_setting": [
+                      0.9636906683132482,
+                      0.9936906683132484,
+                      0.9936906683132484,
+                      1.0236906683132485,
+                      1.0536906683132483
+                    ],
+                    "delay_timer": 60,
+                    "low_pass_filter_measure": 1.0154618574169065,
+                    "low_pass_filter_output": 0.20913501683921976,
+                    "threshold": 0.05
+                  },
+                  "hack": [
+                    250,
+                    0.45,
+                    500
+                  ],
+                  "name": "inverter_s740c",
+                  "type": "pv_device"
+                }
+              ],
+              "load_profile": null,
+              "name": "s740c"
+            },
+            {
+              "devices": [
+                {
+                  "adversary_controller": "adaptive_fixed_controller",
+                  "adversary_custom_configs": {
+                    "default_control_setting": [
+                      1.014,
+                      1.015,
+                      1.015,
+                      1.016,
+                      1.017
+                    ]
+                  },
+                  "controller": "rl_controller",
+                  "custom_configs": {
+                    "adaptive_gain": 20,
+                    "default_control_setting": [
+                      0.9882595729786696,
+                      1.0182595729786696,
+                      1.0182595729786696,
+                      1.0482595729786697,
+                      1.0782595729786697
+                    ],
+                    "delay_timer": 60,
+                    "low_pass_filter_measure": 1.4435715097509378,
+                    "low_pass_filter_output": 0.23288005796920863,
+                    "threshold": 0.05
+                  },
+                  "hack": [
+                    250,
+                    0.45,
+                    500
+                  ],
+                  "name": "inverter_s741c",
+                  "type": "pv_device"
+                }
+              ],
+              "load_profile": null,
+              "name": "s741c"
+            },
+            {
+              "devices": [
+                {
+                  "adversary_controller": "adaptive_fixed_controller",
+                  "adversary_custom_configs": {
+                    "default_control_setting": [
+                      1.014,
+                      1.015,
+                      1.015,
+                      1.016,
+                      1.017
+                    ]
+                  },
+                  "controller": "rl_controller",
+                  "custom_configs": {
+                    "adaptive_gain": 20,
+                    "default_control_setting": [
+                      0.9858504862605592,
+                      1.0158504862605593,
+                      1.0158504862605593,
+                      1.045850486260559,
+                      1.0758504862605591
+                    ],
+                    "delay_timer": 60,
+                    "low_pass_filter_measure": 1.4298662013774517,
+                    "low_pass_filter_output": 0.188713621783588,
+                    "threshold": 0.05
+                  },
+                  "hack": [
+                    250,
+                    0.45,
+                    500
+                  ],
+                  "name": "inverter_s742a",
+                  "type": "pv_device"
+                }
+              ],
+              "load_profile": null,
+              "name": "s742a"
+            },
+            {
+              "devices": [
+                {
+                  "adversary_controller": "adaptive_fixed_controller",
+                  "adversary_custom_configs": {
+                    "default_control_setting": [
+                      1.014,
+                      1.015,
+                      1.015,
+                      1.016,
+                      1.017
+                    ]
+                  },
+                  "controller": "rl_controller",
+                  "custom_configs": {
+                    "adaptive_gain": 20,
+                    "default_control_setting": [
+                      0.9665629286295844,
+                      0.9965629286295844,
+                      0.9965629286295844,
+                      1.0265629286295843,
+                      1.0565629286295843
+                    ],
+                    "delay_timer": 60,
+                    "low_pass_filter_measure": 1.3839000023625283,
+                    "low_pass_filter_output": 0.18003493000598136,
+                    "threshold": 0.05
+                  },
+                  "hack": [
+                    250,
+                    0.45,
+                    500
+                  ],
+                  "name": "inverter_s742b",
+                  "type": "pv_device"
+                }
+              ],
+              "load_profile": null,
+              "name": "s742b"
+            },
+            {
+              "devices": [
+                {
+                  "adversary_controller": "adaptive_fixed_controller",
+                  "adversary_custom_configs": {
+                    "default_control_setting": [
+                      1.014,
+                      1.015,
+                      1.015,
+                      1.016,
+                      1.017
+                    ]
+                  },
+                  "controller": "rl_controller",
+                  "custom_configs": {
+                    "adaptive_gain": 20,
+                    "default_control_setting": [
+                      0.9875488199846794,
+                      1.0175488199846794,
+                      1.0175488199846794,
+                      1.0475488199846794,
+                      1.0775488199846794
+                    ],
+                    "delay_timer": 60,
+                    "low_pass_filter_measure": 1.3230757963140376,
+                    "low_pass_filter_output": 0.21522165426238418,
+                    "threshold": 0.05
+                  },
+                  "hack": [
+                    250,
+                    0.45,
+                    500
+                  ],
+                  "name": "inverter_s744a",
+                  "type": "pv_device"
+                }
+              ],
+              "load_profile": null,
+              "name": "s744a"
+            }
+          ],
+          "regulators": {
+            "forward_band": 2.0,
+            "max_tap_change": 0.0,
+            "tap_delay": 2.0,
+            "tap_number": 0.0
+          },
+          "start_end_time": [
+            100,
+            850
+          ]
+        },
+        "simulation_config": {
+          "custom_configs": {
+            "power_factor": 0.9,
+            "solution_control_mode": -1,
+            "solution_max_control_iterations": 1000000,
+            "solution_max_iterations": 30000,
+            "solution_mode": 1,
+            "solution_number": 1,
+            "solution_step_size": 1
+          },
+          "network_model_directory": "/home/toanngo/Documents/GitHub/ceds-cigar/pycigar/data/ieee37busdata/ieee37.dss"
+        },
+        "tune_search": false
+      },
+      "explore": false,
+      "seed": 42
+    },
+    "evaluation_interval": 1,
+    "evaluation_num_episodes": 2,
+    "evaluation_num_workers": 1,
+    "exploration_config": {
+      "type": "StochasticSampling"
+    },
+    "explore": true,
+    "gamma": 0.5,
+    "lambda": 0.95,
+    "log_level": "WARNING",
+    "lr": 0.0002,
+    "model": {
+      "fcnet_activation": "tanh",
+      "fcnet_hiddens": [
+        128,
+        64,
+        32
+      ],
+      "framestack": false,
+      "free_log_std": false,
+      "state_shape": null,
+      "use_lstm": false,
+      "vf_share_layers": true,
+      "zero_mean": true
+    },
+    "num_cpus_for_driver": 1,
+    "num_cpus_per_worker": 1,
+    "num_envs_per_worker": 1,
+    "num_workers": 1,
+    "sample_batch_size": 50,
+    "train_batch_size": 500,
+    "vf_clip_param": 100
+  },
+  "epochs": 1,
+  "save_path": "/home/toanngo/Documents/GitHub/ceds-cigar/pycigar/data/result/"
+}
