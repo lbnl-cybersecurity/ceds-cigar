@@ -3,9 +3,7 @@ import pandas as pd
 import numpy as np
 
 
-def input_parser(
-    misc_inputs_path, dss_path, load_solar_path, breakpoints_path=None, benchmark=False, percentage_hack=0.45, adv=False
-):
+def input_parser(misc_inputs_path, dss_path, load_solar_path, breakpoints_path=None, benchmark=False, percentage_hack=0.45, adv=False, norl_mode=False, vectorized_mode=False):
     """Take multiple .csv files and parse them into the .yml file that required by pycigar.
     Parameters
     ----------
@@ -40,6 +38,8 @@ def input_parser(
         'P': 10,  # weight for taking different action from last timestep action
         'Q': 0.5,
         'tune_search': False,
+        'vectorized_mode': False,
+
         'hack_setting': {'default_control_setting': [1.039, 1.04, 1.04, 1.041, 1.042]},
         'env_config': {'clip_actions': True, 'sims_per_step': 20},
         'attack_randomization': {'generator': 'AttackDefinitionGenerator'},
@@ -91,6 +91,7 @@ def input_parser(
     json_query['N'] = N
     json_query['P'] = P
     json_query['Q'] = Q
+    json_query['vectorized_mode'] = vectorized_mode
     json_query['scenario_config']['custom_configs']['load_scaling_factor'] = load_scaling_factor
     json_query['scenario_config']['custom_configs']['solar_scaling_factor'] = solar_scaling_factor
     json_query['scenario_config']['custom_configs']['power_factor'] = power_factor
@@ -125,6 +126,8 @@ def input_parser(
         device['name'] = 'inverter_' + node.lower()
         device['type'] = 'pv_device'
         device['controller'] = 'rl_controller'
+        if norl_mode:
+            device['controller'] = 'adaptive_inverter_controller'
         device['custom_configs'] = {}
         device['custom_configs']['default_control_setting'] = node_default_control_setting
         device['custom_configs']['delay_timer'] = 60
@@ -133,15 +136,14 @@ def input_parser(
         device['custom_configs']['is_butterworth_filter'] = False
 
         if benchmark:
-            device['custom_configs']['low_pass_filter_measure'] = low_pass_filter_measure_mean
-            device['custom_configs']['low_pass_filter_output'] = low_pass_filter_output_mean
+            device['custom_configs']['low_pass_filter_measure_mean'] = low_pass_filter_measure_mean
+            device['custom_configs']['low_pass_filter_output_mean'] = low_pass_filter_output_mean
         else:
-            device['custom_configs']['low_pass_filter_measure'] = (
-                low_pass_filter_measure_std * np.random.randn() + low_pass_filter_measure_mean
-            )
-            device['custom_configs']['low_pass_filter_output'] = (
-                low_pass_filter_output_std * np.random.randn() + low_pass_filter_output_mean
-            )
+            device['custom_configs']['low_pass_filter_measure_mean'] = low_pass_filter_measure_mean
+            device['custom_configs']['low_pass_filter_output_mean'] = low_pass_filter_output_mean
+            device['custom_configs']['low_pass_filter_measure_std'] = low_pass_filter_measure_std
+            device['custom_configs']['low_pass_filter_output_std'] = low_pass_filter_output_std
+
         if not adv:
             device['adversary_controller'] = 'adaptive_fixed_controller'
         else:

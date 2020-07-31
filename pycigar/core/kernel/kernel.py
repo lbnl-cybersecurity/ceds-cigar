@@ -8,6 +8,7 @@ import numpy as np
 import random
 import pandas as pd
 from pycigar.utils.logging import logger
+from pycigar.devices.vectorized_pv_inverter_device import VectorizedPVDevice
 
 
 class Kernel(object):
@@ -137,6 +138,9 @@ class Kernel(object):
             self.node.update(reset)
             self.simulation.update(reset)
             self.scenario.update(reset)
+
+            if self.sim_params['vectorized_mode']:
+                self.device.vectorized_pv_inverter_device.reset()
 
             self.warm_up_k_step(50)
             logger().set_active()

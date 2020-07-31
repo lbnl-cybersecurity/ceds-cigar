@@ -63,10 +63,8 @@ class PyCIGAROpenDSSAPI(object):
         dss.Loads.Name(node_id)
         voltage = dss.CktElement.VoltagesMagAng()
         # print(voltage, node_id, dss.CktElement.NumPhases())
-        if len(voltage) == 6:
-            voltage = (voltage[0] + voltage[2] + voltage[4]) / (
-                dss.CktElement.NumPhases() * (dss.Loads.kV() * 1000 / (3 ** 0.5))
-            )
+        if len(voltage) == 6 or len(voltage) == 8:
+            voltage = (voltage[0] + voltage[2] + voltage[4]) / (dss.CktElement.NumPhases() * (dss.Loads.kV() * 1000 / (3**0.5)))
         else:
             if node_id[-1] == 'a':
                 voltage = (voltage[0]) / (dss.CktElement.NumPhases() * (dss.Loads.kV() * 1000 / (3 ** 0.5)))

@@ -253,52 +253,16 @@ class OpenDSSScenario(KernelScenario):
                 if 'adversary' not in device_id:
                     node_id = self.master_kernel.device.get_node_connected_to(device_id)
                     percentage_control = self.master_kernel.device.get_device(device_id).percentage_control
-                    solar = (
-                        np.array(profile[node_id + '_pv'])[start_time:end_time]
-                        * solar_scaling_factor
-                        * percentage_control
-                    )
+                    solar = np.array(profile[node_id + '_pv'])[start_time:end_time] * solar_scaling_factor * percentage_control
+                    sbar = np.max(np.array(profile[node_id + '_pv']) * solar_scaling_factor * percentage_control)
                     self.master_kernel.device.set_device_internal_scenario(device_id, solar)
+                    self.master_kernel.device.set_device_sbar(device_id, sbar)
 
                     device_id = 'adversary_' + device_id
                     node_id = self.master_kernel.device.get_node_connected_to(device_id)
                     percentage_control = self.master_kernel.device.get_device(device_id).percentage_control
-                    solar = (
-                        np.array(profile[node_id + '_pv'])[start_time:end_time]
-                        * solar_scaling_factor
-                        * percentage_control
-                    )
+
+                    solar = np.array(profile[node_id + '_pv'])[start_time:end_time] * solar_scaling_factor * percentage_control
+                    sbar = np.max(np.array(profile[node_id + '_pv']) * solar_scaling_factor * percentage_control)
                     self.master_kernel.device.set_device_internal_scenario(device_id, solar)
-        else:
-            if network_data_directory_path is None:
-                raise ValueError("Directory to load-solar profiles needed.")
-
-            profile = pd.read_csv(network_data_directory_path)
-            profile.columns = map(str.lower, profile.columns)
-            for node in self.master_kernel.node.get_node_ids():
-                node_id = node
-                load = np.array(profile[node_id])[start_time:end_time] * load_scaling_factor
-                self.master_kernel.node.set_node_load(node_id, load)
-
-            list_pv_device_ids = self.master_kernel.device.get_pv_device_ids()
-
-            for device_id in list_pv_device_ids:
-                if 'adversary' not in device_id:
-                    node_id = self.master_kernel.device.get_node_connected_to(device_id)
-                    percentage_control = self.master_kernel.device.get_device(device_id).percentage_control
-                    solar = (
-                        np.array(profile[node_id + '_pv'])[start_time:end_time]
-                        * solar_scaling_factor
-                        * percentage_control
-                    )
-                    self.master_kernel.device.set_device_internal_scenario(device_id, solar)
-
-                    device_id = 'adversary_' + device_id
-                    node_id = self.master_kernel.device.get_node_connected_to(device_id)
-                    percentage_control = self.master_kernel.device.get_device(device_id).percentage_control
-                    solar = (
-                        np.array(profile[node_id + '_pv'])[start_time:end_time]
-                        * solar_scaling_factor
-                        * percentage_control
-                    )
-                    self.master_kernel.device.set_device_internal_scenario(device_id, solar)
+                    self.master_kernel.device.set_device_sbar(device_id, sbar)
