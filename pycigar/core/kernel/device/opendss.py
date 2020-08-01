@@ -7,6 +7,7 @@ from pycigar.utils.pycigar_registration import pycigar_make
 
 from pycigar.controllers import AdaptiveInverterController
 from pycigar.controllers import FixedController
+
 # from pycigar.controllers import MimicController
 from pycigar.controllers import AdaptiveFixedController
 from pycigar.controllers import UnbalancedFixedController
@@ -92,8 +93,20 @@ class OpenDSSDevice(KernelDevice):
         """See parent class."""
         self.kernel_api = kernel_api
 
+<<<<<<< HEAD
     def add(self, name, connect_to, device=('pv_device', {}), controller=('adaptive_inverter_controller', {}),
             adversary_controller=None, hack=None):
+=======
+    def add(
+        self,
+        name,
+        connect_to,
+        device=(PVDevice, {}),
+        controller=(AdaptiveInverterController, {}),
+        adversary_controller=None,
+        hack=None,
+    ):
+>>>>>>> f75691f1fe7fd0f53131b0e578627e6cf063730a
         """Add a new device with controller into the grid connecting to a node.
 
         If not specifying the adversarial controller and hack, it implies that
@@ -152,12 +165,21 @@ class OpenDSSDevice(KernelDevice):
         else:
             self.devcon_ids['norl_devcon'].append(device_id)
 
+<<<<<<< HEAD
+=======
+        if controller[0] == AdaptiveInverterController:
+            self.adaptive_device_ids.append(device_id)
+        elif (
+            controller[0] == FixedController
+            or controller[0] == AdaptiveFixedController
+            or controller[0] == UnbalancedFixedController
+        ):
+            self.fixed_device_ids.append(device_id)
+        elif controller[0] == RLController:
+            self.rl_device_ids.append(device_id)
+>>>>>>> f75691f1fe7fd0f53131b0e578627e6cf063730a
 
-        self.devices[device_id] = {
-            "device": device_obj,
-            "controller": controller_obj,
-            "node_id": connect_to
-        }
+        self.devices[device_id] = {"device": device_obj, "controller": controller_obj, "node_id": connect_to}
 
         # create adversarial controller
 
@@ -171,6 +193,7 @@ class OpenDSSDevice(KernelDevice):
             else:
                 self.device_ids[device[0]].append(adversary_device_id)
 
+<<<<<<< HEAD
             adversary_controller_obj = pycigar_make(adversary_controller[0], device_id=adversary_device_id, additional_params=adversary_controller[1])
 
             if controller[0] == 'rl_controller':
@@ -178,12 +201,32 @@ class OpenDSSDevice(KernelDevice):
             else:
                 self.devcon_ids['norl_devcon'].append(adversary_device_id)
 
+=======
+            adversary_controller_obj = adversary_controller[0](adversary_device_id, adversary_controller[1])
+
+            if adversary_controller[0] == AdaptiveInverterController:
+                self.adaptive_device_ids.append(adversary_device_id)
+            if (
+                adversary_controller[0] == FixedController
+                or adversary_controller[0] == AdaptiveFixedController
+                or adversary_controller[0] == UnbalancedFixedController
+            ):
+                self.fixed_device_ids.append(adversary_device_id)
+            if adversary_controller[0] == RLController:
+                self.rl_device_ids.append(adversary_device_id)
+>>>>>>> f75691f1fe7fd0f53131b0e578627e6cf063730a
 
             self.devices[adversary_device_id] = {
                 "device": adversary_device_obj,
                 "controller": adversary_controller_obj,
                 "node_id": connect_to,
+<<<<<<< HEAD
                 "hack_controller": pycigar_make('fixed_controller', device_id=adversary_device_id, additional_params=controller[1])  # MimicController(adversary_device_id, device_id)    #AdaptiveInverterController(adversary_device_id, controller[1])
+=======
+                "hack_controller": FixedController(
+                    adversary_device_id, controller[1]
+                ),  # MimicController(adversary_device_id, device_id)    #AdaptiveInverterController(adversary_device_id, controller[1])
+>>>>>>> f75691f1fe7fd0f53131b0e578627e6cf063730a
             }
         else:
             adversary_device_id = "adversary_%s" % name
@@ -202,7 +245,13 @@ class OpenDSSDevice(KernelDevice):
                 "device": adversary_device_obj,
                 "controller": adversary_controller_obj,
                 "node_id": connect_to,
+<<<<<<< HEAD
                 "hack_controller": pycigar_make('fixed_controller', device_id=adversary_device_id, additional_params=controller[1])  # MimicController(adversary_device_id, device_id)    #AdaptiveInverterController(adversary_device_id, controller[1])
+=======
+                "hack_controller": FixedController(
+                    adversary_device_id, controller[1]
+                ),  # MimicController(adversary_device_id, device_id)    #AdaptiveInverterController(adversary_device_id, controller[1])
+>>>>>>> f75691f1fe7fd0f53131b0e578627e6cf063730a
             }
 
         return adversary_device_id
@@ -242,6 +291,7 @@ class OpenDSSDevice(KernelDevice):
                         self.devices[device]['device'].update(self.master_kernel)
 
     def update_kernel_device_info(self, device_id):
+<<<<<<< HEAD
         if isinstance(self.devices[device_id]["controller"], RLController):
             self.devcon_ids['rl_devcon'].append(device_id)
             if device_id in self.devcon_ids['norl_devcon']:
@@ -250,6 +300,26 @@ class OpenDSSDevice(KernelDevice):
             self.devcon_ids['norl_devcon'].append(device_id)
             if device_id in self.devcon_ids['rl_devcon']:
                 self.devcon_ids['rl_devcon'].remove(device_id)
+=======
+        if device_id in self.pv_device_ids:
+            if isinstance(self.devices[device_id]["controller"], RLController):
+                self.rl_device_ids.append(device_id)
+                if device_id in self.fixed_device_ids:
+                    self.fixed_device_ids.remove(device_id)
+                if device_id in self.adaptive_device_ids:
+                    self.adaptive_device_ids.remove(device_id)
+            elif isinstance(self.devices[device_id]["controller"], FixedController) or isinstance(
+                self.devices[device_id]["controller"], AdaptiveFixedController
+            ):
+                self.fixed_device_ids.append(device_id)
+                if device_id in self.rl_device_ids:
+                    self.rl_device_ids.remove(device_id)
+                if device_id in self.adaptive_device_ids:
+                    self.adaptive_device_ids.remove(device_id)
+
+    def get_regulator_device_ids(self):
+        return self.regulator_device_ids
+>>>>>>> f75691f1fe7fd0f53131b0e578627e6cf063730a
 
     def get_pv_device_ids(self):
         """Return the list  of PV device ids controlled by RL agents.
@@ -371,7 +441,9 @@ class OpenDSSDevice(KernelDevice):
         float
             The relative power set
         """
-        return (abs(self.devices[device_id]['device'].Sbar ** 2 - max(10, self.devices[device_id]['device'].solar_irr) ** 2)) ** (1 / 2)
+        return (
+            abs(self.devices[device_id]['device'].Sbar ** 2 - max(10, self.devices[device_id]['device'].solar_irr) ** 2)
+        ) ** (1 / 2)
 
     def get_device_p_injection(self, device_id):
         """Return the device's power injection at the current timestep.
@@ -508,9 +580,9 @@ class OpenDSSDevice(KernelDevice):
             device_id = [device_id]
             control_setting = [control_setting]
 
-        for i, device_id in enumerate(device_id):
+        for i, d_id in enumerate(device_id):
             if control_setting[i] is not None:
-                device = self.devices[device_id]['device']
+                device = self.devices[d_id]['device']
                 device.set_control_setting(control_setting[i])
 
                 if self.master_kernel.sim_params['vectorized_mode']:

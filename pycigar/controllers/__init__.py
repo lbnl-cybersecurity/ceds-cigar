@@ -9,9 +9,13 @@ from pycigar.controllers.unbalanced_fixed_controller import UnbalancedFixedContr
 from pycigar.utils.pycigar_registration import pycigar_register, pycigar_make, pycigar_spec
 
 __all__ = [
-    "RLController", "BaseController",
-    "FixedController", "MimicController", "AdaptiveFixedController",
-    "AdaptiveInverterController", "UnbalancedFixedController"
+    "RLController",
+    "BaseController",
+    "FixedController",
+    "MimicController",
+    "AdaptiveFixedController",
+    "AdaptiveInverterController",
+    "UnbalancedFixedController",
 ]
 
 pycigar_register(

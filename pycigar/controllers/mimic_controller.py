@@ -14,10 +14,7 @@ class MimicController(BaseController):
 
     def __init__(self, device_id, host_device_id):
         """Instantiate an fixed Controller."""
-        BaseController.__init__(
-            self,
-            device_id
-        )
+        BaseController.__init__(self, device_id)
         self.host_device_id = host_device_id
 
     def get_action(self, env):

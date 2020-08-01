@@ -15,10 +15,7 @@ class UnbalancedFixedController(BaseController):
 
     def __init__(self, device_id, additional_params):
         """Instantiate an fixed Controller."""
-        BaseController.__init__(
-            self,
-            device_id
-        )
+        BaseController.__init__(self, device_id)
         self.additional_params = additional_params
         self.trigger = False
         self.hack_curve_all = np.array([1.01, 1.04, 1.04, 1.07, 1.09])

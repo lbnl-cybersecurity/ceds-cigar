@@ -4,8 +4,8 @@ protobuf
 opencv-python
 ray==0.8.6
 gym
-numpy
-scipy==1.5.2
+numpy<1.19.0
+scipy==1.4.1
 lxml
 pyprind
 nose2

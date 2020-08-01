@@ -4,6 +4,7 @@ from gym.spaces.box import Box
 from pycigar.envs.base import Env
 from pycigar.utils.logging import logger
 from copy import deepcopy
+import time
 
 class CentralEnv(Env):
     def __init__(self, *args, **kwargs):
@@ -11,8 +12,7 @@ class CentralEnv(Env):
 
     @property
     def observation_space(self):
-        return Box(low=-float('inf'), high=float('inf'),
-                   shape=(5,), dtype=np.float64)
+        return Box(low=-float('inf'), high=float('inf'), shape=(5,), dtype=np.float64)
 
     @property
     def action_space(self):
@@ -20,10 +20,24 @@ class CentralEnv(Env):
 
     def _apply_rl_actions(self, rl_actions):
         if rl_actions:
-                self.k.device.apply_control(list(rl_actions.keys()), list(rl_actions.values()))
+            self.k.device.apply_control(list(rl_actions.keys()), list(rl_actions.values()))
 
     def step(self, rl_actions, randomize_rl_update=None):
-        """See parent class.
+
+        """Move the environment one step forward.
+
+        Parameters
+        ----------
+        rl_actions : dict
+            A dictionary of actions of each agents controlled by RL algorithms.
+
+        Returns
+        -------
+        Tuple
+            A tuple of (obs, reward, done, infos).
+            obs: a dictionary of new observation from the environment.
+            reward: a dictionary of reward received by agents.
+            done: bool
         """
         observations = []
         self.old_actions = {}
@@ -44,10 +58,11 @@ class CentralEnv(Env):
             rl_actions = self.old_actions
 
         for _ in range(self.sim_params['env_config']["sims_per_step"]):
+            start_time = time.time()
             self.env_time += 1
             rl_ids_key = np.array(self.k.device.get_rl_device_ids())[randomize_rl_update == 0]
             randomize_rl_update -= 1
-            rl_dict = {k:rl_actions[k] for k in rl_ids_key}
+            rl_dict = {k: rl_actions[k] for k in rl_ids_key}
             self.apply_rl_actions(rl_dict)
 
             # perform action update for PV inverter device
@@ -73,21 +88,29 @@ class CentralEnv(Env):
             if self.k.time >= self.k.t:
                 break
 
+            if 'step_only_time' not in logger().custom_metrics:
+                logger().custom_metrics['step_only_time'] = 0
+            logger().custom_metrics['step_only_time'] += time.time() - start_time
+
         obs = {k: np.mean([d[k] for d in observations]) for k in observations[0]}
 
         # the episode will be finished if it is not converged.
         done = not converged or (self.k.time == self.k.t)
 
-        infos = {key: {'voltage': self.k.node.get_node_voltage(self.k.device.get_node_connected_to(key)),
-                       'y': obs['y'],
-                       'u': obs['u'],
-                       'p_inject': self.k.device.get_device_p_injection(key),
-                       'p_max': self.k.device.get_device_p_injection(key),
-                       'env_time': self.env_time,
-                       'p_set': obs['p_set'],
-                       'p_set_p_max': obs['p_set_p_max'],
-                       'sbar_solar_irr': obs['sbar_solar_irr'],
-                       } for key in self.k.device.get_rl_device_ids()}
+        infos = {
+            key: {
+                'voltage': self.k.node.get_node_voltage(self.k.device.get_node_connected_to(key)),
+                'y': obs['y'],
+                'u': obs['u'],
+                'p_inject': self.k.device.get_device_p_injection(key),
+                'p_max': self.k.device.get_device_p_injection(key),
+                'env_time': self.env_time,
+                'p_set': obs['p_set'],
+                'p_set_p_max': obs['p_set_p_max'],
+                'sbar_solar_irr': obs['sbar_solar_irr'],
+            }
+            for key in self.k.device.get_rl_device_ids()
+        }
 
         for key in self.k.device.get_rl_device_ids():
             if self.old_actions is not None:
@@ -112,15 +135,17 @@ class CentralEnv(Env):
         obs = []
         for rl_id in self.k.device.get_rl_device_ids():
             connected_node = self.k.device.get_node_connected_to(rl_id)
-            obs.append({
-                'voltage': self.k.node.get_node_voltage(connected_node),
-                'solar_generation': self.k.device.get_solar_generation(rl_id),
-                'y': self.k.device.get_device_y(rl_id),
-                'u': self.k.device.get_device_u(rl_id),
-                'p_set_p_max': self.k.device.get_device_p_set_p_max(rl_id),
-                'sbar_solar_irr': self.k.device.get_device_sbar_solar_irr(rl_id),
-                'p_set': self.k.device.get_device_p_set_relative(rl_id)
-            })
+            obs.append(
+                {
+                    'voltage': self.k.node.get_node_voltage(connected_node),
+                    'solar_generation': self.k.device.get_solar_generation(rl_id),
+                    'y': self.k.device.get_device_y(rl_id),
+                    'u': self.k.device.get_device_u(rl_id),
+                    'p_set_p_max': self.k.device.get_device_p_set_p_max(rl_id),
+                    'sbar_solar_irr': self.k.device.get_device_sbar_solar_irr(rl_id),
+                    'p_set': self.k.device.get_device_p_set_relative(rl_id),
+                }
+            )
 
         if obs:
             return {k: np.mean([d[k] for d in obs]) for k in obs[0]}

@@ -41,41 +41,34 @@ def input_parser(misc_inputs_path, dss_path, load_solar_path, breakpoints_path=N
         'vectorized_mode': False,
 
         'hack_setting': {'default_control_setting': [1.039, 1.04, 1.04, 1.041, 1.042]},
-
-        'env_config': {
-            'clip_actions': True,
-            'sims_per_step': 35
-        },
-        'attack_randomization': {
-            'generator': 'AttackDefinitionGenerator'
-        },
+        'env_config': {'clip_actions': True, 'sims_per_step': 20},
+        'attack_randomization': {'generator': 'AttackDefinitionGenerator'},
         'simulation_config': {
             'network_model_directory': file_dss_path,
-            'custom_configs': {'solution_mode': 1,
-                              'solution_number': 1,
-                              'solution_step_size': 1,
-                              'solution_control_mode': -1,
-                              'solution_max_control_iterations': 1000000,
-                              'solution_max_iterations': 30000,
-                              'power_factor': 0.9},
+            'custom_configs': {
+                'solution_mode': 1,
+                'solution_number': 1,
+                'solution_step_size': 1,
+                'solution_control_mode': -1,
+                'solution_max_control_iterations': 1000000,
+                'solution_max_iterations': 30000,
+                'power_factor': 0.9,
+            },
         },
         'scenario_config': {
             'multi_config': True,
             'start_end_time': 750,
             'network_data_directory': file_load_solar_path,
-            'custom_configs': {'load_scaling_factor': 1.5,
-                             'solar_scaling_factor': 3,
-                             'slack_bus_voltage': 1.02,  # default 1.04
-                             'load_generation_noise': False,
-                             'power_factor': 0.9},
+            'custom_configs': {
+                'load_scaling_factor': 1.5,
+                'solar_scaling_factor': 3,
+                'slack_bus_voltage': 1.02,  # default 1.04
+                'load_generation_noise': False,
+                'power_factor': 0.9,
+            },
             'nodes': [],
-            'regulators': {
-                'max_tap_change': 30,
-                'forward_band': 16,
-                'tap_number': 2,
-                'tap_delay': 0
-            }
-        }
+            'regulators': {'max_tap_change': 30, 'forward_band': 16, 'tap_number': 2, 'tap_delay': 0},
+        },
     }
 
     # read misc_input
@@ -109,11 +102,13 @@ def input_parser(misc_inputs_path, dss_path, load_solar_path, breakpoints_path=N
     low_pass_filter_measure_std = misc_inputs_data['measurement filter time constant std'][1]
     low_pass_filter_output_mean = misc_inputs_data['output filter time constant mean'][1]
     low_pass_filter_output_std = misc_inputs_data['output filter time constant std'][1]
-    default_control_setting = [misc_inputs_data['bp1 default'][1],
-                               misc_inputs_data['bp2 default'][1],
-                               misc_inputs_data['bp3 default'][1],
-                               misc_inputs_data['bp4 default'][1],
-                               misc_inputs_data['bp5 default'][1]]
+    default_control_setting = [
+        misc_inputs_data['bp1 default'][1],
+        misc_inputs_data['bp2 default'][1],
+        misc_inputs_data['bp3 default'][1],
+        misc_inputs_data['bp4 default'][1],
+        misc_inputs_data['bp5 default'][1],
+    ]
 
     # read load_solar_data & read
     load_solar_data = pd.read_csv(file_load_solar_path)

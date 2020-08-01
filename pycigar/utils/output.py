@@ -1,8 +1,9 @@
-from pycigar.utils.logging import logger
-from pycigar.envs.wrappers.wrappers_constants import ACTION_RANGE
-import matplotlib.pyplot as plt
 import os
+
+import matplotlib.pyplot as plt
 import numpy as np
+from pycigar.envs.wrappers.wrappers_constants import ACTION_RANGE
+from pycigar.utils.logging import logger
 
 BASE_VOLTAGE = 120
 
@@ -147,20 +148,32 @@ def pycigar_output_specs(env):
     loss_p = np.array(log_dict['network']['loss'])[:, 0]
     output_specs['Consumption']['Power Substation (W)'] = substation_p.tolist()
     output_specs['Consumption']['Losses Total (W)'] = loss_p.tolist()
-    output_specs['Substation Power Factor (%)'] = (substation_p / np.sqrt(substation_p**2 + substation_q**2)).tolist()
-    output_specs['Consumption']['DG Output (W)'] = np.sum(np.array([log_dict[node]['p'] for node in node_ids]), axis=0).tolist()
+    output_specs['Substation Power Factor (%)'] = (
+        substation_p / np.sqrt(substation_p ** 2 + substation_q ** 2)
+    ).tolist()
+    output_specs['Consumption']['DG Output (W)'] = np.sum(
+        np.array([log_dict[node]['p'] for node in node_ids]), axis=0
+    ).tolist()
     output_specs['Substation Top Voltage(V)'] = np.array(log_dict['network']['substation_top_voltage']).tolist()
     output_specs['Substation Bottom Voltage(V)'] = np.array(log_dict['network']['substation_bottom_voltage']).tolist()
 
     for inverter_name in output_specs['Inverter Outputs'].keys():
         node_id = env.k.device.get_node_connected_to(inverter_name)
-        output_specs['Inverter Outputs'][inverter_name]['Voltage (V)'] = (np.array(log_dict[node_id]['voltage']) * BASE_VOLTAGE).tolist()
-        output_specs['Inverter Outputs'][inverter_name]['Power Output (W)'] = np.array(log_dict[inverter_name]['p_out']).tolist()
-        output_specs['Inverter Outputs'][inverter_name]['Reactive Power Output (VAR)'] = np.array(log_dict[inverter_name]['q_out']).tolist()
+        output_specs['Inverter Outputs'][inverter_name]['Voltage (V)'] = (
+            np.array(log_dict[node_id]['voltage']) * BASE_VOLTAGE
+        ).tolist()
+        output_specs['Inverter Outputs'][inverter_name]['Power Output (W)'] = np.array(
+            log_dict[inverter_name]['p_out']
+        ).tolist()
+        output_specs['Inverter Outputs'][inverter_name]['Reactive Power Output (VAR)'] = np.array(
+            log_dict[inverter_name]['q_out']
+        ).tolist()
 
     for regulator_name in output_specs['Regulator_testReg'].keys():
         if regulator_name != 'RegPhases':
-            output_specs['Regulator_testReg'][regulator_name] = np.array(log_dict[regulator_name]['tap_number']).tolist()
+            output_specs['Regulator_testReg'][regulator_name] = np.array(
+                log_dict[regulator_name]['tap_number']
+            ).tolist()
 
         val_max = None
         val_min = None
@@ -184,7 +197,7 @@ def pycigar_output_specs(env):
     return output_specs
 
 
-def plot_new(log_dict, custom_metrics, epoch='', unbalance=False):
+def plot_new(log_dict, custom_metrics, epoch='', unbalance=False, multiagent=False):
     def get_translation_and_slope(a_val, init_a):
         points = np.array(a_val)
         slope = points[:, 1] - points[:, 0]
@@ -196,43 +209,124 @@ def plot_new(log_dict, custom_metrics, epoch='', unbalance=False):
 
     if not unbalance:
         inv_k = next(k for k in log_dict if 'inverter' in k)
-        f, ax = plt.subplots(5, figsize=(25, 20))
-        title = '[epoch {}] total reward: {:.2f}'.format(epoch, sum(log_dict[inv_k]['reward']))
+        f, ax = plt.subplots(7, 2, figsize=(30, 40))
+        title = '[epoch {}][time {}][hack {}] total reward: {:.2f}'.format(
+            epoch, custom_metrics['start_time'], custom_metrics['hack'], sum(log_dict[inv_k]['reward'])
+        )
         f.suptitle(title)
-        ax[0].plot(log_dict[log_dict[inv_k]['node']]['voltage'], color='tab:blue', label='voltage')
+        ax[0, 0].plot(log_dict[log_dict[inv_k]['node']]['voltage'], color='tab:blue', label='voltage')
 
-        ax[1].plot(log_dict[inv_k]['y'], color='tab:blue', label='oscillation observer')
+        ax[1, 0].plot(log_dict[inv_k]['y'], color='tab:blue', label='oscillation observer')
 
-        ax[2].plot(log_dict[inv_k]['q_set'], color='tab:blue', label='q_set')
-        ax[2].plot(log_dict[inv_k]['q_out'], color='tab:orange', label='q_val')
+        ax[2, 0].plot(log_dict[inv_k]['q_set'], color='tab:blue', label='q_set')
+        ax[2, 0].plot(log_dict[inv_k]['q_out'], color='tab:orange', label='q_val')
 
-        translation, slope = get_translation_and_slope(log_dict[inv_k]['control_setting'], custom_metrics['init_control_settings'][inv_k])
-        ax[3].plot(translation, color='tab:blue', label='RL translation')
-        ax[3].plot(slope, color='tab:purple', label='RL slope (a2-a1)')
+        for inv in log_dict:
+            if 'adversary_' not in inv and 'inverter_' in inv:
+                translation, slope = get_translation_and_slope(
+                    log_dict[inv_k]['control_setting'], custom_metrics['init_control_settings'][inv_k]
+                )
+                ax[3, 0].plot(translation, color='tab:blue')
+                ax[3, 0].plot(slope, color='tab:purple')
+            elif 'adversary_' in inv:
+                translation, slope = get_translation_and_slope(
+                    log_dict['adversary_' + inv_k]['control_setting'],
+                    custom_metrics['init_control_settings']['adversary_' + inv_k],
+                )
+                ax[4, 0].plot(translation, color='tab:orange')
+                ax[4, 0].plot(slope, color='tab:red')
 
-        translation, slope = get_translation_and_slope(log_dict['adversary_' + inv_k]['control_setting'], custom_metrics['init_control_settings']['adversary_' + inv_k])
-        ax[4].plot(translation, color='tab:orange', label='hacked translation')
-        ax[4].plot(slope, color='tab:red', label='hacked slope (a2-a1)')
-        ax[0].set_ylim([0.93, 1.07])
-        ax[1].set_ylim([0, 0.8])
-        ax[2].set_ylim([-280, 280])
-        ax[3].set_ylim([-ACTION_RANGE*1.1, ACTION_RANGE*1.1])
-        ax[4].set_ylim([-ACTION_RANGE*1.1, ACTION_RANGE*1.1])
+        ax[5, 0].plot(log_dict[inv_k]['sbar_solarirr'], color='tab:blue', label='sbar solar irr')
+        ax[6, 0].plot(log_dict[inv_k]['sbar_pset'], color='tab:blue', label='sbar pset')
+
+        ax[0, 0].set_ylim([0.93, 1.07])
+        ax[1, 0].set_ylim([0, 0.8])
+        ax[2, 0].set_ylim([-280, 280])
+        ax[3, 0].set_ylim([-0.06, 0.06])
+        ax[4, 0].set_ylim([-0.06, 0.06])
+
+        for inv in log_dict:
+            if 'adversary_' not in inv and 'inverter_' in inv:
+                translation, slope = get_translation_and_slope(
+                    log_dict[inv_k]['control_setting'], custom_metrics['init_control_settings'][inv_k]
+                )
+                ax[0, 1].plot(translation, color='tab:blue')
+                ax[0, 1].plot(slope, color='tab:purple')
+            elif 'adversary_' in inv:
+                translation, slope = get_translation_and_slope(
+                    log_dict['adversary_' + inv_k]['control_setting'],
+                    custom_metrics['init_control_settings']['adversary_' + inv_k],
+                )
+                ax[1, 1].plot(translation, color='tab:orange')
+                ax[1, 1].plot(slope, color='tab:red')
+
+        ax[2, 1].plot(log_dict['component_observation']['component_y'], label='obs_component_y')
+        ax[3, 1].plot(log_dict['component_observation']['component_pset'], label='obs_component_pset')
+        ax[4, 1].plot(log_dict['component_observation']['component_ymax'], label='obs_component_ymax')
+        component_y = np.array(log_dict['component_reward']['component_y'])
+        component_oa = np.array(log_dict['component_reward']['component_oa'])
+        component_init = np.array(log_dict['component_reward']['component_init'])
+        component_pset_pmax = np.array(log_dict['component_reward']['component_pset_pmax'])
+
+        total_reward = component_y + component_oa + component_init + component_pset_pmax
+
+        ax[5, 1].plot(-component_y, label='abs_reward_component_y')
+        ax[5, 1].plot(-component_oa, label='abs_reward_component_oa')
+        ax[5, 1].plot(-component_init, label='abs_reward_component_init')
+        ax[5, 1].plot(-component_pset_pmax, label='abs_reward_component_pset_pmax')
+        ax[5, 1].plot(-total_reward, label='abs_total_reward')
+
+        x = range(len(component_y))
+        y_stack = np.cumsum(
+            np.array([component_y, component_oa, component_init, component_pset_pmax]), axis=0
+        )  # a 3x10 array
+        y_stack = y_stack / total_reward
+        ax[6, 1].fill_between(x, 0, y_stack[0, :], facecolor="#CC6666", alpha=0.7, label='reward_component_y')
+        ax[6, 1].fill_between(
+            x, y_stack[0, :], y_stack[1, :], facecolor="#1DACD6", alpha=0.7, label='reward_component_oa'
+        )
+        ax[6, 1].fill_between(x, y_stack[1, :], y_stack[2, :], facecolor="#6E5160", label='reward_component_init')
+        ax[6, 1].fill_between(x, y_stack[2, :], y_stack[3, :], facecolor="#E3F59C", label='reward_component_pset_pmax')
+
+        for i in range(7):
+            for j in range(2):
+                ax[i, j].grid(b=True, which='both')
+                ax[i, j].legend(loc=1, ncol=2)
+        ax[6, 1].legend(loc=4, ncol=2)
+
     else:
         inv_ks = [k for k in log_dict if k.startswith('inverter_s701') or k.startswith('inverter_s728')]
         regs = [k for k in log_dict if 'reg' in k]
         reg = regs[0] if regs else None
 
-        f, ax = plt.subplots(2 + len(inv_ks) + (reg is not None), figsize=(25, 8 + 4 * len(inv_ks) + 4 * (reg is not None)))
-        title = '[epoch {}] total reward: {:.2f}'.format(epoch, sum(log_dict[inv_ks[0]]['reward']))
+        f, ax = plt.subplots(
+            2 + len(inv_ks) + (reg is not None), figsize=(25, 8 + 4 * len(inv_ks) + 4 * (reg is not None))
+        )
+        title = '[epoch {}] total reward: {:.2f} || total unbalance: {:.4f}'.format(
+            epoch, sum(log_dict[inv_ks[0]]['reward']), sum(log_dict[inv_ks[0]]['u'])
+        )
         f.suptitle(title)
         for i, k in enumerate(inv_ks):
             ax[0].plot(log_dict[log_dict[k]['node']]['voltage'], label='voltage ({})'.format(k))
             ax[1].plot(log_dict[k]['u'], label='unbalance observer ({})'.format(k))
 
-            translation, slope = get_translation_and_slope(log_dict[k]['control_setting'], custom_metrics['init_control_settings'][k])
-            ax[2+i].plot(translation, label='RL translation ({})'.format(k))
-            ax[2+i].plot(slope, label='RL slope (a2-a1) ({})'.format(k))
+            if not multiagent:
+                translation, slope = get_translation_and_slope(
+                    log_dict[k]['control_setting'], custom_metrics['init_control_settings'][k]
+                )
+                ax[2 + i].plot(translation, label='RL translation ({})'.format(k))
+                ax[2 + i].plot(slope, label='RL slope (a2-a1) ({})'.format(k))
+
+        if multiagent:
+            phases = ['a', 'b', 'c']
+            for k in log_dict:
+                if k.startswith('inverter'):
+                    idx = phases.index(k[-1]) if k[-1] in phases else 3
+                    translation, slope = get_translation_and_slope(
+                        log_dict[k]['control_setting'], custom_metrics['init_control_settings'][k]
+                    )
+                    ax[2 + idx].plot(translation, label=k)
+                    #ax[2 + idx].plot(slope, label='RL slope (a2-a1) ({})'.format(k))
 
         if reg:
             ax[-1].plot(log_dict[reg]['tap_number'], label=reg)
@@ -241,57 +335,114 @@ def plot_new(log_dict, custom_metrics, epoch='', unbalance=False):
         ax[1].set_ylim([0, 0.1])
         ax[2].set_ylim([-280, 280])
         for i in range(len(inv_ks)):
-            ax[2+i].set_ylim([-ACTION_RANGE*1.1, ACTION_RANGE*1.1])
+            ax[2 + i].set_ylim([-ACTION_RANGE * 1.1, ACTION_RANGE * 1.1])
 
-    for a in ax:
-        a.grid(b=True, which='both')
-        a.legend(loc=1, ncol=2)
+        for a in ax:
+            a.grid(b=True, which='both')
+            a.legend(loc=1, ncol=2)
 
     plt.tight_layout()
     plt.subplots_adjust(top=0.95)
     return f
 
 
-def plot_adv(log_dict, custom_metrics, epoch='', unbalance=False):
+def plot_adv(
+    log_dict, custom_metrics, epoch='', unbalance=False, is_def_win='', num_def_win='', num_act='', train_policy=''
+):
 
     plt.rc('font', size=15)
     plt.rc('figure', titlesize=35)
 
-    if not unbalance:
-        inv_k = next(k for k in log_dict if 'inverter' in k)
-        f, ax = plt.subplots(5, figsize=(25, 20))
-        title = '[epoch {}] Defense reward: {:.2f}, Attack reward: {:.2f}'.format(epoch, sum(log_dict[inv_k]['reward']), sum(log_dict['adversary_' + inv_k]['reward']))
-        f.suptitle(title)
-        ax[0].plot(log_dict[log_dict[inv_k]['node']]['voltage'], color='tab:blue', label='voltage')
+    inv_k = next(k for k in log_dict if 'inverter' in k)
+    f, ax = plt.subplots(7, 2, figsize=(30, 40))
+    title = '[epoch {}][time {}][hack {}][def_win {}][{}/{}][policy {}] Defense reward: {:.2f}, Attack reward: {:.2f}'.format(
+        epoch,
+        custom_metrics['start_time'],
+        custom_metrics['hack'],
+        is_def_win,
+        num_def_win,
+        num_act,
+        train_policy,
+        sum(log_dict[inv_k]['reward']),
+        sum(log_dict['adversary_' + inv_k]['reward']),
+    )
+    f.suptitle(title)
+    ax[0, 0].plot(log_dict[log_dict[inv_k]['node']]['voltage'], color='tab:blue', label='voltage')
 
-        ax[1].plot(log_dict[inv_k]['y'], color='tab:blue', label='oscillation observer')
+    ax[1, 0].plot(log_dict[inv_k]['y'], color='tab:blue', label='oscillation observer')
 
-        ax[2].plot(log_dict[inv_k]['q_set'], color='tab:blue', label='q_set')
-        ax[2].plot(log_dict[inv_k]['q_out'], color='tab:orange', label='q_val')
+    ax[2, 0].plot(log_dict[inv_k]['q_set'], color='tab:blue', label='q_set')
+    ax[2, 0].plot(log_dict[inv_k]['q_out'], color='tab:orange', label='q_val')
 
-        labels = ['a1', 'a2', 'a3', 'a4', 'a5']
-        [a1, a2, a3, a4, a5] = ax[3].plot(log_dict[inv_k]['control_setting'])
-        ax[3].set_ylabel('action')
-        ax[3].grid(b=True, which='both')
-        ax[3].legend([a1, a2, a3, a4, a5], labels, loc=1)
+    labels = ['a1', 'a2', 'a3', 'a4', 'a5']
+    a1, a2, a3, a4, a5 = ax[3, 0].plot(log_dict[inv_k]['control_setting'])
+    ax[3, 0].set_ylabel('action')
+    ax[3, 0].grid(b=True, which='both')
+    ax[3, 0].legend([a1, a2, a3, a4, a5], labels, loc=1)
 
+    a1, a2, a3, a4, a5 = ax[4, 0].plot(log_dict['adversary_' + inv_k]['control_setting'])
+    ax[4, 0].set_ylabel('action')
+    ax[4, 0].grid(b=True, which='both')
+    ax[4, 0].legend([a1, a2, a3, a4, a5], labels, loc=1)
 
+    ax[5, 0].plot(log_dict[inv_k]['sbar_solarirr'], color='tab:blue', label='sbar solar irr')
+    ax[6, 0].plot(log_dict[inv_k]['sbar_pset'], color='tab:blue', label='sbar pset')
 
-        a1, a2, a3, a4, a5 = ax[4].plot(log_dict['adversary_' + inv_k]['control_setting'])
-        ax[4].set_ylabel('action')
-        ax[4].grid(b=True, which='both')
-        ax[4].legend([a1, a2, a3, a4, a5], labels, loc=1)
+    # ax[0].set_ylim([0.93, 1.07])
+    # ax[1].set_ylim([0, 0.8])
+    # ax[2].set_ylim([-280, 280])
+    # ax[3].set_ylim([-0.06, 0.06])
+    # ax[4].set_ylim([-0.06, 0.06])
+    labels = ['a1', 'a2', 'a3', 'a4', 'a5']
+    a1, a2, a3, a4, a5 = ax[0, 1].plot(log_dict[inv_k]['control_setting'])
+    ax[0, 1].set_ylabel('action')
+    ax[0, 1].grid(b=True, which='both')
+    ax[0, 1].legend([a1, a2, a3, a4, a5], labels, loc=1)
 
-        ax[0].set_ylim([0.93, 1.07])
-        ax[1].set_ylim([0, 0.8])
-        ax[2].set_ylim([-280, 280])
-        #ax[3].set_ylim([-0.06, 0.06])
-        #ax[4].set_ylim([-0.06, 0.06])
+    a1, a2, a3, a4, a5 = ax[1, 1].plot(log_dict['adversary_' + inv_k]['control_setting'])
+    ax[1, 1].set_ylabel('action')
+    ax[1, 1].grid(b=True, which='both')
+    ax[1, 1].legend([a1, a2, a3, a4, a5], labels, loc=1)
 
-    for a in ax:
-        a.grid(b=True, which='both')
-        a.legend(loc=1, ncol=2)
+    ax[2, 1].plot(log_dict['component_observation']['component_y'], label='obs_component_y')
+    ax[3, 1].plot(log_dict['component_observation']['component_pset'], label='obs_component_pset')
+    ax[4, 1].plot(log_dict['component_observation']['component_ymax'], label='obs_component_ymax')
+    component_y = np.array(log_dict['component_reward']['component_y'])
+    component_oa = np.array(log_dict['component_reward']['component_oa'])
+    component_init = np.array(log_dict['component_reward']['component_init'])
+    component_pset_pmax = np.array(log_dict['component_reward']['component_pset_pmax'])
 
+    total_reward = component_y + component_oa + component_init + component_pset_pmax
+
+    ax[5, 1].plot(-component_y, label='abs_reward_component_y')
+    ax[5, 1].plot(-component_oa, label='abs_reward_component_oa')
+    ax[5, 1].plot(-component_init, label='abs_reward_component_init')
+    ax[5, 1].plot(-component_pset_pmax, label='abs_reward_component_pset_pmax')
+    ax[5, 1].plot(-total_reward, label='abs_total_reward')
+
+    # x = range(len(component_y))
+    # y_stack = np.cumsum(np.array([component_y, component_oa, component_init, component_pset_pmax]), axis=0)   # a 3x10 array
+    # y_stack = y_stack/total_reward
+    # ax[6, 1].fill_between(x, 0, y_stack[0,:], facecolor="#CC6666", alpha=.7, label='reward_component_y')
+    # ax[6, 1].fill_between(x, y_stack[0,:], y_stack[1,:], facecolor="#1DACD6", alpha=.7, label='reward_component_oa')
+    # ax[6, 1].fill_between(x, y_stack[1,:], y_stack[2,:], facecolor="#6E5160", label='reward_component_init')
+    # ax[6, 1].fill_between(x, y_stack[2,:], y_stack[3,:], facecolor="#E3F59C", label='reward_component_pset_pmax')
+    adv_component_y = np.array(log_dict['adv_component_reward']['adv_component_y'])
+    adv_component_oa = np.array(log_dict['adv_component_reward']['adv_component_oa'])
+
+    total_reward = adv_component_y + adv_component_oa
+
+    ax[6, 1].plot(adv_component_y, label='abs_adv_reward_component_y')
+    ax[6, 1].plot(-adv_component_oa, label='abs_adv_reward_component_oa')
+    # ax[5, 1].plot(-component_init, label='abs_reward_component_init')
+    # ax[5, 1].plot(-component_pset_pmax, label='abs_reward_component_pset_pmax')
+    # ax[5, 1].plot(-total_reward, label='abs_total_reward')
+
+    for i in range(7):
+        for j in range(2):
+            ax[i, j].grid(b=True, which='both')
+            ax[i, j].legend(loc=1, ncol=2)
+    ax[6, 1].legend(loc=4, ncol=2)
     plt.tight_layout()
     plt.subplots_adjust(top=0.95)
     return f
