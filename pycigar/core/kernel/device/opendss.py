@@ -2,6 +2,8 @@ from pycigar.core.kernel.device import KernelDevice
 from pycigar.devices import PVDevice
 from pycigar.devices import RegulatorDevice
 from pycigar.devices.vectorized_pv_inverter_device import VectorizedPVDevice
+from pycigar.utils.pycigar_registration import pycigar_make
+
 
 from pycigar.controllers import AdaptiveInverterController
 from pycigar.controllers import FixedController
@@ -80,11 +82,17 @@ class OpenDSSDevice(KernelDevice):
 
         self.regulator_device_ids = []
 
+        self.device_ids = {}   #device id by type
+        self.devcon_ids = {
+            'rl_devcon': [],
+            'norl_devcon': []
+        }
+
     def pass_api(self, kernel_api):
         """See parent class."""
         self.kernel_api = kernel_api
 
-    def add(self, name, connect_to, device=(PVDevice, {}), controller=(AdaptiveInverterController, {}),
+    def add(self, name, connect_to, device=('pv_device', {}), controller=('adaptive_inverter_controller', {}),
             adversary_controller=None, hack=None):
         """Add a new device with controller into the grid connecting to a node.
 
@@ -130,18 +138,20 @@ class OpenDSSDevice(KernelDevice):
             device[1]["percentage_control"] = 1
         else:
             device[1]["percentage_control"] = 1 - hack[1]
-        device_obj = device[0](device_id, device[1])
-        if device[0] == PVDevice:
-            self.pv_device_ids.append(device_id)
 
-        controller_obj = controller[0](device_id, additional_params=controller[1])
+        device_obj = pycigar_make(device[0], device_id=device_id, additional_params=device[1])
+        if device[0] not in self.device_ids:
+            self.device_ids[device[0]] = [device_id]
+        else:
+            self.device_ids[device[0]].append(device_id)
 
-        if controller[0] == AdaptiveInverterController:
-            self.adaptive_device_ids.append(device_id)
-        elif controller[0] == FixedController or controller[0] == AdaptiveFixedController or controller[0] == UnbalancedFixedController:
-            self.fixed_device_ids.append(device_id)
-        elif controller[0] == RLController:
-            self.rl_device_ids.append(device_id)
+
+        controller_obj = pycigar_make(controller[0], device_id=device_id, additional_params=controller[1])
+        if controller[0] == 'rl_controller':
+            self.devcon_ids['rl_devcon'].append(device_id)
+        else:
+            self.devcon_ids['norl_devcon'].append(device_id)
+
 
         self.devices[device_id] = {
             "device": device_obj,
@@ -154,46 +164,46 @@ class OpenDSSDevice(KernelDevice):
         if adversary_controller is not None:
             adversary_device_id = "adversary_%s" % name
             device[1]["percentage_control"] = hack[1]
-            adversary_device_obj = device[0](adversary_device_id, device[1])
+            adversary_device_obj = pycigar_make(device[0], device_id=adversary_device_id, additional_params=device[1])
 
-            if device[0] == PVDevice:
-                self.pv_device_ids.append(adversary_device_id)
+            if device[0] not in self.device_ids:
+                self.device_ids[device[0]] = [adversary_device_id]
+            else:
+                self.device_ids[device[0]].append(adversary_device_id)
 
-            adversary_controller_obj = \
-                adversary_controller[0](adversary_device_id, adversary_controller[1])
+            adversary_controller_obj = pycigar_make(adversary_controller[0], device_id=adversary_device_id, additional_params=adversary_controller[1])
 
-            if adversary_controller[0] == AdaptiveInverterController:
-                self.adaptive_device_ids.append(adversary_device_id)
-            if adversary_controller[0] == FixedController or adversary_controller[0] == AdaptiveFixedController or adversary_controller[0] == UnbalancedFixedController:
-                self.fixed_device_ids.append(adversary_device_id)
-            if adversary_controller[0] == RLController:
-                self.rl_device_ids.append(adversary_device_id)
+            if controller[0] == 'rl_controller':
+                self.devcon_ids['rl_devcon'].append(adversary_device_id)
+            else:
+                self.devcon_ids['norl_devcon'].append(adversary_device_id)
+
 
             self.devices[adversary_device_id] = {
                 "device": adversary_device_obj,
                 "controller": adversary_controller_obj,
                 "node_id": connect_to,
-                "hack_controller": FixedController(adversary_device_id, controller[1])  # MimicController(adversary_device_id, device_id)    #AdaptiveInverterController(adversary_device_id, controller[1])
+                "hack_controller": pycigar_make('fixed_controller', device_id=adversary_device_id, additional_params=controller[1])  # MimicController(adversary_device_id, device_id)    #AdaptiveInverterController(adversary_device_id, controller[1])
             }
         else:
             adversary_device_id = "adversary_%s" % name
             device[1]["percentage_control"] = 0
-            adversary_device_obj = device[0](adversary_device_id, device[1])
+            adversary_device_obj = pycigar_make(device[0], device_id=adversary_device_id, additional_params=device[1])
 
-            if device[0] == PVDevice:
-                self.pv_device_ids.append(adversary_device_id)
+            if device[0] not in self.device_ids:
+                self.device_ids[device[0]] = [adversary_device_id]
+            else:
+                self.device_ids[device[0]].append(adversary_device_id)
 
-            adversary_controller_obj = FixedController(adversary_device_id, {})
-            self.fixed_device_ids.append(adversary_device_id)
+            adversary_controller_obj = pycigar_make('fixed_controller', device_id=adversary_device_id, additional_params={})
+            self.devcon_ids['norl_devcon'].append(adversary_device_id)
 
             self.devices[adversary_device_id] = {
                 "device": adversary_device_obj,
                 "controller": adversary_controller_obj,
                 "node_id": connect_to,
-                "hack_controller": FixedController(adversary_device_id, controller[1])  # MimicController(adversary_device_id, device_id)    #AdaptiveInverterController(adversary_device_id, controller[1])
+                "hack_controller": pycigar_make('fixed_controller', device_id=adversary_device_id, additional_params=controller[1])  # MimicController(adversary_device_id, device_id)    #AdaptiveInverterController(adversary_device_id, controller[1])
             }
-
-        self.all_device_ids.extend((device_id, adversary_device_id))
 
         return adversary_device_id
 
@@ -202,20 +212,16 @@ class OpenDSSDevice(KernelDevice):
         if reset is True:
             # reset device and controller
             for device_id in self.devices.keys():
-                if isinstance(self.devices[device_id]['device'], PVDevice):
-
-                    self.devices[device_id]['device'].reset()
+                self.devices[device_id]['device'].reset()
+                if 'controller' in self.devices[device_id]:
                     self.devices[device_id]['controller'].reset()
-                    if 'hack_controller' in self.devices[device_id]:
-                        self.devices[device_id]['hack_controller'].reset()
-                        temp = self.devices[device_id]['controller']
-                        self.devices[device_id]['controller'] = self.devices[device_id]['hack_controller']
-                        self.devices[device_id]['hack_controller'] = temp
+                if 'hack_controller' in self.devices[device_id]:
+                    self.devices[device_id]['hack_controller'].reset()
+                    temp = self.devices[device_id]['controller']
+                    self.devices[device_id]['controller'] = self.devices[device_id]['hack_controller']
+                    self.devices[device_id]['hack_controller'] = temp
 
-                        self.update_kernel_device_info(device_id)
-
-                elif isinstance(self.devices[device_id]['device'], RegulatorDevice):
-                    self.devices[device_id]['device'].reset()
+                    self.update_kernel_device_info(device_id)
 
             if self.master_kernel.sim_params['vectorized_mode']:
                 self.vectorized_pv_inverter_device = VectorizedPVDevice(self.master_kernel)
@@ -225,60 +231,51 @@ class OpenDSSDevice(KernelDevice):
             # update pv device
             if self.master_kernel.sim_params['vectorized_mode']:
                 self.vectorized_pv_inverter_device.update(self.master_kernel)
-            else:
-                for pv_device in self.pv_device_ids:
-                    self.devices[pv_device]["device"].update(self.master_kernel)
+                for device_type in self.device_ids:
+                    if device_type != 'pv_device':
+                        for device in self.device_ids[device_type]:
+                            self.devices[device]['device'].update(self.master_kernel)
 
-            for reg_device in self.regulator_device_ids:
-                self.devices[reg_device]["device"].update(self.master_kernel)
+            else:
+                for device_type in self.device_ids:
+                    for device in self.device_ids[device_type]:
+                        self.devices[device]['device'].update(self.master_kernel)
 
     def update_kernel_device_info(self, device_id):
-        if device_id in self.pv_device_ids:
-            if isinstance(self.devices[device_id]["controller"], RLController):
-                self.rl_device_ids.append(device_id)
-                if device_id in self.fixed_device_ids:
-                    self.fixed_device_ids.remove(device_id)
-                if device_id in self.adaptive_device_ids:
-                    self.adaptive_device_ids.remove(device_id)
-            elif isinstance(self.devices[device_id]["controller"], FixedController) or isinstance(self.devices[device_id]["controller"], AdaptiveFixedController):
-                self.fixed_device_ids.append(device_id)
-                if device_id in self.rl_device_ids:
-                    self.rl_device_ids.remove(device_id)
-                if device_id in self.adaptive_device_ids:
-                    self.adaptive_device_ids.remove(device_id)
-
-    def get_regulator_device_ids(self):
-        return self.regulator_device_ids
-
-    def get_adaptive_device_ids(self):
-        """Get all adaptive device ids, for both friendly adaptive device ids and adversarial adaptive device ids.
-
-        Returns
-        -------
-        List
-            List of all adaptive device ids
-        """
-        return self.adaptive_device_ids
-
-    def get_fixed_device_ids(self):
-        """Get all adaptive device ids, for both friendly adaptive device ids and adversarial adaptive device ids.
-
-        Returns
-        -------
-        List
-            List of all adaptive device ids
-        """
-        return self.fixed_device_ids
+        if isinstance(self.devices[device_id]["controller"], RLController):
+            self.devcon_ids['rl_devcon'].append(device_id)
+            if device_id in self.devcon_ids['norl_devcon']:
+                self.device_ids['norl_devcon'].remove(device_id)
+        else:
+            self.devcon_ids['norl_devcon'].append(device_id)
+            if device_id in self.devcon_ids['rl_devcon']:
+                self.devcon_ids['rl_devcon'].remove(device_id)
 
     def get_pv_device_ids(self):
-        """Return the list  of PV device ids.
+        """Return the list  of PV device ids controlled by RL agents.
 
         Returns
         -------
         list
-            List of PV device ids
+            List of RL device ids
         """
-        return self.pv_device_ids
+        if 'pv_device' in self.device_ids:
+            return self.device_ids['pv_device']
+        else:
+            return []
+
+    def get_regulator_device_ids(self):
+        """Return the list  of PV device ids controlled by RL agents.
+
+        Returns
+        -------
+        list
+            List of RL device ids
+        """
+        if 'pv_device' in self.device_ids:
+            return self.device_ids['regulator_device']
+        else:
+            return []
 
     def get_rl_device_ids(self):
         """Return the list  of PV device ids controlled by RL agents.
@@ -288,7 +285,17 @@ class OpenDSSDevice(KernelDevice):
         list
             List of RL device ids
         """
-        return self.rl_device_ids
+        return self.devcon_ids['rl_devcon']
+
+    def get_norl_device_ids(self):
+        """Return the list  of PV device ids controlled by RL agents.
+
+        Returns
+        -------
+        list
+            List of RL device ids
+        """
+        return self.devcon_ids['norl_devcon']
 
     def get_solar_generation(self, device_id):
         """Return the solar generation value at the current timestep.

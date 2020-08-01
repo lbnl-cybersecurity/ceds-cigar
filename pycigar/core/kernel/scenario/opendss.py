@@ -8,6 +8,7 @@ from pycigar.controllers import AdaptiveFixedController
 from pycigar.controllers import UnbalancedFixedController
 
 from pycigar.controllers import RLController
+
 import os
 import numpy as np
 import pandas as pd
@@ -87,42 +88,22 @@ class OpenDSSScenario(KernelScenario):
         for node in sim_params['scenario_config']['nodes']:
             if 'devices' in node:
                 for device in node['devices']:
-                    if device['type'] == 'pv_device':
-                        device_type = PVDevice
+                    device_type = device['device']
                     if 'controller' in device:
-                        if device['controller'] == 'adaptive_inverter_controller':
-                            device_controller = AdaptiveInverterController
-                        elif device['controller'] == 'rl_controller':
-                            device_controller = RLController
-                        elif device['controller'] == 'fixed_controller':
-                            device_controller = FixedController
-                        elif device['controller'] == 'adaptive_fixed_controller':
-                            device_controller = AdaptiveFixedController
-                        elif device['controller'] == 'unbalanced_fixed_controller':
-                            device_controller = UnbalancedFixedController
-
+                        device_controller = device['controller']
                         device_configs = device['custom_configs']
                     else:
-                        device_controller = AdaptiveInverterController
+                        device_controller = 'adaptive_inverter_controller'
                         device_configs = {}
 
                     if 'adversary_controller' in device:
-                        if device['adversary_controller'] == 'adaptive_inverter_controller':
-                            adversary_device_controller = AdaptiveInverterController
-                        elif device['adversary_controller'] == 'rl_controller':
-                            adversary_device_controller = RLController
-                        elif device['adversary_controller'] == 'fixed_controller':
-                            adversary_device_controller = FixedController
-                        elif device['adversary_controller'] == 'adaptive_fixed_controller':
-                            adversary_device_controller = AdaptiveFixedController
-                        elif device['adversary_controller'] == 'unbalanced_fixed_controller':
-                            adversary_device_controller = UnbalancedFixedController
-
+                        adversary_device_controller = device['adversary_controller']
                         adversary_device_configs = device['adversary_custom_configs']
+
                         if sim_params['tune_search'] is True:
                             adversary_device_configs = sim_params['hack_setting']
                     else:
-                        adversary_device_controller = FixedController
+                        adversary_device_controller = 'fixed_controller'
                         adversary_device_configs = {}
 
                     if self.attack_def_gen:

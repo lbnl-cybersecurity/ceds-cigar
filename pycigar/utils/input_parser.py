@@ -93,6 +93,8 @@ def input_parser(misc_inputs_path, dss_path, load_solar_path, breakpoints_path=N
     power_factor = misc_inputs_data['power factor'][1]
     load_scaling_factor = misc_inputs_data['load scaling factor'][1]
     solar_scaling_factor = misc_inputs_data['solar scaling factor'][1]
+    p_ramp_rate = misc_inputs_data['p ramp rate'][1]
+    q_ramp_rate = misc_inputs_data['q ramp rate'][1]
 
     json_query['M'] = M
     json_query['N'] = N
@@ -129,7 +131,7 @@ def input_parser(misc_inputs_path, dss_path, load_solar_path, breakpoints_path=N
         node_description['devices'] = []
         device = {}
         device['name'] = 'inverter_' + node.lower()
-        device['type'] = 'pv_device'
+        device['device'] = 'pv_device'
         device['controller'] = 'rl_controller'
         if norl_mode:
             device['controller'] = 'adaptive_inverter_controller'
@@ -139,6 +141,8 @@ def input_parser(misc_inputs_path, dss_path, load_solar_path, breakpoints_path=N
         device['custom_configs']['threshold'] = 0.05
         device['custom_configs']['adaptive_gain'] = 20
         device['custom_configs']['is_butterworth_filter'] = False
+        device['custom_configs']['p_ramp_rate'] = p_ramp_rate
+        device['custom_configs']['q_ramp_rate'] = q_ramp_rate
 
         if benchmark:
             device['custom_configs']['low_pass_filter_measure_mean'] = low_pass_filter_measure_mean

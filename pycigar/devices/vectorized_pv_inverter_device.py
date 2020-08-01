@@ -25,6 +25,8 @@ class VectorizedPVDevice:
         self.VBP = []
         self.low_pass_filter_measure = []
         self.low_pass_filter_output = []
+        self.p_ramp_rate = []
+        self.q_ramp_rate = []
         for device_id in self.list_device:
             device = k.device.get_device(device_id)
             self.solar_generation.append(device.solar_generation)
@@ -32,12 +34,16 @@ class VectorizedPVDevice:
             self.low_pass_filter_measure.append(device.low_pass_filter_measure)
             self.low_pass_filter_output.append(device.low_pass_filter_output)
             self.Sbar.append(device.Sbar)
+            self.p_ramp_rate.append(device.p_ramp_rate)
+            self.q_ramp_rate.append(device.q_ramp_rate)
 
         self.solar_generation = np.array(self.solar_generation)
         self.VBP = np.array(self.VBP)
         self.low_pass_filter_measure = np.array(self.low_pass_filter_measure)
         self.low_pass_filter_output = np.array(self.low_pass_filter_output)
         self.Sbar = np.array(self.Sbar)
+        self.p_ramp_rate = np.array(self.p_ramp_rate)
+        self.q_ramp_rate = np.array(self.q_ramp_rate)
 
         self.lpf_high_pass_filter = 1
         self.lpf_low_pass_filter = 0.1
@@ -58,6 +64,9 @@ class VectorizedPVDevice:
 
         self.solar_irr = None
         self.y = np.array([0]*len(self.list_device))
+
+        self.p_out_new = np.array([0]*len(self.list_device))
+        self.q_out_new = np.array([0]*len(self.list_device))
 
 
     def update(self, k):
@@ -155,6 +164,11 @@ class VectorizedPVDevice:
             self.q_out = ((self.lpf_delta_t * self.low_pass_filter_output * (qk + self.q_set) - (self.lpf_delta_t * self.low_pass_filter_output - 2) * (self.q_out)) / \
                             (2 + self.lpf_delta_t * self.low_pass_filter_output))
 
+            #self.p_out_new = self.p_out_new + self.lpf_delta_t*np.sign(pk-self.p_out_new)*np.minimum((self.p_ramp_rate*self.Sbar), np.abs(pk-self.p_out_new))
+            #self.q_out_new = self.q_out_new + self.lpf_delta_t*np.sign(qk-self.q_out_new)*np.minimum((self.q_ramp_rate*self.Sbar), np.abs(pk-self.q_out_new))
+            #self.p_out = self.p_out + self.lpf_delta_t*np.sign(pk-self.p_out)*np.minimum((self.p_ramp_rate*self.Sbar), np.abs(pk-self.p_out))
+            #self.q_out = self.q_out + self.lpf_delta_t*np.sign(qk-self.q_out)*np.minimum((self.q_ramp_rate*self.Sbar), np.abs(pk-self.q_out))
+
             self.p_set = pk
             self.q_set = qk
             self.low_pass_filter_v = low_pass_filter_v
@@ -232,6 +246,8 @@ class VectorizedPVDevice:
             Logger.log(device_id, 'q_set', self.q_set[i])
             Logger.log(device_id, 'p_out', self.p_out[i])
             Logger.log(device_id, 'q_out', self.q_out[i])
+            Logger.log(device_id, 'p_out_new', self.p_out_new[i])
+            Logger.log(device_id, 'q_out_new', self.q_out_new[i])
             Logger.log(device_id, 'control_setting', copy(self.VBP[i]))
             if self.Sbar != []:
                 Logger.log(device_id, 'sbar_solarirr', 1.5e-3*(abs(self.Sbar[i] ** 2 - max(10, self.solar_irr[i]) ** 2)) ** (1 / 2))

@@ -6,8 +6,30 @@ from pycigar.controllers.adaptive_inverter_controller import AdaptiveInverterCon
 from pycigar.controllers.adaptive_fixed_controller import AdaptiveFixedController
 from pycigar.controllers.unbalanced_fixed_controller import UnbalancedFixedController
 
+from pycigar.utils.pycigar_registration import pycigar_register, pycigar_make, pycigar_spec
+
 __all__ = [
     "RLController", "BaseController",
     "FixedController", "MimicController", "AdaptiveFixedController",
     "AdaptiveInverterController", "UnbalancedFixedController"
 ]
+
+pycigar_register(
+    id='rl_controller',
+    entry_point='pycigar.controllers:RLController'
+)
+
+pycigar_register(
+    id='adaptive_fixed_controller',
+    entry_point='pycigar.controllers:AdaptiveFixedController'
+)
+
+pycigar_register(
+    id='unbalanced_fixed_controller',
+    entry_point='pycigar.controllers:UnbalancedFixedController'
+)
+
+pycigar_register(
+    id='fixed_controller',
+    entry_point='pycigar.controllers:FixedController'
+)

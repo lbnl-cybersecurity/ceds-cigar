@@ -51,20 +51,12 @@ class CentralEnv(Env):
             self.apply_rl_actions(rl_dict)
 
             # perform action update for PV inverter device
-            if len(self.k.device.get_adaptive_device_ids()) > 0:
+            if len(self.k.device.get_norl_device_ids()) > 0:
                 control_setting = []
-                for device_id in self.k.device.get_adaptive_device_ids():
+                for device_id in self.k.device.get_norl_device_ids():
                     action = self.k.device.get_controller(device_id).get_action(self)
                     control_setting.append(action)
-                self.k.device.apply_control(self.k.device.get_adaptive_device_ids(), control_setting)
-
-            # perform action update for PV inverter device
-            if len(self.k.device.get_fixed_device_ids()) > 0:
-                control_setting = []
-                for device_id in self.k.device.get_fixed_device_ids():
-                    action = self.k.device.get_controller(device_id).get_action(self)
-                    control_setting.append(action)
-                self.k.device.apply_control(self.k.device.get_fixed_device_ids(), control_setting)
+                self.k.device.apply_control(self.k.device.get_norl_device_ids(), control_setting)
 
             self.additional_command()
 

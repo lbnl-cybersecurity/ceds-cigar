@@ -37,6 +37,8 @@ class PVDevice(BaseDevice):
         self.delta_t = additional_params.get('delta_t', 1)
         self.solar_min_value = additional_params.get('solar_min_value', 5)
         self.is_butterworth_filter = additional_params.get('is_butterworth_filter', True)
+        self.p_ramp_rate = additional_params.get('p_ramp_rate', 1)
+        self.q_ramp_rate = additional_params.get('q_ramp_rate', 0.25)
 
         Logger = logger()
         if 'init_control_settings' in Logger.custom_metrics:
