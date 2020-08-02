@@ -54,6 +54,8 @@ class PVDevice(BaseDevice):
         self.y = 0
         self.u = 0
 
+        self.custom_control_setting = {}
+
         # init for signal processing on Voltage
         if self.is_butterworth_filter:
             Ts = 1
@@ -168,6 +170,9 @@ class PVDevice(BaseDevice):
                 2 + T * lpf_m
             )
 
+            if 'v_offset' in self.custom_control_setting:
+                low_pass_filter_v += self.custom_control_setting['v_offset']
+
             # compute p_set and q_set
             if self.solar_irr >= self.solar_min_value:
                 if low_pass_filter_v <= VBP[4]:
@@ -226,9 +231,12 @@ class PVDevice(BaseDevice):
         self.__init__(self.device_id, self.init_params)
         self.log()
 
-    def set_control_setting(self, control_setting):
+    def set_control_setting(self, control_setting, custom_control_setting=None):
         """See parent class."""
-        self.control_setting = control_setting
+        if control_setting is not None:
+            self.control_setting = control_setting
+        if custom_control_setting:
+            self.custom_control_setting = custom_control_setting
 
     def log(self):
         # log history

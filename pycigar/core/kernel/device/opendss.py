@@ -507,10 +507,10 @@ class OpenDSSDevice(KernelDevice):
             device_id = [device_id]
             control_setting = [control_setting]
 
-        for i, d_id in enumerate(device_id):
+        for i, device_id in enumerate(device_id):
             if control_setting[i] is not None:
-                device = self.devices[d_id]['device']
-                device.set_control_setting(control_setting[i])
+                device = self.devices[device_id]['device']
+                device.set_control_setting(control_setting[i]) if type(control_setting[i]) is not tuple else device.set_control_setting(*control_setting[i])
 
                 if self.master_kernel.sim_params['vectorized_mode']:
                     self.vectorized_pv_inverter_device.set_control_setting(device_id, control_setting[i])
