@@ -29,6 +29,11 @@ pycigar_register(
 )
 
 pycigar_register(
+    id='adaptive_inverter_controller',
+    entry_point='pycigar.controllers:AdaptiveInverterController'
+)
+
+pycigar_register(
     id='unbalanced_fixed_controller',
     entry_point='pycigar.controllers:UnbalancedFixedController'
 )
