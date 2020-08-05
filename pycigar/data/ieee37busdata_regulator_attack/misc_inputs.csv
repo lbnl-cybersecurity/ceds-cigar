@@ -19,3 +19,5 @@ max tap change default,16
 forward band default,2
 tap number default,16
 tap delay default,30
+p ramp rate,1
+q ramp rate,0.03

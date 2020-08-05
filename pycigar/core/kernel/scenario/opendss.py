@@ -74,23 +74,23 @@ class OpenDSSScenario(KernelScenario):
         network_model_directory_path = sim_params['simulation_config']['network_model_directory']
         self.kernel_api.simulation_command('Redirect ' + '"' + network_model_directory_path + '"')
 
-        if 'solution_mode' in sim_params['simulation_config']:
-            self.kernel_api.set_solution_mode(sim_params['simulation_config']['solution_mode'])
-        if 'solution_number' in sim_params['simulation_config']:
-            self.kernel_api.set_solution_number(sim_params['simulation_config']['solution_number'])
-        if 'solution_step_size' in sim_params['simulation_config']:
-            self.kernel_api.set_solution_step_size(sim_params['simulation_config']['solution_step_size'])
-        if 'solution_control_mode' in sim_params['simulation_config']:
-            self.kernel_api.set_solution_control_mode(sim_params['simulation_config']['solution_control_mode'])
-        if 'solution_max_control_iterations' in sim_params['simulation_config']:
-            self.kernel_api.set_solution_max_control_iterations(
-                sim_params['simulation_config']['solution_max_control_iterations']
-            )
+        solution_mode = sim_params['simulation_config']['custom_configs'].get('solution_mode', 1)
+        solution_number = sim_params['simulation_config']['custom_configs'].get('solution_number', 1)
+        solution_step_size = sim_params['simulation_config']['custom_configs'].get('solution_step_size', 1)
+        solution_control_mode = sim_params['simulation_config']['custom_configs'].get('solution_control_mode', -1)
+        solution_max_control_iterations = sim_params['simulation_config']['custom_configs'].get('solution_max_control_iterations', 1000000)
+        solution_max_iterations = sim_params['simulation_config']['custom_configs'].get('solution_max_iterations', 30000)
 
-        if 'solution_max_iterations' in sim_params['simulation_config']:
-            self.kernel_api.set_solution_max_iterations(sim_params['simulation_config']['solution_max_iterations'])
+        self.kernel_api.set_solution_mode(solution_mode)
+        self.kernel_api.set_solution_mode(solution_number)
+        self.kernel_api.set_solution_mode(solution_step_size)
+        self.kernel_api.set_solution_mode(solution_control_mode)
+        self.kernel_api.set_solution_mode(solution_max_control_iterations)
+        self.kernel_api.set_solution_mode(solution_max_iterations)
 
-        self.kernel_api.set_slack_bus_voltage(sim_params['scenario_config']['custom_configs']['slack_bus_voltage'])
+
+        slack_bus_voltage = sim_params['scenario_config']['custom_configs'].get('slack_bus_voltage', 1.04)
+        self.kernel_api.set_slack_bus_voltage(slack_bus_voltage)
 
         # start node
         self.master_kernel.node.start_nodes()
