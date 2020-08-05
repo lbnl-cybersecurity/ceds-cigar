@@ -82,11 +82,11 @@ class OpenDSSScenario(KernelScenario):
         solution_max_iterations = sim_params['simulation_config']['custom_configs'].get('solution_max_iterations', 30000)
 
         self.kernel_api.set_solution_mode(solution_mode)
-        self.kernel_api.set_solution_mode(solution_number)
-        self.kernel_api.set_solution_mode(solution_step_size)
-        self.kernel_api.set_solution_mode(solution_control_mode)
-        self.kernel_api.set_solution_mode(solution_max_control_iterations)
-        self.kernel_api.set_solution_mode(solution_max_iterations)
+        self.kernel_api.set_solution_number(solution_number)
+        self.kernel_api.set_solution_step_size(solution_step_size)
+        self.kernel_api.set_solution_control_mode(solution_control_mode)
+        self.kernel_api.set_solution_max_control_iterations(solution_max_control_iterations)
+        self.kernel_api.set_solution_max_iterations(solution_max_iterations)
 
 
         slack_bus_voltage = sim_params['scenario_config']['custom_configs'].get('slack_bus_voltage', 1.04)
