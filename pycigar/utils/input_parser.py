@@ -64,10 +64,9 @@ def input_parser(misc_inputs_path, dss_path, load_solar_path, breakpoints_path=N
                 'solar_scaling_factor': 3,
                 'slack_bus_voltage': 1.02,  # default 1.04
                 'load_generation_noise': False,
-                'power_factor': 0.9,
             },
             'nodes': [],
-            'regulators': {'max_tap_change': 30, 'forward_band': 16, 'tap_number': 2, 'tap_delay': 0},
+            'regulators': {'max_tap_change': 30, 'forward_band': 16, 'tap_number': 2, 'tap_delay': 0, 'delay': 30},
         },
     }
 
@@ -86,6 +85,8 @@ def input_parser(misc_inputs_path, dss_path, load_solar_path, breakpoints_path=N
     power_factor = misc_inputs_data['power factor'][1]
     load_scaling_factor = misc_inputs_data['load scaling factor'][1]
     solar_scaling_factor = misc_inputs_data['solar scaling factor'][1]
+    p_ramp_rate = misc_inputs_data['p ramp rate'][1]
+    q_ramp_rate = misc_inputs_data['q ramp rate'][1]
 
     json_query['M'] = M
     json_query['N'] = N
@@ -124,7 +125,7 @@ def input_parser(misc_inputs_path, dss_path, load_solar_path, breakpoints_path=N
         node_description['devices'] = []
         device = {}
         device['name'] = 'inverter_' + node.lower()
-        device['type'] = 'pv_device'
+        device['device'] = 'pv_device'
         device['controller'] = 'rl_controller'
         if norl_mode:
             device['controller'] = 'adaptive_inverter_controller'
@@ -134,6 +135,8 @@ def input_parser(misc_inputs_path, dss_path, load_solar_path, breakpoints_path=N
         device['custom_configs']['threshold'] = 0.05
         device['custom_configs']['adaptive_gain'] = 20
         device['custom_configs']['is_butterworth_filter'] = False
+        device['custom_configs']['p_ramp_rate'] = p_ramp_rate
+        device['custom_configs']['q_ramp_rate'] = q_ramp_rate
 
         if benchmark:
             device['custom_configs']['low_pass_filter_measure_mean'] = low_pass_filter_measure_mean
@@ -159,10 +162,12 @@ def input_parser(misc_inputs_path, dss_path, load_solar_path, breakpoints_path=N
     forward_band = misc_inputs_data['forward band default'][1]
     tap_number = misc_inputs_data['tap number default'][1]
     tap_delay = misc_inputs_data['tap delay default'][1]
+    delay = misc_inputs_data['delay default'][1]
 
     json_query['scenario_config']['regulators']['max_tap_change'] = max_tap_change
     json_query['scenario_config']['regulators']['forward_band'] = forward_band
     json_query['scenario_config']['regulators']['tap_number'] = tap_number
     json_query['scenario_config']['regulators']['tap_delay'] = tap_delay
+    json_query['scenario_config']['regulators']['delay'] = delay
 
     return json_query

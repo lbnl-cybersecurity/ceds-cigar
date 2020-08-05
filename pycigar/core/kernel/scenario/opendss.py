@@ -8,6 +8,7 @@ from pycigar.controllers import AdaptiveFixedController
 from pycigar.controllers import UnbalancedFixedController
 
 from pycigar.controllers import RLController
+
 import os
 import numpy as np
 import pandas as pd
@@ -73,23 +74,23 @@ class OpenDSSScenario(KernelScenario):
         network_model_directory_path = sim_params['simulation_config']['network_model_directory']
         self.kernel_api.simulation_command('Redirect ' + '"' + network_model_directory_path + '"')
 
-        if 'solution_mode' in sim_params['simulation_config']:
-            self.kernel_api.set_solution_mode(sim_params['simulation_config']['solution_mode'])
-        if 'solution_number' in sim_params['simulation_config']:
-            self.kernel_api.set_solution_number(sim_params['simulation_config']['solution_number'])
-        if 'solution_step_size' in sim_params['simulation_config']:
-            self.kernel_api.set_solution_step_size(sim_params['simulation_config']['solution_step_size'])
-        if 'solution_control_mode' in sim_params['simulation_config']:
-            self.kernel_api.set_solution_control_mode(sim_params['simulation_config']['solution_control_mode'])
-        if 'solution_max_control_iterations' in sim_params['simulation_config']:
-            self.kernel_api.set_solution_max_control_iterations(
-                sim_params['simulation_config']['solution_max_control_iterations']
-            )
+        solution_mode = sim_params['simulation_config']['custom_configs'].get('solution_mode', 1)
+        solution_number = sim_params['simulation_config']['custom_configs'].get('solution_number', 1)
+        solution_step_size = sim_params['simulation_config']['custom_configs'].get('solution_step_size', 1)
+        solution_control_mode = sim_params['simulation_config']['custom_configs'].get('solution_control_mode', -1)
+        solution_max_control_iterations = sim_params['simulation_config']['custom_configs'].get('solution_max_control_iterations', 1000000)
+        solution_max_iterations = sim_params['simulation_config']['custom_configs'].get('solution_max_iterations', 30000)
 
-        if 'solution_max_iterations' in sim_params['simulation_config']:
-            self.kernel_api.set_solution_max_iterations(sim_params['simulation_config']['solution_max_iterations'])
+        self.kernel_api.set_solution_mode(solution_mode)
+        self.kernel_api.set_solution_number(solution_number)
+        self.kernel_api.set_solution_step_size(solution_step_size)
+        self.kernel_api.set_solution_control_mode(solution_control_mode)
+        self.kernel_api.set_solution_max_control_iterations(solution_max_control_iterations)
+        self.kernel_api.set_solution_max_iterations(solution_max_iterations)
 
-        self.kernel_api.set_slack_bus_voltage(sim_params['scenario_config']['custom_configs']['slack_bus_voltage'])
+
+        slack_bus_voltage = sim_params['scenario_config']['custom_configs'].get('slack_bus_voltage', 1.04)
+        self.kernel_api.set_slack_bus_voltage(slack_bus_voltage)
 
         # start node
         self.master_kernel.node.start_nodes()
@@ -102,42 +103,22 @@ class OpenDSSScenario(KernelScenario):
         for node in sim_params['scenario_config']['nodes']:
             if 'devices' in node:
                 for device in node['devices']:
-                    if device['type'] == 'pv_device':
-                        device_type = PVDevice
+                    device_type = device['device']
                     if 'controller' in device:
-                        if device['controller'] == 'adaptive_inverter_controller':
-                            device_controller = AdaptiveInverterController
-                        elif device['controller'] == 'rl_controller':
-                            device_controller = RLController
-                        elif device['controller'] == 'fixed_controller':
-                            device_controller = FixedController
-                        elif device['controller'] == 'adaptive_fixed_controller':
-                            device_controller = AdaptiveFixedController
-                        elif device['controller'] == 'unbalanced_fixed_controller':
-                            device_controller = UnbalancedFixedController
-
+                        device_controller = device['controller']
                         device_configs = device['custom_configs']
                     else:
-                        device_controller = AdaptiveInverterController
+                        device_controller = 'adaptive_inverter_controller'
                         device_configs = {}
 
                     if 'adversary_controller' in device:
-                        if device['adversary_controller'] == 'adaptive_inverter_controller':
-                            adversary_device_controller = AdaptiveInverterController
-                        elif device['adversary_controller'] == 'rl_controller':
-                            adversary_device_controller = RLController
-                        elif device['adversary_controller'] == 'fixed_controller':
-                            adversary_device_controller = FixedController
-                        elif device['adversary_controller'] == 'adaptive_fixed_controller':
-                            adversary_device_controller = AdaptiveFixedController
-                        elif device['adversary_controller'] == 'unbalanced_fixed_controller':
-                            adversary_device_controller = UnbalancedFixedController
-
+                        adversary_device_controller = device['adversary_controller']
                         adversary_device_configs = device['adversary_custom_configs']
+
                         if sim_params['tune_search'] is True:
                             adversary_device_configs = sim_params['hack_setting']
                     else:
-                        adversary_device_controller = FixedController
+                        adversary_device_controller = 'fixed_controller'
                         adversary_device_configs = {}
 
                     if self.attack_def_gen:

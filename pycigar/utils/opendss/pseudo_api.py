@@ -121,6 +121,8 @@ class PyCIGAROpenDSSAPI(object):
                     dss.RegControls.TapNumber(v)
                 elif k == 'tap_delay':
                     dss.RegControls.TapDelay(v)
+                elif k =='delay':
+                    dss.RegControls.Delay(v)
                 else:
                     print('Regulator Parameters unknown by PyCIGAR. Checkout pycigar/utils/opendss/pseudo_api.py')
         pass

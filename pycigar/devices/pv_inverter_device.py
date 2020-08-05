@@ -33,6 +33,8 @@ class PVDevice(BaseDevice):
         self.delta_t = additional_params.get('delta_t', 1)
         self.solar_min_value = additional_params.get('solar_min_value', 5)
         self.is_butterworth_filter = additional_params.get('is_butterworth_filter', True)
+        self.p_ramp_rate = additional_params.get('p_ramp_rate', 1)
+        self.q_ramp_rate = additional_params.get('q_ramp_rate', 0.25)
 
         Logger = logger()
         if 'init_control_settings' in Logger.custom_metrics:
@@ -51,6 +53,8 @@ class PVDevice(BaseDevice):
         self.epsilon = 0
         self.y = 0
         self.u = 0
+
+        self.custom_control_setting = {}
 
         # init for signal processing on Voltage
         if self.is_butterworth_filter:
@@ -166,6 +170,9 @@ class PVDevice(BaseDevice):
                 2 + T * lpf_m
             )
 
+            if 'v_offset' in self.custom_control_setting:
+                low_pass_filter_v += self.custom_control_setting['v_offset']
+
             # compute p_set and q_set
             if self.solar_irr >= self.solar_min_value:
                 if low_pass_filter_v <= VBP[4]:
@@ -224,9 +231,12 @@ class PVDevice(BaseDevice):
         self.__init__(self.device_id, self.init_params)
         self.log()
 
-    def set_control_setting(self, control_setting):
+    def set_control_setting(self, control_setting, custom_control_setting=None):
         """See parent class."""
-        self.control_setting = control_setting
+        if control_setting is not None:
+            self.control_setting = control_setting
+        if custom_control_setting:
+            self.custom_control_setting = custom_control_setting
 
     def log(self):
         # log history
