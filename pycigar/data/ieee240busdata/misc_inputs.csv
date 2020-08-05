@@ -1,0 +1,21 @@
+Oscillation Penalty,50
+Action Penalty,10
+Deviation from Optimal Penalty,10
+PsetPmax Penalty,50
+load file timestep,1
+power factor,0.9
+load scaling factor,1.5
+solar scaling factor,3
+measurement filter time constant mean,1.2
+measurement filter time constant std,0.2
+output filter time constant mean,0.115
+output filter time constant std,0.025
+bp1 default,0.98
+bp2 default,1.01
+bp3 default,1.01
+bp4 default,1.04
+bp5 default,1.07
+max tap change default,0
+forward band default,2
+tap number default,0
+tap delay default,2

@@ -8,8 +8,7 @@ import opendssdirect as dss
 import argparse
 
 parser = argparse.ArgumentParser(description='Create OpenDSS Server.')
-parser.add_argument('--port', action='store', default=9999, type=int,
-                    help='bind server to port')
+parser.add_argument('--port', action='store', default=9999, type=int, help='bind server to port')
 
 PORT = parser.parse_args().port
 
@@ -195,9 +194,12 @@ def threaded_client(conn):
             dss.Circuit.SetActiveElement('load.' + node_id)  # set active element
             dss.Circuit.SetActiveBus(dss.CktElement.BusNames()[0])  # grab the bus for the active element
             voltage = dss.Bus.puVmagAngle()[::2]  # get the pu information directly
-            if (np.isnan(np.mean(voltage)) or np.isinf(np.mean(voltage))):
-                raise ValueError('Voltage Output {} from OpenDSS for Load {} at Bus {} is not appropriate.'.
-                                 format(np.mean(voltage), node_id, dss.CktElement.BusNames()[0]))
+            if np.isnan(np.mean(voltage)) or np.isinf(np.mean(voltage)):
+                raise ValueError(
+                    'Voltage Output {} from OpenDSS for Load {} at Bus {} is not appropriate.'.format(
+                        np.mean(voltage), node_id, dss.CktElement.BusNames()[0]
+                    )
+                )
             else:
                 output = np.mean(voltage)
                 send_message(conn, in_format='f', values=(output,))

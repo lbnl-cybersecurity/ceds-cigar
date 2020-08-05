@@ -11,9 +11,11 @@ from pycigar.utils.registry import make_create_env
 
 class TestCentralEnv(unittest.TestCase):
     def setUp(self):
-        pycigar_params = {'exp_tag': 'cooperative_multiagent_ppo',
-                          'env_name': 'CentralControlPVInverterEnv',
-                          'simulator': 'opendss'}
+        pycigar_params = {
+            'exp_tag': 'cooperative_multiagent_ppo',
+            'env_name': 'CentralControlPVInverterEnv',
+            'simulator': 'opendss',
+        }
 
         create_env, env_name = make_create_env(pycigar_params, version=0)
 
@@ -48,8 +50,10 @@ class TestCentralEnv(unittest.TestCase):
 
     def test_init_action_present(self):
         self.env.reset()
-        self.assertTrue(hasattr(self.env, 'INIT_ACTION') and isinstance(self.env.INIT_ACTION, dict),
-                        msg='No INIT_ACTION dict in environment')
+        self.assertTrue(
+            hasattr(self.env, 'INIT_ACTION') and isinstance(self.env.INIT_ACTION, dict),
+            msg='No INIT_ACTION dict in environment',
+        )
 
 
 class TestCentralEnvNoWrapper(unittest.TestCase):

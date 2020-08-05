@@ -4,6 +4,7 @@ from ray.rllib.env import MultiAgentEnv
 from pycigar.envs.base import Env
 from pycigar.controllers import AdaptiveFixedController
 
+
 class MultiEnv(MultiAgentEnv, Env):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -53,10 +54,10 @@ class MultiEnv(MultiAgentEnv, Env):
             randomize_rl_update[rl_id] = np.random.randint(low=0, high=3)
 
         # TODOs: disable defense action here
-        if rl_actions != {}:
-            for key in rl_actions:
-                if 'adversary_' not in key:
-                    rl_actions[key] = self.k.device.get_control_setting(key) #[1.014, 1.015, 1.015, 1.016, 1.017]
+        # if rl_actions != {}:
+        #    for key in rl_actions:
+        #        if 'adversary_' not in key:
+        #            rl_actions[key] = self.k.device.get_control_setting(key) #[1.014, 1.015, 1.015, 1.016, 1.017]
 
         for _ in range(self.sim_params['env_config']['sims_per_step']):
             self.env_time += 1
@@ -143,12 +144,18 @@ class MultiEnv(MultiAgentEnv, Env):
         for device in list_device_observation:
             if device not in list_device:
                 del observations[device]
-        obs = {device: {prop: np.mean(observations[device][prop]) for prop in observations[device]} for device in observations}
+        obs = {
+            device: {prop: np.mean(observations[device][prop]) for prop in observations[device]}
+            for device in observations
+        }
 
         # the episode will be finished if it is not converged.
         finish = not converged or (self.k.time == self.k.t)
         done = {}
-        if abs(max(self.k.scenario.hack_end_times.keys()) - self.k.time) < self.sim_params['env_config']['sims_per_step']:
+        if (
+            abs(max(self.k.scenario.hack_end_times.keys()) - self.k.time)
+            < self.sim_params['env_config']['sims_per_step']
+        ):
             done['attack_agent'] = True
 
         if finish:
@@ -156,14 +163,19 @@ class MultiEnv(MultiAgentEnv, Env):
         else:
             done['__all__'] = False
 
-        infos = {key: {'voltage': self.k.node.get_node_voltage(self.k.device.get_node_connected_to(key)),
-                       'y': obs[key]['y'],
-                       'p_inject': self.k.device.get_device_p_injection(key),
-                       'p_max': self.k.device.get_device_p_injection(key),
-                       'env_time': self.env_time,
-                       'p_set': obs[key]['p_set'],
-                       'p_set_p_max': obs[key]['p_set_p_max'],
-                       } for key in self.k.device.get_rl_device_ids()}
+        infos = {
+            key: {
+                'voltage': self.k.node.get_node_voltage(self.k.device.get_node_connected_to(key)),
+                'y': obs[key]['y'],
+                'u': obs[key]['u'],
+                'p_inject': self.k.device.get_device_p_injection(key),
+                'p_max': self.k.device.get_device_p_injection(key),
+                'env_time': self.env_time,
+                'p_set': obs[key]['p_set'],
+                'p_set_p_max': obs[key]['p_set_p_max'],
+            }
+            for key in self.k.device.get_rl_device_ids()
+        }
 
         for key in self.k.device.get_rl_device_ids():
             if self.old_actions != {}:
@@ -193,7 +205,7 @@ class MultiEnv(MultiAgentEnv, Env):
 
     def reset(self):
         # TODOs: delete here
-        #self.tempo_controllers = {}
+        # self.tempo_controllers = {}
 
         self.env_time = 0
         self.k.update(reset=True)  # hotfix: return new sim_params sample in kernel?
@@ -210,13 +222,17 @@ class MultiEnv(MultiAgentEnv, Env):
         obs = {}
         for rl_id in self.k.device.get_rl_device_ids():
             connected_node = self.k.device.get_node_connected_to(rl_id)
-            obs.update({rl_id: {
-                'voltage': self.k.node.get_node_voltage(connected_node),
-                'solar_generation': self.k.device.get_solar_generation(rl_id),
-                'y': self.k.device.get_device_y(rl_id),
-                'u': self.k.device.get_device_u(rl_id),
-                'p_set_p_max': self.k.device.get_device_p_set_p_max(rl_id),
-                'p_set': self.k.device.get_device_p_set_relative(rl_id)
-            }})
+            obs.update(
+                {
+                    rl_id: {
+                        'voltage': self.k.node.get_node_voltage(connected_node),
+                        'solar_generation': self.k.device.get_solar_generation(rl_id),
+                        'y': self.k.device.get_device_y(rl_id),
+                        'u': self.k.device.get_device_u(rl_id),
+                        'p_set_p_max': self.k.device.get_device_p_set_p_max(rl_id),
+                        'p_set': self.k.device.get_device_p_set_relative(rl_id),
+                    }
+                }
+            )
 
         return obs
