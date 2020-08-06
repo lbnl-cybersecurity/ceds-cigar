@@ -345,7 +345,7 @@ def get_base_config(env_name: str, cli_args: argparse.Namespace, sim_params: dic
     eval_start = 100
     base_config['evaluation_config']['env_config']['scenario_config']['start_end_time'] = [eval_start, eval_start + 750]
     base_config['evaluation_config']['env_config']['scenario_config']['multi_config'] = False
-    del base_config['env_config']['attack_randomization']
+    # del base_config['env_config']['attack_randomization']
     del base_config['evaluation_config']['env_config']['attack_randomization']
 
     config = merge_dicts(base_config, config_update)
