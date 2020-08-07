@@ -27,8 +27,6 @@ class PVDevice(BaseDevice):
         self.low_pass_filter_measure = self.low_pass_filter_measure_std * np.random.randn() + self.low_pass_filter_measure_mean
         self.low_pass_filter_output = self.low_pass_filter_output_std * np.random.randn() + self.low_pass_filter_output_mean
 
-        self.low_pass_filter = additional_params.get('low_pass_filter', 0.1)
-        self.high_pass_filter = additional_params.get('high_pass_filter', 1)
         self.gain = additional_params.get('gain', 1e5)
         self.delta_t = additional_params.get('delta_t', 1)
         self.solar_min_value = additional_params.get('solar_min_value', 5)

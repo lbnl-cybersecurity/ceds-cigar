@@ -131,12 +131,9 @@ def input_parser(misc_inputs_path, dss_path, load_solar_path, breakpoints_path=N
         device['custom_device_configs']['is_butterworth_filter'] = False
         device['custom_device_configs']['p_ramp_rate'] = p_ramp_rate
         device['custom_device_configs']['q_ramp_rate'] = q_ramp_rate
-        if benchmark:
-            device['custom_device_configs']['low_pass_filter_measure_mean'] = low_pass_filter_measure_mean
-            device['custom_device_configs']['low_pass_filter_output_mean'] = low_pass_filter_output_mean
-        else:
-            device['custom_device_configs']['low_pass_filter_measure_mean'] = low_pass_filter_measure_mean
-            device['custom_device_configs']['low_pass_filter_output_mean'] = low_pass_filter_output_mean
+        device['custom_device_configs']['low_pass_filter_measure_mean'] = low_pass_filter_measure_mean
+        device['custom_device_configs']['low_pass_filter_output_mean'] = low_pass_filter_output_mean
+        if not benchmark:
             device['custom_device_configs']['low_pass_filter_measure_std'] = low_pass_filter_measure_std
             device['custom_device_configs']['low_pass_filter_output_std'] = low_pass_filter_output_std
 
@@ -149,9 +146,8 @@ def input_parser(misc_inputs_path, dss_path, load_solar_path, breakpoints_path=N
             device['custom_controller_configs']['threshold'] = 0.05
             device['custom_controller_configs']['adaptive_gain'] = 20
 
-        if not adv:
-            device['adversary_controller'] = 'adaptive_fixed_controller'
-        else:
+        device['adversary_controller'] = 'adaptive_fixed_controller'
+        if adv:
             device['adversary_controller'] = 'rl_controller'
         device['adversary_custom_controller_configs'] = {}
         device['adversary_custom_controller_configs']['default_control_setting'] = [1.014, 1.015, 1.015, 1.016, 1.017]
