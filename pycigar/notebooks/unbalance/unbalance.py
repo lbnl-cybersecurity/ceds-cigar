@@ -107,7 +107,7 @@ if __name__ == '__main__':
                         sim_params=sim_params)
 
     set_unbalance_attack(base_config)
-    adjust_default_curves(base_config)
+    #adjust_default_curves(base_config)
 
     if args.noattack:
         for node in base_config['env_config']['scenario_config']['nodes'] \
@@ -171,8 +171,8 @@ if __name__ == '__main__':
         config['config']['env_config']['M'] = 50000
         config['config']['env_config']['N'] = 50
         config['config']['env_config']['P'] = 100
-        config['config']['lr'] = 1e-3
-        config['config']['clip_param'] = 0.2
+        config['config']['lr'] = 1e-4
+        config['config']['clip_param'] = 0.1
 
         run_hp_experiment(config, 'main')
 
