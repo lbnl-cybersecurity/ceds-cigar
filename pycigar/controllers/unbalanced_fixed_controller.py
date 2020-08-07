@@ -18,10 +18,10 @@ class UnbalancedFixedController(BaseController):
         BaseController.__init__(self, device_id)
         self.additional_params = additional_params
         self.trigger = False
-        self.hack_curve_all = np.array([1.01, 1.04, 1.04, 1.07, 1.09])
-        self.hack_curve_a = np.array([1.01, 1.04, 1.04, 1.07, 1.09]) + 0.1
-        self.hack_curve_b = np.array([0.95, 0.98, 0.98, 1.01, 1.04])
-        self.hack_curve_c = np.array([0.95, 0.98, 0.98, 1.01, 1.04]) - 0.1
+        self.hack_curve_all = np.array([0.98, 1.01, 1.01, 1.04, 1.07])
+        self.hack_curve_a = np.array([0.98, 1.01, 1.01, 1.04, 1.07]) - 0.1
+        self.hack_curve_b = np.array([0.98, 1.01, 1.01, 1.04, 1.07]) + 0.1
+        self.hack_curve_c = np.array([0.98, 1.01, 1.01, 1.04, 1.07]) - 0.1
         self.action = None
 
     def get_action(self, env):
