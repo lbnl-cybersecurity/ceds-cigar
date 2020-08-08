@@ -81,7 +81,7 @@ def local_worker_single_hack_eval(eval_workers: WorkerSet, num_episodes: int, ha
     return hack_mags
 
 
-def remote_workers_multi_hacks_eval(eval_workers: WorkerSet, num_episodes: int, min_hack=0.1,
+def remote_workers_multi_hacks_eval(eval_workers: WorkerSet, num_episodes: int, min_hack=0.0,
                                     max_hack=0.5) -> np.ndarray:
     """The remote workers do n_workers runs with different hacks. This can be repeated if num_episodes > n_workers"""
 
@@ -329,7 +329,7 @@ def get_base_config(env_name: str, cli_args: argparse.Namespace, sim_params: dic
         'explore': True,
         'exploration_config': {'type': 'StochasticSampling', },  # default for PPO
         # ==== EVALUATION ====
-        "evaluation_num_workers": 0 if cli_args.local_mode else 5,
+        "evaluation_num_workers": 0 if cli_args.local_mode else 6,
         'evaluation_num_episodes': cli_args.eval_rounds,
         "evaluation_interval": cli_args.eval_interval,
         "custom_eval_function": custom_eval_function,
@@ -345,7 +345,7 @@ def get_base_config(env_name: str, cli_args: argparse.Namespace, sim_params: dic
     eval_start = 100
     base_config['evaluation_config']['env_config']['scenario_config']['start_end_time'] = [eval_start, eval_start + 750]
     base_config['evaluation_config']['env_config']['scenario_config']['multi_config'] = False
-    # del base_config['env_config']['attack_randomization']
+    del base_config['env_config']['attack_randomization']
     del base_config['evaluation_config']['env_config']['attack_randomization']
 
     config = merge_dicts(base_config, config_update)
