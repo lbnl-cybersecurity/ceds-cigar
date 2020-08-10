@@ -93,8 +93,8 @@ class OpenDSSDevice(KernelDevice):
         """See parent class."""
         self.kernel_api = kernel_api
 
-    def add(self, name, connect_to, device=('pv_device', {}), controller=('adaptive_inverter_controller', {}),
-            adversary_controller=None, hack=None):
+    def add(self, name, connect_to, device=('pv_device', None), controller=(None, None),
+            adversary_controller=(None, None), hack=None):
         """Add a new device with controller into the grid connecting to a node.
 
         If not specifying the adversarial controller and hack, it implies that
@@ -164,7 +164,7 @@ class OpenDSSDevice(KernelDevice):
 
         # create adversarial controller
 
-        if adversary_controller is not None:
+        if adversary_controller[0] is not None:
             adversary_device_id = "adversary_%s" % name
             device[1]["percentage_control"] = hack[1]
             adversary_device_obj = pycigar_make(device[0], device_id=adversary_device_id, additional_params=device[1])
@@ -189,24 +189,7 @@ class OpenDSSDevice(KernelDevice):
                 "hack_controller": pycigar_make('fixed_controller', device_id=adversary_device_id, additional_params=controller[1])  # MimicController(adversary_device_id, device_id)    #AdaptiveInverterController(adversary_device_id, controller[1])
             }
         else:
-            adversary_device_id = "adversary_%s" % name
-            device[1]["percentage_control"] = 0
-            adversary_device_obj = pycigar_make(device[0], device_id=adversary_device_id, additional_params=device[1])
-
-            if device[0] not in self.device_ids:
-                self.device_ids[device[0]] = [adversary_device_id]
-            else:
-                self.device_ids[device[0]].append(adversary_device_id)
-
-            adversary_controller_obj = pycigar_make('fixed_controller', device_id=adversary_device_id, additional_params={})
-            self.devcon_ids['norl_devcon'].append(adversary_device_id)
-
-            self.devices[adversary_device_id] = {
-                "device": adversary_device_obj,
-                "controller": adversary_controller_obj,
-                "node_id": connect_to,
-                "hack_controller": pycigar_make('fixed_controller', device_id=adversary_device_id, additional_params=controller[1])  # MimicController(adversary_device_id, device_id)    #AdaptiveInverterController(adversary_device_id, controller[1])
-            }
+            adversary_device_id = None
 
         return adversary_device_id
 

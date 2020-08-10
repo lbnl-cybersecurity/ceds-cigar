@@ -136,7 +136,7 @@ class OpenDSSScenario(KernelScenario):
                         hack=dev_hack_info,
                     )
 
-                    if dev_hack_info is not None:
+                    if dev_hack_info is not None and adversary_id is not None:
                     # at hack start timestep, add the adversary_controller id
                         if dev_hack_info[0] in self.hack_start_times:
                             self.hack_start_times[dev_hack_info[0]].append(adversary_id)
@@ -166,8 +166,9 @@ class OpenDSSScenario(KernelScenario):
                     hack=None,
                 )
 
-        Logger = logger()
-        Logger.custom_metrics['hack'] = dev_hack_info[1]
+        if dev_hack_info is not None:
+            Logger = logger()
+            Logger.custom_metrics['hack'] = dev_hack_info[1]
 
         self.change_load_profile(start_time, end_time)
 
@@ -236,10 +237,11 @@ class OpenDSSScenario(KernelScenario):
                     self.master_kernel.device.set_device_sbar(device_id, sbar)
 
                     device_id = 'adversary_' + device_id
-                    node_id = self.master_kernel.device.get_node_connected_to(device_id)
-                    percentage_control = self.master_kernel.device.get_device(device_id).percentage_control
+                    if device_id in list_pv_device_ids:
+                        node_id = self.master_kernel.device.get_node_connected_to(device_id)
+                        percentage_control = self.master_kernel.device.get_device(device_id).percentage_control
 
-                    solar = np.array(profile[node_id + '_pv'])[start_time:end_time] * solar_scaling_factor * percentage_control
-                    sbar = np.max(np.array(profile[node_id + '_pv']) * solar_scaling_factor * percentage_control)
-                    self.master_kernel.device.set_device_internal_scenario(device_id, solar)
-                    self.master_kernel.device.set_device_sbar(device_id, sbar)
+                        solar = np.array(profile[node_id + '_pv'])[start_time:end_time] * solar_scaling_factor * percentage_control
+                        sbar = np.max(np.array(profile[node_id + '_pv']) * solar_scaling_factor * percentage_control)
+                        self.master_kernel.device.set_device_internal_scenario(device_id, solar)
+                        self.master_kernel.device.set_device_sbar(device_id, sbar)
