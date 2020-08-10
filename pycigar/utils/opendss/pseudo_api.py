@@ -77,7 +77,7 @@ class PyCIGAROpenDSSAPI(object):
         if np.isnan(voltage) or np.isinf(voltage):
             print('NumPhases', dss.CktElement.NumPhases())
             print('kV', dss.Loads.kV())
-            print('voltage', voltage)
+            print('voltage', _voltage)
             raise ValueError(
                 'Voltage Output {} from OpenDSS for Load {} at Bus {} is not appropriate.'.format(
                     np.mean(voltage), node_id, dss.CktElement.BusNames()[0]
