@@ -100,7 +100,8 @@ if __name__ == '__main__':
     sim_params = input_parser(misc_inputs_path=str(feeder_path / 'misc_inputs.csv'),
                               dss_path=str(feeder_path / 'ieee37.dss'),
                               load_solar_path=str(feeder_path / 'load_solar_data.csv'),
-                              breakpoints_path=str(feeder_path / 'breakpoints.csv'))
+                              breakpoints_path=str(feeder_path / 'breakpoints.csv'),
+                              percentage_hack=0.3)
     base_config, create_env = \
         get_base_config(env_name=f'CentralControlPhaseSpecific{"Continuous" if args.continuous else ""}PVInverterEnv',
                         cli_args=args,

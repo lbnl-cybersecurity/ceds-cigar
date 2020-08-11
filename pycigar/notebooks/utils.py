@@ -109,9 +109,9 @@ def remote_workers_multi_hacks_eval(eval_workers: WorkerSet, num_episodes: int, 
 def custom_eval_function(trainer: Trainer, eval_workers: WorkerSet):
     num_episodes = trainer.config["evaluation_num_episodes"]
     if trainer.config["evaluation_num_workers"] == 0:
-        hack_mags = local_worker_single_hack_eval(eval_workers, num_episodes, hack_magnitude=0.45)
+        hack_mags = local_worker_single_hack_eval(eval_workers, num_episodes, hack_magnitude=0.3)
     else:
-        hack_mags = remote_workers_multi_hacks_eval(eval_workers, num_episodes)
+        hack_mags = remote_workers_multi_hacks_eval(eval_workers, num_episodes, max_hack=0.3)
 
     episodes, _ = collect_episodes(eval_workers.local_worker(), eval_workers.remote_workers())
 
@@ -329,7 +329,7 @@ def get_base_config(env_name: str, cli_args: argparse.Namespace, sim_params: dic
         'explore': True,
         'exploration_config': {'type': 'StochasticSampling', },  # default for PPO
         # ==== EVALUATION ====
-        "evaluation_num_workers": 0 if cli_args.local_mode else 6,
+        "evaluation_num_workers": 0 if cli_args.local_mode else 4,
         'evaluation_num_episodes': cli_args.eval_rounds,
         "evaluation_interval": cli_args.eval_interval,
         "custom_eval_function": custom_eval_function,
