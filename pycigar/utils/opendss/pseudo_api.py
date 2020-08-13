@@ -50,7 +50,7 @@ class PyCIGAROpenDSSAPI(object):
 
     def check_simulation_converged(self):
         """Check if the solver has converged."""
-        output = dss.Solution.Converged
+        output = dss.Solution.Converged()
         return output
 
     def get_node_ids(self):
