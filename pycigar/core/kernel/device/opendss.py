@@ -229,11 +229,13 @@ class OpenDSSDevice(KernelDevice):
 
     def update_kernel_device_info(self, device_id):
         if isinstance(self.devices[device_id]["controller"], RLController):
-            self.devcon_ids['rl_devcon'].append(device_id)
+            if device_id not in self.devcon_ids['rl_devcon']:
+                self.devcon_ids['rl_devcon'].append(device_id)
             if device_id in self.devcon_ids['norl_devcon']:
                 self.device_ids['norl_devcon'].remove(device_id)
         else:
-            self.devcon_ids['norl_devcon'].append(device_id)
+            if device_id not in self.devcon_ids['norl_devcon']:
+                self.devcon_ids['norl_devcon'].append(device_id)
             if device_id in self.devcon_ids['rl_devcon']:
                 self.devcon_ids['rl_devcon'].remove(device_id)
 
