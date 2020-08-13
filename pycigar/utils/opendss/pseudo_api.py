@@ -1,7 +1,7 @@
 """Contains the Power/opendss API manager."""
 import opendssdirect as dss
 import numpy as np
-
+import warnings
 
 class PyCIGAROpenDSSAPI(object):
     """An API used to interact with OpenDSS via a TCP connection."""
@@ -51,6 +51,8 @@ class PyCIGAROpenDSSAPI(object):
     def check_simulation_converged(self):
         """Check if the solver has converged."""
         output = dss.Solution.Converged()
+        if output is False:
+            warnings.warn('OpenDSS does not converge.')
         return output
 
     def get_node_ids(self):
