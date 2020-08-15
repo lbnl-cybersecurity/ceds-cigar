@@ -153,7 +153,7 @@ def input_parser(misc_inputs_path, dss_path, load_solar_path, breakpoints_path=N
             device['adversary_controller'] = 'rl_controller'
         device['adversary_custom_configs'] = {}
         device['adversary_custom_configs']['default_control_setting'] = [1.014, 1.015, 1.015, 1.016, 1.017]
-        device['hack'] = [250-10, percentage_hack, 500]
+        device['hack'] = [250, percentage_hack, 500]
         node_description['devices'].append(device)
 
         json_query['scenario_config']['nodes'].append(node_description)
