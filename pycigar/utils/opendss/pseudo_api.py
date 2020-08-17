@@ -63,20 +63,23 @@ class PyCIGAROpenDSSAPI(object):
     def get_node_voltage(self, node_id):
         """Get node voltage given node id."""
         dss.Loads.Name(node_id)
-        voltage = dss.CktElement.VoltagesMagAng()
+        _voltage = dss.CktElement.VoltagesMagAng()
         # print(voltage, node_id, dss.CktElement.NumPhases())
-        if len(voltage) == 6 or len(voltage) == 8:
-            voltage = (voltage[0] + voltage[2] + voltage[4]) / (dss.CktElement.NumPhases() * (dss.Loads.kV() * 1000 / (3**0.5)))
+        if len(_voltage) == 6 or len(_voltage) == 8:
+            voltage = (_voltage[0] + _voltage[2] + _voltage[4]) / (dss.CktElement.NumPhases() * (dss.Loads.kV() * 1000 / (3**0.5)))
         else:
             if node_id[-1] == 'a':
-                voltage = (voltage[0]) / (dss.CktElement.NumPhases() * (dss.Loads.kV() * 1000 / (3 ** 0.5)))
+                voltage = (_voltage[0]) / (dss.CktElement.NumPhases() * (dss.Loads.kV() * 1000 / (3 ** 0.5)))
             elif node_id[-1] == 'b':
-                voltage = (voltage[0]) / (dss.CktElement.NumPhases() * (dss.Loads.kV() * 1000 / (3 ** 0.5)))
+                voltage = (_voltage[0]) / (dss.CktElement.NumPhases() * (dss.Loads.kV() * 1000 / (3 ** 0.5)))
             else:
-                voltage = (voltage[0]) / (dss.CktElement.NumPhases() * (dss.Loads.kV() * 1000 / (3 ** 0.5)))
+                voltage = (_voltage[0]) / (dss.CktElement.NumPhases() * (dss.Loads.kV() * 1000 / (3 ** 0.5)))
 
         # get the pu information directly
         if np.isnan(voltage) or np.isinf(voltage):
+            print('NumPhases', dss.CktElement.NumPhases())
+            print('kV', dss.Loads.kV())
+            print('voltage', _voltage)
             raise ValueError(
                 'Voltage Output {} from OpenDSS for Load {} at Bus {} is not appropriate.'.format(
                     np.mean(voltage), node_id, dss.CktElement.BusNames()[0]

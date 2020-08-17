@@ -71,6 +71,9 @@ def set_unbalance_attack(base_config):
         for d in node['devices']:
             d['adversary_controller'] = 'unbalanced_fixed_controller'
 
+    base_config['env_config']['simulation_config']['custom_configs']['solution_control_mode'] = 2
+    base_config['evaluation_config']['env_config']['simulation_config']['custom_configs']['solution_control_mode'] = 2
+
 
 def adjust_default_curves(base_config):
     for node in (
@@ -97,14 +100,15 @@ if __name__ == '__main__':
     sim_params = input_parser(misc_inputs_path=str(feeder_path / 'misc_inputs.csv'),
                               dss_path=str(feeder_path / 'ieee37.dss'),
                               load_solar_path=str(feeder_path / 'load_solar_data.csv'),
-                              breakpoints_path=str(feeder_path / 'breakpoints.csv'))
+                              breakpoints_path=str(feeder_path / 'breakpoints.csv'),
+                              percentage_hack=0.3)
     base_config, create_env = \
         get_base_config(env_name=f'CentralControlPhaseSpecific{"Continuous" if args.continuous else ""}PVInverterEnv',
                         cli_args=args,
                         sim_params=sim_params)
 
     set_unbalance_attack(base_config)
-    adjust_default_curves(base_config)
+    #adjust_default_curves(base_config)
 
     if args.noattack:
         for node in base_config['env_config']['scenario_config']['nodes'] \
@@ -168,8 +172,8 @@ if __name__ == '__main__':
         config['config']['env_config']['M'] = 50000
         config['config']['env_config']['N'] = 50
         config['config']['env_config']['P'] = 100
-        config['config']['lr'] = 1e-3
-        config['config']['clip_param'] = 0.2
+        config['config']['lr'] = 1e-4
+        config['config']['clip_param'] = 0.1
 
         run_hp_experiment(config, 'main')
 

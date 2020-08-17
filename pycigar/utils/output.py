@@ -295,7 +295,7 @@ def plot_new(log_dict, custom_metrics, epoch='', unbalance=False, multiagent=Fal
         ax[6, 1].legend(loc=4, ncol=2)
 
     else:
-        inv_ks = [k for k in log_dict if k.startswith('inverter_s701') or k.startswith('inverter_s728')]
+        inv_ks = [k for k in log_dict if k.startswith('inverter_s701')] #or k.startswith('inverter_s728')]
         regs = [k for k in log_dict if 'reg' in k]
         reg = regs[0] if regs else None
 

@@ -14,9 +14,9 @@ ACTION_MIN_SLOPE = 0.02  # actually the slope is stepper when value is small
 ACTION_MAX_SLOPE = 0.07
 
 # number of frames to keep
-NUM_FRAMES = 5
+NUM_FRAMES = 13
 
 
-ACTION_RANGE = 0.2
-ACTION_STEP = 0.02
+ACTION_RANGE = 0.1
+ACTION_STEP = 0.01
 DISCRETIZE_RELATIVE = int((ACTION_RANGE / ACTION_STEP)) * 2 + 1
