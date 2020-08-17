@@ -71,9 +71,6 @@ def set_unbalance_attack(base_config):
         for d in node['devices']:
             d['adversary_controller'] = 'unbalanced_fixed_controller'
 
-    base_config['env_config']['simulation_config']['custom_configs']['solution_control_mode'] = 2
-    base_config['evaluation_config']['env_config']['simulation_config']['custom_configs']['solution_control_mode'] = 2
-
 
 def adjust_default_curves(base_config):
     for node in (
