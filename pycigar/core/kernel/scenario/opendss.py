@@ -104,56 +104,52 @@ class OpenDSSScenario(KernelScenario):
             if 'devices' in node:
                 for device in node['devices']:
                     device_type = device['device']
-                    if 'controller' in device:
-                        device_controller = device['controller']
-                        device_configs = device['custom_configs']
+                    device_configs = device.get('custom_device_configs', None)
+
+                    controller = device.get('controller', None)
+                    custom_controller_configs = device.get('custom_controller_configs', None)
+
+                    adversary_controller = device.get('adversary_controller', None)
+                    adversary_custom_controller_configs = device.get('adversary_custom_controller_configs', None)
+
+
+                    # if there is no hack at all at the device
+                    if adversary_controller is None:
+                        dev_hack_info = None
                     else:
-                        device_controller = 'adaptive_inverter_controller'
-                        device_configs = {}
-
-                    if 'adversary_controller' in device:
-                        adversary_device_controller = device['adversary_controller']
-                        adversary_device_configs = device['adversary_custom_configs']
-
-                        if sim_params['tune_search'] is True:
-                            adversary_device_configs = sim_params['hack_setting']
-                    else:
-                        adversary_device_controller = 'fixed_controller'
-                        adversary_device_configs = {}
-
-                    if self.attack_def_gen:
-                        dev_hack_info = self.attack_def_gen.new_dev_hack_info()
-                    else:
-                        dev_hack_info = device['hack']
-
-                    if sim_params['scenario_config']['multi_config'] is False:
-                        if device['name'] not in self.snapshot_randomization.keys():
-                            self.snapshot_randomization[device['name']] = dev_hack_info
+                        if self.attack_def_gen:
+                            dev_hack_info = self.attack_def_gen.new_dev_hack_info()
                         else:
-                            dev_hack_info = self.snapshot_randomization[device['name']]
+                            dev_hack_info = device['hack']
+                        if sim_params['scenario_config']['multi_config'] is False:
+                            if device['name'] not in self.snapshot_randomization.keys():
+                                self.snapshot_randomization[device['name']] = dev_hack_info
+                            else:
+                                dev_hack_info = self.snapshot_randomization[device['name']]
 
                     adversary_id = self.master_kernel.device.add(
                         name=device['name'],
                         connect_to=node['name'],
                         device=(device_type, device_configs),
-                        controller=(device_controller, device_configs),
-                        adversary_controller=(adversary_device_controller, adversary_device_configs),
+                        controller=(controller, custom_controller_configs),
+                        adversary_controller=(adversary_controller, adversary_custom_controller_configs),
                         hack=dev_hack_info,
                     )
 
+                    if dev_hack_info is not None and adversary_id is not None:
                     # at hack start timestep, add the adversary_controller id
-                    if dev_hack_info[0] in self.hack_start_times:
-                        self.hack_start_times[dev_hack_info[0]].append(adversary_id)
-                    else:
-                        self.hack_start_times[dev_hack_info[0]] = [adversary_id]
-
-                    # at hack end timestep, remove the adversary_controller id. See self.update()
-                    # if dev_hack_info contains end_time, it's at index 2
-                    if len(dev_hack_info) == 3:
-                        if dev_hack_info[2] in self.hack_end_times:
-                            self.hack_end_times[dev_hack_info[2]].append(adversary_id)
+                        if dev_hack_info[0] in self.hack_start_times:
+                            self.hack_start_times[dev_hack_info[0]].append(adversary_id)
                         else:
-                            self.hack_end_times[dev_hack_info[2]] = [adversary_id]
+                            self.hack_start_times[dev_hack_info[0]] = [adversary_id]
+
+                        # at hack end timestep, remove the adversary_controller id. See self.update()
+                        # if dev_hack_info contains end_time, it's at index 2
+                        if len(dev_hack_info) == 3:
+                            if dev_hack_info[2] in self.hack_end_times:
+                                self.hack_end_times[dev_hack_info[2]].append(adversary_id)
+                            else:
+                                self.hack_end_times[dev_hack_info[2]] = [adversary_id]
 
         # adding regulator, hotfix
         regulator_names = self.kernel_api.get_all_regulator_names()
@@ -170,8 +166,9 @@ class OpenDSSScenario(KernelScenario):
                     hack=None,
                 )
 
-        Logger = logger()
-        Logger.custom_metrics['hack'] = dev_hack_info[1]
+        if dev_hack_info is not None:
+            Logger = logger()
+            Logger.custom_metrics['hack'] = dev_hack_info[1]
 
         self.change_load_profile(start_time, end_time)
 
@@ -240,10 +237,11 @@ class OpenDSSScenario(KernelScenario):
                     self.master_kernel.device.set_device_sbar(device_id, sbar)
 
                     device_id = 'adversary_' + device_id
-                    node_id = self.master_kernel.device.get_node_connected_to(device_id)
-                    percentage_control = self.master_kernel.device.get_device(device_id).percentage_control
+                    if device_id in list_pv_device_ids:
+                        node_id = self.master_kernel.device.get_node_connected_to(device_id)
+                        percentage_control = self.master_kernel.device.get_device(device_id).percentage_control
 
-                    solar = np.array(profile[node_id + '_pv'])[start_time:end_time] * solar_scaling_factor * percentage_control
-                    sbar = np.max(np.array(profile[node_id + '_pv']) * solar_scaling_factor * percentage_control)
-                    self.master_kernel.device.set_device_internal_scenario(device_id, solar)
-                    self.master_kernel.device.set_device_sbar(device_id, sbar)
+                        solar = np.array(profile[node_id + '_pv'])[start_time:end_time] * solar_scaling_factor * percentage_control
+                        sbar = np.max(np.array(profile[node_id + '_pv']) * solar_scaling_factor * percentage_control)
+                        self.master_kernel.device.set_device_internal_scenario(device_id, solar)
+                        self.master_kernel.device.set_device_sbar(device_id, sbar)
