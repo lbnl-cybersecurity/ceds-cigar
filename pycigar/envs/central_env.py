@@ -92,7 +92,10 @@ class CentralEnv(Env):
                 logger().custom_metrics['step_only_time'] = 0
             logger().custom_metrics['step_only_time'] += time.time() - start_time
 
-        obs = {k: np.mean([d[k] for d in observations]) for k in observations[0]}
+        try:
+            obs = {k: np.mean([d[k] for d in observations]) for k in observations[0]}
+        except IndexError:
+            obs = {'p_set': 0.0, 'p_set_p_max': 0.0, 'sbar_solar_irr': 0.0, 'solar_generation': 0.0, 'u': 0.0, 'voltage': 0.0, 'y': 0.0}
 
         # the episode will be finished if it is not converged.
         done = not converged or (self.k.time == self.k.t)
