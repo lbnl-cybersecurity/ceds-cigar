@@ -157,8 +157,8 @@ class PVDevice(BaseDevice):
                 max_diff = max(abs(va - mean), abs(vb - mean), abs(vc - mean))
                 self.u = max_diff / mean
                 # add heuristic threshold to u
-                if self.u - 0.01 < 0:
-                    self.u = 0
+                #if self.u - 0.01 < 0:
+                #    self.u = 0
 
         T = self.delta_t
         lpf_m = self.low_pass_filter_measure
