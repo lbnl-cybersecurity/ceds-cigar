@@ -37,7 +37,7 @@ def input_parser(misc_inputs_path, dss_path, load_solar_path, breakpoints_path=N
         'N': 10,  # weight for taking different action from the initial action
         'P': 10,  # weight for taking different action from last timestep action
         'Q': 0.5,
-        'is_disable_y': True,
+        'is_disable_y': False,
         'vectorized_mode': False,
 
         'hack_setting': {'default_control_setting': [1.039, 1.04, 1.04, 1.041, 1.042]},
