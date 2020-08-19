@@ -76,7 +76,10 @@ class OpenDSSScenario(KernelScenario):
             self.attack_def_gen = None
 
         # overwrite multi_config to have a new start_time and end_time
-        if isinstance(self.attack_def_gen, AttackDefinitionGeneratorEvaluation) or isinstance(self.attack_def_gen, AttackDefinitionGeneratorEvaluationRandom or isinstance(self.attack_def_gen, UnbalancedAttackDefinitionGeneratorEvaluation) or isinstance(self.attack_def_gen, UnbalancedAttackDefinitionGeneratorEvaluationRandom):
+        if isinstance(self.attack_def_gen, AttackDefinitionGeneratorEvaluation) or \
+            isinstance(self.attack_def_gen, AttackDefinitionGeneratorEvaluationRandom) or \
+            isinstance(self.attack_def_gen, UnbalancedAttackDefinitionGeneratorEvaluation) or \
+            isinstance(self.attack_def_gen, UnbalancedAttackDefinitionGeneratorEvaluationRandom):
             start_time, end_time = self.attack_def_gen.change_mode()
             self.master_kernel.sim_params['scenario_config']['start_time'] = start_time
             self.master_kernel.sim_params['scenario_config']['end_time'] = end_time
