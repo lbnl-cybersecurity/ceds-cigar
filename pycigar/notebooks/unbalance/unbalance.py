@@ -167,6 +167,7 @@ if __name__ == '__main__':
 
         config = deepcopy(full_config)
         config['config']['env_config']['is_disable_y'] = True
+        config['config']['evaluation_config']['is_disable_y'] = True
         config['config']['env_config']['M'] = 50000
         config['config']['env_config']['N'] = 50
         config['config']['env_config']['P'] = 100

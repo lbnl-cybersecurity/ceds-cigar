@@ -291,8 +291,8 @@ def get_base_config(env_name: str, cli_args: argparse.Namespace, sim_params: dic
         # ==== CUSTOM METRICS ====
         "callbacks": CustomCallbacks,
     }
-    base_config['env_config']['attack_randomization']['generator'] = 'UnbalancedAttackDefinitionGeneratorEvaluation'
-    base_config['evaluation_config']['env_config']['attack_randomization']['generator'] = 'UnbalancedAttackDefinitionGeneratorEvaluationRandom'
+    base_config['env_config']['attack_randomization']['generator'] = 'UnbalancedAttackDefinitionGeneratorEvaluationRandom'
+    base_config['evaluation_config']['env_config']['attack_randomization']['generator'] = 'UnbalancedAttackDefinitionGeneratorEvaluation'
 
     config = merge_dicts(base_config, config_update)
     return config, create_env
