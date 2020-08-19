@@ -62,79 +62,28 @@ def get_metric_from_episodes(trainer: Trainer, episodes: List[RolloutMetrics], m
         raise NotImplementedError('Unsupported metric ' + metric)
 
 
-def _set_env_hack(env, hack_magnitude: float):
-    """Set the hack magnitude for a given env.
-    Warning: this may not work when called more than 1 time on a worker"""
-    for node in env.k.sim_params["scenario_config"]["nodes"]:
-        for d in node["devices"]:
-            d["hack"][1] = hack_magnitude
-
-
-def local_worker_single_hack_eval(eval_workers: WorkerSet, num_episodes: int, hack_magnitude=0.45) -> np.ndarray:
-    """One one worker (the local one), do `evaluation_num_episodes` runs for the same hack magnitude"""
-    hack_mags = np.repeat([hack_magnitude], num_episodes)
-    eval_workers.local_worker().foreach_env(lambda env: _set_env_hack(env, hack_magnitude))
-
-    for _ in range(num_episodes):
-        eval_workers.local_worker().sample()
-
-    return hack_mags
-
-
-def remote_workers_multi_hacks_eval(eval_workers: WorkerSet, num_episodes: int, min_hack=0.0,
-                                    max_hack=0.5) -> np.ndarray:
-    """The remote workers do n_workers runs with different hacks. This can be repeated if num_episodes > n_workers"""
-
-    workers = eval_workers.remote_workers()
-    n_workers = len(workers)
-
-    # number of full rounds that will be run (num_rounds * n_workers will be > num_episodes
-    # if num_episodes / n_workers is fractional)
-    num_rounds = int(math.ceil(num_episodes / n_workers))
-
-    # here we use n_workers and not num_rounds * n_workers because we can't seem to change the
-    # hack more than once per worker (to be investigated)
-    hack_mags = np.repeat(np.linspace(min_hack, max_hack, n_workers), num_episodes)
-
-    # zip will ignore the repeated hacks because len(workers) <= len(hack_mags)
-    for w, h in zip(workers, hack_mags):
-        w.foreach_env.remote(lambda env: _set_env_hack(env, h))
-
-    for i in range(num_rounds):
-        ray.get([w.sample.remote() for w in eval_workers.remote_workers()])
-
-    return hack_mags
-
-
-def custom_eval_function(trainer: Trainer, eval_workers: WorkerSet):
-    num_episodes = trainer.config["evaluation_num_episodes"]
+def custom_eval_function(trainer, eval_workers):
     if trainer.config["evaluation_num_workers"] == 0:
-        hack_mags = local_worker_single_hack_eval(eval_workers, num_episodes, hack_magnitude=0.3)
+        for _ in range(trainer.config["evaluation_num_episodes"]):
+            eval_workers.local_worker().sample()
+
     else:
-        hack_mags = remote_workers_multi_hacks_eval(eval_workers, num_episodes, max_hack=0.3)
+        num_rounds = int(math.ceil(trainer.config["evaluation_num_episodes"] /
+                                   trainer.config["evaluation_num_workers"]))
+        for i in range(num_rounds):
+            ray.get([w.sample.remote() for w in eval_workers.remote_workers()])
 
     episodes, _ = collect_episodes(eval_workers.local_worker(), eval_workers.remote_workers())
 
-    # save figures (each hack magnitude has its directory)
-    # we don't want to save dupliates so we remove hack_mags duplicates
-    # the order of the episodes is the same as the order of hack_mags so this is fine
-    for ep, hack in zip(episodes, set(hack_mags)):
-        dir = Path(trainer.global_vars["reporter_dir"]) / f"hack_{hack:.2f}"
-        dir.mkdir(exist_ok=True, parents=True)
-        f = plot_new(
-            ep.hist_data["logger"]["log_dict"],
-            ep.hist_data["logger"]["custom_metrics"],
-            trainer.iteration,
-            trainer.global_vars.get("unbalance", False),
-            trainer.global_vars.get("multiagent", False),
-        )
-        f.savefig(str(dir / f'eval-epoch-{trainer.iteration}-hack-{hack:.2f}.png'), bbox_inches='tight')
-        plt.close(f)
 
-    # save best policy w.r.t. multiple eval objectives
+    for i in range(len(episodes)):
+        f = plot_new(episodes[i].hist_data['logger']['log_dict'], episodes[i].hist_data['logger']['custom_metrics'], trainer.iteration, trainer.global_vars['unbalance'])
+        f.savefig(trainer.global_vars['reporter_dir'] + 'eval-epoch-' + str(trainer.iteration) + '_' + str(i+1) + '.png',
+                bbox_inches='tight')
+        plt.close(f) #OK
+
     for metric in EvalMetric:
         save_best_policy(trainer, episodes, metric)
-
     metrics = summarize_episodes(episodes)
     return metrics
 
@@ -329,8 +278,8 @@ def get_base_config(env_name: str, cli_args: argparse.Namespace, sim_params: dic
         'explore': True,
         'exploration_config': {'type': 'StochasticSampling', },  # default for PPO
         # ==== EVALUATION ====
-        "evaluation_num_workers": 0 if cli_args.local_mode else 4,
-        'evaluation_num_episodes': cli_args.eval_rounds,
+        "evaluation_num_workers": 1, #0 if cli_args.local_mode else 4,
+        'evaluation_num_episodes': 8, #cli_args.eval_rounds,
         "evaluation_interval": cli_args.eval_interval,
         "custom_eval_function": custom_eval_function,
         'evaluation_config': {
@@ -342,11 +291,8 @@ def get_base_config(env_name: str, cli_args: argparse.Namespace, sim_params: dic
         # ==== CUSTOM METRICS ====
         "callbacks": CustomCallbacks,
     }
-    eval_start = 100
-    base_config['evaluation_config']['env_config']['scenario_config']['start_end_time'] = [eval_start, eval_start + 750]
-    base_config['evaluation_config']['env_config']['scenario_config']['multi_config'] = False
-    del base_config['env_config']['attack_randomization']  # /!\ TODO: remove this!!! But check that the eval is still working
-    del base_config['evaluation_config']['env_config']['attack_randomization']
+    base_config['env_config']['attack_randomization']['generator'] = 'UnbalancedAttackDefinitionGeneratorEvaluation'
+    base_config['evaluation_config']['env_config']['attack_randomization']['generator'] = 'UnbalancedAttackDefinitionGeneratorEvaluationRandom'
 
     config = merge_dicts(base_config, config_update)
     return config, create_env
