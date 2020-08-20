@@ -20,6 +20,7 @@ from pycigar.envs.attack_definition import UnbalancedAttackDefinitionGeneratorEv
 from pycigar.envs.attack_definition import UnbalancedAttackDefinitionGeneratorEvaluationRandom
 
 from pycigar.utils.logging import logger
+import random
 
 
 class OpenDSSScenario(KernelScenario):
@@ -87,7 +88,14 @@ class OpenDSSScenario(KernelScenario):
         # load simulation and opendss file
         # network_model_directory_path = os.path.join(config.DATA_DIR, sim_params['simulation_config']['network_model_directory'])
         network_model_directory_path = sim_params['simulation_config']['network_model_directory']
-        self.kernel_api.simulation_command('Redirect ' + '"' + network_model_directory_path + '"')
+        if isinstance(network_model_directory_path, str):
+            self.kernel_api.simulation_command('Redirect ' + '"' + network_model_directory_path + '"')
+        else:
+            network_path = random.sample(network_model_directory_path, 1)[0]
+            self.kernel_api.simulation_command('Redirect ' + '"' + network_path + '"')
+            self.phase = network_path[-5]
+            if self.phase.isnumeric():
+                self.phase = 'a'
 
         solution_mode = sim_params['simulation_config']['custom_configs'].get('solution_mode', 1)
         solution_number = sim_params['simulation_config']['custom_configs'].get('solution_number', 1)
