@@ -120,11 +120,10 @@ class CentralLocalPhaseSpecificObservationWrapper(CentralLocalObservationWrapper
         return Box(low=-float('inf'), high=float('inf'), shape=(3 + prev_shape,), dtype=np.float64)
 
     def observation(self, observation, info):
-        obs = super().observation(observation, info)
         va = self.k.node.nodes['s701a']['voltage'][self.k.time - 1]
         vb = self.k.node.nodes['s701b']['voltage'][self.k.time - 1]
         vc = self.k.node.nodes['s701c']['voltage'][self.k.time - 1]
-        return np.array([*obs, va, vb, vc])
+        return np.array([*observation, va, vb, vc])
 
 
 class CentralFramestackObservationWrapper(ObservationWrapper):
