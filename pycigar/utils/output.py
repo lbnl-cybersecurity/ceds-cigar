@@ -302,9 +302,10 @@ def plot_new(log_dict, custom_metrics, epoch='', unbalance=False, multiagent=Fal
         f, ax = plt.subplots(
             2 + len(inv_ks) + (reg is not None), figsize=(25, 8 + 4 * len(inv_ks) + 4 * (reg is not None))
         )
-        title = '[epoch {}] total reward: {:.2f} || total unbalance: {:.4f}'.format(
-            epoch, sum(log_dict[inv_ks[0]]['reward']), sum(log_dict[inv_ks[0]]['u'])
+        title = '[epoch {}][time {}][hack {}] total reward: {:.2f} || total unbalance: {:.4f}'.format(
+            epoch, custom_metrics['start_time'], custom_metrics['hack'], sum(log_dict[inv_ks[0]]['reward']), sum(log_dict[inv_ks[0]]['u'])
         )
+
         f.suptitle(title)
         for i, k in enumerate(inv_ks):
             ax[0].plot(log_dict[log_dict[k]['node']]['voltage'], label='voltage ({})'.format(k))
