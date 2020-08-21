@@ -166,11 +166,13 @@ if __name__ == '__main__':
         )
 
         config = deepcopy(full_config)
+        config['config']['env_config']['simulation_config']['network_model_directory'] = [str(feeder_path / 'ieee37.dss'), str(feeder_path / 'ieee37_b.dss'), str(feeder_path / 'ieee37_c.dss')]
         config['config']['env_config']['is_disable_y'] = True
         config['config']['evaluation_config']['is_disable_y'] = True
         config['config']['env_config']['M'] = 50000
         config['config']['env_config']['N'] = 50
         config['config']['env_config']['P'] = 100
+        config['config']['env_config']['T'] = 0
         config['config']['lr'] = 1e-4
         config['config']['clip_param'] = 0.1
 
