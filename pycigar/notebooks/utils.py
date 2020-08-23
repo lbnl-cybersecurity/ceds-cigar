@@ -111,14 +111,6 @@ def save_eval_policy(trainer: Trainer, episodes: List[RolloutMetrics]):
 
         for i, ep in enumerate(episodes):
             data = ep.hist_data['logger']['log_dict']
-            f = plot_new(
-                data, ep.hist_data['logger']['custom_metrics'], trainer.iteration,
-                trainer.global_vars.get('unbalance', False),
-                trainer.global_vars.get('multiagent', False),
-            )
-            f.savefig(str(best_dir / f'eval_{i}.png'))
-            plt.close(f)
-
             # CSVs for the plots in the paper
             # only for one arbitrary episode
             # save CSV
