@@ -109,37 +109,37 @@ def save_eval_policy(trainer: Trainer, episodes: List[RolloutMetrics]):
 
         save_policy_to_path(best_dir / f'policy_{trainer.iteration}')
 
-        for i, ep in enumerate(episodes):
-            data = ep.hist_data['logger']['log_dict']
-            # CSVs for the plots in the paper
-            # only for one arbitrary episode
-            # save CSV
-            k = [k for k in data if k.startswith('inverter_s701')][0]
+    for i, ep in enumerate(episodes):
+        data = ep.hist_data['logger']['log_dict']
+        # CSVs for the plots in the paper
+        # only for one arbitrary episode
+        # save CSV
+        k = [k for k in data if k.startswith('inverter_s701')][0]
 
-            ep_hist = pd.DataFrame(
-                dict(v=data[data[k]['node']]['voltage'], y=data[k]['y'], q_set=data[k]['q_set'], q_val=data[k]['q_out'])
-            )
-            a_hist = pd.DataFrame(data[k]['control_setting'], columns=['a1', 'a2', 'a3', 'a4', 'a5'])
-            adv_a_hist = pd.DataFrame(
-                data['adversary_' + k]['control_setting'], columns=['adv_a1', 'adv_a2', 'adv_a3', 'adv_a4', 'adv_a5']
-            )
-            translation, slope = get_translation_and_slope(data[k]['control_setting'])
-            adv_translation, adv_slope = get_translation_and_slope(data['adversary_' + k]['control_setting'])
-            trans_slope_hist = pd.DataFrame(
-                dict(translation=translation, slope=slope, adv_translation=adv_translation, adv_slope=adv_slope)
-            )
+        ep_hist = pd.DataFrame(
+            dict(v=data[data[k]['node']]['voltage'], y=data[k]['y'], q_set=data[k]['q_set'], q_val=data[k]['q_out'])
+        )
+        a_hist = pd.DataFrame(data[k]['control_setting'], columns=['a1', 'a2', 'a3', 'a4', 'a5'])
+        adv_a_hist = pd.DataFrame(
+            data['adversary_' + k]['control_setting'], columns=['adv_a1', 'adv_a2', 'adv_a3', 'adv_a4', 'adv_a5']
+        )
+        translation, slope = get_translation_and_slope(data[k]['control_setting'])
+        adv_translation, adv_slope = get_translation_and_slope(data['adversary_' + k]['control_setting'])
+        trans_slope_hist = pd.DataFrame(
+            dict(translation=translation, slope=slope, adv_translation=adv_translation, adv_slope=adv_slope)
+        )
 
-            df = ep_hist.join(a_hist, how='outer')
-            df = df.join(adv_a_hist, how='outer')
-            df = df.join(trans_slope_hist, how='outer')
-            df.to_csv(str(best_dir / 'last_eval_hists.csv'))
+        df = ep_hist.join(a_hist, how='outer')
+        df = df.join(adv_a_hist, how='outer')
+        df = df.join(trans_slope_hist, how='outer')
+        df.to_csv(str(best_dir / 'last_eval_hists.csv'))
 
-            # save info
-            start = ep.custom_metrics["hack_start"]
-            end = ep.custom_metrics["hack_end"]
-            info = {'epoch': trainer.iteration, 'hack_start': start, 'hack_end': end}
-            with open(str(best_dir / 'info.json'), 'w', encoding='utf-8') as f:
-                json.dump(info, f, ensure_ascii=False, indent=4)
+        # save info
+        start = ep.custom_metrics["hack_start"]
+        end = ep.custom_metrics["hack_end"]
+        info = {'epoch': trainer.iteration, 'hack_start': start, 'hack_end': end}
+        with open(str(best_dir / 'info.json'), 'w', encoding='utf-8') as f:
+            json.dump(info, f, ensure_ascii=False, indent=4)
 
 
 
