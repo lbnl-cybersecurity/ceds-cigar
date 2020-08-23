@@ -132,13 +132,13 @@ def save_eval_policy(trainer: Trainer, episodes: List[RolloutMetrics]):
         df = ep_hist.join(a_hist, how='outer')
         df = df.join(adv_a_hist, how='outer')
         df = df.join(trans_slope_hist, how='outer')
-        df.to_csv(str(best_dir / 'last_eval_hists.csv'))
+        df.to_csv(str(best_dir / f'last_eval_hists_{i}.csv'))
 
         # save info
         start = ep.custom_metrics["hack_start"]
         end = ep.custom_metrics["hack_end"]
         info = {'epoch': trainer.iteration, 'hack_start': start, 'hack_end': end}
-        with open(str(best_dir / 'info.json'), 'w', encoding='utf-8') as f:
+        with open(str(best_dir / f'info_{i}.json'), 'w', encoding='utf-8') as f:
             json.dump(info, f, ensure_ascii=False, indent=4)
 
 
