@@ -107,7 +107,7 @@ def save_eval_policy(trainer: Trainer, episodes: List[RolloutMetrics]):
                 p_path = path / k
                 p.export_model(str(p_path))
 
-        save_policy_to_path(best_dir / f'policy_{trainer.iteration}')
+    save_policy_to_path(best_dir / f'policy_{trainer.iteration}')
 
     for i, ep in enumerate(episodes):
         data = ep.hist_data['logger']['log_dict']
