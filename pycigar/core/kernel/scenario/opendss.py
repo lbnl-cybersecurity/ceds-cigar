@@ -255,7 +255,7 @@ class OpenDSSScenario(KernelScenario):
                     node_id = self.master_kernel.device.get_node_connected_to(device_id)
                     percentage_control = self.master_kernel.device.get_device(device_id).percentage_control
                     solar = np.array(profile[node_id + '_pv'])[start_time:end_time] * solar_scaling_factor * percentage_control
-                    sbar = np.max(np.array(profile[node_id + '_pv']) * solar_scaling_factor * percentage_control)
+                    sbar = np.max(np.array(profile[node_id + '_pv']) * solar_scaling_factor * percentage_control)*1.1
                     self.master_kernel.device.set_device_internal_scenario(device_id, solar)
                     self.master_kernel.device.set_device_sbar(device_id, sbar)
 
@@ -265,6 +265,6 @@ class OpenDSSScenario(KernelScenario):
                         percentage_control = self.master_kernel.device.get_device(device_id).percentage_control
 
                         solar = np.array(profile[node_id + '_pv'])[start_time:end_time] * solar_scaling_factor * percentage_control
-                        sbar = np.max(np.array(profile[node_id + '_pv']) * solar_scaling_factor * percentage_control)
+                        sbar = np.max(np.array(profile[node_id + '_pv']) * solar_scaling_factor * percentage_control)*1.1
                         self.master_kernel.device.set_device_internal_scenario(device_id, solar)
                         self.master_kernel.device.set_device_sbar(device_id, sbar)
