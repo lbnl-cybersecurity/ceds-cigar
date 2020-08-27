@@ -232,7 +232,7 @@ class OpenDSSDevice(KernelDevice):
             if device_id not in self.devcon_ids['rl_devcon']:
                 self.devcon_ids['rl_devcon'].append(device_id)
             if device_id in self.devcon_ids['norl_devcon']:
-                self.device_ids['norl_devcon'].remove(device_id)
+                self.devcon_ids['norl_devcon'].remove(device_id)
         else:
             if device_id not in self.devcon_ids['norl_devcon']:
                 self.devcon_ids['norl_devcon'].append(device_id)
