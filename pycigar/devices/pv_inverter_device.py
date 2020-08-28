@@ -159,9 +159,26 @@ class PVDevice(BaseDevice):
                 mean = (va + vb + vc) / 3
                 max_diff = max(abs(va - mean), abs(vb - mean), abs(vc - mean))
                 self.u = max_diff / mean
-                # add heuristic threshold to u
-                #if self.u - 0.01 < 0:
-                #    self.u = 0
+
+                v14a = abs(k.node.nodes['s714a']['voltage'][k.time - 1])
+                v14b = abs(k.node.nodes['s714b']['voltage'][k.time - 1])
+                mean = (v14a + v14b) / 2
+                max_diff = max(abs(v14a - mean), abs(v14b - mean))
+                self.u += max_diff / mean
+
+                v22b = abs(k.node.nodes['s722b']['voltage'][k.time - 1])
+                v22c = abs(k.node.nodes['s722c']['voltage'][k.time - 1])
+                mean = (v22b + v22c) / 2
+                max_diff = max(abs(v22c - mean), abs(v22b - mean))
+                self.u += max_diff / mean
+                
+                v42a = abs(k.node.nodes['s742a']['voltage'][k.time - 1])
+                v42b = abs(k.node.nodes['s742b']['voltage'][k.time - 1])
+                mean = (v42a + v42b) / 2
+                max_diff = max(abs(v42a - mean), abs(v42b - mean))
+                self.u += max_diff / mean
+                
+                self.u /= 4.0
 
         T = self.delta_t
         lpf_m = self.low_pass_filter_measure
