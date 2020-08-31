@@ -150,7 +150,7 @@ class PVDevice(BaseDevice):
                         - (self.lpf_delta_t * self.lpf_low_pass_filter - 2) * self.lpf_y1[1]
                     ) / (2 + self.lpf_delta_t * self.lpf_low_pass_filter)
                     self.lpf_y1.append(y_value)
-                    self.y = y_value * 0.04
+                    self.y = y_value * 0.04 * 3
 
             if 's701a' in k.node.nodes and 's701b' in k.node.nodes and 's701c' in k.node.nodes:
                 va = abs(k.node.nodes['s701a']['voltage'][k.time - 1])
