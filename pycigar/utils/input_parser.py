@@ -52,7 +52,7 @@ def input_parser(misc_inputs_path, dss_path, load_solar_path, breakpoints_path=N
                 'solution_step_size': 1,
                 'solution_control_mode': 2,
                 'solution_max_control_iterations': 1000000,
-                'solution_max_iterations': 30000,
+                'solution_max_iterations': 3000000,
                 'power_factor': 0.9,
             },
         },
