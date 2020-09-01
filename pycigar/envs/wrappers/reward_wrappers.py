@@ -229,7 +229,7 @@ class CentralGlobalRewardWrapper(RewardWrapper):
         latest_vb = self.k.node.nodes['s701b']['voltage'][self.k.time-self.k.sim_params['env_config']['sims_per_step']:self.k.time]
         latest_vc = self.k.node.nodes['s701c']['voltage'][self.k.time-self.k.sim_params['env_config']['sims_per_step']:self.k.time]
 
-        global_reward -= T*np.sqrt(np.sum((latest_va - 1)**2 + (latest_vb - 1)**2 + (latest_vc - 1)**2))
+        global_reward -= T*(np.sqrt(np.sum((latest_va - 1)**2)) + np.sqrt(np.sum((latest_vb - 1)**2)) + np.sqrt(np.sum((latest_vc - 1)**2)))
         #v_pena = v_penb = v_penc = 0
         #if latest_va[latest_va < VOLTAGE_THRESHOLD_LB].size != 0:
         #    v_pena = np.mean((latest_va[latest_va < VOLTAGE_THRESHOLD_LB] - VOLTAGE_THRESHOLD_LB)**2)
