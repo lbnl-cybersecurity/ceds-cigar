@@ -193,7 +193,7 @@ class OpenDSSScenario(KernelScenario):
             Logger = logger()
             Logger.custom_metrics['hack'] = dev_hack_info[1]
 
-        self.change_load_profile(start_time, end_time)
+        #self.change_load_profile(start_time, end_time)
 
     def update(self, reset):
         """See parent class."""
