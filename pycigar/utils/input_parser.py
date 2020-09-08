@@ -38,6 +38,8 @@ def input_parser(misc_inputs_path, dss_path, load_solar_path, breakpoints_path=N
         'P': 10,  # weight for taking different action from last timestep action
         'Q': 0.5,
         'T': 1000,
+
+        'is_disable_log': False,
         'is_disable_y': False,
         'vectorized_mode': False,
 
@@ -52,7 +54,7 @@ def input_parser(misc_inputs_path, dss_path, load_solar_path, breakpoints_path=N
                 'solution_step_size': 1,
                 'solution_control_mode': 2,
                 'solution_max_control_iterations': 1000000,
-                'solution_max_iterations': 3000000,
+                'solution_max_iterations': 30000,
                 'power_factor': 0.9,
             },
         },

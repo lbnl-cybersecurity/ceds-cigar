@@ -14,9 +14,10 @@ STEP_BUFFER = 4
 
 
 class VectorizedPVDevice:
-    def __init__(self, k):
+    def __init__(self, k, is_disable_log=False):
         """Instantiate an PV device."""
         self.k = k
+        self.is_disable_log = is_disable_log
         self.list_device = k.device.get_pv_device_ids()
         self.list_node = [k.device.get_node_connected_to(device_id) for device_id in self.list_device]
 
@@ -237,23 +238,24 @@ class VectorizedPVDevice:
 
     def log(self):
         # log history
-        Logger = logger()
-        for i, device_id in enumerate(self.list_device):
-            Logger.log(device_id, 'y', self.y[i])
+        if not self.is_disable_log:
+            Logger = logger()
+            for i, device_id in enumerate(self.list_device):
+                Logger.log(device_id, 'y', self.y[i])
 
-            #Logger.log(self.device_id, 'u', self.u[i])
-            Logger.log(device_id, 'p_set', self.p_set[i])
-            Logger.log(device_id, 'q_set', self.q_set[i])
-            Logger.log(device_id, 'p_out', self.p_out[i])
-            Logger.log(device_id, 'q_out', self.q_out[i])
-            Logger.log(device_id, 'p_out_new', self.p_out_new[i])
-            Logger.log(device_id, 'q_out_new', self.q_out_new[i])
-            Logger.log(device_id, 'control_setting', copy(self.VBP[i]))
-            if self.Sbar != []:
-                Logger.log(device_id, 'sbar_solarirr', 1.5e-3*(abs(self.Sbar[i] ** 2 - max(10, self.solar_irr[i]) ** 2)) ** (1 / 2))
-                Logger.log(device_id, 'sbar_pset', self.p_set[i] / self.Sbar[i])
+                #Logger.log(self.device_id, 'u', self.u[i])
+                Logger.log(device_id, 'p_set', self.p_set[i])
+                Logger.log(device_id, 'q_set', self.q_set[i])
+                Logger.log(device_id, 'p_out', self.p_out[i])
+                Logger.log(device_id, 'q_out', self.q_out[i])
+                Logger.log(device_id, 'p_out_new', self.p_out_new[i])
+                Logger.log(device_id, 'q_out_new', self.q_out_new[i])
+                Logger.log(device_id, 'control_setting', copy(self.VBP[i]))
+                if self.Sbar != []:
+                    Logger.log(device_id, 'sbar_solarirr', 1.5e-3*(abs(self.Sbar[i] ** 2 - max(10, self.solar_irr[i]) ** 2)) ** (1 / 2))
+                    Logger.log(device_id, 'sbar_pset', self.p_set[i] / self.Sbar[i])
 
-            Logger.log(device_id, 'solar_irr', self.solar_irr[i])
+                Logger.log(device_id, 'solar_irr', self.solar_irr[i])
 
 #@jit
 def _filter(output, output_one, step, lpf_epsilon, lpf_psi, lpf_y1, lpf_high_pass_filter, lpf_low_pass_filter, lpf_delta_t, gain):

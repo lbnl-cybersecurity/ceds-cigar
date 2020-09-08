@@ -189,7 +189,7 @@ class OpenDSSScenario(KernelScenario):
                     hack=None,
                 )
 
-        if dev_hack_info is not None:
+        if dev_hack_info is not None and not self.master_kernel.sim_params['is_disable_log']:
             Logger = logger()
             Logger.custom_metrics['hack'] = dev_hack_info[1]
 
@@ -201,8 +201,9 @@ class OpenDSSScenario(KernelScenario):
             self.master_kernel.node.nodes[node]['voltage'][self.master_kernel.time] = self.kernel_api.get_node_voltage(
                 node
             )
-            Logger = logger()
-            Logger.log(node, 'voltage', self.master_kernel.node.nodes[node]['voltage'][self.master_kernel.time])
+            if not self.master_kernel.sim_params['is_disable_log']:
+                Logger = logger()
+                Logger.log(node, 'voltage', self.master_kernel.node.nodes[node]['voltage'][self.master_kernel.time])
 
             self.master_kernel.node.nodes[node]['PQ_injection']['P'] = 0
             self.master_kernel.node.nodes[node]['PQ_injection']['Q'] = 0

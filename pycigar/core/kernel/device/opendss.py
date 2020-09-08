@@ -146,7 +146,7 @@ class OpenDSSDevice(KernelDevice):
         else:
             device[1]["percentage_control"] = 1 - hack[1]
 
-        device_obj = pycigar_make(device[0], device_id=device_id, additional_params=device[1])
+        device_obj = pycigar_make(device[0], device_id=device_id, additional_params=device[1], is_disable_log=self.master_kernel.sim_params['is_disable_log'])
         if device[0] not in self.device_ids:
             self.device_ids[device[0]] = [device_id]
         else:
@@ -167,7 +167,7 @@ class OpenDSSDevice(KernelDevice):
         if adversary_controller[0] is not None:
             adversary_device_id = "adversary_%s" % name
             device[1]["percentage_control"] = hack[1]
-            adversary_device_obj = pycigar_make(device[0], device_id=adversary_device_id, additional_params=device[1])
+            adversary_device_obj = pycigar_make(device[0], device_id=adversary_device_id, additional_params=device[1], is_disable_log=self.master_kernel.sim_params['is_disable_log'])
 
             if device[0] not in self.device_ids:
                 self.device_ids[device[0]] = [adversary_device_id]
@@ -210,7 +210,7 @@ class OpenDSSDevice(KernelDevice):
                     self.update_kernel_device_info(device_id)
 
             if self.master_kernel.sim_params['vectorized_mode']:
-                self.vectorized_pv_inverter_device = VectorizedPVDevice(self.master_kernel)
+                self.vectorized_pv_inverter_device = VectorizedPVDevice(self.master_kernel, is_disable_log=self.master_kernel.sim_params['is_disable_log'])
         else:
             # get the injection here
             # get the new VBP, then push PV to node

@@ -62,11 +62,12 @@ class OpenDSSNode(KernelNode):
                 )
 
     def log(self, node, p_injection, q_injection, node_kw, node_kvar):
-        Logger = logger()
-        Logger.log(node, 'p', p_injection)
-        Logger.log(node, 'q', q_injection)
-        Logger.log(node, 'kw', node_kw)
-        Logger.log(node, 'kvar', node_kvar)
+        if not self.master_kernel.sim_params['is_disable_log']:
+            Logger = logger()
+            Logger.log(node, 'p', p_injection)
+            Logger.log(node, 'q', q_injection)
+            Logger.log(node, 'kw', node_kw)
+            Logger.log(node, 'kvar', node_kvar)
 
     def get_node_ids(self):
         """Return all nodes' ids.
