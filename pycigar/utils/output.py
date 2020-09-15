@@ -338,31 +338,34 @@ def plot_new(log_dict, custom_metrics, epoch='', unbalance=False, multiagent=Fal
         for i in range(len(inv_ks)):
             ax[2 + i, 0].set_ylim([-ACTION_RANGE * 1.1, ACTION_RANGE * 1.1])
 
-        ax[0, 1].plot(np.array(log_dict['inverter_s701a']['sbar_solarirr'])/(1.5e-3), label='q_avail_s701a')
-        ax[0, 1].plot(np.array(log_dict['inverter_s701b']['sbar_solarirr'])/(1.5e-3), label='q_avail_s701b')
-        ax[0, 1].plot(np.array(log_dict['inverter_s701c']['sbar_solarirr'])/(1.5e-3), label='q_avail_s701c')
+        node_714 = ['s714a', 's714b']
+        node_722 = ['s722b', 's722c']
+        node_742 = ['s742a', 's742b']
+        ax[0, 1].plot(np.array(log_dict['s714a']['voltage']), label='voltage (inverter_s714a)')
+        ax[0, 1].plot(np.array(log_dict['s714b']['voltage']), label='voltage (inverter_s714b)')
+        ax[1, 1].plot(np.array(log_dict['s722b']['voltage']), label='voltage (inverter_s722b)')
+        ax[1, 1].plot(np.array(log_dict['s722c']['voltage']), label='voltage (inverter_s722c)')
+        ax[2, 1].plot(np.array(log_dict['s742a']['voltage']), label='voltage (inverter_s742a)')
+        ax[2, 1].plot(np.array(log_dict['s742b']['voltage']), label='voltage (inverter_s742b)')
+        ax[0, 1].set_ylim([0.90, 1.10])
+        ax[1, 1].set_ylim([0.90, 1.10])
+        ax[2, 1].set_ylim([0.90, 1.10])
 
-        ax[1, 1].plot(log_dict['inverter_s701a']['pset_pmax'], label='pset_pmax_s701a')
-        ax[1, 1].plot(log_dict['inverter_s701b']['pset_pmax'], label='pset_pmax_s701b')
-        ax[1, 1].plot(log_dict['inverter_s701c']['pset_pmax'], label='pset_pmax_s701c')
-
-        ax[2, 1].plot(np.array(log_dict['inverter_s701a']['q_out']), label='q_out_s701a')
+        ax[3, 1].plot(np.array(log_dict['inverter_s701a']['q_out']), label='q_out_s701a')
         #ax[2, 1].plot(np.array(log_dict['inverter_s701a']['sbar_solarirr'])*np.sign(log_dict['inverter_s701a']['q_out'])/(1.5e-3), label='q_avail_s701a')
-        ax[2, 1].plot(np.array(log_dict['inverter_s701a']['q_avail_real']), label='q_avail_s701a')
-        ax[2, 1].plot(np.array(log_dict['inverter_s701a']['q_set']), label='q_set_s701a')
+        ax[3, 1].plot(np.array(log_dict['inverter_s701a']['q_avail_real']), label='q_avail_s701a')
+        ax[3, 1].plot(np.array(log_dict['inverter_s701a']['q_set']), label='q_set_s701a')
 
-        ax[3, 1].plot(np.array(log_dict['inverter_s701b']['q_out']), label='q_out_s701b')
+        ax[4, 1].plot(np.array(log_dict['inverter_s701b']['q_out']), label='q_out_s701b')
         #ax[3, 1].plot(np.array(log_dict['inverter_s701b']['sbar_solarirr'])*np.sign(log_dict['inverter_s701b']['q_out'])/(1.5e-3), label='q_avail_s701b')
-        ax[3, 1].plot(np.array(log_dict['inverter_s701b']['q_avail_real']), label='q_avail_s701b')
-        ax[3, 1].plot(np.array(log_dict['inverter_s701b']['q_set']), label='q_set_s701b')
+        ax[4, 1].plot(np.array(log_dict['inverter_s701b']['q_avail_real']), label='q_avail_s701b')
+        ax[4, 1].plot(np.array(log_dict['inverter_s701b']['q_set']), label='q_set_s701b')
 
-        ax[4, 1].plot(np.array(log_dict['inverter_s701c']['q_out']), label='q_out_s701c')
+        ax[5, 1].plot(np.array(log_dict['inverter_s701c']['q_out']), label='q_out_s701c')
         #ax[4, 1].plot(np.array(log_dict['inverter_s701c']['sbar_solarirr'])*np.sign(log_dict['inverter_s701c']['q_out'])/(1.5e-3), label='q_avail_s701c')
-        ax[4, 1].plot(np.array(log_dict['inverter_s701c']['q_avail_real']), label='q_avail_s701c')
-        ax[4, 1].plot(np.array(log_dict['inverter_s701c']['q_set']), label='q_set_s701c')
+        ax[5, 1].plot(np.array(log_dict['inverter_s701c']['q_avail_real']), label='q_avail_s701c')
+        ax[5, 1].plot(np.array(log_dict['inverter_s701c']['q_set']), label='q_set_s701c')
 
-
-        ax[1, 1].set_ylim([-1.1, 0.1])
 
         for row in ax:
             for a in row:
