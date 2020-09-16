@@ -184,7 +184,7 @@ class CentralGlobalRewardWrapper(RewardWrapper):
         T = self.k.sim_params['T']
         global_reward = 0
         # we accumulate agents reward into global_reward and divide it with the number of agents.
-        y_or_u = 'u' if self.unbalance else 'y'
+        y_or_u = 'u_worst' if self.unbalance else 'y'
 
         component_y = 0
         component_oa = 0
@@ -225,10 +225,12 @@ class CentralGlobalRewardWrapper(RewardWrapper):
         global_reward = global_reward / len(list(info.keys()))
 
         # voltage threshold on s701
-        latest_va = self.k.node.nodes['s701a']['voltage'][self.k.time-self.k.sim_params['env_config']['sims_per_step']:self.k.time]
-        latest_vb = self.k.node.nodes['s701b']['voltage'][self.k.time-self.k.sim_params['env_config']['sims_per_step']:self.k.time]
-        latest_vc = self.k.node.nodes['s701c']['voltage'][self.k.time-self.k.sim_params['env_config']['sims_per_step']:self.k.time]
-
+        #latest_va = self.k.node.nodes['s701a']['voltage'][self.k.time-self.k.sim_params['env_config']['sims_per_step']:self.k.time]
+        #latest_vb = self.k.node.nodes['s701b']['voltage'][self.k.time-self.k.sim_params['env_config']['sims_per_step']:self.k.time]
+        #latest_vc = self.k.node.nodes['s701c']['voltage'][self.k.time-self.k.sim_params['env_config']['sims_per_step']:self.k.time]
+        latest_va = info['inverter_s701a']['v_worst_all'][:, 0]
+        latest_vb = info['inverter_s701a']['v_worst_all'][:, 1]
+        latest_vc = info['inverter_s701a']['v_worst_all'][:, 2]
         global_reward -= T*(np.sqrt(np.sum((latest_va - 1)**2)) + np.sqrt(np.sum((latest_vb - 1)**2)) + np.sqrt(np.sum((latest_vc - 1)**2)))
         #v_pena = v_penb = v_penc = 0
         #if latest_va[latest_va < VOLTAGE_THRESHOLD_LB].size != 0:

@@ -39,6 +39,7 @@ class CentralEnv(Env):
             reward: a dictionary of reward received by agents.
             done: bool
         """
+
         observations = []
         self.old_actions = {}
         for rl_id in self.k.device.get_rl_device_ids():
@@ -83,8 +84,8 @@ class CentralEnv(Env):
                 if not converged:
                     break
 
+                state = self.get_state()
                 observations.append(self.get_state())
-
             if self.k.time >= self.k.t:
                 break
 
@@ -94,14 +95,20 @@ class CentralEnv(Env):
 
         try:
             obs = {k: np.mean([d[k] for d in observations]) for k in observations[0]}
+            obs['v_worst'] = observations[-1]['v_worst']
+
         except IndexError:
             obs = {'p_set': 0.0, 'p_set_p_max': 0.0, 'sbar_solar_irr': 0.0, 'solar_generation': 0.0, 'u': 0.0, 'voltage': 0.0, 'y': 0.0}
+            obs['v_worst'] = [0, 0, 0]
 
         # the episode will be finished if it is not converged.
         done = not converged or (self.k.time == self.k.t)
 
         infos = {
             key: {
+                'v_worst_all': np.array([k['v_worst'] for k in observations]),
+                'u_worst': obs['u_worst'],
+                'v_worst': obs['v_worst'],
                 'voltage': self.k.node.get_node_voltage(self.k.device.get_node_connected_to(key)),
                 'y': obs['y'],
                 'u': obs['u'],
@@ -114,6 +121,7 @@ class CentralEnv(Env):
             }
             for key in self.k.device.get_rl_device_ids()
         }
+
 
         for key in self.k.device.get_rl_device_ids():
             if self.old_actions is not None:
@@ -136,10 +144,19 @@ class CentralEnv(Env):
 
     def get_state(self):
         obs = []
+        Logger = logger()
+        u_worst, v_worst, u_mean, u_std, v_all = self.k.kernel_api.get_worst_u_node()
+        Logger.log('u_metrics', 'u_worst', u_worst)
+        Logger.log('u_metrics', 'u_mean', u_mean)
+        Logger.log('u_metrics', 'u_std', u_std)
+        Logger.log('v_metrics', str(self.k.time), v_all)
         for rl_id in self.k.device.get_rl_device_ids():
             connected_node = self.k.device.get_node_connected_to(rl_id)
             obs.append(
                 {
+                    'u_worst': u_worst,
+                    'u_mean': u_mean,
+                    'u_std': u_std,
                     'voltage': self.k.node.get_node_voltage(connected_node),
                     'solar_generation': self.k.device.get_solar_generation(rl_id),
                     'y': self.k.device.get_device_y(rl_id),
@@ -151,7 +168,9 @@ class CentralEnv(Env):
             )
 
         if obs:
-            return {k: np.mean([d[k] for d in obs]) for k in obs[0]}
+            result = {k: np.mean([d[k] for d in obs]) for k in obs[0]}
+            result['v_worst'] = v_worst
+            return result
         else:
             return {}
 

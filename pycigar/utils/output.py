@@ -303,13 +303,12 @@ def plot_new(log_dict, custom_metrics, epoch='', unbalance=False, multiagent=Fal
             2 + len(inv_ks) + (reg is not None), 2, figsize=(25, 8 + 4 * len(inv_ks) + 4 * (reg is not None))
         )
         title = '[epoch {}][time {}][hack {}] total reward: {:.2f} || total unbalance: {:.4f}'.format(
-            epoch, custom_metrics['start_time'], custom_metrics['hack'], sum(log_dict[inv_ks[0]]['reward']), sum(log_dict[inv_ks[0]]['u'])
+            epoch, custom_metrics['start_time'], custom_metrics['hack'], sum(log_dict[inv_ks[0]]['reward']), sum(log_dict['u_metrics']['u_worst'])
         )
 
         f.suptitle(title)
         for i, k in enumerate(inv_ks):
             ax[0, 0].plot(log_dict[log_dict[k]['node']]['voltage'], label='voltage ({})'.format(k))
-            ax[1, 0].plot(log_dict[k]['u'], label='unbalance observer ({})'.format(k))
 
             if not multiagent:
                 translation, slope = get_translation_and_slope(
@@ -318,6 +317,9 @@ def plot_new(log_dict, custom_metrics, epoch='', unbalance=False, multiagent=Fal
                 ax[2 + i, 0].plot(translation, label='RL translation ({})'.format(k))
                 ax[2 + i, 0].plot(slope, label='RL slope (a2-a1) ({})'.format(k))
 
+        ax[1, 0].plot(log_dict['u_metrics']['u_worst'], label='unbalance observer')
+        ax[1, 0].plot(log_dict['u_metrics']['u_mean'], label='unbalance mean')
+        ax[1, 0].fill_between(np.array(log_dict['u_metrics']['u_mean'])+np.array(log_dict['u_metrics']['u_std']), np.array(log_dict['u_metrics']['u_mean'])-np.array(log_dict['u_metrics']['u_std']), facecolor='orange', alpha=0.5)
         if multiagent:
             phases = ['a', 'b', 'c']
             for k in log_dict:
@@ -338,15 +340,34 @@ def plot_new(log_dict, custom_metrics, epoch='', unbalance=False, multiagent=Fal
         for i in range(len(inv_ks)):
             ax[2 + i, 0].set_ylim([-ACTION_RANGE * 1.1, ACTION_RANGE * 1.1])
 
-        node_714 = ['s714a', 's714b']
-        node_722 = ['s722b', 's722c']
-        node_742 = ['s742a', 's742b']
-        ax[0, 1].plot(np.array(log_dict['s714a']['voltage']), label='voltage (inverter_s714a)')
-        ax[0, 1].plot(np.array(log_dict['s714b']['voltage']), label='voltage (inverter_s714b)')
-        ax[1, 1].plot(np.array(log_dict['s722b']['voltage']), label='voltage (inverter_s722b)')
-        ax[1, 1].plot(np.array(log_dict['s722c']['voltage']), label='voltage (inverter_s722c)')
-        ax[2, 1].plot(np.array(log_dict['s742a']['voltage']), label='voltage (inverter_s742a)')
-        ax[2, 1].plot(np.array(log_dict['s742b']['voltage']), label='voltage (inverter_s742b)')
+        node_714 = [[], [], []]
+        node_722 = [[], [], []]
+        node_742 = [[], [], []]
+        for i in log_dict['v_metrics'].keys():
+            node_714[0].append(log_dict['v_metrics'][i][0]['714'][0])
+            node_714[1].append(log_dict['v_metrics'][i][0]['714'][1])
+            node_714[2].append(log_dict['v_metrics'][i][0]['714'][2])
+
+            node_722[0].append(log_dict['v_metrics'][i][0]['722'][0])
+            node_722[1].append(log_dict['v_metrics'][i][0]['722'][1])
+            node_722[2].append(log_dict['v_metrics'][i][0]['722'][2])
+        
+            node_742[0].append(log_dict['v_metrics'][i][0]['742'][0])
+            node_742[1].append(log_dict['v_metrics'][i][0]['742'][1])
+            node_742[2].append(log_dict['v_metrics'][i][0]['742'][2])
+
+        ax[0, 1].plot(node_714[0], label='voltage 714a')
+        ax[0, 1].plot(node_714[1], label='voltage 714b')
+        ax[0, 1].plot(node_714[2], label='voltage 714c')
+        
+        ax[1, 1].plot(node_722[0], label='voltage 722a')
+        ax[1, 1].plot(node_722[1], label='voltage 722b')
+        ax[1, 1].plot(node_722[2], label='voltage 722c')
+
+        ax[2, 1].plot(node_742[0], label='voltage 742a')
+        ax[2, 1].plot(node_742[1], label='voltage 742b')
+        ax[2, 1].plot(node_742[2], label='voltage 742c')
+        
         ax[0, 1].set_ylim([0.90, 1.10])
         ax[1, 1].set_ylim([0.90, 1.10])
         ax[2, 1].set_ylim([0.90, 1.10])

@@ -161,3 +161,26 @@ class PyCIGAROpenDSSAPI(object):
         voltage_c = dss.CktElement.VoltagesMagAng()
         voltage = (voltage_a[0] + voltage_b[0] + voltage_c[0]) / (3 * (dss.Loads.kV() * 1000 / (3 ** 0.5)))
         return voltage
+
+    def get_worst_u_node(self):
+        buses = dss.Circuit.AllBusNames()
+        u_all = []
+        v_all = {}
+        u_worst = 0
+        for bus in buses:
+            dss.Circuit.SetActiveBus(bus)
+            vmagang = dss.Bus.puVmagAngle()
+            va = vmagang[0]
+            vb = vmagang[2]
+            vc = vmagang[4]
+            v_all[bus] = [va, vb, vc]
+            mean = (va + vb + vc) / 3
+            max_diff = max(abs(va - mean), abs(vb - mean), abs(vc - mean))
+            u = max_diff / mean
+            if u > u_worst:
+                u_worst = u
+                v_worst = [va, vb, vc]
+            u_all.append(u)
+
+        return u_worst, v_worst, np.mean(u_all), np.std(u_all), v_all
+
