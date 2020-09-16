@@ -123,7 +123,7 @@ class CentralLocalPhaseSpecificObservationWrapper(CentralLocalObservationWrapper
     @property
     def observation_space(self):
         prev_shape = self.env.observation_space.shape[0]
-        return Box(low=-float('inf'), high=float('inf'), shape=(3 + prev_shape,), dtype=np.float64)
+        return Box(low=-float('inf'), high=float('inf'), shape=(prev_shape,), dtype=np.float64)
 
     def observation(self, observation, info):
 
