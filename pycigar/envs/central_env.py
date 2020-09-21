@@ -5,6 +5,7 @@ from pycigar.envs.base import Env
 from pycigar.utils.logging import logger
 from copy import deepcopy
 import time
+import re
 
 class CentralEnv(Env):
     def __init__(self, *args, **kwargs):
@@ -145,13 +146,14 @@ class CentralEnv(Env):
     def get_state(self):
         obs = []
         Logger = logger()
-        u_worst, v_worst, u_mean, u_std, v_all = self.k.kernel_api.get_worst_u_node()
+        u_worst, v_worst, u_mean, u_std, v_all, u_all_bus = self.k.kernel_api.get_worst_u_node()
         Logger.log('u_metrics', 'u_worst', u_worst)
         Logger.log('u_metrics', 'u_mean', u_mean)
         Logger.log('u_metrics', 'u_std', u_std)
         Logger.log('v_metrics', str(self.k.time), v_all)
         for rl_id in self.k.device.get_rl_device_ids():
             connected_node = self.k.device.get_node_connected_to(rl_id)
+            bus = re.findall('\d+', connected_node)[0]
             obs.append(
                 {
                     'u_worst': u_worst,
@@ -160,7 +162,7 @@ class CentralEnv(Env):
                     'voltage': self.k.node.get_node_voltage(connected_node),
                     'solar_generation': self.k.device.get_solar_generation(rl_id),
                     'y': self.k.device.get_device_y(rl_id),
-                    'u': self.k.device.get_device_u(rl_id),
+                    'u': u_all_bus[bus],
                     'p_set_p_max': self.k.device.get_device_p_set_p_max(rl_id),
                     'sbar_solar_irr': self.k.device.get_device_sbar_solar_irr(rl_id),
                     'p_set': self.k.device.get_device_p_set_relative(rl_id),
