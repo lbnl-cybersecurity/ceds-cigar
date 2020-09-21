@@ -95,7 +95,7 @@ class CentralEnv(Env):
         try:
             obs = {k: np.mean([d[k] for d in observations]) for k in observations[0]}
             obs['v_worst'] = observations[-1]['v_worst']
-
+            obs['u_worst'] = observations[-1]['u_worst']
         except IndexError:
             obs = {'p_set': 0.0, 'p_set_p_max': 0.0, 'sbar_solar_irr': 0.0, 'solar_generation': 0.0, 'u': 0.0, 'voltage': 0.0, 'y': 0.0}
             obs['v_worst'] = [0, 0, 0]
