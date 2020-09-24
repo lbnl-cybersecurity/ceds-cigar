@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from pycigar.envs.wrappers.wrappers_constants import ACTION_RANGE
 from pycigar.utils.logging import logger
-
+from matplotlib.ticker import FormatStrFormatter
 BASE_VOLTAGE = 120
 
 
@@ -302,20 +302,45 @@ def plot_new(log_dict, custom_metrics, epoch='', unbalance=False, multiagent=Fal
         f, ax = plt.subplots(
             2 + len(inv_ks) + (reg is not None), 2, figsize=(25, 8 + 4 * len(inv_ks) + 4 * (reg is not None))
         )
-        title = '[epoch {}][time {}][hack {}] total reward: {:.2f} || total unbalance: {:.4f}'.format(
-            epoch, custom_metrics['start_time'], custom_metrics['hack'], sum(log_dict[inv_ks[0]]['reward']), sum(log_dict['u_metrics']['u_worst'])
-        )
-
+        #title = '[epoch {}][time {}][hack {}] total reward: {:.2f} || total unbalance: {:.4f}'.format(
+        #    epoch, custom_metrics['start_time'], custom_metrics['hack'], sum(log_dict[inv_ks[0]]['reward']), sum(log_dict['u_metrics']['u_worst'])
+        #)
+        title = '[epoch {}][time {}][hack {}] total reward: {:.2f} || total unbalance: {:.4f}'.format(0, custom_metrics['start_time'], custom_metrics['hack'], 0, sum(log_dict['u_metrics']['u_worst']))
         f.suptitle(title)
         for i, k in enumerate(inv_ks):
             ax[0, 0].plot(log_dict[log_dict[k]['node']]['voltage'], label='voltage ({})'.format(k))
 
-            if not multiagent:
-                translation, slope = get_translation_and_slope(
-                    log_dict[k]['control_setting'], custom_metrics['init_control_settings'][k]
-                )
-                ax[2 + i, 0].plot(translation, label='RL translation ({})'.format(k))
-                ax[2 + i, 0].plot(slope, label='RL slope (a2-a1) ({})'.format(k))
+            #if not multiagent:
+            #    translation, slope = get_translation_and_slope(
+            #        log_dict[k]['control_setting'], custom_metrics['init_control_settings'][k]
+            #    )
+            #    ax[2 + i, 0].plot(translation, label='RL translation ({})'.format(k))
+            #    ax[2 + i, 0].plot(slope, label='RL slope (a2-a1) ({})'.format(k))
+
+        inv_a = [k for k in log_dict if k.endswith('a') and k.startswith('inverter_')]
+        inv_b = [k for k in log_dict if k.endswith('b') and k.startswith('inverter_')]
+        inv_c = [k for k in log_dict if k.endswith('c') and k.startswith('inverter_')]
+
+        for i, k in enumerate(inv_a):
+            translation, slope = get_translation_and_slope(
+                log_dict[k]['control_setting'], custom_metrics['init_control_settings'][k]
+            )
+            ax[2, 0].plot(translation, label='RL translation ({})'.format(k))
+            #ax[2, 0].plot(slope, label='RL slope (a2-a1) ({})'.format(k))
+
+        for i, k in enumerate(inv_b):
+            translation, slope = get_translation_and_slope(
+                log_dict[k]['control_setting'], custom_metrics['init_control_settings'][k]
+            )
+            ax[3, 0].plot(translation, label='RL translation ({})'.format(k))
+            #ax[3, 0].plot(slope, label='RL slope (a2-a1) ({})'.format(k))
+
+        for i, k in enumerate(inv_c):
+            translation, slope = get_translation_and_slope(
+                log_dict[k]['control_setting'], custom_metrics['init_control_settings'][k]
+            )
+            ax[4, 0].plot(translation, label='RL translation ({})'.format(k))
+            #ax[4, 0].plot(slope, label='RL slope (a2-a1) ({})'.format(k))
 
         ax[1, 0].plot(log_dict['u_metrics']['u_worst'], label='unbalance observer')
         ax[1, 0].plot(log_dict['u_metrics']['u_mean'], label='unbalance mean')
@@ -392,7 +417,8 @@ def plot_new(log_dict, custom_metrics, epoch='', unbalance=False, multiagent=Fal
             for a in row:
                 a.grid(b=True, which='both')
                 a.legend(loc=1, ncol=2)
-
+                a.yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
+        ax[4,0].legend(loc=3, ncol=2)
     plt.tight_layout()
     plt.subplots_adjust(top=0.95)
     return f
