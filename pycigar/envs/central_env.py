@@ -101,6 +101,7 @@ class CentralEnv(Env):
             obs = {'p_set': 0.0, 'p_set_p_max': 0.0, 'sbar_solar_irr': 0.0, 'solar_generation': 0.0, 'u': 0.0, 'voltage': 0.0, 'y': 0.0}
             obs['v_worst'] = [0, 0, 0]
             obs['u_worst'] = 0
+            obs['u_mean'] = 0
 
         # the episode will be finished if it is not converged.
         done = not converged or (self.k.time == self.k.t)
@@ -110,6 +111,7 @@ class CentralEnv(Env):
                 'v_worst_all': np.array([k['v_worst'] for k in observations]),
                 'u_worst': obs['u_worst'],
                 'v_worst': obs['v_worst'],
+                'u_mean': obs['u_mean'],
                 'voltage': self.k.node.get_node_voltage(self.k.device.get_node_connected_to(key)),
                 'y': obs['y'],
                 'u': obs['u'],

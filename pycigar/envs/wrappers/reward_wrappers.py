@@ -184,7 +184,7 @@ class CentralGlobalRewardWrapper(RewardWrapper):
         T = self.k.sim_params['T']
         global_reward = 0
         # we accumulate agents reward into global_reward and divide it with the number of agents.
-        y_or_u = 'u' if self.unbalance else 'y'
+        y_or_u = 'u_mean' if self.unbalance else 'y'
 
         component_y = 0
         component_oa = 0
