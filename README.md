@@ -28,6 +28,7 @@ python3 setup.py develop
 git clone git+ssh://USERNAME@github.com/lbnl-cybersecurity/ceds-cigar.git
 cd ceds-cigar
 conda env create -f environment.yml
+conda activate pycigar
 python setup_conda.py develop
 ```
 
