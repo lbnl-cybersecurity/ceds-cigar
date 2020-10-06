@@ -197,6 +197,7 @@ class OpenDSSScenario(KernelScenario):
 
     def update(self, reset):
         """See parent class."""
+        self.kernel_api.update_all_bus_voltages()
         for node in self.master_kernel.node.nodes:
             self.master_kernel.node.nodes[node]['voltage'][self.master_kernel.time] = self.kernel_api.get_node_voltage(
                 node
