@@ -72,7 +72,10 @@ class CentralLocalObservationWrapper(ObservationWrapper):
 
     @property
     def observation_space(self):
-        return Box(low=-float('inf'), high=float('inf'), shape=(2 + self.a_size,), dtype=np.float64)
+        if not self.unbalance:
+            return Box(low=-float('inf'), high=float('inf'), shape=(2 + self.a_size,), dtype=np.float64)
+        else:
+            return Box(low=-float('inf'), high=float('inf'), shape=(5 + self.a_size,), dtype=np.float64)
 
     def observation(self, observation, info):
         if info:
@@ -103,7 +106,10 @@ class CentralLocalObservationWrapper(ObservationWrapper):
             Logger.log('component_observation', 'component_pset', p_set)
 
         if self.unbalance:
-            observation = np.array([observation['u'] / 0.1, p_set, *old_a_encoded])
+            va = (observation['v_worst'][0]-1)*10*2
+            vb = (observation['v_worst'][1]-1)*10*2
+            vc = (observation['v_worst'][2]-1)*10*2
+            observation = np.array([observation['u_worst'] / 0.1, p_set, *old_a_encoded, va, vb, vc])
         else:
             observation = np.array([observation['y'], p_set, *old_a_encoded])
 
@@ -117,13 +123,11 @@ class CentralLocalPhaseSpecificObservationWrapper(CentralLocalObservationWrapper
     @property
     def observation_space(self):
         prev_shape = self.env.observation_space.shape[0]
-        return Box(low=-float('inf'), high=float('inf'), shape=(3 + prev_shape,), dtype=np.float64)
+        return Box(low=-float('inf'), high=float('inf'), shape=(prev_shape,), dtype=np.float64)
 
     def observation(self, observation, info):
-        va = (self.k.node.nodes['s701a']['voltage'][self.k.time - 1]-1)*10*2
-        vb = (self.k.node.nodes['s701b']['voltage'][self.k.time - 1]-1)*10*2
-        vc = (self.k.node.nodes['s701c']['voltage'][self.k.time - 1]-1)*10*2
-        return np.array([*observation, va, vb, vc])
+
+        return np.array([*observation])
 
 
 class CentralFramestackObservationWrapper(ObservationWrapper):
