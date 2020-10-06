@@ -160,11 +160,15 @@ class PyCIGAROpenDSSAPI(object):
         voltage = (voltage_a + voltage_b + voltage_c) / 3
         return voltage
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 81f3756e552d6b717facfb0c5d66c548599ed565
     def get_worst_u_node(self):
         buses = dss.Circuit.AllBusNames()
         u_all = []
         v_all = {}
+<<<<<<< HEAD
         u_all_real = {}
         u_worst = 0
         for bus in self.all_bus_name:
@@ -172,6 +176,40 @@ class PyCIGAROpenDSSAPI(object):
             vb = self.puvoltage[self.offsets['{}.{}'.format(bus, 2)]]
             vc = self.puvoltage[self.offsets['{}.{}'.format(bus, 3)]]
 
+=======
+        u_all_bus = {}
+        u_worst = 0
+        for bus in buses:
+            dss.Circuit.SetActiveBus(bus)
+            vmagang = dss.Bus.puVmagAngle()
+            va = vmagang[0]
+            vb = vmagang[2]
+            vc = vmagang[4]
+            v_all[bus] = [va, vb, vc]
+            mean = (va + vb + vc) / 3
+            max_diff = max(abs(va - mean), abs(vb - mean), abs(vc - mean))
+            u = max_diff / mean
+            if u > u_worst:
+                u_worst = u
+                v_worst = [va, vb, vc]
+            u_all.append(u)
+            u_all_bus[bus] = u
+
+        return u_worst, v_worst, np.mean(u_all), np.std(u_all), v_all, u_all_bus
+
+    def get_worst_u_node_real(self):
+        buses = dss.Circuit.AllBusNames()
+        u_all = []
+        v_all = {}
+        u_all_real = {}
+        u_worst = 0
+        for bus in buses:
+            dss.Circuit.SetActiveBus(bus)
+            vmagang = dss.Bus.puVmagAngle()
+            va = vmagang[0]
+            vb = vmagang[2]
+            vc = vmagang[4]
+>>>>>>> 81f3756e552d6b717facfb0c5d66c548599ed565
             v_all[bus] = [va, vb, vc]
             mean = (va + vb + vc) / 3
             max_diff = max(abs(va - mean), abs(vb - mean), abs(vc - mean))
@@ -182,4 +220,9 @@ class PyCIGAROpenDSSAPI(object):
             u_all.append(u)
             u_all_real[bus] = u
 
+<<<<<<< HEAD
         return u_worst, v_worst, np.mean(u_all), np.std(u_all), v_all, u_all_real
+=======
+        return u_worst, v_worst, np.mean(u_all), np.std(u_all), v_all, u_all_real
+
+>>>>>>> 81f3756e552d6b717facfb0c5d66c548599ed565
