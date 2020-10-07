@@ -5,7 +5,7 @@
 Clear
 Set DefaultBaseFrequency=60
 
-New object=circuit.ieee34-1
+New object=circuit.ieee_34_bus_original_model_1
 ~ basekv=69 pu=1.05 angle=30 mvasc3=200000 !stiffen up a bit over DSS default
 
 ! Substation Transformer -- Modification: Make source very stiff by defining a tiny leakage Z
