@@ -300,7 +300,7 @@ def plot_new(log_dict, custom_metrics, epoch='', unbalance=False, multiagent=Fal
         reg = regs[0] if regs else None
 
         f, ax = plt.subplots(
-            2 + len(inv_ks) + (reg is not None), 2, figsize=(25, 8 + 4 * len(inv_ks) + 4 * (reg is not None))
+            3 + len(inv_ks) + (reg is not None), 2, figsize=(25, 8 + 4 * len(inv_ks) + 4 * (reg is not None))
         )
         #title = '[epoch {}][time {}][hack {}] total reward: {:.2f} || total unbalance: {:.4f}'.format(
         #    epoch, custom_metrics['start_time'], custom_metrics['hack'], sum(log_dict[inv_ks[0]]['reward']), sum(log_dict['u_metrics']['u_worst'])
