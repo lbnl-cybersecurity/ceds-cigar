@@ -325,7 +325,6 @@ def get_base_config(env_name: str, cli_args: argparse.Namespace, sim_params: dic
             'free_log_std': False,
             'vf_share_layers': True,
             'use_lstm': False,
-            'state_shape': None,
             'framestack': False,
             'zero_mean': True,
         },
