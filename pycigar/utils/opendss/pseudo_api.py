@@ -31,12 +31,14 @@ class PyCIGAROpenDSSAPI(object):
         for k, v in enumerate(dss.Circuit.AllNodeNames()):
             self.offsets[v] = k
         self.loads = {}
+        self.load_to_bus = {}
         for load in self.get_node_ids():
             dss.Loads.Name(load)
             bus_phase = dss.CktElement.BusNames()[0].split('.')
             if len(bus_phase) == 1:
                 bus_phase.extend(['1','2','3'])
             self.loads[load] = [['.'.join([bus_phase[0], i]) for i in bus_phase[1:] if i != '0'], dss.CktElement.NumPhases()]
+            self.load_to_bus[load] = bus_phase[0]
 
     def set_solution_mode(self, value):
         """Set solution mode on simulator."""
@@ -85,11 +87,7 @@ class PyCIGAROpenDSSAPI(object):
         return puvoltage
 
     def get_total_power(self):
-        start_time = time.time()
         result = np.array(dss.Circuit.TotalPower())
-        if 'opendss_time' not in logger().custom_metrics:
-            logger().custom_metrics['opendss_time'] = 0
-        logger().custom_metrics['opendss_time'] += time.time() - start_time
 
     def get_losses(self):
         result = np.array(dss.Circuit.Losses())
@@ -161,15 +159,23 @@ class PyCIGAROpenDSSAPI(object):
         return voltage
 
     def get_worst_u_node(self):
-        buses = dss.Circuit.AllBusNames()
         u_all = []
         v_all = {}
         u_all_real = {}
         u_worst = 0
         for bus in self.all_bus_name:
-            va = self.puvoltage[self.offsets['{}.{}'.format(bus, 1)]]
-            vb = self.puvoltage[self.offsets['{}.{}'.format(bus, 2)]]
-            vc = self.puvoltage[self.offsets['{}.{}'.format(bus, 3)]]
+            try:
+                va = self.puvoltage[self.offsets['{}.{}'.format(bus, 1)]]
+            except:
+                va = 0
+            try:
+                vb = self.puvoltage[self.offsets['{}.{}'.format(bus, 2)]]
+            except:
+                vb = 0
+            try:    
+                vc = self.puvoltage[self.offsets['{}.{}'.format(bus, 3)]]
+            except:
+                vc = 0
 
             v_all[bus] = [va, vb, vc]
             mean = (va + vb + vc) / 3
@@ -181,4 +187,4 @@ class PyCIGAROpenDSSAPI(object):
             u_all.append(u)
             u_all_real[bus] = u
 
-        return u_worst, v_worst, np.mean(u_all), np.std(u_all), v_all, u_all_real
+        return u_worst, v_worst, np.mean(u_all), np.std(u_all), v_all, u_all_real, self.load_to_bus

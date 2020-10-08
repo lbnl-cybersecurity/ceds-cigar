@@ -222,7 +222,7 @@ class OpenDSSDevice(KernelDevice):
                     self.update_kernel_device_info(device_id)
 
             if self.master_kernel.sim_params['vectorized_mode']:
-                self.vectorized_pv_inverter_device = VectorizedPVDevice(self.master_kernel, is_disable_log=self.master_kernel.sim_params['is_disable_log'])
+                self.vectorized_pv_inverter_device = VectorizedPVDevice(self.master_kernel)
         else:
             # get the injection here
             # get the new VBP, then push PV to node
@@ -341,7 +341,10 @@ class OpenDSSDevice(KernelDevice):
         float
             The relative power set
         """
-        return self.devices[device_id]['device'].p_set[1] / self.devices[device_id]['device'].Sbar
+        if self.devices[device_id]['device'].Sbar != 0:
+            return self.devices[device_id]['device'].p_set[1] / self.devices[device_id]['device'].Sbar
+        else:
+            return 0
 
     def get_device_p_set_p_max(self, device_id):
         """Return the device's power set relative to Sbar at the current timestep.
