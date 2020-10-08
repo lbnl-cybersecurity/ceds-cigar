@@ -123,10 +123,6 @@ class CentralEnv(Env):
         else:
             reward = self.compute_reward(rl_actions, fail=not converged)
 
-        if 'step_only_time' not in logger().custom_metrics:
-            logger().custom_metrics['step_only_time'] = 0
-        logger().custom_metrics['step_only_time'] += time.perf_counter() - start_time
-
         return obs, reward, done, infos
 
     def get_state(self):
