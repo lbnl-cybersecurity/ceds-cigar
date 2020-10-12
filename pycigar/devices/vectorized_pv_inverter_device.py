@@ -14,10 +14,10 @@ STEP_BUFFER = 4
 
 
 class VectorizedPVDevice:
-    def __init__(self, k, is_disable_log=False):
+    def __init__(self, k):
         """Instantiate an PV device."""
         self.k = k
-        self.is_disable_log = is_disable_log
+        self.is_disable_log = k.sim_params['is_disable_log']
         self.list_device = k.device.get_pv_device_ids()
         self.list_node = [k.device.get_node_connected_to(device_id) for device_id in self.list_device]
 
@@ -188,45 +188,6 @@ class VectorizedPVDevice:
         lpf_m = self.low_pass_filter_measure
         lpf_o = self.low_pass_filter_output
 
-        pk = np.zeros(len(self.list_device))
-        qk = np.zeros(len(self.list_device))
-        q_avail = np.zeros(len(self.list_device))
-
-        if not hasattr(self, 'step'):
-            self.step = np.hstack((1 * np.ones(11), np.linspace(1, -1, 7), -1 * np.ones(11)))[:, None].T
-            self.output_one = np.ones([len(self.list_device),15])
-
-        if k.time > 1:
-            vk = []
-            vkm1 = []
-            for node_id in self.list_node:
-                vk.append(abs(k.node.nodes[node_id]['voltage'][k.time - 1]))
-                vkm1.append(abs(k.node.nodes[node_id]['voltage'][k.time - 2]))
-
-            vk = np.array(vk)
-            vkm1 = np.array(vkm1)
-
-            self.x.append(vk)
-            output = np.array(self.x).T
-
-            lpf_psik, lpf_epsilonk, y_value, y = _filter(output, self.output_one, self.step, self.lpf_epsilon[1], self.lpf_psi[1], self.lpf_y1[1], self.lpf_high_pass_filter, self.lpf_low_pass_filter, self.lpf_delta_t, self.gain)
-            self.lpf_epsilon.append(lpf_epsilonk)
-            self.lpf_psi.append(lpf_psik)
-            self.lpf_y1.append(y_value)
-            self.y = y
-            low_pass_filter_v, p_set, q_set, p_out, q_out = _calculate_pq(vk, vkm1, self.low_pass_filter_v[1], self.solar_irr, self.VBP, self.p_set[1],\
-                                                                          self.q_set[1], self.p_out[1], self.q_out[1], len(self.list_device), \
-                                                                          self.lpf_delta_t, self.low_pass_filter_output, self.low_pass_filter_measure, self.solar_min_value, self.Sbar)
-            self.low_pass_filter_v.append(low_pass_filter_v)
-            self.p_set.append(p_set)
-            self.q_set.append(q_set)
-            self.p_out.append(p_out)
-            self.q_out.append(q_out)
-
-        for i, device_id in enumerate(self.list_device):
-            k.node.nodes[self.list_node[i]]['PQ_injection']['P'] += self.p_out[1][i]
-            k.node.nodes[self.list_node[i]]['PQ_injection']['Q'] += self.q_out[1][i]
-
     def reset(self):
         """See parent class."""
         self.__init__(self.k)
@@ -256,76 +217,3 @@ class VectorizedPVDevice:
                     Logger.log(device_id, 'sbar_pset', self.p_set[i] / self.Sbar[i])
 
                 Logger.log(device_id, 'solar_irr', self.solar_irr[i])
-
-#@jit
-def _filter(output, output_one, step, lpf_epsilon, lpf_psi, lpf_y1, lpf_high_pass_filter, lpf_low_pass_filter, lpf_delta_t, gain):
-    mask1 = np.max(output[:, STEP_BUFFER:-STEP_BUFFER], axis=1) - np.min(output[:, STEP_BUFFER:-STEP_BUFFER], axis=1) > 0.004    #ok
-    norm_data = -1 + 2 * (output - np.min(output, axis=1)[:, None]) / (np.max(output, axis=1) - np.min(output, axis=1))[:, None] #ok
-    step_corr = signal.fftconvolve(norm_data, step, mode='valid', axes=1) #ok
-    mask2 = np.max(np.abs(step_corr), axis=1) > 10 #ok
-    mask = mask1 & mask2 #ok
-
-    filter_data = np.where(np.broadcast_to(mask[:, None], (mask.shape[0], 15)), output, output_one)[:, STEP_BUFFER:-STEP_BUFFER]
-
-    lpf_psik = (filter_data[:, -1] - filter_data[:, -2] - (lpf_high_pass_filter * lpf_delta_t / 2 - 1) * lpf_psi) / \
-                    (1 + lpf_high_pass_filter * lpf_delta_t / 2)
-
-    lpf_epsilonk = gain * (lpf_psik ** 2)
-
-    y_value = (lpf_delta_t * lpf_low_pass_filter *
-            (lpf_epsilonk + lpf_epsilon) - (lpf_delta_t * lpf_low_pass_filter - 2) * lpf_y1) / \
-            (2 + lpf_delta_t * lpf_low_pass_filter)
-    y = y_value*0.04*3
-
-    return lpf_psik, lpf_epsilonk, y_value, y
-
-#@jit
-def _calculate_pq(vk, vkm1, low_pass_filter_v, solar_irr, VBP, p_set, q_set, p_out, q_out, device_num, T, lpf_o, lpf_m, solar_min_value, Sbar):
-        pk = np.zeros(device_num)
-        qk = np.zeros(device_num)
-        q_avail = np.zeros(device_num)
-
-        low_pass_filter_v = (T * lpf_m * (vk + vkm1) -
-                            (T * lpf_m - 2) * (low_pass_filter_v)) / \
-                            (2 + T * lpf_m)
-
-        # compute p_set and q_set
-        solar_idx = solar_irr >= solar_min_value
-
-        idx = low_pass_filter_v <= VBP[:, 4]
-        pk[idx] = -solar_irr[idx]
-        q_avail[idx] = -(Sbar**2 - pk[idx] ** 2) ** (1 / 2)
-
-        idx = low_pass_filter_v <= VBP[:, 0]
-        qk[idx] = q_avail[idx]
-
-        idx = (VBP[:, 0] < low_pass_filter_v) & (low_pass_filter_v <= VBP[:, 1])
-        qk[idx] = q_avail[idx] / (VBP[:, 1][idx] - VBP[:, 0][idx]) * (low_pass_filter_v[idx] - VBP[:, 1][idx])
-
-        idx = (VBP[:, 1] < low_pass_filter_v) & (low_pass_filter_v <= VBP[:, 2])
-        qk[idx] = 0
-
-        idx = (VBP[:, 2] < low_pass_filter_v) & (low_pass_filter_v <= VBP[:, 3])
-        qk[idx] = q_avail[idx] / (VBP[:, 3][idx] - VBP[:, 2][idx]) * (low_pass_filter_v[idx] - VBP[:, 2][idx])
-
-        idx = (VBP[:, 3] < low_pass_filter_v) & (low_pass_filter_v <= VBP[:, 4])
-        pk[idx] = -solar_irr[idx] / (VBP[:, 4][idx] - VBP[:, 3][idx]) * (VBP[:, 4][idx] - low_pass_filter_v[idx])
-        qk[idx] = (Sbar**2 - pk[idx]**2)**(1/2)
-
-        idx = low_pass_filter_v >= VBP[:, 4]
-        pk[idx] = 0
-        qk[idx] = Sbar
-
-        pk[1-solar_idx] = 0
-        qk[1-solar_idx] = 0
-
-
-
-        # compute p_out and q_out
-        p_out = (T * lpf_o * (pk + p_set) - (T * lpf_o - 2) * (p_out)) / \
-                        (2 + T * lpf_o)
-        q_out = (T * lpf_o * (qk + q_set) - (T * lpf_o - 2) * (q_out)) / \
-                        (2 + T * lpf_o)
-
-
-        return low_pass_filter_v, p_set, q_set, p_out, q_out

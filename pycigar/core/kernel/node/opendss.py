@@ -4,6 +4,7 @@ import numpy as np
 from pycigar.core.kernel.node import KernelNode
 from pycigar.utils.logging import logger
 
+PF_CONVERTED = math.tan(math.acos(0.9))
 
 class OpenDSSNode(KernelNode):
     """See parent class."""
@@ -26,19 +27,18 @@ class OpenDSSNode(KernelNode):
     def update(self, reset):
         """See parent class."""
 
-        pf_converted = math.tan(math.acos(0.9))
         if reset is True:
             for node in self.nodes:
                 self.nodes[node]['voltage'] = np.zeros(len(self.nodes[node]['load']))
                 self.nodes[node]['PQ_injection'] = {"P": 0, "Q": 0}
                 self.kernel_api.set_node_kw(node, self.nodes[node]["load"][0])
-                self.kernel_api.set_node_kvar(node, self.nodes[node]["load"][0] * pf_converted)
+                self.kernel_api.set_node_kvar(node, self.nodes[node]["load"][0] * PF_CONVERTED)
                 self.log(
                     node,
                     self.nodes[node]['PQ_injection']['P'],
                     self.nodes[node]['PQ_injection']['Q'],
                     self.nodes[node]["load"][0],
-                    self.nodes[node]["load"][0] * pf_converted,
+                    self.nodes[node]["load"][0] * PF_CONVERTED,
                 )
 
         else:
@@ -48,7 +48,7 @@ class OpenDSSNode(KernelNode):
                 )
                 self.kernel_api.set_node_kvar(
                     node,
-                    self.nodes[node]["load"][self.master_kernel.time] * pf_converted
+                    self.nodes[node]["load"][self.master_kernel.time] * PF_CONVERTED
                     + self.nodes[node]["PQ_injection"]['Q'],
                 )
 
@@ -57,7 +57,7 @@ class OpenDSSNode(KernelNode):
                     self.nodes[node]['PQ_injection']['P'],
                     self.nodes[node]['PQ_injection']['Q'],
                     self.nodes[node]["load"][self.master_kernel.time] + self.nodes[node]["PQ_injection"]['P'],
-                    self.nodes[node]["load"][self.master_kernel.time] * pf_converted
+                    self.nodes[node]["load"][self.master_kernel.time] * PF_CONVERTED
                     + self.nodes[node]["PQ_injection"]['Q'],
                 )
 

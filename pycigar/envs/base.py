@@ -101,7 +101,7 @@ class Env(gym.Env):
     def additional_command(self):
         pass
 
-    def clip_actions(self, rl_actions=None):
+    def clip_actions_0(self, rl_actions=None):
         if rl_actions is None:
             return None
 
@@ -111,6 +111,9 @@ class Env(gym.Env):
                     rl_actions[key] = np.clip(action, a_min=self.action_space.low, a_max=self.action_space.high)
             else:
                 rl_actions = np.clip(rl_actions, a_min=self.action_space.low, a_max=self.action_space.high)
+        return rl_actions
+
+    def clip_actions(self, rl_actions=None):
         return rl_actions
 
     def apply_rl_actions(self, rl_actions=None):

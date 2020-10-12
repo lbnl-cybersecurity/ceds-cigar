@@ -193,8 +193,6 @@ class OpenDSSScenario(KernelScenario):
             Logger = logger()
             Logger.custom_metrics['hack'] = dev_hack_info[1]
 
-        #self.change_load_profile(start_time, end_time)
-
     def update(self, reset):
         """See parent class."""
         self.kernel_api.update_all_bus_voltages()
@@ -265,7 +263,6 @@ class OpenDSSScenario(KernelScenario):
                     if device_id in list_pv_device_ids:
                         node_id = self.master_kernel.device.get_node_connected_to(device_id)
                         percentage_control = self.master_kernel.device.get_device(device_id).percentage_control
-
                         solar = np.array(profile[node_id + '_pv'])[start_time:end_time] * solar_scaling_factor * percentage_control
                         sbar = np.max(np.array(profile[node_id + '_pv']) * solar_scaling_factor * percentage_control)
                         self.master_kernel.device.set_device_internal_scenario(device_id, solar)
