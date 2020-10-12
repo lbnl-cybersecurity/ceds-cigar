@@ -87,10 +87,10 @@ class PyCIGAROpenDSSAPI(object):
         return puvoltage
 
     def get_total_power(self):
-        result = np.array(dss.Circuit.TotalPower())
+        return np.array(dss.Circuit.TotalPower())
 
     def get_losses(self):
-        result = np.array(dss.Circuit.Losses())
+        return np.array(dss.Circuit.Losses())
 
     def set_node_kw(self, node_id, value):
         """Set node kW."""
@@ -108,7 +108,7 @@ class PyCIGAROpenDSSAPI(object):
 
     # ######################## REGULATOR ############################
     def get_all_regulator_names(self):
-        result = dss.RegControls.AllNames()
+        return dss.RegControls.AllNames()
 
 
     def set_regulator_property(self, reg_id, prop):
@@ -152,11 +152,12 @@ class PyCIGAROpenDSSAPI(object):
         return voltage
 
     def get_substation_bottom_voltage(self):
-        voltage_a = self.get_node_voltage('s701a')
-        voltage_b = self.get_node_voltage('s701b')
-        voltage_c = self.get_node_voltage('s701c')
-        voltage = (voltage_a + voltage_b + voltage_c) / 3
-        return voltage
+        #voltage_a = self.get_node_voltage('s701a')
+        #voltage_b = self.get_node_voltage('s701b')
+        #voltage_c = self.get_node_voltage('s701c')
+        #voltage = (voltage_a + voltage_b + voltage_c) / 3
+        #return voltage
+        return 0
 
     def get_worst_u_node(self):
         u_all = []
@@ -172,7 +173,7 @@ class PyCIGAROpenDSSAPI(object):
                 vb = self.puvoltage[self.offsets['{}.{}'.format(bus, 2)]]
             except:
                 vb = 0
-            try:    
+            try:
                 vc = self.puvoltage[self.offsets['{}.{}'.format(bus, 3)]]
             except:
                 vc = 0
@@ -180,7 +181,10 @@ class PyCIGAROpenDSSAPI(object):
             v_all[bus] = [va, vb, vc]
             mean = (va + vb + vc) / 3
             max_diff = max(abs(va - mean), abs(vb - mean), abs(vc - mean))
-            u = max_diff / mean
+            try:
+                u = max_diff / mean
+            except:
+                u = 0
             if u > u_worst:
                 u_worst = u
                 v_worst = [va, vb, vc]
