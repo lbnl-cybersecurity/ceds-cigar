@@ -218,6 +218,10 @@ class OpenDSSScenario(KernelScenario):
                     temp = device['controller']
                     device['controller'] = device['hack_controller'][self.choose_attack]
                     device['hack_controller'] = temp
+                else:
+                    temp = device['controller']
+                    device['controller'] = device['hack_controller']
+                    device['hack_controller'] = temp
 
                 self.master_kernel.device.update_kernel_device_info(adversary_id)
 
