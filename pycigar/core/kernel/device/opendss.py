@@ -186,7 +186,12 @@ class OpenDSSDevice(KernelDevice):
                 else:
                     self.device_ids[device[0]].append(adversary_device_id)
 
-            adversary_controller_obj = pycigar_make(adversary_controller[0], device_id=adversary_device_id, additional_params=adversary_controller[1])
+            if isinstance(adversary_controller[0], list):
+                adversary_controller_obj = []
+                for k, v in enumerate(adversary_controller[0]):
+                    adversary_controller_obj.append(pycigar_make(v, device_id=adversary_device_id, additional_params=adversary_controller[1]))
+            else:
+                adversary_controller_obj = pycigar_make(adversary_controller[0], device_id=adversary_device_id, additional_params=adversary_controller[1])
 
             if controller[0] == 'rl_controller':
                 self.devcon_ids['rl_devcon'].append(adversary_device_id)
@@ -212,9 +217,17 @@ class OpenDSSDevice(KernelDevice):
             for device_id in self.devices.keys():
                 self.devices[device_id]['device'].reset()
                 if 'controller' in self.devices[device_id]:
-                    self.devices[device_id]['controller'].reset()
+                    if isinstance(self.devices[device_id]['controller'], list):
+                        for controller in self.devices[device_id]['controller']:
+                            controller.reset()
+                    else:
+                        self.devices[device_id]['controller'].reset()
                 if 'hack_controller' in self.devices[device_id]:
-                    self.devices[device_id]['hack_controller'].reset()
+                    if isinstance(self.devices[device_id]['hack_controller'], list):
+                        for controller in self.devices[device_id]['hack_controller']:
+                            controller.reset()
+                    else:
+                        self.devices[device_id]['hack_controller'].reset()
                     temp = self.devices[device_id]['controller']
                     self.devices[device_id]['controller'] = self.devices[device_id]['hack_controller']
                     self.devices[device_id]['hack_controller'] = temp

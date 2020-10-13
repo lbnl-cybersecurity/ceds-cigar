@@ -135,7 +135,6 @@ class OpenDSSScenario(KernelScenario):
                     adversary_controller = device.get('adversary_controller', None)
                     adversary_custom_controller_configs = device.get('adversary_custom_controller_configs', None)
 
-
                     # if there is no hack at all at the device
                     if adversary_controller is None:
                         dev_hack_info = None
@@ -189,6 +188,8 @@ class OpenDSSScenario(KernelScenario):
                     hack=None,
                 )
 
+        self.choose_attack = random.randrange(2)
+
         if dev_hack_info is not None and not self.master_kernel.sim_params['is_disable_log']:
             Logger = logger()
             Logger.custom_metrics['hack'] = dev_hack_info[1]
@@ -213,9 +214,10 @@ class OpenDSSScenario(KernelScenario):
             for adversary_id in adversary_ids:
                 device = self.master_kernel.device.devices[adversary_id]
 
-                temp = device['controller']
-                device['controller'] = device['hack_controller']
-                device['hack_controller'] = temp
+                if isinstance(device['hack_controller'], list):
+                    temp = device['controller']
+                    device['controller'] = device['hack_controller'][self.choose_attack]
+                    device['hack_controller'] = temp
 
                 self.master_kernel.device.update_kernel_device_info(adversary_id)
 
