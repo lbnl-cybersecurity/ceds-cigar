@@ -12,7 +12,7 @@ class BatteryStorageController01(BaseController):
         The parameters of the controller
     """
 
-    def __init__(self, device_id, additional_params):
+    def __init__(self, device_id, additional_params, is_disable_log=False):
         """Instantiate an fixed Controller."""
         BaseController.__init__(
             self,
