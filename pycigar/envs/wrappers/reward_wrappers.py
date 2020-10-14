@@ -170,9 +170,10 @@ class CentralGlobalRewardWrapper(RewardWrapper):
         A dictionary of new rewards.
     """
 
-    def __init__(self, env, unbalance=False):
+    def __init__(self, env, unbalance=False, multi_attack=False):
         super().__init__(env)
         self.unbalance = unbalance
+        self.multi_attack = multi_attack
 
     def reward(self, reward, info):
         Logger = logger()
@@ -209,12 +210,21 @@ class CentralGlobalRewardWrapper(RewardWrapper):
             else:
                 roa = 1
 
-            r += -(
-                M * info[key][y_or_u]
-                + N * roa
-                + P * np.linalg.norm(action - self.INIT_ACTION[key])
-                + Q * (1 - abs(info[key]['p_set_p_max'])) ** 2
-            )
+            if not self.multi_attack:
+                r += -(
+                    M * info[key][y_or_u]
+                    + N * roa
+                    + P * np.linalg.norm(action - self.INIT_ACTION[key])
+                    + Q * (1 - abs(info[key]['p_set_p_max'])) ** 2
+                )
+            else:
+                r += -(
+                    0 * info[key]['u_mean']
+                    + 1 * info[key]['y_mean']
+                    + 0 * roa
+                    + 0 * np.linalg.norm(action - self.INIT_ACTION[key])
+                    + 0 * (1 - abs(info[key]['p_set_p_max'])) ** 2
+                )
 
             component_y += -M * info[key][y_or_u]
             component_oa += -N * roa

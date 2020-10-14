@@ -55,9 +55,10 @@ class CentralLocalObservationWrapper(ObservationWrapper):
                 RLlib is: 3. The one-hot encoding of the action is: np.array([0, 0, 0, 1, 0, 0, 0, 0, 0, 0])
     """
 
-    def __init__(self, env, unbalance=False):
+    def __init__(self, env, unbalance=False, multi_attack=False):
         super().__init__(env)
         self.unbalance = unbalance
+        self.multi_attack = multi_attack
         a_space = self.action_space
         if isinstance(a_space, Tuple):
             self.a_size = sum(a.n for a in a_space)
@@ -110,6 +111,12 @@ class CentralLocalObservationWrapper(ObservationWrapper):
             vb = (observation['v_worst'][1]-1)*10*2
             vc = (observation['v_worst'][2]-1)*10*2
             observation = np.array([observation['u_worst'] / 0.1, p_set, *old_a_encoded, va, vb, vc])
+
+        elif self.multi_attack:
+            va = (observation['v_worst'][0]-1)*10*2
+            vb = (observation['v_worst'][1]-1)*10*2
+            vc = (observation['v_worst'][2]-1)*10*2
+            observation = np.array([observation['y_worst'], observation['u_worst'] / 0.1, p_set, *old_a_encoded, va, vb, vc])
         else:
             observation = np.array([observation['y'], p_set, *old_a_encoded])
 

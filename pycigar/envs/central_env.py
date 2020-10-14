@@ -84,20 +84,26 @@ class CentralEnv(Env):
             obs = {k: np.mean([d[k] for d in observations]) for k in observations[0]}
             obs['v_worst'] = observations[-1]['v_worst']
             obs['u_worst'] = observations[-1]['u_worst']
+            obs['y_worst'] = observations[-1]['y_worst']
+            obs['u_mean'] = obs['u_mean']
+            obs['y_mean'] = obs['y']
         except IndexError:
             obs = {'p_set_p_max': 0.0, 'sbar_solar_irr': 0.0, 'y': 0.0}
             obs['v_worst'] = [0, 0, 0]
             obs['u_worst'] = 0
             obs['u_mean'] = 0
+            obs['y_worst'] = 0
+            obs['y_mean'] = 0
 
         # the episode will be finished if it is not converged.
         done = not converged or (self.k.time == self.k.t)
-
         infos = {
             key: {
+                'y_worst': obs['y_worst'],
                 'u_worst': obs['u_worst'],
                 'v_worst': obs['v_worst'],
                 'u_mean': obs['u_mean'],
+                'y_mean': obs['y_mean'],
                 'y': obs['y'],
                 'p_set_p_max': obs['p_set_p_max'],
                 'sbar_solar_irr': obs['sbar_solar_irr'],
@@ -135,23 +141,51 @@ class CentralEnv(Env):
         Logger.log('u_metrics', 'u_std', u_std)
         Logger.log('v_metrics', str(self.k.time), v_all)
 
-        for rl_id in self.k.device.get_rl_device_ids():
-            obs.append(
-                {
-                    'y': self.k.device.get_device_y(rl_id),
-                    'p_set_p_max': self.k.device.get_device_p_set_p_max(rl_id),
-                    'sbar_solar_irr': self.k.device.get_device_sbar_solar_irr(rl_id)
-                }
-            )
-        if obs:
-            result = {k: np.mean([d[k] for d in obs]) for k in obs[0]}
-            result['v_worst'] = v_worst
-            result['u_worst'] = u_worst
-            result['u_mean'] = u_mean
-            result['u_std'] = u_std
-            return result
+        y_worst = 0
+        
+        if not self.sim_params['vectorized_mode']:
+            for rl_id in self.k.device.get_rl_device_ids():
+                y = self.k.device.get_device_y(rl_id)
+                obs.append(
+                    {
+                        'y': y,
+                        'p_set_p_max': self.k.device.get_device_p_set_p_max(rl_id),
+                        'sbar_solar_irr': self.k.device.get_device_sbar_solar_irr(rl_id)
+                    }
+                )
+                if y_worst < y:
+                    y_worst = y
+
+            if obs:
+                result = {k: np.mean([d[k] for d in obs]) for k in obs[0]}
+                result['y_worst'] = y_worst
+                result['v_worst'] = v_worst
+                result['u_worst'] = u_worst
+                result['u_mean'] = u_mean
+                result['u_std'] = u_std
+                return result
+            else:
+                return {}
         else:
-            return {}
+            result = {}
+            try:
+                y = self.k.device.get_vectorized_y()
+                y_worst = np.max(y)
+                y = np.mean(y)
+                p_set_p_max = np.mean(self.k.device.get_vectorized_device_p_set_p_max())
+                sbar_solar_irr = np.mean(self.k.device.get_vectorized_device_sbar_solar_irr())
+                result = {'y': y,
+                          'p_set_p_max': p_set_p_max,
+                          'sbar_solar_irr': sbar_solar_irr,
+                         }
+                result['y_worst'] = y_worst
+                result['v_worst'] = v_worst
+                result['u_worst'] = u_worst
+                result['u_mean'] = u_mean
+                result['u_std'] = u_std
+                return result
+            except:
+                return result
 
     def compute_reward(self, rl_actions, **kwargs):
         return 0

@@ -391,6 +391,15 @@ class OpenDSSDevice(KernelDevice):
             abs(self.devices[device_id]['device'].Sbar ** 2 - max(10, self.devices[device_id]['device'].solar_irr) ** 2)
         ) ** (1 / 2)
 
+    def get_vectorized_device_p_set_p_max(self):
+        return self.vectorized_pv_inverter_device.p_set / np.maximum(10, self.vectorized_pv_inverter_device.solar_irr)
+
+    def get_vectorized_device_sbar_solar_irr(self):
+        return (abs(self.vectorized_pv_inverter_device.Sbar ** 2 - np.maximum(10, self.vectorized_pv_inverter_device.solar_irr) ** 2)) ** (1 / 2)
+
+    def get_vectorized_y(self):
+        return self.vectorized_pv_inverter_device.y
+
     def get_device_p_injection(self, device_id):
         """Return the device's power injection at the current timestep.
 

@@ -115,7 +115,6 @@ class VectorizedPVDevice:
             self.lpf_epsilon = lpf_epsilonk
             self.lpf_y1 = y_value
             self.y = y_value*0.04
-
             if 's701a' in k.node.nodes and 's701b' in k.node.nodes and 's701c' in k.node.nodes:
                 va = abs(k.node.nodes['s701a']['voltage'][k.time - 1])
                 vb = abs(k.node.nodes['s701b']['voltage'][k.time - 1])
@@ -181,12 +180,6 @@ class VectorizedPVDevice:
             k.node.nodes[self.list_node[i]]['PQ_injection']['Q'] += self.q_out[i]
 
         self.log()
-
-    def update0(self, k):
-        self.solar_irr = self.solar_generation[:, k.time]
-        T = self.lpf_delta_t
-        lpf_m = self.low_pass_filter_measure
-        lpf_o = self.low_pass_filter_output
 
     def reset(self):
         """See parent class."""
