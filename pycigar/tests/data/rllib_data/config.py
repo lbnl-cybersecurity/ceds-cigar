@@ -5,9 +5,11 @@ from pycigar.utils.input_parser import input_parser
 from pycigar.utils.registry import make_create_env
 from ray.tune.registry import register_env
 
-pycigar_params = {'exp_tag': 'cooperative_multiagent_ppo',
-                  'env_name': 'CentralControlPVInverterEnv',
-                  'simulator': 'opendss'}
+pycigar_params = {
+    'exp_tag': 'cooperative_multiagent_ppo',
+    'env_name': 'CentralControlPVInverterEnv',
+    'simulator': 'opendss',
+}
 
 create_env, env_name = make_create_env(pycigar_params, version=0)
 register_env(env_name, create_env)
@@ -29,14 +31,11 @@ base_config = {
     'clip_param': 0.1,
     'lambda': 0.95,
     'vf_clip_param': 100,
-
     'num_workers': 8,
     'num_cpus_per_worker': 1,
     'num_cpus_for_driver': 1,
     'num_envs_per_worker': 1,
-
     'log_level': 'WARNING',
-
     'model': {
         'fcnet_activation': 'tanh',
         'fcnet_hiddens': [128, 64, 32],
@@ -47,13 +46,9 @@ base_config = {
         'framestack': False,
         'zero_mean': True,
     },
-
     # ==== EXPLORATION ====
     'explore': True,
-    'exploration_config': {
-        'type': 'StochasticSampling',  # default for PPO
-    },
-
+    'exploration_config': {'type': 'StochasticSampling',},  # default for PPO
     # ==== EVALUATION ====
     "evaluation_num_workers": 1,
     'evaluation_num_episodes': 1,

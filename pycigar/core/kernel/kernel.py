@@ -6,7 +6,9 @@ from pycigar.core.kernel.device import OpenDSSDevice
 from pycigar.utils.exeptions import FatalPyCIGARError
 import numpy as np
 import random
+import pandas as pd
 from pycigar.utils.logging import logger
+from pycigar.devices.vectorized_pv_inverter_device import VectorizedPVDevice
 
 
 class Kernel(object):
@@ -65,6 +67,8 @@ class Kernel(object):
         # initialize logger
         logger()
 
+        self.data_length = pd.read_csv(self.sim_params['scenario_config']['network_data_directory']).shape[0] - 1
+
         if simulator == "opendss":
             self.simulation = OpenDSSSimulation(self)
             self.scenario = OpenDSSScenario(self)
@@ -104,7 +108,7 @@ class Kernel(object):
                 self.t = self.sim_params['scenario_config']['start_end_time']
                 if 'start_time' not in self.sim_params['scenario_config']:
                     # generate random times (once)
-                    start_time = random.randint(0, 14399 - self.t)
+                    start_time = random.randint(0, self.data_length - self.t)
                     end_time = start_time + self.t
                 else:
                     # restore previous times
@@ -114,7 +118,7 @@ class Kernel(object):
             else:
                 # generate random times (everytimes)
                 self.t = self.sim_params['scenario_config']['start_end_time']
-                start_time = random.randint(0, 14399 - self.t)
+                start_time = random.randint(0, self.data_length - self.t)
                 end_time = start_time + self.t
 
             self.sim_params['scenario_config']['start_time'] = start_time
@@ -128,13 +132,19 @@ class Kernel(object):
             start_time = self.sim_params['scenario_config']['start_time']
             end_time = self.sim_params['scenario_config']['end_time']
             self.scenario.change_load_profile(start_time, end_time)
+            self.start_time = start_time
+            self.end_time = end_time
 
             self.node.update(reset)
             self.simulation.update(reset)
             self.scenario.update(reset)
 
+            if self.sim_params['vectorized_mode']:
+                self.device.vectorized_pv_inverter_device.reset()
+
             self.warm_up_k_step(50)
             logger().set_active()
+            logger().custom_metrics['start_time'] = self.start_time
 
         else:
             self.device.update(reset)  # calculate new PQ with new VBP, then push PV to node

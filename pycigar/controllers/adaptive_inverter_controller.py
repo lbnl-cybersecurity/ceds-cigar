@@ -40,10 +40,7 @@ class AdaptiveInverterController(BaseController):
 
     def __init__(self, device_id, additional_params):
         """Instantiate an adaptive inverter controller."""
-        BaseController.__init__(
-            self,
-            device_id
-        )
+        BaseController.__init__(self, device_id)
 
         self.time_counter = 0
         self.init_params = copy.deepcopy(additional_params)
@@ -74,12 +71,14 @@ class AdaptiveInverterController(BaseController):
             psikm1 = self.psi[self.time_counter - 1]
             epsilonkm1 = self.epsilon[self.time_counter - 1]
             ykm1 = self.y[self.time_counter - 1]
-            self.psi[self.time_counter] = psik = (vk - vkm1 - (self.high_pass_filter * self.delta_t / 2 - 1) *
-                                                  psikm1) / (1 + self.high_pass_filter * self.delta_t / 2)
+            self.psi[self.time_counter] = psik = (
+                vk - vkm1 - (self.high_pass_filter * self.delta_t / 2 - 1) * psikm1
+            ) / (1 + self.high_pass_filter * self.delta_t / 2)
             self.epsilon[self.time_counter] = epsilonk = self.gain * (psik ** 2)
-            self.y[self.time_counter] = yk = (self.delta_t * self.low_pass_filter * (epsilonk + epsilonkm1) -
-                                              (self.delta_t * self.low_pass_filter - 2) * ykm1) / \
-                                             (2 + self.delta_t * self.low_pass_filter)
+            self.y[self.time_counter] = yk = (
+                self.delta_t * self.low_pass_filter * (epsilonk + epsilonkm1)
+                - (self.delta_t * self.low_pass_filter - 2) * ykm1
+            ) / (2 + self.delta_t * self.low_pass_filter)
 
             if (self.delay_timer != 0 and self.time_counter + 1 == self.delay_timer) or self.delay_timer == 0:
                 yk = self.y[self.time_counter]
@@ -91,12 +90,15 @@ class AdaptiveInverterController(BaseController):
                 self.uq[0] = self.uq[1]
 
                 old_action = self.init_params['default_control_setting']
-                new_action = np.array([old_action[0] - self.uq[1],
-                                       old_action[1] - self.uq[1],
-                                       old_action[2] - self.uq[1],
-                                       old_action[3] - self.up[1],
-                                       old_action[4] - self.up[1]
-                                       ])
+                new_action = np.array(
+                    [
+                        old_action[0] - self.uq[1],
+                        old_action[1] - self.uq[1],
+                        old_action[2] - self.uq[1],
+                        old_action[3] - self.up[1],
+                        old_action[4] - self.up[1],
+                    ]
+                )
                 # reset the timer
                 self.time_counter = 0
                 return new_action

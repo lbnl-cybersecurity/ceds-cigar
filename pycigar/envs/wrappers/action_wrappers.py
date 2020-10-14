@@ -3,6 +3,7 @@ from ray.tune.utils import merge_dicts
 
 from pycigar.envs.wrappers.wrapper import Wrapper
 from pycigar.envs.wrappers.wrappers_constants import *
+from pycigar.utils.logging import logger
 
 
 class ActionWrapper(Wrapper):
@@ -50,6 +51,7 @@ class ActionWrapper(Wrapper):
 #         SINGLE        #
 #########################
 
+
 class SingleDiscreteActionWrapper(ActionWrapper):
     """
     Action head is only 1 value.
@@ -80,6 +82,8 @@ class SingleRelativeInitDiscreteActionWrapper(ActionWrapper):
         return Discrete(DISCRETIZE_RELATIVE)
 
     def action(self, action, rl_id, *_):
+        Logger = logger()
+        Logger.log('component_action', rl_id, self.INIT_ACTION[rl_id] - ACTION_RANGE + ACTION_STEP * action)
         return self.INIT_ACTION[rl_id] - ACTION_RANGE + ACTION_STEP * action
 
 
@@ -144,6 +148,7 @@ class SingleRelativeInitContinuousActionWrapper(ActionWrapper):
 #    UNBALANCE          #
 #########################
 
+
 class SingleRelativeInitPhaseSpecificDiscreteActionWrapper(ActionWrapper):
     """
     Action head is 4 values:
@@ -170,9 +175,37 @@ class SingleRelativeInitPhaseSpecificDiscreteActionWrapper(ActionWrapper):
         return self.INIT_ACTION[rl_id] - ACTION_RANGE + ACTION_STEP * translation
 
 
+class SingleRelativeInitPhaseSpecificContinuousActionWrapper(ActionWrapper):
+    """
+    Action head is 4 values:
+        - one for VBP translation for inverters on phase a
+        - one for VBP translation for inverters on phase b
+        - one for VBP translation for inverters on phase b
+        - one for VBP translation for inverters on three phases
+    """
+
+    @property
+    def action_space(self):
+        return Box(-10.0, 10.0, (3,), dtype=np.float64)
+
+    def action(self, action, rl_id, *_):
+        action = np.array(action) * ACTION_RANGE / 10.0
+        if rl_id.endswith('a'):
+            translation = action[0]
+        elif rl_id.endswith('b'):
+            translation = action[1]
+        elif rl_id.endswith('c'):
+            translation = action[2]
+        else:
+            translation = 0
+
+        return self.INIT_ACTION[rl_id] + translation
+
+
 #########################
 #    AUTO REGRESSIVE    #
 #########################
+
 
 class ARDiscreteActionWrapper(ActionWrapper):
     """
@@ -183,9 +216,15 @@ class ARDiscreteActionWrapper(ActionWrapper):
 
     @property
     def action_space(self):
-        return Tuple([Discrete(DISCRETIZE), Discrete(DISCRETIZE),
-                      Discrete(DISCRETIZE), Discrete(DISCRETIZE),
-                      Discrete(DISCRETIZE)])
+        return Tuple(
+            [
+                Discrete(DISCRETIZE),
+                Discrete(DISCRETIZE),
+                Discrete(DISCRETIZE),
+                Discrete(DISCRETIZE),
+                Discrete(DISCRETIZE),
+            ]
+        )
 
     def action(self, action, rl_id, *_):
         # This is used to form the discretized value into the valid action before feed into the environment.
@@ -211,15 +250,33 @@ class ARContinuousActionWrapper(ActionWrapper):
 #    MULTI-AGENT WRAPPER    #
 #############################
 
+
 class GroupActionWrapper(Wrapper):
     def step(self, action, randomize_rl_update=None):
         rl_actions = {}
         if isinstance(action, dict):
             # multi-agent env
             if 'defense_agent' in action:
-                rl_actions = {device_name: action['defense_agent'] for device_name in self.k.device.get_rl_device_ids() if 'adversary_' not in device_name}
+                rl_actions = {
+                    device_name: action['defense_agent']
+                    for device_name in self.k.device.get_rl_device_ids()
+                    if 'adversary_' not in device_name
+                }
             if 'attack_agent' in action:
-                rl_actions = {device_name: action['attack_agent'] for device_name in self.k.device.get_rl_device_ids() if 'adversary_' in device_name}
+                rl_actions = {
+                    device_name: action['attack_agent']
+                    for device_name in self.k.device.get_rl_device_ids()
+                    if 'adversary_' in device_name
+                }
 
         observation, reward, done, info = self.env.step(rl_actions, randomize_rl_update)
         return observation, reward, done, info
+
+
+class RelativeInitContinuousActionWrapper(ActionWrapper):
+    @property
+    def action_space(self):
+        return Box(-10.0, 10.0, (1,), dtype=np.float64)
+
+    def action(self, action, rl_id, *_):
+        return self.INIT_ACTION[rl_id] + action[0] * ACTION_RANGE / 10.0

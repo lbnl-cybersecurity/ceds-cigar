@@ -8,9 +8,11 @@ from pycigar.utils.registry import make_create_env
 
 class TestLogging(unittest.TestCase):
     def setUp(self):
-        pycigar_params = {'exp_tag': 'cooperative_multiagent_ppo',
-                          'env_name': 'CentralControlPVInverterEnv',
-                          'simulator': 'opendss'}
+        pycigar_params = {
+            'exp_tag': 'cooperative_multiagent_ppo',
+            'env_name': 'CentralControlPVInverterEnv',
+            'simulator': 'opendss',
+        }
 
         create_env, env_name = make_create_env(pycigar_params, version=0)
 
@@ -37,18 +39,22 @@ class TestLogging(unittest.TestCase):
         log = logger().log_dict
         for k in log:
             if 'node' in log[k]:  # device
-                lengths = [len(log[k][s]) for s in
-                           ['y', 'u', 'p_set', 'q_set', 'p_out', 'q_out', 'control_setting', 'solar_irr']]
-                self.assertTrue(max(lengths) == min(lengths),
-                                msg='There may be a problem with device logging frequency')
+                lengths = [
+                    len(log[k][s])
+                    for s in ['y', 'u', 'p_set', 'q_set', 'p_out', 'q_out', 'control_setting', 'solar_irr']
+                ]
+                self.assertTrue(
+                    max(lengths) == min(lengths), msg='There may be a problem with device logging frequency'
+                )
             elif 'kw' in log[k]:  # node
-                lengths = [len(log[k][s]) for s in
-                           ['p', 'q', 'kw', 'kvar', 'voltage']]
+                lengths = [len(log[k][s]) for s in ['p', 'q', 'kw', 'kvar', 'voltage']]
                 self.assertTrue(max(lengths) == min(lengths), msg='There may be a problem with node logging frequency')
 
         if 'network' in log:
-            lengths = [len(log['network'][s]) for s in
-                       ['substation_power', 'loss', 'substation_top_voltage', 'substation_bottom_voltage']]
+            lengths = [
+                len(log['network'][s])
+                for s in ['substation_power', 'loss', 'substation_top_voltage', 'substation_bottom_voltage']
+            ]
             self.assertTrue(max(lengths) == min(lengths), msg='There may be a problem with network logging frequency')
 
 
