@@ -17,7 +17,7 @@ class BaseDevice:
         of this device.
     """
 
-    def __init__(self, device_id, additional_params):
+    def __init__(self, device_id, additional_params, is_disable_log=False):
         """Instantiate the base device.
 
         Parameters

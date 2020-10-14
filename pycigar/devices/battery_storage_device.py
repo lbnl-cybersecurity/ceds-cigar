@@ -12,7 +12,7 @@ step_buffer = 4
 
 
 class BatteryStorageDevice(BaseDevice):
-    def __init__(self, device_id, additional_params):
+    def __init__(self, device_id, additional_params, is_disable_log=False):
         """Instantiate a Storage device."""
         BaseDevice.__init__(
             self,

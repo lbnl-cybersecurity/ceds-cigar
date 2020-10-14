@@ -14,8 +14,6 @@ from pycigar.controllers import UnbalancedFixedController
 
 from pycigar.controllers import RLController
 
-from pycigar.controllers import BatteryStorageController01
-
 import numpy as np
 
 
