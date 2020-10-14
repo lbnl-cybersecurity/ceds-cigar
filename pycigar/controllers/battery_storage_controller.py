@@ -20,7 +20,7 @@ class BatteryStorageController(BaseController):
 
     def get_action(self, env):
         """See parent class."""
-
+        power_reactive_power = env.k.kernel_api.get_total_power()
         if env.k.device.devices[self.device_id]['device'].SOC <= 0.2:
 #             print('CHARGE')
             control_setting = 'charge'
