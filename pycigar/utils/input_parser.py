@@ -37,7 +37,10 @@ def input_parser(misc_inputs_path, dss_path, load_solar_path, breakpoints_path=N
         'N': 10,  # weight for taking different action from the initial action
         'P': 10,  # weight for taking different action from last timestep action
         'Q': 0.5,
-        'tune_search': False,
+        'T': 1000,
+
+        'is_disable_log': False,
+        'is_disable_y': False,
         'vectorized_mode': False,
 
         'hack_setting': {'default_control_setting': [1.039, 1.04, 1.04, 1.041, 1.042]},
@@ -49,7 +52,7 @@ def input_parser(misc_inputs_path, dss_path, load_solar_path, breakpoints_path=N
                 'solution_mode': 1,
                 'solution_number': 1,
                 'solution_step_size': 1,
-                'solution_control_mode': -1,
+                'solution_control_mode': 2,
                 'solution_max_control_iterations': 1000000,
                 'solution_max_iterations': 30000,
                 'power_factor': 0.9,
@@ -64,10 +67,9 @@ def input_parser(misc_inputs_path, dss_path, load_solar_path, breakpoints_path=N
                 'solar_scaling_factor': 3,
                 'slack_bus_voltage': 1.02,  # default 1.04
                 'load_generation_noise': False,
-                'power_factor': 0.9,
             },
             'nodes': [],
-            'regulators': {'max_tap_change': 30, 'forward_band': 16, 'tap_number': 2, 'tap_delay': 0},
+            'regulators': {'max_tap_change': 30, 'forward_band': 16, 'tap_number': 2, 'tap_delay': 0, 'delay': 30},
         },
     }
 
@@ -127,46 +129,47 @@ def input_parser(misc_inputs_path, dss_path, load_solar_path, breakpoints_path=N
         device = {}
         device['name'] = 'inverter_' + node.lower()
         device['device'] = 'pv_device'
+        device['custom_device_configs'] = {}
+        device['custom_device_configs']['default_control_setting'] = node_default_control_setting
+        device['custom_device_configs']['gain'] = 1e5
+        device['custom_device_configs']['is_butterworth_filter'] = False
+        device['custom_device_configs']['p_ramp_rate'] = p_ramp_rate
+        device['custom_device_configs']['q_ramp_rate'] = q_ramp_rate
+        device['custom_device_configs']['low_pass_filter_measure_mean'] = low_pass_filter_measure_mean
+        device['custom_device_configs']['low_pass_filter_output_mean'] = low_pass_filter_output_mean
+        if not benchmark:
+            device['custom_device_configs']['low_pass_filter_measure_std'] = low_pass_filter_measure_std
+            device['custom_device_configs']['low_pass_filter_output_std'] = low_pass_filter_output_std
+
         device['controller'] = 'rl_controller'
+        device['custom_controller_configs'] = {}
+        device['custom_controller_configs']['default_control_setting'] = node_default_control_setting
         if norl_mode:
             device['controller'] = 'adaptive_inverter_controller'
-        device['custom_configs'] = {}
-        device['custom_configs']['default_control_setting'] = node_default_control_setting
-        device['custom_configs']['delay_timer'] = 60
-        device['custom_configs']['threshold'] = 0.05
-        device['custom_configs']['adaptive_gain'] = 20
-        device['custom_configs']['is_butterworth_filter'] = False
-        device['custom_configs']['p_ramp_rate'] = p_ramp_rate
-        device['custom_configs']['q_ramp_rate'] = q_ramp_rate
+            device['custom_controller_configs']['delay_timer'] = 60
+            device['custom_controller_configs']['threshold'] = 0.05
+            device['custom_controller_configs']['adaptive_gain'] = 20
 
-        if benchmark:
-            device['custom_configs']['low_pass_filter_measure_mean'] = low_pass_filter_measure_mean
-            device['custom_configs']['low_pass_filter_output_mean'] = low_pass_filter_output_mean
-        else:
-            device['custom_configs']['low_pass_filter_measure_mean'] = low_pass_filter_measure_mean
-            device['custom_configs']['low_pass_filter_output_mean'] = low_pass_filter_output_mean
-            device['custom_configs']['low_pass_filter_measure_std'] = low_pass_filter_measure_std
-            device['custom_configs']['low_pass_filter_output_std'] = low_pass_filter_output_std
-
-        if not adv:
-            device['adversary_controller'] = 'adaptive_fixed_controller'
-        else:
+        device['adversary_controller'] = 'adaptive_fixed_controller'
+        if adv:
             device['adversary_controller'] = 'rl_controller'
-        device['adversary_custom_configs'] = {}
-        device['adversary_custom_configs']['default_control_setting'] = [1.014, 1.015, 1.015, 1.016, 1.017]
+        device['adversary_custom_controller_configs'] = {}
+        device['adversary_custom_controller_configs']['default_control_setting'] = [1.014, 1.015, 1.015, 1.016, 1.017]
         device['hack'] = [250, percentage_hack, 500]
-        node_description['devices'].append(device)
 
+        node_description['devices'].append(device)
         json_query['scenario_config']['nodes'].append(node_description)
 
     max_tap_change = misc_inputs_data['max tap change default'][1]
     forward_band = misc_inputs_data['forward band default'][1]
     tap_number = misc_inputs_data['tap number default'][1]
     tap_delay = misc_inputs_data['tap delay default'][1]
+    delay = misc_inputs_data['delay default'][1]
 
     json_query['scenario_config']['regulators']['max_tap_change'] = max_tap_change
     json_query['scenario_config']['regulators']['forward_band'] = forward_band
     json_query['scenario_config']['regulators']['tap_number'] = tap_number
     json_query['scenario_config']['regulators']['tap_delay'] = tap_delay
+    json_query['scenario_config']['regulators']['delay'] = delay
 
     return json_query

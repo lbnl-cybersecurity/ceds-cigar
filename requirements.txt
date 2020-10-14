@@ -1,8 +1,9 @@
 pyglet<=1.5.0,>=1.4.0
 setuptools>=41.0.0
 protobuf
+scikit-build
 opencv-python
-ray==0.8.6
+ray==1.0.0
 gym
 numpy<1.19.0
 scipy==1.4.1
@@ -30,3 +31,4 @@ gputil
 tqdm
 dm-tree
 ray[tune]
+ray[rllib]

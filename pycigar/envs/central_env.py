@@ -5,6 +5,7 @@ from pycigar.envs.base import Env
 from pycigar.utils.logging import logger
 from copy import deepcopy
 import time
+import re
 
 class CentralEnv(Env):
     def __init__(self, *args, **kwargs):
@@ -39,6 +40,7 @@ class CentralEnv(Env):
             reward: a dictionary of reward received by agents.
             done: bool
         """
+
         observations = []
         self.old_actions = {}
         for rl_id in self.k.device.get_rl_device_ids():
@@ -48,17 +50,10 @@ class CentralEnv(Env):
         if randomize_rl_update is None:
             randomize_rl_update = np.random.randint(5, size=len(self.k.device.get_rl_device_ids()))
 
-            Logger = logger()
-            if 'randomize_rl_update' not in Logger.custom_metrics:
-                Logger.custom_metrics['randomize_rl_update'] = [deepcopy(randomize_rl_update)]
-            else:
-                Logger.custom_metrics['randomize_rl_update'].append(deepcopy(randomize_rl_update))
-
         if rl_actions is None:
             rl_actions = self.old_actions
 
         for _ in range(self.sim_params['env_config']["sims_per_step"]):
-            start_time = time.time()
             self.env_time += 1
             rl_ids_key = np.array(self.k.device.get_rl_device_ids())[randomize_rl_update == 0]
             randomize_rl_update -= 1
@@ -74,43 +69,42 @@ class CentralEnv(Env):
                 self.k.device.apply_control(self.k.device.get_norl_device_ids(), control_setting)
 
             self.additional_command()
-
             if self.k.time <= self.k.t:
                 self.k.update(reset=False)
-
                 # check whether the simulator sucessfully solved the powerflow
                 converged = self.k.simulation.check_converged()
                 if not converged:
                     break
 
                 observations.append(self.get_state())
-
             if self.k.time >= self.k.t:
                 break
 
-            if 'step_only_time' not in logger().custom_metrics:
-                logger().custom_metrics['step_only_time'] = 0
-            logger().custom_metrics['step_only_time'] += time.time() - start_time
-
-        obs = {k: np.mean([d[k] for d in observations]) for k in observations[0]}
+        try:
+            obs = {k: np.mean([d[k] for d in observations]) for k in observations[0]}
+            obs['v_worst'] = observations[-1]['v_worst']
+            obs['u_worst'] = observations[-1]['u_worst']
+        except IndexError:
+            obs = {'p_set_p_max': 0.0, 'sbar_solar_irr': 0.0, 'y': 0.0}
+            obs['v_worst'] = [0, 0, 0]
+            obs['u_worst'] = 0
+            obs['u_mean'] = 0
 
         # the episode will be finished if it is not converged.
         done = not converged or (self.k.time == self.k.t)
 
         infos = {
             key: {
-                'voltage': self.k.node.get_node_voltage(self.k.device.get_node_connected_to(key)),
+                'u_worst': obs['u_worst'],
+                'v_worst': obs['v_worst'],
+                'u_mean': obs['u_mean'],
                 'y': obs['y'],
-                'u': obs['u'],
-                'p_inject': self.k.device.get_device_p_injection(key),
-                'p_max': self.k.device.get_device_p_injection(key),
-                'env_time': self.env_time,
-                'p_set': obs['p_set'],
                 'p_set_p_max': obs['p_set_p_max'],
                 'sbar_solar_irr': obs['sbar_solar_irr'],
             }
             for key in self.k.device.get_rl_device_ids()
         }
+
 
         for key in self.k.device.get_rl_device_ids():
             if self.old_actions is not None:
@@ -133,22 +127,29 @@ class CentralEnv(Env):
 
     def get_state(self):
         obs = []
+        Logger = logger()
+        u_worst, v_worst, u_mean, u_std, v_all, u_all_bus, load_to_bus = self.k.kernel_api.get_worst_u_node()
+
+        Logger.log('u_metrics', 'u_worst', u_worst)
+        Logger.log('u_metrics', 'u_mean', u_mean)
+        Logger.log('u_metrics', 'u_std', u_std)
+        Logger.log('v_metrics', str(self.k.time), v_all)
+
         for rl_id in self.k.device.get_rl_device_ids():
-            connected_node = self.k.device.get_node_connected_to(rl_id)
             obs.append(
                 {
-                    'voltage': self.k.node.get_node_voltage(connected_node),
-                    'solar_generation': self.k.device.get_solar_generation(rl_id),
                     'y': self.k.device.get_device_y(rl_id),
-                    'u': self.k.device.get_device_u(rl_id),
                     'p_set_p_max': self.k.device.get_device_p_set_p_max(rl_id),
-                    'sbar_solar_irr': self.k.device.get_device_sbar_solar_irr(rl_id),
-                    'p_set': self.k.device.get_device_p_set_relative(rl_id),
+                    'sbar_solar_irr': self.k.device.get_device_sbar_solar_irr(rl_id)
                 }
             )
-
         if obs:
-            return {k: np.mean([d[k] for d in obs]) for k in obs[0]}
+            result = {k: np.mean([d[k] for d in obs]) for k in obs[0]}
+            result['v_worst'] = v_worst
+            result['u_worst'] = u_worst
+            result['u_mean'] = u_mean
+            result['u_std'] = u_std
+            return result
         else:
             return {}
 

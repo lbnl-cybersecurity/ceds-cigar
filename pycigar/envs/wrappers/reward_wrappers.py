@@ -4,6 +4,7 @@ from pycigar.envs.wrappers.wrapper import Wrapper
 from pycigar.utils.logging import logger
 from gym.spaces import Box
 
+VOLTAGE_THRESHOLD_LB = 0.95
 
 class RewardWrapper(Wrapper):
     def step(self, action, randomize_rl_update=None):
@@ -180,9 +181,10 @@ class CentralGlobalRewardWrapper(RewardWrapper):
         N = self.k.sim_params['N']
         P = self.k.sim_params['P']
         Q = self.k.sim_params['Q']
+        T = self.k.sim_params['T']
         global_reward = 0
         # we accumulate agents reward into global_reward and divide it with the number of agents.
-        y_or_u = 'u' if self.unbalance else 'y'
+        y_or_u = 'u_mean' if self.unbalance else 'y'
 
         component_y = 0
         component_oa = 0
@@ -221,6 +223,25 @@ class CentralGlobalRewardWrapper(RewardWrapper):
 
             global_reward += r
         global_reward = global_reward / len(list(info.keys()))
+
+        # voltage threshold on s701
+        #latest_va = self.k.node.nodes['s701a']['voltage'][self.k.time-self.k.sim_params['env_config']['sims_per_step']:self.k.time]
+        #latest_vb = self.k.node.nodes['s701b']['voltage'][self.k.time-self.k.sim_params['env_config']['sims_per_step']:self.k.time]
+        #latest_vc = self.k.node.nodes['s701c']['voltage'][self.k.time-self.k.sim_params['env_config']['sims_per_step']:self.k.time]
+        #latest_va = info['inverter_s701a']['v_worst_all'][:, 0]
+        #latest_vb = info['inverter_s701a']['v_worst_all'][:, 1]
+        #latest_vc = info['inverter_s701a']['v_worst_all'][:, 2]
+        #global_reward -= T*(np.sqrt(np.sum((latest_va - 1)**2)) + np.sqrt(np.sum((latest_vb - 1)**2)) + np.sqrt(np.sum((latest_vc - 1)**2)))
+        #v_pena = v_penb = v_penc = 0
+        #if latest_va[latest_va < VOLTAGE_THRESHOLD_LB].size != 0:
+        #    v_pena = np.mean((latest_va[latest_va < VOLTAGE_THRESHOLD_LB] - VOLTAGE_THRESHOLD_LB)**2)
+        #if latest_vb[latest_vb < VOLTAGE_THRESHOLD_LB].size != 0:
+        #    v_penb = np.mean((latest_vb[latest_vb < VOLTAGE_THRESHOLD_LB] - VOLTAGE_THRESHOLD_LB)**2)
+        #if latest_vc[latest_vc < VOLTAGE_THRESHOLD_LB].size != 0:
+        #    v_penc = np.mean((latest_vc[latest_vc < VOLTAGE_THRESHOLD_LB] - VOLTAGE_THRESHOLD_LB)**2)
+
+        #global_reward -= T*np.mean([v_pena, v_penb, v_penc])
+
 
         n = len(list(info.keys()))
         for _ in range(self.env.k.sim_params['env_config']['sims_per_step']):

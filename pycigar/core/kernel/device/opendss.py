@@ -3,7 +3,7 @@ from pycigar.devices import PVDevice
 from pycigar.devices import RegulatorDevice
 from pycigar.devices.vectorized_pv_inverter_device import VectorizedPVDevice
 from pycigar.utils.pycigar_registration import pycigar_make
-
+from pycigar.devices import PVDevice
 
 from pycigar.controllers import AdaptiveInverterController
 from pycigar.controllers import FixedController
@@ -98,8 +98,8 @@ class OpenDSSDevice(KernelDevice):
         """See parent class."""
         self.kernel_api = kernel_api
 
-    def add(self, name, connect_to, device=('pv_device', {}), controller=('adaptive_inverter_controller', {}),
-            adversary_controller=None, hack=None):
+    def add(self, name, connect_to, device=('pv_device', None), controller=(None, None),
+            adversary_controller=(None, None), hack=None):
         """Add a new device with controller into the grid connecting to a node.
 
         If not specifying the adversarial controller and hack, it implies that
@@ -158,12 +158,18 @@ class OpenDSSDevice(KernelDevice):
         else:
             device[1]["percentage_control"] = 1 - hack[1]
 
-        device_obj = pycigar_make(device[0], device_id=device_id, additional_params=device[1])
-        if device[0] not in self.device_ids:
-            self.device_ids[device[0]] = [device_id]
-        else:
-            self.device_ids[device[0]].append(device_id)
+        device_obj = pycigar_make(device[0], device_id=device_id, additional_params=device[1], is_disable_log=self.master_kernel.sim_params['is_disable_log'])
 
+        if isinstance(device_obj, PVDevice):
+            if 'pv_device' not in self.device_ids:
+                self.device_ids['pv_device'] = []
+            if device_id not in self.device_ids['pv_device']:
+                self.device_ids['pv_device'].append(device_id)
+        else:
+            if device[0] not in self.device_ids:
+                self.device_ids[device[0]] = [device_id]
+            else:
+                self.device_ids[device[0]].append(device_id)
 
         controller_obj = pycigar_make(controller[0], device_id=device_id, additional_params=controller[1])
         if controller[0] == 'rl_controller':
@@ -176,15 +182,21 @@ class OpenDSSDevice(KernelDevice):
 
         # create adversarial controller
 
-        if adversary_controller is not None:
+        if adversary_controller[0] is not None:
             adversary_device_id = "adversary_%s" % name
             device[1]["percentage_control"] = hack[1]
-            adversary_device_obj = pycigar_make(device[0], device_id=adversary_device_id, additional_params=device[1])
+            adversary_device_obj = pycigar_make(device[0], device_id=adversary_device_id, additional_params=device[1], is_disable_log=self.master_kernel.sim_params['is_disable_log'])
 
-            if device[0] not in self.device_ids:
-                self.device_ids[device[0]] = [adversary_device_id]
+            if isinstance(adversary_device_obj, PVDevice):
+                if 'pv_device' not in self.device_ids:
+                    self.device_ids['pv_device'] = []
+                if adversary_device_id not in self.device_ids['pv_device']:
+                    self.device_ids['pv_device'].append(adversary_device_id)
             else:
-                self.device_ids[device[0]].append(adversary_device_id)
+                if device[0] not in self.device_ids:
+                    self.device_ids[device[0]] = [adversary_device_id]
+                else:
+                    self.device_ids[device[0]].append(adversary_device_id)
 
             adversary_controller_obj = pycigar_make(adversary_controller[0], device_id=adversary_device_id, additional_params=adversary_controller[1])
 
@@ -201,24 +213,7 @@ class OpenDSSDevice(KernelDevice):
                 "hack_controller": pycigar_make('fixed_controller', device_id=adversary_device_id, additional_params=controller[1])  # MimicController(adversary_device_id, device_id)    #AdaptiveInverterController(adversary_device_id, controller[1])
             }
         else:
-            adversary_device_id = "adversary_%s" % name
-            device[1]["percentage_control"] = 0
-            adversary_device_obj = pycigar_make(device[0], device_id=adversary_device_id, additional_params=device[1])
-
-            if device[0] not in self.device_ids:
-                self.device_ids[device[0]] = [adversary_device_id]
-            else:
-                self.device_ids[device[0]].append(adversary_device_id)
-
-            adversary_controller_obj = pycigar_make('fixed_controller', device_id=adversary_device_id, additional_params={})
-            self.devcon_ids['norl_devcon'].append(adversary_device_id)
-
-            self.devices[adversary_device_id] = {
-                "device": adversary_device_obj,
-                "controller": adversary_controller_obj,
-                "node_id": connect_to,
-                "hack_controller": pycigar_make('fixed_controller', device_id=adversary_device_id, additional_params=controller[1])  # MimicController(adversary_device_id, device_id)    #AdaptiveInverterController(adversary_device_id, controller[1])
-            }
+            adversary_device_id = None
 
         return adversary_device_id
 
@@ -261,11 +256,13 @@ class OpenDSSDevice(KernelDevice):
 
     def update_kernel_device_info(self, device_id):
         if isinstance(self.devices[device_id]["controller"], RLController):
-            self.devcon_ids['rl_devcon'].append(device_id)
+            if device_id not in self.devcon_ids['rl_devcon']:
+                self.devcon_ids['rl_devcon'].append(device_id)
             if device_id in self.devcon_ids['norl_devcon']:
-                self.device_ids['norl_devcon'].remove(device_id)
+                self.devcon_ids['norl_devcon'].remove(device_id)
         else:
-            self.devcon_ids['norl_devcon'].append(device_id)
+            if device_id not in self.devcon_ids['norl_devcon']:
+                self.devcon_ids['norl_devcon'].append(device_id)
             if device_id in self.devcon_ids['rl_devcon']:
                 self.devcon_ids['rl_devcon'].remove(device_id)
 
@@ -359,7 +356,10 @@ class OpenDSSDevice(KernelDevice):
         float
             The relative power set
         """
-        return self.devices[device_id]['device'].p_set[1] / self.devices[device_id]['device'].Sbar
+        if self.devices[device_id]['device'].Sbar != 0:
+            return self.devices[device_id]['device'].p_set[1] / self.devices[device_id]['device'].Sbar
+        else:
+            return 0
 
     def get_device_p_set_p_max(self, device_id):
         """Return the device's power set relative to Sbar at the current timestep.

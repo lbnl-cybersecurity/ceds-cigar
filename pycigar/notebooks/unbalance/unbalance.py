@@ -97,14 +97,15 @@ if __name__ == '__main__':
     sim_params = input_parser(misc_inputs_path=str(feeder_path / 'misc_inputs.csv'),
                               dss_path=str(feeder_path / 'ieee37.dss'),
                               load_solar_path=str(feeder_path / 'load_solar_data.csv'),
-                              breakpoints_path=str(feeder_path / 'breakpoints.csv'))
+                              breakpoints_path=str(feeder_path / 'breakpoints.csv'),
+                              percentage_hack=0.3)
     base_config, create_env = \
         get_base_config(env_name=f'CentralControlPhaseSpecific{"Continuous" if args.continuous else ""}PVInverterEnv',
                         cli_args=args,
                         sim_params=sim_params)
 
     set_unbalance_attack(base_config)
-    adjust_default_curves(base_config)
+    #adjust_default_curves(base_config)
 
     if args.noattack:
         for node in base_config['env_config']['scenario_config']['nodes'] \
@@ -165,12 +166,21 @@ if __name__ == '__main__':
         )
 
         config = deepcopy(full_config)
+        #config['config']['env_config']['simulation_config']['network_model_directory'] = [str(feeder_path / 'ieee37.dss'), str(feeder_path / 'ieee37_b.dss'), str(feeder_path / 'ieee37_c.dss')]
+        config['config']['env_config']['env_config']['sims_per_step'] = 30
+        config['config']['evaluation_config']['env_config']['env_config']['sims_per_step'] = 30
+        config['config']['env_config']['is_disable_y'] = True
+        config['config']['evaluation_config']['env_config']['is_disable_y'] = True
+        
+        #config['config']['env_config']['scenario_config']['custom_configs']['slack_bus_voltage'] = 1.04
+        #config['config']['evaluation_config']['env_config']['scenario_config']['custom_configs']['slack_bus_voltage'] = 1.04
         config['config']['env_config']['M'] = 50000
-        config['config']['env_config']['N'] = 50
-        config['config']['env_config']['P'] = 100
-        config['config']['lr'] = 1e-3
-        config['config']['clip_param'] = 0.2
-
+        config['config']['env_config']['N'] = 50 #tune.grid_search([30, 40])
+        config['config']['env_config']['P'] = 75 #tune.grid_search([60, 70, 80, 100]) #100
+        config['config']['env_config']['T'] = tune.grid_search([2])
+        config['config']['lr'] = tune.grid_search([1e-4, 1e-4, 1e-4])
+        config['config']['clip_param'] = 0.1
+        config['config']['model']['fcnet_hiddens'] = [64, 64, 32]
         run_hp_experiment(config, 'main')
 
     ray.shutdown()

@@ -1,4 +1,4 @@
-name: pycigar
+name: pycigar-rayprod
 
 dependencies:
     - python==3.7.6
@@ -11,7 +11,7 @@ dependencies:
     - setuptools==41.0.0
     - pip
     - pip:
-        - ray==0.8.6
+        - ray==1.0.0
         - tensorflow
         - gym==0.17.1
         - pyprind==2.11.2

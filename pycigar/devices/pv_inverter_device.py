@@ -12,9 +12,10 @@ STEP_BUFFER = 4
 
 
 class PVDevice(BaseDevice):
-    def __init__(self, device_id, additional_params):
+    def __init__(self, device_id, additional_params, is_disable_log=False):
         """Instantiate an PV device."""
         BaseDevice.__init__(self, device_id, additional_params)
+        self.is_disable_log = is_disable_log
         self.solar_generation = None
         self.Sbar = None
 
@@ -27,8 +28,6 @@ class PVDevice(BaseDevice):
         self.low_pass_filter_measure = self.low_pass_filter_measure_std * np.random.randn() + self.low_pass_filter_measure_mean
         self.low_pass_filter_output = self.low_pass_filter_output_std * np.random.randn() + self.low_pass_filter_output_mean
 
-        self.low_pass_filter = additional_params.get('low_pass_filter', 0.1)
-        self.high_pass_filter = additional_params.get('high_pass_filter', 1)
         self.gain = additional_params.get('gain', 1e5)
         self.delta_t = additional_params.get('delta_t', 1)
         self.solar_min_value = additional_params.get('solar_min_value', 5)
@@ -104,60 +103,57 @@ class PVDevice(BaseDevice):
             vk = abs(k.node.nodes[self.node_id]['voltage'][k.time - 1])
             vkm1 = abs(k.node.nodes[self.node_id]['voltage'][k.time - 2])
 
-            # self.x.append(vk)
-            if k.time >= 16:
-                output = abs(k.node.nodes[self.node_id]['voltage'][k.time - 16 : k.time - 1])
+            if k.sim_params['is_disable_y'] == True:
+                y = 0
             else:
-                self.x.append(vk)
-                output = np.array(self.x)
+                # self.x.append(vk)
+                if k.time >= 16:
+                    output = abs(k.node.nodes[self.node_id]['voltage'][k.time - 16 : k.time - 1])
+                else:
+                    self.x.append(vk)
+                    output = np.array(self.x)
 
-            if np.max(output[STEP_BUFFER:-STEP_BUFFER]) - np.min(output[STEP_BUFFER:-STEP_BUFFER]) > 0.004:
-                norm_data = -1 + 2 * (output - np.min(output)) / (np.max(output) - np.min(output))
-                step_corr = np.convolve(norm_data, self.step, mode='valid')
+                if np.max(output[STEP_BUFFER:-STEP_BUFFER]) - np.min(output[STEP_BUFFER:-STEP_BUFFER]) > 0.004:
+                    norm_data = -1 + 2 * (output - np.min(output)) / (np.max(output) - np.min(output))
+                    step_corr = np.convolve(norm_data, self.step, mode='valid')
 
-                if max(abs(step_corr)) > 10:
-                    output = np.ones(15)
-            filter_data = output[STEP_BUFFER:-STEP_BUFFER]
+                    if max(abs(step_corr)) > 10:
+                        output = np.ones(15)
+                filter_data = output[STEP_BUFFER:-STEP_BUFFER]
 
-            if self.is_butterworth_filter:
-                self.y1.append(
-                    1
-                    / self.BP1z[1, -1]
-                    * (np.sum(-self.BP1z[1, 0:-1] * self.y1) + np.sum(self.BP1z[0, :] * filter_data))
-                )
-                self.y2.append(self.y1[-1] ** 2)
-                self.y3.append(
-                    1
-                    / self.LPF2z[1, -1]
-                    * (np.sum(-self.LPF2z[1, 0:-1] * self.y3) + np.sum(self.LPF2z[0, :] * self.y2))
-                )
+                if self.is_butterworth_filter:
+                    self.y1.append(
+                        1
+                        / self.BP1z[1, -1]
+                        * (np.sum(-self.BP1z[1, 0:-1] * self.y1) + np.sum(self.BP1z[0, :] * filter_data))
+                    )
+                    self.y2.append(self.y1[-1] ** 2)
+                    self.y3.append(
+                        1
+                        / self.LPF2z[1, -1]
+                        * (np.sum(-self.LPF2z[1, 0:-1] * self.y3) + np.sum(self.LPF2z[0, :] * self.y2))
+                    )
 
-                self.y = max(1e4 * self.y3[-1], 0)
-            else:
-                lpf_psik = (
-                    filter_data[-1]
-                    - filter_data[-2]
-                    - (self.lpf_high_pass_filter * self.lpf_delta_t / 2 - 1) * self.lpf_psi[1]
-                ) / (1 + self.lpf_high_pass_filter * self.lpf_delta_t / 2)
-                self.lpf_psi.append(lpf_psik)
+                    self.y = max(1e4 * self.y3[-1], 0)
+                else:
+                    lpf_psik = (
+                        filter_data[-1]
+                        - filter_data[-2]
+                        - (self.lpf_high_pass_filter * self.lpf_delta_t / 2 - 1) * self.lpf_psi[1]
+                    ) / (1 + self.lpf_high_pass_filter * self.lpf_delta_t / 2)
+                    self.lpf_psi.append(lpf_psik)
 
-                lpf_epsilonk = self.gain * (lpf_psik ** 2)
-                self.lpf_epsilon.append(lpf_epsilonk)
+                    lpf_epsilonk = self.gain * (lpf_psik ** 2)
+                    self.lpf_epsilon.append(lpf_epsilonk)
 
-                y_value = (
-                    self.lpf_delta_t * self.lpf_low_pass_filter * (self.lpf_epsilon[1] + self.lpf_epsilon[0])
-                    - (self.lpf_delta_t * self.lpf_low_pass_filter - 2) * self.lpf_y1[1]
-                ) / (2 + self.lpf_delta_t * self.lpf_low_pass_filter)
-                self.lpf_y1.append(y_value)
-                self.y = y_value * 0.04
+                    y_value = (
+                        self.lpf_delta_t * self.lpf_low_pass_filter * (self.lpf_epsilon[1] + self.lpf_epsilon[0])
+                        - (self.lpf_delta_t * self.lpf_low_pass_filter - 2) * self.lpf_y1[1]
+                    ) / (2 + self.lpf_delta_t * self.lpf_low_pass_filter)
+                    self.lpf_y1.append(y_value)
+                    self.y = y_value * 0.04 * 3
 
-            if 's701a' in k.node.nodes and 's701b' in k.node.nodes and 's701c' in k.node.nodes:
-                va = abs(k.node.nodes['s701a']['voltage'][k.time - 1])
-                vb = abs(k.node.nodes['s701b']['voltage'][k.time - 1])
-                vc = abs(k.node.nodes['s701c']['voltage'][k.time - 1])
-                mean = (va + vb + vc) / 3
-                max_diff = max(abs(va - mean), abs(vb - mean), abs(vc - mean))
-                self.u = max_diff / mean
+            self.u = 0
 
         T = self.delta_t
         lpf_m = self.low_pass_filter_measure
@@ -240,18 +236,20 @@ class PVDevice(BaseDevice):
 
     def log(self):
         # log history
-        Logger = logger()
-        Logger.log(self.device_id, 'y', self.y)
-        Logger.log(self.device_id, 'u', self.u)
-        Logger.log(self.device_id, 'p_set', self.p_set[1])
-        Logger.log(self.device_id, 'q_set', self.q_set[1])
-        Logger.log(self.device_id, 'p_out', self.p_out[1])
-        Logger.log(self.device_id, 'q_out', self.q_out[1])
-        Logger.log(self.device_id, 'control_setting', self.control_setting)
-        if self.Sbar:
-            Logger.log(self.device_id, 'sbar_solarirr', 1.5e-3*(abs(self.Sbar ** 2 - max(10, self.solar_irr) ** 2)) ** (1 / 2))
-            Logger.log(self.device_id, 'sbar_pset', self.p_set[1] / self.Sbar)
-
-        Logger.log(self.device_id, 'solar_irr', self.solar_irr)
-        if hasattr(self, 'node_id'):
-            Logger.log_single(self.device_id, 'node', self.node_id)
+            if not self.is_disable_log:
+                Logger = logger()
+                Logger.log(self.device_id, 'y', self.y)
+                Logger.log(self.device_id, 'u', self.u)
+                Logger.log(self.device_id, 'p_set', self.p_set[1])
+                Logger.log(self.device_id, 'q_set', self.q_set[1])
+                Logger.log(self.device_id, 'p_out', self.p_out[1])
+                Logger.log(self.device_id, 'q_out', self.q_out[1])
+                Logger.log(self.device_id, 'control_setting', self.control_setting)
+                if self.Sbar:
+                    Logger.log(self.device_id, 'sbar_solarirr', 1.5e-3*(abs(self.Sbar ** 2 - max(10, self.solar_irr) ** 2)) ** (1 / 2))
+                    Logger.log(self.device_id, 'sbar_pset', self.p_set[1] / self.Sbar)
+                    Logger.log(self.device_id, 'pset_pmax', self.p_set[1] / max(10, self.solar_irr))
+                    Logger.log(self.device_id, 'q_avail_real', abs(self.Sbar ** 2 - self.p_out[1] ** 2) ** (1 / 2)*np.sign(self.q_out[1]))
+                Logger.log(self.device_id, 'solar_irr', self.solar_irr)
+                if hasattr(self, 'node_id'):
+                    Logger.log_single(self.device_id, 'node', self.node_id)

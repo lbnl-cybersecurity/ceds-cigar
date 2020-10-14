@@ -16,6 +16,9 @@ bp3 default,1.01
 bp4 default,1.04
 bp5 default,1.07
 max tap change default,0
-forward band default,2
+forward band default,1
 tap number default,0
 tap delay default,2
+delay default,30
+p ramp rate,1
+q ramp rate,0.03

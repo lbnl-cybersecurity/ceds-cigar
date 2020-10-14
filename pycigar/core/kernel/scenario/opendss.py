@@ -17,7 +17,12 @@ import pandas as pd
 from pycigar.envs.attack_definition import AttackDefinitionGenerator
 from pycigar.envs.attack_definition import AttackDefinitionGeneratorEvaluation
 from pycigar.envs.attack_definition import AttackDefinitionGeneratorEvaluationRandom
+
+from pycigar.envs.attack_definition import UnbalancedAttackDefinitionGeneratorEvaluation
+from pycigar.envs.attack_definition import UnbalancedAttackDefinitionGeneratorEvaluationRandom
+
 from pycigar.utils.logging import logger
+import random
 
 
 class OpenDSSScenario(KernelScenario):
@@ -60,13 +65,24 @@ class OpenDSSScenario(KernelScenario):
                 and sim_params['attack_randomization']['generator'] == 'AttackDefinitionGeneratorEvaluationRandom'
             ):
                 self.attack_def_gen = AttackDefinitionGeneratorEvaluationRandom(start_time, end_time)
+            elif (
+                self.attack_def_gen is None
+                and sim_params['attack_randomization']['generator'] == 'UnbalancedAttackDefinitionGeneratorEvaluation'
+            ):
+                self.attack_def_gen = UnbalancedAttackDefinitionGeneratorEvaluation(start_time, end_time)
+            elif (
+                self.attack_def_gen is None
+                and sim_params['attack_randomization']['generator'] == 'UnbalancedAttackDefinitionGeneratorEvaluationRandom'
+            ):
+                self.attack_def_gen = UnbalancedAttackDefinitionGeneratorEvaluationRandom(start_time, end_time)
         else:
             self.attack_def_gen = None
 
         # overwrite multi_config to have a new start_time and end_time
-        if isinstance(self.attack_def_gen, AttackDefinitionGeneratorEvaluation) or isinstance(
-            self.attack_def_gen, AttackDefinitionGeneratorEvaluationRandom
-        ):
+        if isinstance(self.attack_def_gen, AttackDefinitionGeneratorEvaluation) or \
+            isinstance(self.attack_def_gen, AttackDefinitionGeneratorEvaluationRandom) or \
+            isinstance(self.attack_def_gen, UnbalancedAttackDefinitionGeneratorEvaluation) or \
+            isinstance(self.attack_def_gen, UnbalancedAttackDefinitionGeneratorEvaluationRandom):
             start_time, end_time = self.attack_def_gen.change_mode()
             self.master_kernel.sim_params['scenario_config']['start_time'] = start_time
             self.master_kernel.sim_params['scenario_config']['end_time'] = end_time
@@ -74,25 +90,32 @@ class OpenDSSScenario(KernelScenario):
         # load simulation and opendss file
         # network_model_directory_path = os.path.join(config.DATA_DIR, sim_params['simulation_config']['network_model_directory'])
         network_model_directory_path = sim_params['simulation_config']['network_model_directory']
-        self.kernel_api.simulation_command('Redirect ' + '"' + network_model_directory_path + '"')
+        if isinstance(network_model_directory_path, str):
+            self.kernel_api.simulation_command('Redirect ' + '"' + network_model_directory_path + '"')
+        else:
+            network_path = random.sample(network_model_directory_path, 1)[0]
+            self.kernel_api.simulation_command('Redirect ' + '"' + network_path + '"')
+            self.phase = network_path[-5]
+            if self.phase.isnumeric():
+                self.phase = 'a'
 
-        if 'solution_mode' in sim_params['simulation_config']:
-            self.kernel_api.set_solution_mode(sim_params['simulation_config']['solution_mode'])
-        if 'solution_number' in sim_params['simulation_config']:
-            self.kernel_api.set_solution_number(sim_params['simulation_config']['solution_number'])
-        if 'solution_step_size' in sim_params['simulation_config']:
-            self.kernel_api.set_solution_step_size(sim_params['simulation_config']['solution_step_size'])
-        if 'solution_control_mode' in sim_params['simulation_config']:
-            self.kernel_api.set_solution_control_mode(sim_params['simulation_config']['solution_control_mode'])
-        if 'solution_max_control_iterations' in sim_params['simulation_config']:
-            self.kernel_api.set_solution_max_control_iterations(
-                sim_params['simulation_config']['solution_max_control_iterations']
-            )
+        solution_mode = sim_params['simulation_config']['custom_configs'].get('solution_mode', 1)
+        solution_number = sim_params['simulation_config']['custom_configs'].get('solution_number', 1)
+        solution_step_size = sim_params['simulation_config']['custom_configs'].get('solution_step_size', 1)
+        solution_control_mode = sim_params['simulation_config']['custom_configs'].get('solution_control_mode', -1)
+        solution_max_control_iterations = sim_params['simulation_config']['custom_configs'].get('solution_max_control_iterations', 1000000)
+        solution_max_iterations = sim_params['simulation_config']['custom_configs'].get('solution_max_iterations', 30000)
 
-        if 'solution_max_iterations' in sim_params['simulation_config']:
-            self.kernel_api.set_solution_max_iterations(sim_params['simulation_config']['solution_max_iterations'])
+        self.kernel_api.set_solution_mode(solution_mode)
+        self.kernel_api.set_solution_number(solution_number)
+        self.kernel_api.set_solution_step_size(solution_step_size)
+        self.kernel_api.set_solution_control_mode(solution_control_mode)
+        self.kernel_api.set_solution_max_control_iterations(solution_max_control_iterations)
+        self.kernel_api.set_solution_max_iterations(solution_max_iterations)
 
-        self.kernel_api.set_slack_bus_voltage(sim_params['scenario_config']['custom_configs']['slack_bus_voltage'])
+
+        slack_bus_voltage = sim_params['scenario_config']['custom_configs'].get('slack_bus_voltage', 1.04)
+        self.kernel_api.set_slack_bus_voltage(slack_bus_voltage)
 
         # start node
         self.master_kernel.node.start_nodes()
@@ -106,56 +129,52 @@ class OpenDSSScenario(KernelScenario):
             if 'devices' in node:
                 for device in node['devices']:
                     device_type = device['device']
-                    if 'controller' in device:
-                        device_controller = device['controller']
-                        device_configs = device['custom_configs']
+                    device_configs = device.get('custom_device_configs', None)
+
+                    controller = device.get('controller', None)
+                    custom_controller_configs = device.get('custom_controller_configs', None)
+
+                    adversary_controller = device.get('adversary_controller', None)
+                    adversary_custom_controller_configs = device.get('adversary_custom_controller_configs', None)
+
+
+                    # if there is no hack at all at the device
+                    if adversary_controller is None:
+                        dev_hack_info = None
                     else:
-                        device_controller = 'adaptive_inverter_controller'
-                        device_configs = {}
-
-                    if 'adversary_controller' in device:
-                        adversary_device_controller = device['adversary_controller']
-                        adversary_device_configs = device['adversary_custom_configs']
-
-                        if sim_params['tune_search'] is True:
-                            adversary_device_configs = sim_params['hack_setting']
-                    else:
-                        adversary_device_controller = 'fixed_controller'
-                        adversary_device_configs = {}
-
-                    if self.attack_def_gen:
-                        dev_hack_info = self.attack_def_gen.new_dev_hack_info()
-                    else:
-                        dev_hack_info = device['hack']
-
-                    if sim_params['scenario_config']['multi_config'] is False:
-                        if device['name'] not in self.snapshot_randomization.keys():
-                            self.snapshot_randomization[device['name']] = dev_hack_info
+                        if self.attack_def_gen:
+                            dev_hack_info = self.attack_def_gen.new_dev_hack_info()
                         else:
-                            dev_hack_info = self.snapshot_randomization[device['name']]
+                            dev_hack_info = device['hack']
+                        if sim_params['scenario_config']['multi_config'] is False:
+                            if device['name'] not in self.snapshot_randomization.keys():
+                                self.snapshot_randomization[device['name']] = dev_hack_info
+                            else:
+                                dev_hack_info = self.snapshot_randomization[device['name']]
 
                     adversary_id = self.master_kernel.device.add(
                         name=device['name'],
                         connect_to=node['name'],
                         device=(device_type, device_configs),
-                        controller=(device_controller, device_configs),
-                        adversary_controller=(adversary_device_controller, adversary_device_configs),
+                        controller=(controller, custom_controller_configs),
+                        adversary_controller=(adversary_controller, adversary_custom_controller_configs),
                         hack=dev_hack_info,
                     )
 
+                    if dev_hack_info is not None and adversary_id is not None:
                     # at hack start timestep, add the adversary_controller id
-                    if dev_hack_info[0] in self.hack_start_times:
-                        self.hack_start_times[dev_hack_info[0]].append(adversary_id)
-                    else:
-                        self.hack_start_times[dev_hack_info[0]] = [adversary_id]
-
-                    # at hack end timestep, remove the adversary_controller id. See self.update()
-                    # if dev_hack_info contains end_time, it's at index 2
-                    if len(dev_hack_info) == 3:
-                        if dev_hack_info[2] in self.hack_end_times:
-                            self.hack_end_times[dev_hack_info[2]].append(adversary_id)
+                        if dev_hack_info[0] in self.hack_start_times:
+                            self.hack_start_times[dev_hack_info[0]].append(adversary_id)
                         else:
-                            self.hack_end_times[dev_hack_info[2]] = [adversary_id]
+                            self.hack_start_times[dev_hack_info[0]] = [adversary_id]
+
+                        # at hack end timestep, remove the adversary_controller id. See self.update()
+                        # if dev_hack_info contains end_time, it's at index 2
+                        if len(dev_hack_info) == 3:
+                            if dev_hack_info[2] in self.hack_end_times:
+                                self.hack_end_times[dev_hack_info[2]].append(adversary_id)
+                            else:
+                                self.hack_end_times[dev_hack_info[2]] = [adversary_id]
 
         # adding regulator, hotfix
         regulator_names = self.kernel_api.get_all_regulator_names()
@@ -172,19 +191,20 @@ class OpenDSSScenario(KernelScenario):
                     hack=None,
                 )
 
-        Logger = logger()
-        Logger.custom_metrics['hack'] = dev_hack_info[1]
-
-        self.change_load_profile(start_time, end_time)
+        if dev_hack_info is not None and not self.master_kernel.sim_params['is_disable_log']:
+            Logger = logger()
+            Logger.custom_metrics['hack'] = dev_hack_info[1]
 
     def update(self, reset):
         """See parent class."""
+        self.kernel_api.update_all_bus_voltages()
         for node in self.master_kernel.node.nodes:
             self.master_kernel.node.nodes[node]['voltage'][self.master_kernel.time] = self.kernel_api.get_node_voltage(
                 node
             )
-            Logger = logger()
-            Logger.log(node, 'voltage', self.master_kernel.node.nodes[node]['voltage'][self.master_kernel.time])
+            if not self.master_kernel.sim_params['is_disable_log']:
+                Logger = logger()
+                Logger.log(node, 'voltage', self.master_kernel.node.nodes[node]['voltage'][self.master_kernel.time])
 
             self.master_kernel.node.nodes[node]['PQ_injection']['P'] = 0
             self.master_kernel.node.nodes[node]['PQ_injection']['Q'] = 0
@@ -242,10 +262,10 @@ class OpenDSSScenario(KernelScenario):
                     self.master_kernel.device.set_device_sbar(device_id, sbar)
 
                     device_id = 'adversary_' + device_id
-                    node_id = self.master_kernel.device.get_node_connected_to(device_id)
-                    percentage_control = self.master_kernel.device.get_device(device_id).percentage_control
-
-                    solar = np.array(profile[node_id + '_pv'])[start_time:end_time] * solar_scaling_factor * percentage_control
-                    sbar = np.max(np.array(profile[node_id + '_pv']) * solar_scaling_factor * percentage_control)
-                    self.master_kernel.device.set_device_internal_scenario(device_id, solar)
-                    self.master_kernel.device.set_device_sbar(device_id, sbar)
+                    if device_id in list_pv_device_ids:
+                        node_id = self.master_kernel.device.get_node_connected_to(device_id)
+                        percentage_control = self.master_kernel.device.get_device(device_id).percentage_control
+                        solar = np.array(profile[node_id + '_pv'])[start_time:end_time] * solar_scaling_factor * percentage_control
+                        sbar = np.max(np.array(profile[node_id + '_pv']) * solar_scaling_factor * percentage_control)
+                        self.master_kernel.device.set_device_internal_scenario(device_id, solar)
+                        self.master_kernel.device.set_device_sbar(device_id, sbar)

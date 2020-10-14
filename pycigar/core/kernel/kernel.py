@@ -96,8 +96,9 @@ class Kernel(object):
         """
         if reset is True:
             # reset logger here
-            logger().reset()
-            logger().set_active(False)
+            if not self.sim_params['is_disable_log']:
+                logger().reset()
+                logger().set_active(False)
             # track substation, output specs
             # start and end times are given
             if isinstance(self.sim_params['scenario_config']['start_end_time'], list):
@@ -143,8 +144,10 @@ class Kernel(object):
                 self.device.vectorized_pv_inverter_device.reset()
 
             self.warm_up_k_step(50)
-            logger().set_active()
-            logger().custom_metrics['start_time'] = self.start_time
+            
+            if not self.sim_params['is_disable_log']:
+                logger().set_active()
+                logger().custom_metrics['start_time'] = self.start_time
 
         else:
             self.device.update(reset)  # calculate new PQ with new VBP, then push PV to node
@@ -224,8 +227,9 @@ class Kernel(object):
             deltay = np.array(np.array(newy) - np.array(y))
 
     def log(self):
-        Logger = logger()
-        Logger.log('network', 'substation_power', self.kernel_api.get_total_power())
-        Logger.log('network', 'loss', self.kernel_api.get_losses())
-        Logger.log('network', 'substation_top_voltage', self.kernel_api.get_substation_top_voltage())
-        Logger.log('network', 'substation_bottom_voltage', self.kernel_api.get_substation_bottom_voltage())
+        if not self.sim_params['is_disable_log']:
+            Logger = logger()
+            Logger.log('network', 'substation_power', self.kernel_api.get_total_power())
+            Logger.log('network', 'loss', self.kernel_api.get_losses())
+            Logger.log('network', 'substation_top_voltage', self.kernel_api.get_substation_top_voltage())
+            Logger.log('network', 'substation_bottom_voltage', self.kernel_api.get_substation_bottom_voltage())

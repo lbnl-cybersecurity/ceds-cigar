@@ -3,14 +3,16 @@ from pycigar.utils.logging import logger
 
 
 class RegulatorDevice(BaseDevice):
-    def __init__(self, device_id, additional_params=None):
+    def __init__(self, device_id, additional_params=None, is_disable_log=False):
         """Instantiate an Regulator device."""
         BaseDevice.__init__(self, device_id, additional_params)
 
+        self.is_disable_log = is_disable_log
         self.max_tap_change = additional_params.get('max_tap_change', 16)
         self.forward_band = additional_params.get('forward_band', 2)
         self.tap_number = additional_params.get('tap_number', 16)
         self.tap_delay = additional_params.get('tap_delay', 2)
+        self.delay = additional_params.get('delay', 30)
         self.kernel_api = additional_params.get('kernel_api')
         self.kernel_api.set_regulator_property(
             device_id,
@@ -19,6 +21,7 @@ class RegulatorDevice(BaseDevice):
                 'forward_band': self.forward_band,
                 'tap_number': self.tap_number,
                 'tap_delay': self.tap_delay,
+                'delay': self.delay,
             },
         )
 

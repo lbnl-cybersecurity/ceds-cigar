@@ -7,12 +7,11 @@ from pycigar.devices.base_device import BaseDevice
 
 from pycigar.utils.logging import logger
 
-DEFAULT_CONTROL_SETTING = np.array([0.98, 1.01, 1.02, 1.05, 1.07])
+DEFAULT_CONTROL_SETTING = 'auto_minmax_cycle'
 step_buffer = 4
 
 
 class BatteryStorageDevice(BaseDevice):
-    
     def __init__(self, device_id, additional_params):
         """Instantiate a Storage device."""
         BaseDevice.__init__(
@@ -20,308 +19,110 @@ class BatteryStorageDevice(BaseDevice):
             device_id,
             additional_params
         )
-        
-        
-        self.control_mode = 'null'
+
         self.control_setting = additional_params.get('default_control_setting', DEFAULT_CONTROL_SETTING)
-        self.low_pass_filter_measure = additional_params.get('low_pass_filter_measure', 1)
-        self.low_pass_filter_output = additional_params.get('low_pass_filter_output', 0.1)
-        self.low_pass_filter = additional_params.get('low_pass_filter', 0.1)
-        #self.high_pass_filter = additional_params.get('high_pass_filter', 1)
-        #self.gain = additional_params.get('gain', 1e5)
-        self.delta_t = additional_params.get('delta_t', 1)
-        #self.solar_min_value = additional_params.get('solar_min_value', 5)
-        
+
         Logger = logger()
-        
+
         if 'init_control_settings' in Logger.custom_metrics:
-            logger().custom_metrics['init_control_settings'][device_id] = np.array(self.control_setting)
+            logger().custom_metrics['init_control_settings'][device_id] =self.control_setting
         else:
-            logger().custom_metrics['init_control_settings'] = {device_id: np.array(self.control_setting)}
-        
+            logger().custom_metrics['init_control_settings'] = {device_id: self.control_setting}
+
         self.p_con = deque([0, 0],maxlen=2)
         self.p_in = deque([0, 0],maxlen=2)
         self.p_out = deque([0, 0],maxlen=2)
-        
+
         self.p_con = 0
         self.p_in = 0
         self.p_out = 0
-        
         self.total_capacity = 10*1000*3600
-        
         self.current_capacity = 0*1000*3600
-        self.current_capacity = 8.5*1000*3600        
-        
+        self.current_capacity = 8.5*1000*3600
+
         self.SOC = self.current_capacity/self.total_capacity
-        
-        
-        #self.solar_generation = None
 
-        #self.p_set = np.zeros(2)
-        #self.q_set = np.zeros(2)
-        #self.p_out = np.zeros(2)
-        #self.q_out = np.zeros(2)
-        self.low_pass_filter_v = np.zeros(2)
-
-        '''
-        self.solar_irr = 0
-        self.psi = 0
-        self.epsilon = 0
-        self.y = 0
-        self.u = 0
-        '''
-        
         # Lowpass filter for voltage
-        self.Ts = 1        
+        self.Ts = 1
         self.fl = 0.25
         lp1s, temp = signal_processing.butterworth_lowpass(1, 2 * np.pi * 1 * self.fl)
         self.lp1s = lp1s
         self.lp1z = signal_processing.c2dbilinear(self.lp1s, self.Ts)
-        
         self.Vlp = deque([0]*self.lp1z.shape[1],maxlen=self.lp1z.shape[1])
 
-        '''
-        # init for signal processing on Voltage
-        Ts = 1        
-        fl = 0.15
-        hp1, temp = signal_processing.butterworth_highpass(2, 2 * np.pi * fosc / 1)
-        lp1, temp = signal_processing.butterworth_lowpass(4, 2 * np.pi * 1 * fosc)
-        bp1num = np.convolve(hp1[0, :], lp1[0, :])
-        bp1den = np.convolve(hp1[1, :], lp1[1, :])
-        bp1s = np.array([bp1num, bp1den])
-        self.BP1z = signal_processing.c2dbilinear(bp1s, Ts)
-        lpf2, temp = signal_processing.butterworth_lowpass(2, 2 * np.pi * fosc / 2)
-        self.LPF2z = signal_processing.c2dbilinear(lpf2, Ts)
-        self.nbp1 = self.BP1z.shape[1] - 1
-        self.nlpf2 = self.LPF2z.shape[1] - 1
-
-        self.y1 = deque([0] * len(self.BP1z[1, 0:-1]), maxlen=len(self.BP1z[1, 0:-1]))
-        self.y2 = deque([0] * len(self.LPF2z[0, :]), maxlen=len(self.LPF2z[0, :]))
-        self.y3 = deque([0] * len(self.LPF2z[1, 0:-1]), maxlen=len(self.LPF2z[1, 0:-1]))
-        self.x = deque([0] * (len(self.BP1z[0, :]) + step_buffer * 2), maxlen=(len(self.BP1z[0, :]) + step_buffer * 2))
-        '''
 
     def update(self, k):
-        
         node_id = k.device.get_node_connected_to(self.device_id)
         self.node_id = node_id
-        #Sbar = self.Sbar
-        
+
         if k.time > 1:
-        
             vk = np.abs(k.node.nodes[node_id]['voltage'][k.time - 1])
             vkm1 = np.abs(k.node.nodes[node_id]['voltage'][k.time - 2])
-            
-#             vkvk = np.zeros(self.lp1z.shape[1])
-#             for k1 in range(0,self.lp1z.shape[1]):
-#                 vkvk[-1-k1] = np.abs(k.node.nodes[node_id]['voltage'][k.time - (k1-1)])
-            
+
             self.v_meas_k = vk
             self.v_meas_km1 = vkm1
-#             self.x.append(vk)
 
             if self.lp1z.shape[1] <= 2:
                 self.Vlp[-1] = 1/self.lp1z[1,-1]*(np.sum(self.lp1z[1,1]*self.Vlp[-1]) + \
                                               np.sum(self.lp1z[0,:]*[self.v_meas_km1, self.v_meas_k]))
-            if self.lp1z.shape[1] >= 3:            
+            if self.lp1z.shape[1] >= 3:
                 self.Vlp[-1] = 1/self.lp1z[1,-1]*(np.sum(self.lp1z[1,0:-1]*self.Vlp[0:-1]) + \
                                               np.sum(self.lp1z[0,:]*[self.v_meas_km1, self.v_meas_k]))
-            
-        if self.control_mode == 'auto_minmax_cycle':
+
+        if self.control_setting == 'auto_minmax_cycle':
             if self.SOC <= 0.2:
                 self.auto_minmax_cycle_mode = 'charge'
-                self.current_capacity = self.current_capacity + Ts*self.p_in[0]
+                self.current_capacity = self.current_capacity + self.Ts*self.p_in
             if self.SOC >= 0.8:
                 self.auto_minmax_cycle_mode = 'discharge'
-                self.current_capacity = self.current_capacity - Ts*self.p_out[0]
+                self.current_capacity = self.current_capacity - self.Ts*self.p_out
             if self.current_capacity <= 0:
                 self.current_capacity = 0
             if self.current_capacity >= self.total_capacity:
-                self.current_capacity = self.total_capacity    
+                self.current_capacity = self.total_capacity
             self.SOC = self.current_capacity/self.total_capacity
-        
-        if self.control_mode == 'external':
-#             if self.current_capacity + Ts*self.p_con[0] >= self.total_capacity:                
-#                 self.current_capacity = self.current_capacity + Ts*self.p_con[0]
-#             else:
-#                 self.current_capacity = self.current_capacity + Ts*self.p_con[0]
-            self.current_capacity = self.current_capacity + self.Ts*self.p_con[0]
+
+        if self.control_setting == 'external':
+            self.current_capacity = self.current_capacity + self.Ts*self.p_con
             if self.current_capacity >= self.total_capacity:
                 self.current_capacity = self.current_capacity
             if self.current_capacity <= 0:
                 self.current_capacity = self.current_capacity
-                
-        if self.control_mode == 'charge':
-            
+
+        if self.control_setting == 'charge':
             self.p_in = 100000
             self.p_in = 150000
             self.p_out = 0
-            
             self.current_capacity = self.current_capacity + self.Ts*self.p_in
-            
-            
             if self.current_capacity <= 0:
                 self.current_capacity = 0
             if self.current_capacity >= self.total_capacity:
-                self.current_capacity = self.total_capacity    
+                self.current_capacity = self.total_capacity
             self.SOC = self.current_capacity/self.total_capacity
-            
             k.node.nodes[node_id]['PQ_injection']['P'] += self.p_in/1000
-                
-        if self.control_mode == 'discharge':
-            
+
+        if self.control_setting == 'discharge':
             self.p_in = 0
             self.p_out = 150000
             self.p_out = 200000
-            
             self.current_capacity = self.current_capacity - self.Ts*self.p_out
-            
-            
             if self.current_capacity <= 0:
                 self.current_capacity = 0
             if self.current_capacity >= self.total_capacity:
-                self.current_capacity = self.total_capacity    
+                self.current_capacity = self.total_capacity
             self.SOC = self.current_capacity/self.total_capacity
-            
             k.node.nodes[node_id]['PQ_injection']['P'] += -self.p_out/1000
-                
-        if self.control_mode == 'voltwatt':
+
+        if self.control_setting == 'voltwatt':
             if self.current_capacity >= self.total_capacity:
                 self.current_capacity = self.current_capacity
             if self.current_capacity <= 0:
                 self.current_capacity = self.current_capacity
-            pass
-        
-#         if self.current_capacity >= self.total_capacity:
-#                 self.current_capacity = self.current_capacity
-#         if self.current_capacity <= 0:
-#                 self.current_capacity = self.current_capacity
-        
+
         self.SOC = self.current_capacity/self.total_capacity
-        
+
         self.log()
-        
-#         p_con.append(0)
-#         p_in.append(0)
-#         p_out.append(0)
-                
-#         k.node.nodes[node_id]['PQ_injection']['P'] += self.p_out/1000
-#         k.node.nodes[node_id]['PQ_injection']['Q'] += self.q_out/1000
-        
-        '''
-        """See parent class."""
-        # TODO: eliminate this magic number
-        self.Sbar = 1.1 * np.max(self.solar_generation)
-        VBP = self.control_setting
 
-        # record voltage magnitude measurement
-        node_id = k.device.get_node_connected_to(self.device_id)
-        self.node_id = node_id
-        Sbar = self.Sbar
-        solar_irr = self.solar_generation[k.time]
-        self.solar_irr = solar_irr
-        solar_minval = self.solar_min_value
-        step = np.hstack((1 * np.ones(11), np.linspace(1, -1, 7), -1 * np.ones(11)))
-        if k.time > 1:
-            vk = np.abs(k.node.nodes[node_id]['voltage'][k.time - 1])
-            vkm1 = np.abs(k.node.nodes[node_id]['voltage'][k.time - 2])
-            self.v_meas_k = vk
-            self.v_meas_km1 = vkm1
-            self.x.append(vk)
-            # print(" \n X \n")
-            # print(self.x)
-            output = np.array(self.x).copy()
-            # if k.time > 12:
-            if np.max(output[step_buffer:-step_buffer]) - np.min(output[step_buffer:-step_buffer]) > 0.004:
-                norm_data = -1 + 2 * (list(output) - np.min(list(output))) / (np.max(list(output)) - np.min(list(output)))
-                step_corr = np.convolve(norm_data, step, mode='valid')
-                if np.max(abs(step_corr)) > 10:
-                    output = np.ones(15)
-            filter_data = output[step_buffer:-step_buffer]
-
-            self.y1.append(1 / self.BP1z[1, -1] * (np.sum(-self.BP1z[1, 0:-1] * self.y1) + np.sum(self.BP1z[0, :] * filter_data)))
-            self.y2.append(self.y1[-1]**2)
-            self.y3.append(1 / self.LPF2z[1, -1] * (np.sum(-self.LPF2z[1, 0:-1] * self.y3) + np.sum(self.LPF2z[0, :] * self.y2)))
-
-            self.y = 1e4 * self.y3[-1]
-
-            if 's701a' in k.node.nodes and 's701b' in k.node.nodes and 's701c' in k.node.nodes:
-                va = np.abs(k.node.nodes['s701a']['voltage'][k.time - 1])
-                vb = np.abs(k.node.nodes['s701b']['voltage'][k.time - 1])
-                vc = np.abs(k.node.nodes['s701c']['voltage'][k.time - 1])
-                mean = (va+vb+vc)/3
-                max_diff = max([abs(va - mean), abs(vb - mean), abs(vc - mean)])
-                self.u = max_diff / mean
-
-        T = self.delta_t
-        lpf_m = self.low_pass_filter_measure
-        lpf_o = self.low_pass_filter_output
-
-        pk = 0
-        qk = 0
-        if k.time > 1:
-            # compute v_lpf (lowpass filter)
-            # gammakcalc = (T*lpf*(Vmagk + Vmagkm1) - (T*lpf - 2)*gammakm1)
-            # /(2 + T*lpf)
-            low_pass_filter_v = self.low_pass_filter_v[1] = (T * lpf_m * (self.v_meas_k + self.v_meas_km1) -
-                                                             (T * lpf_m - 2) * (self.low_pass_filter_v[0])) / \
-                                                            (2 + T * lpf_m)
-
-            # compute p_set and q_set
-            if solar_irr >= solar_minval:
-                if low_pass_filter_v <= VBP[4]:
-                    # no curtailment
-                    pk = -solar_irr
-                    q_avail = (Sbar ** 2 - pk ** 2) ** (1 / 2)
-
-                    # determine VAR support
-                    if low_pass_filter_v <= VBP[0]:
-                        # inject all available var
-                        qk = -q_avail
-                    elif VBP[0] < low_pass_filter_v <= VBP[1]:
-                        # partial VAR injection
-                        c = q_avail / (VBP[1] - VBP[0])
-                        qk = c * (low_pass_filter_v - VBP[1])
-                    elif VBP[1] < low_pass_filter_v <= VBP[2]:
-                        # No var support
-                        qk = 0
-                    elif VBP[2] < low_pass_filter_v < VBP[3]:
-                        # partial Var consumption
-                        c = q_avail / (VBP[3] - VBP[2])
-                        qk = c * (low_pass_filter_v - VBP[2])
-                    elif VBP[3] < low_pass_filter_v < VBP[4]:
-                        # partial real power curtailment
-                        d = -solar_irr / (VBP[4] - VBP[3])
-                        pk = d * (VBP[4] - low_pass_filter_v)
-                        qk = (Sbar ** 2 - pk ** 2) ** (1 / 2)
-                elif low_pass_filter_v >= VBP[4]:
-                    # full real power curtailment for VAR support
-                    pk = 0
-                    qk = Sbar
-
-            self.p_set[1] = pk
-            self.q_set[1] = qk
-
-            # compute p_out and q_out
-            self.p_out[1] = (T * lpf_o * (self.p_set[1] + self.p_set[0]) - (T * lpf_o - 2) * (self.p_out[0])) / \
-                            (2 + T * lpf_o)
-            self.q_out[1] = (T * lpf_o * (self.q_set[1] + self.q_set[0]) - (T * lpf_o - 2) * (self.q_out[0])) / \
-                            (2 + T * lpf_o)
-
-            self.p_set[0] = self.p_set[1]
-            self.q_set[0] = self.q_set[1]
-            self.p_out[0] = self.p_out[1]
-            self.q_out[0] = self.q_out[1]
-            self.low_pass_filter_v[0] = self.low_pass_filter_v[1]
-
-        # import old V to x
-        # inject to node
-        k.node.nodes[node_id]['PQ_injection']['P'] += self.p_out[1]
-        k.node.nodes[node_id]['PQ_injection']['Q'] += self.q_out[1]
-
-        # log necessary info
-        self.log()
-        '''
 
     def reset(self):
         """See parent class."""
@@ -330,23 +131,18 @@ class BatteryStorageDevice(BaseDevice):
 
     def set_control_setting(self, control_setting):
         """See parent class."""
-        self.control_mode = control_setting
+        self.control_setting = control_setting
 
     def log(self):
-        
+
         # log history
         Logger = logger()
-        Logger.log(self.device_id, 'control_mode', self.control_mode)
+        Logger.log(self.device_id, 'control_setting', self.control_setting)
         Logger.log(self.device_id, 'current_capacity', self.current_capacity)
         Logger.log(self.device_id, 'SOC', self.SOC)
         Logger.log(self.device_id, 'p_con', self.p_con)
         Logger.log(self.device_id, 'p_in', self.p_in)
         Logger.log(self.device_id, 'p_out', self.p_out)
-        
-#         Logger.log(self.device_id, 'q_out', self.q_out[1])
-#         Logger.log(self.device_id, 'control_setting', self.control_setting)
-#         Logger.log(self.device_id, 'solar_irr', self.solar_irr)
+
         if hasattr(self, 'node_id'):
             Logger.log_single(self.device_id, 'node', self.node_id)
-        
-        pass

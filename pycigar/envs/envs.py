@@ -38,7 +38,8 @@ class CentralControlPhaseSpecificPVInverterEnv(Wrapper):
         env = SingleRelativeInitPhaseSpecificDiscreteActionWrapper(env)
         env = CentralGlobalRewardWrapper(env, unbalance=True)
         env = CentralLocalObservationWrapper(env, unbalance=True)
-        env = CentralFramestackObservationWrapper(env)
+        #env = CentralFramestackObservationWrapper(env)
+        env = CentralLocalPhaseSpecificObservationWrapper(env, unbalance=True)
         self.env = env
 
 
@@ -49,4 +50,5 @@ class CentralControlPhaseSpecificContinuousPVInverterEnv(Wrapper):
         env = CentralGlobalRewardWrapper(env, unbalance=True)
         env = CentralLocalObservationWrapper(env, unbalance=True)
         env = CentralFramestackObservationWrapper(env)
+        env = CentralLocalPhaseSpecificObservationWrapper(env, unbalance=True)
         self.env = env
