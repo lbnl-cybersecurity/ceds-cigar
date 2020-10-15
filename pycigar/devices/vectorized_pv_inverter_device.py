@@ -50,7 +50,7 @@ class VectorizedPVDevice:
         self.lpf_low_pass_filter = 0.1
         self.lpf_delta_t = 1
         self.gain = 1e5
-        self.solar_min_value = 5
+        self.solar_min_value = 0
 
         self.p_set = np.array([0]*len(self.list_device))
         self.q_set = np.array([0]*len(self.list_device))

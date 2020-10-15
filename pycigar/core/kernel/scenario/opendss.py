@@ -189,6 +189,8 @@ class OpenDSSScenario(KernelScenario):
                     hack=None,
                 )
 
+        #self.choose_attack = 0 #random.randrange(2)
+
         if dev_hack_info is not None and not self.master_kernel.sim_params['is_disable_log']:
             Logger = logger()
             Logger.custom_metrics['hack'] = dev_hack_info[1]
