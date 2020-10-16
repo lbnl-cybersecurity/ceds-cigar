@@ -73,10 +73,12 @@ class CentralLocalObservationWrapper(ObservationWrapper):
 
     @property
     def observation_space(self):
-        if not self.unbalance:
-            return Box(low=-float('inf'), high=float('inf'), shape=(2 + self.a_size,), dtype=np.float64)
-        else:
+        if self.unbalance:
             return Box(low=-float('inf'), high=float('inf'), shape=(5 + self.a_size,), dtype=np.float64)
+        elif self.multi_attack:
+            return Box(low=-float('inf'), high=float('inf'), shape=(6 + self.a_size,), dtype=np.float64)
+        else:
+            return Box(low=-float('inf'), high=float('inf'), shape=(2 + self.a_size,), dtype=np.float64)
 
     def observation(self, observation, info):
         if info:

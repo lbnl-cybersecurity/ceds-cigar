@@ -219,11 +219,11 @@ class CentralGlobalRewardWrapper(RewardWrapper):
                 )
             else:
                 r += -(
-                    0 * info[key]['u_mean']
-                    + 1 * info[key]['y_mean']
-                    + 0 * roa
-                    + 0 * np.linalg.norm(action - self.INIT_ACTION[key])
-                    + 0 * (1 - abs(info[key]['p_set_p_max'])) ** 2
+                      T * info[key]['u_mean']
+                    + M * info[key]['y_mean']
+                    + N * roa
+                    + P * np.linalg.norm(action - self.INIT_ACTION[key])
+                    + Q * (1 - abs(info[key]['p_set_p_max'])) ** 2
                 )
 
             component_y += -M * info[key][y_or_u]
