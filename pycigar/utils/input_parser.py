@@ -44,7 +44,7 @@ def input_parser(misc_inputs_path, dss_path, load_solar_path, breakpoints_path=N
         'vectorized_mode': False,
 
         'hack_setting': {'default_control_setting': [1.039, 1.04, 1.04, 1.041, 1.042]},
-        'env_config': {'clip_actions': True, 'sims_per_step': 20},
+        'env_config': {'clip_actions': True, 'sims_per_step': 30},
         'attack_randomization': {'generator': 'AttackDefinitionGenerator'},
         'simulation_config': {
             'network_model_directory': file_dss_path,
@@ -150,7 +150,7 @@ def input_parser(misc_inputs_path, dss_path, load_solar_path, breakpoints_path=N
             device['custom_controller_configs']['threshold'] = 0.05
             device['custom_controller_configs']['adaptive_gain'] = 20
 
-        device['adversary_controller'] = 'adaptive_fixed_controller' #['adaptive_fixed_controller', 'adaptive_unbalanced_fixed_controller']
+        device['adversary_controller'] = ['adaptive_fixed_controller', 'adaptive_unbalanced_fixed_controller']
         if adv:
             device['adversary_controller'] = 'rl_controller'
         device['adversary_custom_controller_configs'] = {}

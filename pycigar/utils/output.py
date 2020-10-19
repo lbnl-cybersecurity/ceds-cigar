@@ -214,7 +214,7 @@ def plot_new(log_dict, custom_metrics, epoch='', unbalance=False, multiagent=Fal
             epoch, custom_metrics['start_time'], custom_metrics['hack'], sum(log_dict[inv_k]['reward'])
         )
         f.suptitle(title)
-        ax[0, 0].plot(log_dict[log_dict[inv_k]['node']]['voltage'], color='tab:blue', label='voltage')
+        ax[0, 0].plot(log_dict[inv_k[9:]]['voltage'], color='tab:blue', label='voltage')
 
         ax[1, 0].plot(log_dict[inv_k]['y'], color='tab:blue', label='oscillation observer')
 
@@ -262,7 +262,7 @@ def plot_new(log_dict, custom_metrics, epoch='', unbalance=False, multiagent=Fal
 
         ax[2, 1].plot(log_dict['component_observation']['component_y'], label='obs_component_y')
         ax[3, 1].plot(log_dict['component_observation']['component_pset'], label='obs_component_pset')
-        ax[4, 1].plot(log_dict['component_observation']['component_ymax'], label='obs_component_ymax')
+        #ax[4, 1].plot(log_dict['component_observation']['component_ymax'], label='obs_component_ymax')
         component_y = np.array(log_dict['component_reward']['component_y'])
         component_oa = np.array(log_dict['component_reward']['component_oa'])
         component_init = np.array(log_dict['component_reward']['component_init'])
