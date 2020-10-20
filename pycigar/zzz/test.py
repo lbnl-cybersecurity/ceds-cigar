@@ -60,7 +60,7 @@ class FooEnv(Env):
     def compute_reward(self, rl_actions, **kwargs):
         return 0
 
-stream = open("/home/toanngo/Documents/GitHub/cigar-document/ceds-cigar/pycigar/zzz/data/pycigar_config.yaml", "r")
+stream = open("/home/michael/Desktop/git/ceds-cigar/pycigar/zzz/data/pycigar_config.yaml", "r")
 sim_params = yaml.safe_load(stream)
 
 print('Simulation Complete')

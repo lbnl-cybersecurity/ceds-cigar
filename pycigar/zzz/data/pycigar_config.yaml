@@ -7,7 +7,8 @@ env_config:
   sims_per_step: 20
 
 simulation_config:
-  network_model_directory: '/home/toanngo/Documents/GitHub/cigar-document/ceds-cigar/pycigar/zzz/data/ieee3.dss'
+  # network_model_directory: '/home/toanngo/Documents/GitHub/cigar-document/ceds-cigar/pycigar/zzz/data/ieee3.dss'
+  network_model_directory: '/home/michael/Desktop/git/ceds-cigar/pycigar/zzz/data/ieee3.dss'
   custom_configs:  {solution_mode: 1,
                     solution_number: 1,
                     solution_step_size: 1,
@@ -17,7 +18,8 @@ simulation_config:
                     power_factor: 0.9}
 
 scenario_config:
-  network_data_directory: '/home/toanngo/Documents/GitHub/cigar-document/ceds-cigar/pycigar/zzz/data/load_solar_data.csv'
+  # network_data_directory: '/home/toanngo/Documents/GitHub/cigar-document/ceds-cigar/pycigar/zzz/data/load_solar_data.csv'
+  network_data_directory: '/home/michael/Desktop/git/ceds-cigar/pycigar/zzz/data/load_solar_data.csv'
   multi_config: False
   start_end_time: [100, 500]
   custom_configs: {load_scaling_factor: 1.5,
@@ -44,7 +46,9 @@ scenario_config:
             - name: bsd_1
               device: battery_storage_device
               custom_device_configs: {default_control_setting: 'charge'}
-              controller: battery_storage_controller
+              # controller: battery_storage_controller
+              # custom_controller_configs: {default_control_setting: 'charge'}
+              controller: battery_peak_shaving_controller
               custom_controller_configs: {default_control_setting: 'charge'}
       - name: s702a
 
