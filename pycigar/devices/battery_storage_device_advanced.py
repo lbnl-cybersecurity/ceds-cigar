@@ -57,7 +57,7 @@ class BatteryStorageDevice(BaseDevice):
         # self.lp1s = lp1s
         # self.lp1z = signal_processing.c2dbilinear(self.lp1s, self.Ts)
         # self.Vlp = deque([0]*self.lp1z.shape[1],maxlen=self.lp1z.shape[1])
-
+        self.custom_control_setting = {}
 
     def update(self, k):
         node_id = k.device.get_node_connected_to(self.device_id)
@@ -130,11 +130,11 @@ class BatteryStorageDevice(BaseDevice):
         if self.control_setting == 'peak_shaving':
             self.p_in = 0
             self.p_out = 0
-            if 
 
         self.SOC = self.current_capacity/self.total_capacity
 
-        print(self.custom_control_setting['pout'])
+        if 'pout' in self.custom_control_setting:
+            print(self.custom_control_setting['pout'])
 
         self.log()
 
