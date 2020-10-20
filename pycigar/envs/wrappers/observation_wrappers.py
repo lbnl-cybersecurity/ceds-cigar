@@ -188,9 +188,10 @@ class CentralFramestackObservationWrapper(ObservationWrapper):
 
 
 class AdvObservationWrapper(ObservationWrapper):
-    def __init__(self, env, unbalance=False):
+    def __init__(self, env, unbalance=False, multi_attack=False):
         super().__init__(env)
         self.unbalance = unbalance
+        self.multi_attack = multi_attack
 
     @property
     def observation_space(self):
@@ -253,6 +254,12 @@ class AdvObservationWrapper(ObservationWrapper):
                 key: np.array([observation[key]['u'] / 0.1, p_set[key], (voltage[key] - 1) * 10, *old_a_encoded[key]])
                 for key in observation
             }
+        elif self.multi_attack:
+            observation = {
+                key: np.array([observation[key]['u'] / 0.1, p_set[key], (voltage[key] - 1) * 10, *old_a_encoded[key]])
+                for key in observation
+            }
+
         else:
             observation = {
                 key: np.array([observation[key]['y'], p_set[key], (voltage[key] - 1) * 10, *old_a_encoded[key]])
@@ -329,3 +336,21 @@ class AdvFramestackObservationWrapper(ObservationWrapper):
             Logger.log('component_observation', 'component_ymax', y_value_max)
 
         return new_obs
+
+########################################################################################
+########################################################################################
+
+class ClusterObservationWrapper(ObservationWrapper):
+    def __init__(self, env):
+        super().__init__(env)
+        self.cluster = env.k.sim_params['cluster']
+
+    @property
+    def observation_space(self):
+        return self.env.observation_space
+
+    def observation(self, observation, info):
+        obs = {}
+        for k, v in self.cluster.items():
+            obs[k] = np.mean(np.array([observation['inverter_' + key] for key in v]), axis=0)
+        return obs

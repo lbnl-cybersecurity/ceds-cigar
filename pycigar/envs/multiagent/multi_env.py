@@ -81,37 +81,13 @@ class MultiEnv(MultiAgentEnv, Env):
                 self.apply_rl_actions(rl_dict)
 
             # perform action update for PV inverter device controlled by adaptive control
-            if len(self.k.device.get_adaptive_device_ids()) > 0:
-                adaptive_id = []
+                        # perform action update for PV inverter device
+            if len(self.k.device.get_norl_device_ids()) > 0:
                 control_setting = []
-                for device_id in self.k.device.get_adaptive_device_ids():
-                    adaptive_id.append(device_id)
+                for device_id in self.k.device.get_norl_device_ids():
                     action = self.k.device.get_controller(device_id).get_action(self)
                     control_setting.append(action)
-                self.k.device.apply_control(adaptive_id, control_setting)
-
-            # perform action update for PV inverter device controlled by fixed control
-            if len(self.k.device.get_fixed_device_ids()) > 0:
-                control_setting = []
-                for device_id in self.k.device.get_fixed_device_ids():
-                    action = self.k.device.get_controller(device_id).get_action(self)
-                    control_setting.append(action)
-                self.k.device.apply_control(self.k.device.get_fixed_device_ids(), control_setting)
-
-            """
-            # TODOs: clean this code
-            control_setting = []
-            adv_ids = []
-            for rl_id in self.k.device.get_rl_device_ids():
-                if 'adversary_' in rl_id:
-                    if rl_id not in self.tempo_controllers:
-                        self.tempo_controllers[rl_id] = AdaptiveFixedController(rl_id, None)
-                    action = self.tempo_controllers[rl_id].get_action(self)
-                    control_setting.append(action)
-                    adv_ids.append(rl_id)
-                    self.k.device.apply_control(adv_ids, control_setting)
-            ########################
-            """
+                self.k.device.apply_control(self.k.device.get_norl_device_ids(), control_setting)
 
             self.additional_command()
 
@@ -124,17 +100,19 @@ class MultiEnv(MultiAgentEnv, Env):
                     break
 
                 if observations == {}:
-                    observations = self.get_state()
+                    new_state = self.get_state()
+                    for device_name in new_state:
+                        if device_name not in observations:
+                            observations[device_name] = {}
+                        for prop in new_state[device_name]:
+                            observations[device_name][prop] = [new_state[device_name][prop]]
                 else:
                     new_state = self.get_state()
                     for device_name in new_state:
                         if device_name not in observations:
                             observations[device_name] = new_state[device_name]
                         for prop in new_state[device_name]:
-                            if not isinstance(observations[device_name][prop], list):
-                                observations[device_name][prop] = [observations[device_name][prop]]
-                            else:
-                                observations[device_name][prop].append(new_state[device_name][prop])
+                            observations[device_name][prop].append(new_state[device_name][prop])
 
             if self.k.time >= self.k.t:
                 break
@@ -220,17 +198,18 @@ class MultiEnv(MultiAgentEnv, Env):
 
     def get_state(self):
         obs = {}
+        _, _, _, _, v_all, u_all, load_to_bus = self.k.kernel_api.get_worst_u_node()
+
         for rl_id in self.k.device.get_rl_device_ids():
             connected_node = self.k.device.get_node_connected_to(rl_id)
             obs.update(
                 {
                     rl_id: {
-                        'voltage': self.k.node.get_node_voltage(connected_node),
-                        'solar_generation': self.k.device.get_solar_generation(rl_id),
+                        'v': v_all[load_to_bus[connected_node]],
+                        'u': u_all[load_to_bus[connected_node]],
                         'y': self.k.device.get_device_y(rl_id),
-                        'u': self.k.device.get_device_u(rl_id),
                         'p_set_p_max': self.k.device.get_device_p_set_p_max(rl_id),
-                        'p_set': self.k.device.get_device_p_set_relative(rl_id),
+                        'sbar_solar_irr': self.k.device.get_device_sbar_solar_irr(rl_id)
                     }
                 }
             )
