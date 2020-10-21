@@ -405,3 +405,54 @@ class PhaseSpecificRewardWrapper(RewardWrapper):
             )
 
         return r
+
+
+###############################################################################
+###############################################################################
+class ClusterRewardWrapper(RewardWrapper):
+    def __init__(self, env):
+        super().__init__(env)
+        self.cluster = env.k.sim_params['cluster']
+    def reward(self, reward, info):
+        M = self.k.sim_params['M']
+        N = self.k.sim_params['N']
+        P = self.k.sim_params['P']
+        Q = self.k.sim_params['Q']
+        T = self.k.sim_params['T']
+
+        cluster_reward = {}
+        for agent in self.cluster.keys():
+            reward = 0
+            for key in self.cluster[agent]:
+                key = 'inverter_' + key
+                action = info[key]['current_action']
+                if action is None:
+                    action = self.INIT_ACTION[key]
+                old_action = info[key]['old_action']
+                if old_action is None:
+                    old_action = self.INIT_ACTION[key]
+
+                r = 0
+
+                action = np.array(action)
+                old_action = np.array(old_action)
+                if isinstance(self.action_space, Box):
+                    roa = np.abs(action - old_action).sum()
+                elif (action == old_action).all():
+                    roa = 0
+                else:
+                    roa = 1
+
+                r += -(
+                    T * info[key]['u']
+                    + M * info[key]['y']
+                    + N * roa
+                    + P * np.linalg.norm(action - self.INIT_ACTION[key])
+                    + Q * (1 - abs(info[key]['p_set_p_max'])) ** 2
+                )
+
+                reward += r
+            reward = reward / len(self.cluster[agent])
+            cluster_reward[agent] = reward
+
+        return cluster_reward

@@ -127,15 +127,13 @@ class MultiEnv(MultiAgentEnv, Env):
             for device in observations
         }
 
+        for device in obs:
+            obs[device]['v'] = observations[device]['v'][-1]
+            obs[device]['u'] = observations[device]['u'][-1]
+            
         # the episode will be finished if it is not converged.
         finish = not converged or (self.k.time == self.k.t)
         done = {}
-        if (
-            abs(max(self.k.scenario.hack_end_times.keys()) - self.k.time)
-            < self.sim_params['env_config']['sims_per_step']
-        ):
-            done['attack_agent'] = True
-
         if finish:
             done['__all__'] = True
         else:
@@ -143,14 +141,11 @@ class MultiEnv(MultiAgentEnv, Env):
 
         infos = {
             key: {
-                'voltage': self.k.node.get_node_voltage(self.k.device.get_node_connected_to(key)),
+                'v': obs[key]['v'],
                 'y': obs[key]['y'],
                 'u': obs[key]['u'],
-                'p_inject': self.k.device.get_device_p_injection(key),
-                'p_max': self.k.device.get_device_p_injection(key),
-                'env_time': self.env_time,
-                'p_set': obs[key]['p_set'],
                 'p_set_p_max': obs[key]['p_set_p_max'],
+                'sbar_solar_irr': obs[key]['sbar_solar_irr'],
             }
             for key in self.k.device.get_rl_device_ids()
         }

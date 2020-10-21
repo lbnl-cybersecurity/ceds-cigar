@@ -22,9 +22,9 @@ class ClusterEnv(Wrapper):
     def __init__(self, **kwargs):
         env = MultiEnv(**kwargs)
         env = SingleRelativeInitPhaseSpecificDiscreteActionWrapper(env)
-        env = AdvObservationWrapper(env, multi_attack=True)
-        env = LocalRewardWrapper(env)
         env = ClusterObservationWrapper(env)
+        env = ClusterFramestackObservationWrapper(env)
+        env = ClusterRewardWrapper(env)
         self.env = env
 
 class ClusterMultiEnv(MultiEnv):
