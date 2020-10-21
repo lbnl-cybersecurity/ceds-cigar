@@ -280,3 +280,21 @@ class RelativeInitContinuousActionWrapper(ActionWrapper):
 
     def action(self, action, rl_id, *_):
         return self.INIT_ACTION[rl_id] + action[0] * ACTION_RANGE / 10.0
+
+
+
+#############################
+#    MULTI-AGENT WRAPPER    #
+#############################
+
+
+class ClusterSingleRelativeInitPhaseSpecificDiscreteActionWrapper(Wrapper):
+    def step(self, action, randomize_rl_update=None):
+        cluster = self.env.k.sim_params['cluster']
+        rl_actions = {}
+        if isinstance(action, dict):
+            for agent in cluster.keys():
+                for device in cluster[agent]:
+                    rl_actions['inverter_' + device] = action[agent]
+        observation, reward, done, info = self.env.step(rl_actions, randomize_rl_update)
+        return observation, reward, done, info
