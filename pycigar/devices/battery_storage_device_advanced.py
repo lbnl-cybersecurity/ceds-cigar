@@ -11,7 +11,8 @@ DEFAULT_CONTROL_SETTING = 'auto_minmax_cycle'
 step_buffer = 4
 
 
-class BatteryStorageDevice(BaseDevice):
+class BatteryStorageDeviceAdvanced(BaseDevice):
+
     def __init__(self, device_id, additional_params, is_disable_log=False):
         """Instantiate a Storage device."""
         BaseDevice.__init__(
@@ -40,6 +41,10 @@ class BatteryStorageDevice(BaseDevice):
         self.current_capacity = 0*1000*3600
         self.current_capacity = 8.5*1000*3600
 
+        self.max_charge = 100e3
+
+        self.max_discharge = 200e3
+
         self.SOC = self.current_capacity/self.total_capacity
 
         # Lowpass filter for voltage
@@ -57,6 +62,7 @@ class BatteryStorageDevice(BaseDevice):
         # self.lp1s = lp1s
         # self.lp1z = signal_processing.c2dbilinear(self.lp1s, self.Ts)
         # self.Vlp = deque([0]*self.lp1z.shape[1],maxlen=self.lp1z.shape[1])
+
         self.custom_control_setting = {}
 
     def update(self, k):
@@ -100,7 +106,12 @@ class BatteryStorageDevice(BaseDevice):
         if self.control_setting == 'charge':
             self.p_in = 100000
             self.p_in = 150000
+            self.p_in = self.max_charge
             self.p_out = 0
+
+            if 'p_in' in self.custom_control_setting:
+                self.p_in = self.custom_control_setting['p_in']
+
             self.current_capacity = self.current_capacity + self.Ts*self.p_in
             if self.current_capacity <= 0:
                 self.current_capacity = 0
@@ -113,6 +124,11 @@ class BatteryStorageDevice(BaseDevice):
             self.p_in = 0
             self.p_out = 150000
             self.p_out = 200000
+            self.p_out = self.max_discharge
+
+            if 'p_out' in self.custom_control_setting:
+                self.p_out = self.custom_control_setting['p_out']
+
             self.current_capacity = self.current_capacity - self.Ts*self.p_out
             if self.current_capacity <= 0:
                 self.current_capacity = 0
@@ -127,14 +143,23 @@ class BatteryStorageDevice(BaseDevice):
             if self.current_capacity <= 0:
                 self.current_capacity = self.current_capacity
 
-        if self.control_setting == 'peak_shaving':
-            self.p_in = 0
-            self.p_out = 0
+        # if self.control_setting == 'peak_shaving':
+        #     self.p_in = 0
+        #     self.p_out = 0
+
+        #     if self.current_capacity <= 0:
+        #         self.current_capacity = self.current_capacity
+        #     if self.current_capacity >= self.total_capacity:
+        #         self.current_capacity = self.current_capacity
+
+        #     self.SOC = self.current_capacity/self.total_capacity
+        #     k.node.nodes[node_id]['PQ_injection']['P'] += -self.p_out/1000
+            
 
         self.SOC = self.current_capacity/self.total_capacity
 
-        if 'pout' in self.custom_control_setting:
-            print(self.custom_control_setting['pout'])
+        # if 'pout' in self.custom_control_setting:
+        #     print(self.custom_control_setting['pout'])
 
         self.log()
 
