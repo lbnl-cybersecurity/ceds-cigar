@@ -21,8 +21,8 @@ scenario_config:
   # network_data_directory: '/home/toanngo/Documents/GitHub/cigar-document/ceds-cigar/pycigar/zzz/data/load_solar_data.csv'
   network_data_directory: '/home/michael/Desktop/git/ceds-cigar/pycigar/zzz/data/load_solar_data.csv'
   multi_config: False
-  start_end_time: [3600, 10800]
-  custom_configs: {load_scaling_factor: 1.5,
+  start_end_time: [3600, 3720]
+  custom_configs: {load_scaling_factor: 1.25,
                    solar_scaling_factor: 0,
                    slack_bus_voltage: 1.04,
                    load_generation_noise: False,
@@ -39,12 +39,12 @@ scenario_config:
                                       low_pass_filter_output_mean: 0.115}
               controller: fixed_controller
               custom_controller_configs: {default_control_setting: [0.98, 1.01, 1.01, 1.04, 1.06]}
-              adversary_controller: fixed_controller
-              adversary_custom_controller_configs: {default_control_setting: [1.014, 1.015, 1.015, 1.016, 1.017]}
-              hack: [300, 0.4]
+              # adversary_controller: fixed_controller
+              # adversary_custom_controller_configs: {default_control_setting: [1.014, 1.015, 1.015, 1.016, 1.017]}
+              # hack: [300, 0.4]
 
             - name: bsd_1
-              device: battery_storage_device
+              device: battery_storage_device_advanced
               custom_device_configs: {default_control_setting: 'charge'}
               controller: cen_bat_1
 
