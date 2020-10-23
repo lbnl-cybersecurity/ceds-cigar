@@ -60,18 +60,19 @@ class FooEnv(Env):
     def compute_reward(self, rl_actions, **kwargs):
         return 0
 
-stream = open("/home/michael/Desktop/git/ceds-cigar/pycigar/zzz/data/pycigar_config.yaml", "r")
+stream = open("/home/toanngo/Documents/GitHub/cigar-document/ceds-cigar/pycigar/zzz/data/pycigar_config.yaml", "r")
 sim_params = yaml.safe_load(stream)
-
 print('Simulation Complete')
 
 
 from pycigar.utils.registry import register_devcon
 from pycigar.controllers.battery_storage_controller import BatteryStorageController
 from pycigar.devices.battery_storage_device import BatteryStorageDevice
-
+from pycigar.devices.battery_storage_device_advanced import BatteryStorageDevice
+from pycigar.controllers.centralized_controller.centralized_battery_controller import CentralizedBatteryController
 register_devcon('battery_storage_controller', BatteryStorageController)
 register_devcon('battery_storage_device', BatteryStorageDevice)
+register_devcon('centralized_battery_controller',CentralizedBatteryController)
 
 
 env = FooEnv(sim_params)
