@@ -66,6 +66,7 @@ class BatteryStorageDeviceAdvanced(BaseDevice):
         self.custom_control_setting = {}
 
     def update(self, k):
+        
         node_id = k.device.get_node_connected_to(self.device_id)
         self.node_id = node_id
 

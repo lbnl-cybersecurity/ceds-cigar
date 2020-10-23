@@ -124,14 +124,14 @@ class BatteryPeakShavingController(BaseController):
 
             self.p_set = self.max_active_power - self.load_active_power
 
-            self.p_out = min(self.p_set, env.k.device.devices[self.device_id]['device'].max_charge/1e3)
+            self.p_in = min(self.p_set, env.k.device.devices[self.device_id]['device'].max_charge/1e3)
 
-            self.custom_control_setting = {'p_in': 1e3*self.p_out}
+            self.custom_control_setting = {'p_in': 1e3*self.p_in}
 
             if env.k.time % self.print_interval == 0:
                 print('Charge')
                 print('Charge power non rectified [kW]: ' + str(self.p_set))
-                print('Charge power [kW]: ' + str(self.p_out))
+                print('Charge power [kW]: ' + str(self.p_in))
 
         
         # if self.total_apparent_power >= self.max_apparent_power:
