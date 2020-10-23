@@ -83,7 +83,7 @@ class OpenDSSDevice(KernelDevice):
         self.fixed_device_ids = []
 
         self.regulator_device_ids = []
-        
+
         self.battery_storage_device_ids = []
 
         self.device_ids = {}   #device id by type
@@ -92,9 +92,15 @@ class OpenDSSDevice(KernelDevice):
             'norl_devcon': []
         }
 
+        self.controller = {}
+
     def pass_api(self, kernel_api):
         """See parent class."""
         self.kernel_api = kernel_api
+
+    def add_controller(self, name, controller=('centralized_battery_controller', None, [])):
+        controller_obj = pycigar_make(controller[0], device_id=controller[2], additional_params=controller[1])
+        self.controller[name] = controller_obj
 
     def add(self, name, connect_to, device=('pv_device', None), controller=(None, None),
             adversary_controller=(None, None), hack=None):
@@ -169,7 +175,11 @@ class OpenDSSDevice(KernelDevice):
             else:
                 self.device_ids[device[0]].append(device_id)
 
-        controller_obj = pycigar_make(controller[0], device_id=device_id, additional_params=controller[1])
+        if controller[0] not in self.controller:
+            controller_obj = pycigar_make(controller[0], device_id=device_id, additional_params=controller[1])
+        else:
+            controller_obj = self.controller[controller[0]]
+
         if controller[0] == 'rl_controller':
             self.devcon_ids['rl_devcon'].append(device_id)
         else:
@@ -196,7 +206,10 @@ class OpenDSSDevice(KernelDevice):
                 else:
                     self.device_ids[device[0]].append(adversary_device_id)
 
-            adversary_controller_obj = pycigar_make(adversary_controller[0], device_id=adversary_device_id, additional_params=adversary_controller[1])
+            if adversary_controller[0] not in self.controller:
+                adversary_controller_obj = pycigar_make(adversary_controller[0], device_id=adversary_device_id, additional_params=adversary_controller[1])
+            else:
+                adversary_controller_obj = self.controller[adversary_controller[0]]
 
             if controller[0] == 'rl_controller':
                 self.devcon_ids['rl_devcon'].append(adversary_device_id)
