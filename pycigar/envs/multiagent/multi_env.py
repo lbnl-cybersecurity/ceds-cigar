@@ -3,7 +3,7 @@ from gym.spaces import Box
 from ray.rllib.env import MultiAgentEnv
 from pycigar.envs.base import Env
 from pycigar.controllers import AdaptiveFixedController
-
+from pycigar.utils.logging import logger
 
 class MultiEnv(MultiAgentEnv, Env):
     def __init__(self, *args, **kwargs):
@@ -194,19 +194,42 @@ class MultiEnv(MultiAgentEnv, Env):
     def get_state(self):
         obs = {}
         _, _, _, _, v_all, u_all, load_to_bus = self.k.kernel_api.get_worst_u_node()
+        Logger = logger()
 
-        for rl_id in self.k.device.get_rl_device_ids():
-            connected_node = self.k.device.get_node_connected_to(rl_id)
-            obs.update(
-                {
-                    rl_id: {
-                        'v': v_all[load_to_bus[connected_node]],
-                        'u': u_all[load_to_bus[connected_node]],
-                        'y': self.k.device.get_device_y(rl_id),
-                        'p_set_p_max': self.k.device.get_device_p_set_p_max(rl_id),
-                        'sbar_solar_irr': self.k.device.get_device_sbar_solar_irr(rl_id)
+        if not self.sim_params['vectorized_mode']:
+            for rl_id in self.k.device.get_rl_device_ids():
+                connected_node = self.k.device.get_node_connected_to(rl_id)
+                obs.update(
+                    {
+                        rl_id: {
+                            'v': v_all[load_to_bus[connected_node]],
+                            'u': u_all[load_to_bus[connected_node]],
+                            'y': self.k.device.get_device_y(rl_id),
+                            'p_set_p_max': self.k.device.get_device_p_set_p_max(rl_id),
+                            'sbar_solar_irr': self.k.device.get_device_sbar_solar_irr(rl_id)
+                        }
                     }
-                }
-            )
-
+                )
+                Logger.log(rl_id, 'u', u_all[load_to_bus[connected_node]])
+                Logger.log(rl_id, 'v', v_all[load_to_bus[connected_node]])
+        else:
+            y = self.k.device.get_vectorized_y()
+            p_set_p_max = self.k.device.get_vectorized_device_p_set_p_max()
+            sbar_solar_irr = self.k.device.get_vectorized_device_sbar_solar_irr()
+            for i, rl_id in enumerate(self.k.device.get_rl_device_ids()):
+                connected_node = self.k.device.get_node_connected_to(rl_id)
+                idx = self.k.device.vectorized_pv_inverter_device.list_device.index(rl_id)
+                obs.update(
+                    {
+                        rl_id: {
+                            'v': v_all[load_to_bus[connected_node]],
+                            'u': u_all[load_to_bus[connected_node]],
+                            'y': y[idx],
+                            'p_set_p_max': p_set_p_max[idx],
+                            'sbar_solar_irr': sbar_solar_irr[idx],
+                         }
+                    }
+                )
+                Logger.log(rl_id, 'u', u_all[load_to_bus[connected_node]])
+                Logger.log(rl_id, 'v', v_all[load_to_bus[connected_node]])
         return obs

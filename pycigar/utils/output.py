@@ -524,3 +524,85 @@ def plot_adv(
     plt.tight_layout()
     plt.subplots_adjust(top=0.95)
     return f
+
+
+def plot_cluster(log_dict, custom_metrics, epoch='', unbalance=False, multiagent=False):
+    def get_translation_and_slope(a_val, init_a):
+        points = np.array(a_val)
+        slope = points[:, 1] - points[:, 0]
+        translation = points[:, 2] - init_a[2]
+        return translation, slope
+
+    plt.rc('font', size=15)
+    plt.rc('figure', titlesize=35)
+
+    cluster = {1: ['s701a', 's701b', 's701c', 's712c', 's713c', 's714a', 's714b', 's718a', 's720c', 's722b', 's722c', 's724b', 's725b'],
+     2: ['s727c', 's728', 's729a', 's730c', 's731b', 's732c', 's733a'],
+     3: ['s734c', 's735c', 's736b', 's737a', 's738a', 's740c', 's741c', 's742a', 's742b', 's744a']
+    }
+
+    f, ax = plt.subplots(4, 3, figsize=(40, 30))
+    title = '[epoch {}][time {}][hack {}] reward: agent_1: {}, agent_2: {}, agent_3: {}'.format(
+            epoch, custom_metrics['start_time'], custom_metrics['hack'], sum(log_dict['1']['reward']), sum(log_dict['2']['reward']), sum(log_dict['3']['reward'])
+        )
+    f.suptitle(title)
+
+    voltage = np.array(log_dict['inverter_s701a']['v'])
+    ax[0, 0].plot(voltage[:, 0], label='voltage_a')
+    ax[0, 0].plot(voltage[:, 1], label='voltage_b')
+    ax[0, 0].plot(voltage[:, 2], label='voltage_c')
+    ax[1, 0].plot(log_dict['inverter_s701a']['u'], label='unbalance')
+    ax[2, 0].plot(log_dict['inverter_s701a']['y'], label='oscillation')
+    translation, slope = get_translation_and_slope(log_dict['inverter_s701a']['control_setting'], custom_metrics['init_control_settings']['inverter_s701a'])
+    ax[3, 0].plot(translation, color='tab:blue', label='act_phase_a')
+    translation, slope = get_translation_and_slope(log_dict['inverter_s701b']['control_setting'], custom_metrics['init_control_settings']['inverter_s701b'])
+    ax[3, 0].plot(translation, color='tab:orange', label='act_phase_b')
+    translation, slope = get_translation_and_slope(log_dict['inverter_s701c']['control_setting'], custom_metrics['init_control_settings']['inverter_s701c'])
+    ax[3, 0].plot(translation, color='tab:green', label='act_phase_c')
+    ax[0, 0].set_ylim([0.93, 1.07])
+    ax[1, 0].set_ylim([0, 0.05])
+    ax[2, 0].set_ylim([0, 0.5])
+    ax[3, 0].set_ylim([-0.06, 0.06])
+
+    voltage = np.array(log_dict['inverter_s727c']['v'])
+    ax[0, 1].plot(voltage[:, 0], label='voltage_a')
+    ax[0, 1].plot(voltage[:, 1], label='voltage_b')
+    ax[0, 1].plot(voltage[:, 2], label='voltage_c')
+    ax[1, 1].plot(log_dict['inverter_s727c']['u'], label='unbalance')
+    ax[2, 1].plot(log_dict['inverter_s727c']['y'], label='oscillation')
+    translation, slope = get_translation_and_slope(log_dict['inverter_s729a']['control_setting'], custom_metrics['init_control_settings']['inverter_s729a'])
+    ax[3, 1].plot(translation, color='tab:blue', label='act_phase_a')
+    translation, slope = get_translation_and_slope(log_dict['inverter_s731b']['control_setting'], custom_metrics['init_control_settings']['inverter_s731b'])
+    ax[3, 1].plot(translation, color='tab:orange', label='act_phase_b')
+    translation, slope = get_translation_and_slope(log_dict['inverter_s732c']['control_setting'], custom_metrics['init_control_settings']['inverter_s732c'])
+    ax[3, 1].plot(translation, color='tab:green', label='act_phase_c')
+    ax[0, 1].set_ylim([0.93, 1.07])
+    ax[1, 1].set_ylim([0, 0.05])
+    ax[2, 1].set_ylim([0, 0.5])
+    ax[3, 1].set_ylim([-0.06, 0.06])
+
+    voltage = np.array(log_dict['inverter_s736b']['v'])
+    ax[0, 2].plot(voltage[:, 0], label='voltage_a')
+    ax[0, 2].plot(voltage[:, 1], label='voltage_b')
+    ax[0, 2].plot(voltage[:, 2], label='voltage_c')
+    ax[1, 2].plot(log_dict['inverter_s734c']['u'], label='unbalance')
+    ax[2, 2].plot(log_dict['inverter_s734c']['y'], label='oscillation')
+    translation, slope = get_translation_and_slope(log_dict['inverter_s737a']['control_setting'], custom_metrics['init_control_settings']['inverter_s737a'])
+    ax[3, 2].plot(translation, color='tab:blue', label='act_phase_a')
+    translation, slope = get_translation_and_slope(log_dict['inverter_s736b']['control_setting'], custom_metrics['init_control_settings']['inverter_s736b'])
+    ax[3, 2].plot(translation, color='tab:orange', label='act_phase_b')
+    translation, slope = get_translation_and_slope(log_dict['inverter_s736b']['control_setting'], custom_metrics['init_control_settings']['inverter_s736b'])
+    ax[3, 2].plot(translation, color='tab:green', label='act_phase_c')
+    ax[0, 2].set_ylim([0.93, 1.07])
+    ax[1, 2].set_ylim([0, 0.05])
+    ax[2, 2].set_ylim([0, 0.5])
+    ax[3, 2].set_ylim([-0.06, 0.06])
+
+    for row in ax:
+        for a in row:
+            a.grid(b=True, which='both')
+            a.legend(loc=1, ncol=2)
+
+    plt.tight_layout()
+    plt.subplots_adjust(top=0.95)
+    return f
