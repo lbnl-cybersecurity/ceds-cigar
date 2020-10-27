@@ -56,7 +56,7 @@ scenario_config:
 
       - name: s702a
 
-      - name: s703a
+      - name: s703c
 
   controllers:
       - name: cen_bat_1
