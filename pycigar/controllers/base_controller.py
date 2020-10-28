@@ -15,7 +15,10 @@ class BaseController:
         device_id : string
             The device id which the controller controls
         """
-        self.device_id = device_id
+        if isinstance(device_id, list) and len(device_id) == 1:
+            self.device_id = device_id[0]
+        else:
+            self.device_id = device_id
 
     def get_action(self, env):
         """Get the control setting that the controller may want to set for the device.
