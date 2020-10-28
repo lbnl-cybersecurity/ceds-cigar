@@ -89,10 +89,10 @@ class OpenDSSScenario(KernelScenario):
         # network_model_directory_path = os.path.join(config.DATA_DIR, sim_params['simulation_config']['network_model_directory'])
         network_model_directory_path = sim_params['simulation_config']['network_model_directory']
         if isinstance(network_model_directory_path, str):
-            self.kernel_api.simulation_command('Redirect ' + '"' + network_model_directory_path + '"')
+            self.kernel_api.simulation_command('Redirect "{}"'.format(network_model_directory_path))
         else:
             network_path = random.sample(network_model_directory_path, 1)[0]
-            self.kernel_api.simulation_command('Redirect ' + '"' + network_path + '"')
+            self.kernel_api.simulation_command('Redirect "{}"'.format(network_path))
             self.phase = network_path[-5]
             if self.phase.isnumeric():
                 self.phase = 'a'
@@ -188,7 +188,7 @@ class OpenDSSScenario(KernelScenario):
                     hack=None,
                 )
 
-        self.choose_attack = random.randrange(2)
+        self.choose_attack = 0 #random.randrange(2)
 
         if dev_hack_info is not None and not self.master_kernel.sim_params['is_disable_log']:
             Logger = logger()

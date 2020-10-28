@@ -160,11 +160,26 @@ def input_parser(misc_inputs_path, dss_path, load_solar_path, breakpoints_path=N
         node_description['devices'].append(device)
         json_query['scenario_config']['nodes'].append(node_description)
 
-    max_tap_change = misc_inputs_data['max tap change default'][1]
-    forward_band = misc_inputs_data['forward band default'][1]
-    tap_number = misc_inputs_data['tap number default'][1]
-    tap_delay = misc_inputs_data['tap delay default'][1]
-    delay = misc_inputs_data['delay default'][1]
+    if 'max tap change default' in misc_inputs_data:
+        max_tap_change = misc_inputs_data['max tap change default'][1]
+    else:
+        max_tap_change = None
+    if 'forward band default' in misc_inputs_data:
+        forward_band = misc_inputs_data['forward band default'][1]
+    else:
+        forward_band = None
+    if 'tap number default' in misc_inputs_data:
+        tap_number = misc_inputs_data['tap number default'][1]
+    else:
+        tap_number = None
+    if 'tap delay default' in misc_inputs_data:
+        tap_delay = misc_inputs_data['tap delay default'][1]
+    else:
+        tap_delay = None
+    if 'delay default' in misc_inputs_data:
+        delay = misc_inputs_data['delay default'][1]
+    else:
+        delay = None
 
     json_query['scenario_config']['regulators']['max_tap_change'] = max_tap_change
     json_query['scenario_config']['regulators']['forward_band'] = forward_band

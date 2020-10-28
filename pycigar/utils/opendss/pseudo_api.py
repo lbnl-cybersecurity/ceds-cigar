@@ -40,6 +40,15 @@ class PyCIGAROpenDSSAPI(object):
             self.loads[load] = [['.'.join([bus_phase[0], i]) for i in bus_phase[1:] if i != '0'], dss.CktElement.NumPhases()]
             self.load_to_bus[load] = bus_phase[0]
 
+        self.current_offsets = {}
+        pos = 0
+        for pd in dss.PDElements.AllNames():
+            dss.Circuit.SetActiveElement(pd)
+            pd_type, pd_name = pd.split('.')
+            if pd_type == 'Line':
+                self.current_offsets[pd_name] = [pos, dss.CktElement.NumPhases()]
+            pos += len(dss.CktElement.CurrentsMagAng())
+
     def set_solution_mode(self, value):
         """Set solution mode on simulator."""
         dss.Solution.Mode(value)
@@ -77,7 +86,15 @@ class PyCIGAROpenDSSAPI(object):
         return nodes
 
     def update_all_bus_voltages(self):
-        self.puvoltage = dss.Circuit.AllBusMagPu() #work around this
+        self.puvoltage = dss.Circuit.AllBusMagPu()
+
+    def get_all_currents(self):
+        self.currents = dss.PDElements.AllCurrentsMagAng()
+        result = {}
+        for line in self.current_offsets:
+            result[line] = self.currents[self.current_offsets[line][0]:self.current_offsets[line][0] + self.current_offsets[line][1]*2:2]
+
+        return result
 
     def get_node_voltage(self, node_id):
         puvoltage = 0 # get rid of this

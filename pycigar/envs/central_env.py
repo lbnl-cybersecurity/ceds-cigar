@@ -189,3 +189,10 @@ class CentralEnv(Env):
 
     def compute_reward(self, rl_actions, **kwargs):
         return 0
+
+    def additional_command(self):
+        current = self.k.kernel_api.get_all_currents()
+        Logger = logger()
+        for line in current:
+            Logger.log('current', line, current[line])
+

@@ -8,11 +8,11 @@ class RegulatorDevice(BaseDevice):
         BaseDevice.__init__(self, device_id, additional_params)
 
         self.is_disable_log = is_disable_log
-        self.max_tap_change = additional_params.get('max_tap_change', 16)
-        self.forward_band = additional_params.get('forward_band', 2)
-        self.tap_number = additional_params.get('tap_number', 16)
-        self.tap_delay = additional_params.get('tap_delay', 2)
-        self.delay = additional_params.get('delay', 30)
+        self.max_tap_change = additional_params.get('max_tap_change', None)
+        self.forward_band = additional_params.get('forward_band', None)
+        self.tap_number = additional_params.get('tap_number', None)
+        self.tap_delay = additional_params.get('tap_delay', None)
+        self.delay = additional_params.get('delay', None)
         self.kernel_api = additional_params.get('kernel_api')
         self.kernel_api.set_regulator_property(
             device_id,
