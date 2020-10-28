@@ -46,20 +46,30 @@ scenario_config:
             - name: bsd_1
               device: battery_storage_device_advanced
               custom_device_configs: {default_control_setting: 'charge'}
-              controller: cen_bat_1
+              controller: psc_1
 
             - name: bsd_2
-              device: battery_storage_device
+              device: battery_storage_device_advanced
               custom_device_configs: {default_control_setting: 'charge'}
-              controller: cen_bat_1
+              controller: psc_2
 
+      # - name: s702a
 
-      - name: s702a
+      # - name: s703a
 
-      - name: s703c
+  # controllers:
+  #     - name: cen_bat_1
+  #       controller: centralized_battery_controller
+  #       custom_controller_configs: {default_control_setting: 'charge'}
+  #       list_devices: ['bsd_1', 'bsd_2']
 
   controllers:
-      - name: cen_bat_1
-        controller: centralized_battery_controller
+      - name: psc_1
+        controller: battery_peak_shaving_controller
         custom_controller_configs: {default_control_setting: 'charge'}
-        list_devices: ['bsd_1', 'bsd_2']
+        list_devices: ['bsd_1']
+
+      - name: psc_2
+        controller: battery_peak_shaving_controller
+        custom_controller_configs: {default_control_setting: 'charge'}
+        list_devices: ['bsd_2']
