@@ -53,9 +53,9 @@ scenario_config:
               custom_device_configs: {default_control_setting: 'charge'}
               controller: psc_2
 
-      # - name: s702a
+      - name: s702a
 
-      # - name: s703a
+      - name: s703a
 
   # controllers:
   #     - name: cen_bat_1
@@ -65,11 +65,11 @@ scenario_config:
 
   controllers:
       - name: psc_1
-        controller: battery_peak_shaving_controller
+        controller: battery_peak_shaving_controller_lpf
         custom_controller_configs: {default_control_setting: 'charge'}
         list_devices: ['bsd_1']
 
       - name: psc_2
-        controller: battery_peak_shaving_controller
+        controller: battery_peak_shaving_controller_lpf
         custom_controller_configs: {default_control_setting: 'charge'}
         list_devices: ['bsd_2']

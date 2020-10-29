@@ -103,6 +103,13 @@ class BatteryPeakShavingController(BaseController):
             print('Load apparent power [kVA]: ' + str(self.load_apparent_power))
             # print('')
 
+        if env.k.time == 0 or env.k.time == 51:
+            pass
+        else:
+            pass
+
+            
+
         if self.load_active_power >= self.max_active_power:
 
             self.control_setting = 'discharge'
@@ -179,3 +186,17 @@ class BatteryPeakShavingController(BaseController):
     def reset(self):
         """See parent class."""
         pass
+
+    def log(self):
+
+        # log history
+        Logger = logger()
+        Logger.log(self.device_id, 'control_setting', self.control_setting)
+        # Logger.log(self.device_id, 'current_capacity', self.current_capacity)
+        # Logger.log(self.device_id, 'SOC', self.SOC)
+        # Logger.log(self.device_id, 'p_con', self.p_con)
+        # Logger.log(self.device_id, 'p_in', self.p_in)
+        # Logger.log(self.device_id, 'p_out', self.p_out)
+
+        # if hasattr(self, 'node_id'):
+        #     Logger.log_single(self.device_id, 'node', self.node_id)
