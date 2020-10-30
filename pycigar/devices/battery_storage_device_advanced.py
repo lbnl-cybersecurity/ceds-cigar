@@ -104,6 +104,10 @@ class BatteryStorageDeviceAdvanced(BaseDevice):
             if self.current_capacity <= 0:
                 self.current_capacity = self.current_capacity
 
+        if self.control_setting == 'standby':
+            self.p_in = 0
+            self.p_out = 0
+
         if self.control_setting == 'charge':
             self.p_in = 100000
             self.p_in = 150000
@@ -119,7 +123,7 @@ class BatteryStorageDeviceAdvanced(BaseDevice):
             if self.current_capacity >= self.total_capacity:
                 self.current_capacity = self.total_capacity
             self.SOC = self.current_capacity/self.total_capacity
-            k.node.nodes[node_id]['PQ_injection']['P'] += self.p_in/1000
+            k.node.nodes[node_id]['PQ_injection']['P'] += 1*self.p_in/1000
 
         if self.control_setting == 'discharge':
             self.p_in = 0
@@ -136,7 +140,7 @@ class BatteryStorageDeviceAdvanced(BaseDevice):
             if self.current_capacity >= self.total_capacity:
                 self.current_capacity = self.total_capacity
             self.SOC = self.current_capacity/self.total_capacity
-            k.node.nodes[node_id]['PQ_injection']['P'] += -self.p_out/1000
+            k.node.nodes[node_id]['PQ_injection']['P'] += 1*-self.p_out/1000
 
         if self.control_setting == 'voltwatt':
             if self.current_capacity >= self.total_capacity:

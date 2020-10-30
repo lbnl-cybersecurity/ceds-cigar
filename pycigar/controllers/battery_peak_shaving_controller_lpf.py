@@ -4,6 +4,8 @@ from collections import deque
 import numpy as np
 import pycigar.utils.signal_processing as signal_processing
 
+from pycigar.utils.logging import logger
+
 
 class BatteryPeakShavingControllerLPF(BaseController):
     """Fixed controller is the controller that do nothing.
@@ -43,11 +45,14 @@ class BatteryPeakShavingControllerLPF(BaseController):
 
         # Lowpass filter for power
         self.Ts = 1
-        self.fl = 0.25
+        self.fl = 0.10
         lp1s, temp = signal_processing.butterworth_lowpass(1, 2 * np.pi * 1 * self.fl)
         self.lp1s = lp1s
         self.lp1z = signal_processing.c2dbilinear(self.lp1s, self.Ts)
         self.Plp = deque([0]*self.lp1z.shape[1],maxlen=self.lp1z.shape[1])
+
+        # print(self.lp1s)
+        # print(self.lp1z)
 
         self.measured_active_power = deque([0, 0],maxlen=2)
         self.measured_reactive_power = deque([0, 0],maxlen=2)
@@ -65,13 +70,16 @@ class BatteryPeakShavingControllerLPF(BaseController):
         self.load_reactive_power_lpf = deque([0, 0],maxlen=2)
         self.load_apparent_power_lpf = deque([0, 0],maxlen=2)
         
-        self.control_setting = 'charge'
+        self.control_setting = deque(['standby', 'standby'],maxlen=2)
         self.custom_control_setting = {}
 
         self.p_set = deque([0, 0],maxlen=2)
 
         self.p_in = deque([0, 0],maxlen=2)
         self.p_out = deque([0, 0],maxlen=2)
+
+        self.eta = 0.05
+        self.P_target = 780
 
         self.print_interval = 1
 
@@ -123,38 +131,65 @@ class BatteryPeakShavingControllerLPF(BaseController):
 
             self.measured_apparent_power_lpf.append((self.measured_active_power_lpf[-1]**2 + self.measured_reactive_power_lpf[-1]**2)**(1/2))
 
-            if self.control_setting == 'charge':
-                self.load_active_power.append(self.measured_active_power_lpf[-1] - self.p_in[-1])
-            if self.control_setting == 'discharge':
-                self.load_active_power.append(self.measured_active_power_lpf[-1] + self.p_out[-1])
+            ##################################################
+            ##################################################
+            ##################################################
 
-            self.load_reactive_power.append(self.measured_reactive_power[-1])
-            self.load_apparent_power.append((self.load_active_power[-1]**2 + self.load_reactive_power[-1]**2)**(1/2))
+            self.p_set.append(self.p_set[-1] - self.eta * (self.P_target - self.measured_active_power_lpf[-2]))
 
-            if self.load_active_power[-1] >= self.max_active_power:
+            if self.p_set[-1] <= 0:
 
-                self.control_setting = 'discharge'
-
-                self.p_set.append(self.load_active_power[-1] - self.max_active_power)
-
-                self.p_out.append(min(self.p_set[-1], env.k.device.devices[self.device_id]['device'].max_discharge/1e3))
-
-                self.p_in.append(0)
-
-                self.custom_control_setting = {'p_out': 1e3*self.p_out[-1]}
-
-            elif self.load_active_power[-1] <= self.max_active_power and self.load_active_power[-1] >= 0:
-
-                self.control_setting = 'charge'
-
-                self.p_set.append(self.max_active_power - self.load_active_power[-1])
-
-                self.p_in.append(min(self.p_set[-1], env.k.device.devices[self.device_id]['device'].max_charge/1e3))
-
+                self.control_setting.append('charge')
+                self.p_in.append(-self.p_set[-1])
                 self.p_out.append(0)
-
                 self.custom_control_setting = {'p_in': 1e3*self.p_in[-1]}
 
+            elif self.p_set[-1] > 0:
+                
+                self.control_setting.append('discharge')
+                self.p_in.append(0)
+                self.p_out.append(self.p_set[-1])
+                self.custom_control_setting = {'p_out': 1e3*self.p_out[-1]}
+
+            ##################################################
+            ##################################################
+            ##################################################
+
+            # if self.control_setting[-1] == 'charge':
+            #     self.load_active_power.append(self.measured_active_power_lpf[-1] - self.p_in[-2])
+            # if self.control_setting[-1] == 'discharge':
+            #     self.load_active_power.append(self.measured_active_power_lpf[-1] + self.p_out[-2])
+
+            # self.load_reactive_power.append(self.measured_reactive_power[-1])
+            # self.load_apparent_power.append((self.load_active_power[-1]**2 + self.load_reactive_power[-1]**2)**(1/2))
+
+            # if self.load_active_power[-1] >= self.max_active_power:
+
+            #     self.control_setting.append('discharge')
+
+            #     self.p_set.append(self.load_active_power[-1] - self.max_active_power)
+
+            #     self.p_out.append(0*min(self.p_set[-1], env.k.device.devices[self.device_id]['device'].max_discharge/1e3))
+
+            #     self.p_in.append(0)
+
+            #     self.custom_control_setting = {'p_out': 1e3*self.p_out[-1]}
+
+            # elif self.load_active_power[-1] <= self.max_active_power and self.load_active_power[-1] >= 0:
+
+            #     self.control_setting.append('charge')
+
+            #     self.p_set.append(self.max_active_power - self.load_active_power[-1])
+
+            #     self.p_in.append(0*min(self.p_set[-1], env.k.device.devices[self.device_id]['device'].max_charge/1e3))
+
+            #     self.p_out.append(0)
+
+            #     self.custom_control_setting = {'p_in': 1e3*self.p_in[-1]}
+
+            ##################################################
+            ##################################################
+            ##################################################
             
             # if self.total_apparent_power >= self.max_apparent_power:
 
@@ -190,6 +225,7 @@ class BatteryPeakShavingControllerLPF(BaseController):
 
         if env.k.time % self.print_interval == 0:
             print('Time: ' + str(env.k.time))
+            print('Device: ' + self.device_id)
 
             print('Measured active power [kW]: ' + str(self.measured_active_power[-1]))
             print('Measured reactive power [kVAr]: ' + str(self.measured_reactive_power[-1]))
@@ -199,19 +235,24 @@ class BatteryPeakShavingControllerLPF(BaseController):
             print('Measured reactive power lpf [kVAr]: ' + str(self.measured_reactive_power_lpf[-1]))
             print('Measured apparent power lpf [kVA]: ' + str(self.measured_apparent_power_lpf[-1]))
 
-            print('Active Power Control k-1 [kW]: ' + str(self.p_out[-1]))
+            if self.control_setting[-2] == 'charge':
+                print('Charge')
+                print('Active Power Control k-1 [kW]: ' + str(self.p_in[-2]))
+            if self.control_setting[-1] == 'discharge':
+                print('Discharge')
+                print('Active Power Control k-1 [kW]: ' + str(self.p_out[-2]))
 
             print('Load active power [kW]: ' + str(self.load_active_power[-1]))
             print('Load reactive power [kVAr]: ' + str(self.load_reactive_power[-1]))
             print('Load apparent power [kVA]: ' + str(self.load_apparent_power[-1]))
             # print('')
 
-            if self.control_setting == 'Charge':
+            if self.control_setting[-1] == 'charge':
                 print('Discharge')
                 print('Discharge power non rectified [kW]: ' + str(self.p_set[-1]))
                 print('Discharge power [kW]: ' + str(self.p_in[-1]))
 
-            if self.control_setting == 'Discharge':
+            if self.control_setting[-1] == 'discharge':
                 print('Discharge')
                 print('Discharge power non rectified [kW]: ' + str(self.p_set[-1]))
                 print('Discharge power [kW]: ' + str(self.p_out[-1]))            
@@ -219,7 +260,9 @@ class BatteryPeakShavingControllerLPF(BaseController):
 
             print('')
 
-        return self.control_setting, self. custom_control_setting
+            self.log()
+
+        return self.control_setting[-1], self. custom_control_setting
 
         
 
@@ -232,7 +275,26 @@ class BatteryPeakShavingControllerLPF(BaseController):
 
         # log history
         Logger = logger()
-        Logger.log(self.device_id, 'control_setting', self.control_setting)
+        Logger.log(self.device_id + '_psc', 'control_setting', self.control_setting[-1])
+        Logger.log(self.device_id + '_psc', 'control_setting', self.custom_control_setting)
+
+        Logger.log(self.device_id + '_psc', 'measured_active_power', self.measured_active_power[-1])
+        Logger.log(self.device_id + '_psc', 'measured_reactive_power', self.measured_reactive_power[-1])
+        Logger.log(self.device_id + '_psc', 'measured_apparent_power', self.measured_apparent_power[-1])
+
+        Logger.log(self.device_id + '_psc', 'measured_active_power_lpf', self.measured_active_power_lpf[-1])
+        Logger.log(self.device_id + '_psc', 'measured_reactive_power_lpf', self.measured_reactive_power_lpf[-1])
+        Logger.log(self.device_id + '_psc', 'measured_apparent_power_lpf', self.measured_apparent_power_lpf[-1])
+
+        Logger.log(self.device_id + '_psc', 'load_active_power', self.load_active_power[-1])
+        Logger.log(self.device_id + '_psc', 'load_reactive_power', self.load_reactive_power[-1])
+        Logger.log(self.device_id + '_psc', 'load_apparent_power', self.load_apparent_power[-1])
+
+        Logger.log(self.device_id + '_psc', 'p_set', self.p_set[-1])
+        Logger.log(self.device_id + '_psc', 'p_in', self.p_in[-1])
+        Logger.log(self.device_id + '_psc', 'p_out', self.p_out[-1])
+        
+
         # Logger.log(self.device_id, 'current_capacity', self.current_capacity)
         # Logger.log(self.device_id, 'SOC', self.SOC)
         # Logger.log(self.device_id, 'p_con', self.p_con)
