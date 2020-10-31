@@ -45,7 +45,7 @@ class BatteryPeakShavingControllerLPF(BaseController):
 
         # Lowpass filter for power
         self.Ts = 1
-        self.fl = 0.10
+        self.fl = 0.010
         lp1s, temp = signal_processing.butterworth_lowpass(1, 2 * np.pi * 1 * self.fl)
         self.lp1s = lp1s
         self.lp1z = signal_processing.c2dbilinear(self.lp1s, self.Ts)
@@ -78,8 +78,8 @@ class BatteryPeakShavingControllerLPF(BaseController):
         self.p_in = deque([0, 0],maxlen=2)
         self.p_out = deque([0, 0],maxlen=2)
 
-        self.eta = 0.05
-        self.P_target = 780
+        self.eta = 0.01
+        self.P_target = 750
 
         self.print_interval = 1
 
@@ -289,6 +289,8 @@ class BatteryPeakShavingControllerLPF(BaseController):
         Logger.log(self.device_id + '_psc', 'load_active_power', self.load_active_power[-1])
         Logger.log(self.device_id + '_psc', 'load_reactive_power', self.load_reactive_power[-1])
         Logger.log(self.device_id + '_psc', 'load_apparent_power', self.load_apparent_power[-1])
+
+        Logger.log(self.device_id + '_psc', 'p_target', self.P_target)
 
         Logger.log(self.device_id + '_psc', 'p_set', self.p_set[-1])
         Logger.log(self.device_id + '_psc', 'p_in', self.p_in[-1])
