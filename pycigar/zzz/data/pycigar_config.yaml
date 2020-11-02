@@ -46,12 +46,10 @@ scenario_config:
             - name: bsd_1
               device: battery_storage_device_advanced
               custom_device_configs: {default_control_setting: 'standby'}
-              controller: psc_1
 
             - name: bsd_2
               device: battery_storage_device_advanced
               custom_device_configs: {default_control_setting: 'standby'}
-              controller: psc_2
 
       - name: s702a
 

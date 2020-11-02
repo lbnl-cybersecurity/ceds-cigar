@@ -86,13 +86,16 @@ class OpenDSSDevice(KernelDevice):
 
         self.battery_storage_device_ids = []
 
+
         self.device_ids = {}   #device id by type
         self.devcon_ids = {
             'rl_devcon': [],
-            'norl_devcon': []
+            'norl_devcon': [],
+            'local_devcon': [] #devices which do not belong to any centralized controllers and have local controller
         }
 
-        self.controller = {}
+        self.group_controllers = {}
+        self.device_to_controller = {}
 
     def pass_api(self, kernel_api):
         """See parent class."""
@@ -100,7 +103,10 @@ class OpenDSSDevice(KernelDevice):
 
     def add_controller(self, name, controller=('centralized_battery_controller', None, [])):
         controller_obj = pycigar_make(controller[0], device_id=controller[2], additional_params=controller[1])
-        self.controller[name] = controller_obj
+        self.group_controllers[name] = controller_obj
+
+        for device in controller[2]:
+            self.device_to_controller[device] = name
 
     def add(self, name, connect_to, device=('pv_device', None), controller=(None, None),
             adversary_controller=(None, None), hack=None):
@@ -175,14 +181,16 @@ class OpenDSSDevice(KernelDevice):
             else:
                 self.device_ids[device[0]].append(device_id)
 
-        if controller[0] not in self.controller:
+        if controller[0]:
             controller_obj = pycigar_make(controller[0], device_id=device_id, additional_params=controller[1])
         else:
-            controller_obj = self.controller[controller[0]]
+            controller_obj = self.group_controllers[self.device_to_controller[device_id]]
 
         if controller[0] == 'rl_controller':
             self.devcon_ids['rl_devcon'].append(device_id)
         else:
+            if controller[0]:
+                self.devcon_ids['local_devcon'].append(device_id)
             self.devcon_ids['norl_devcon'].append(device_id)
 
 
@@ -206,14 +214,16 @@ class OpenDSSDevice(KernelDevice):
                 else:
                     self.device_ids[device[0]].append(adversary_device_id)
 
-            if adversary_controller[0] not in self.controller:
+            if adversary_controller[0]:
                 adversary_controller_obj = pycigar_make(adversary_controller[0], device_id=adversary_device_id, additional_params=adversary_controller[1])
             else:
-                adversary_controller_obj = self.controller[adversary_controller[0]]
+                adversary_controller_obj = self.group_controllers[self.device_to_controller[adversary_device_id]]
 
             if controller[0] == 'rl_controller':
                 self.devcon_ids['rl_devcon'].append(adversary_device_id)
             else:
+                if controller[0]:
+                    self.devcon_ids['local_devcon'].append(adversary_device_id)
                 self.devcon_ids['norl_devcon'].append(adversary_device_id)
 
 
@@ -312,6 +322,16 @@ class OpenDSSDevice(KernelDevice):
             List of RL device ids
         """
         return self.devcon_ids['rl_devcon']
+
+    def get_local_device_ids(self):
+        """RL the list of device ids controlled by a local controller.
+
+        Returns
+        -------
+        list
+            List of local device ids
+        """
+        return self.devcon_ids['local_devcon']
 
     def get_norl_device_ids(self):
         """Return the list  of PV device ids controlled by RL agents.

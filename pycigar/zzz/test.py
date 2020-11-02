@@ -23,14 +23,27 @@ class FooEnv(Env):
 
         for _ in range(self.sim_params['env_config']["sims_per_step"]):
             self.env_time += 1
-            
+
             # perform action update for PV inverter device
-            if len(self.k.device.get_norl_device_ids()) > 0:
+            if len(self.k.device.group_controllers.keys()) > 0:
                 control_setting = []
-                for device_id in self.k.device.get_norl_device_ids():
+                devices = []
+                for group_controller_name, group_controller in self.k.device.group_controllers.items():
+                    action = group_controller.get_action(self)
+                    if isinstance(action, tuple):
+                        devices.extend([group_controller.device_id])
+                        control_setting.extend((action,)*len([group_controller.device_id]))
+                    elif isinstance(action, dict):
+                        devices.extend(action.keys())
+                        control_setting.extend(action.values())
+                self.k.device.apply_control(devices, control_setting)
+            # perform action update for PV inverter device
+            if len(self.k.device.get_local_device_ids()) > 0:
+                control_setting = []
+                for device_id in self.k.device.get_local_device_ids():
                     action = self.k.device.get_controller(device_id).get_action(self)
                     control_setting.append(action)
-                self.k.device.apply_control(self.k.device.get_norl_device_ids(), control_setting)
+                self.k.device.apply_control(self.k.device.get_local_device_ids(), control_setting)
 
 
             self.additional_command()
@@ -68,11 +81,16 @@ print('Simulation Complete')
 from pycigar.utils.registry import register_devcon
 from pycigar.controllers.battery_storage_controller import BatteryStorageController
 from pycigar.devices.battery_storage_device import BatteryStorageDevice
-from pycigar.devices.battery_storage_device_advanced import BatteryStorageDevice
-from pycigar.controllers.centralized_controller.centralized_battery_controller import CentralizedBatteryController
-register_devcon('battery_storage_controller', BatteryStorageController)
-register_devcon('battery_storage_device', BatteryStorageDevice)
-register_devcon('centralized_battery_controller',CentralizedBatteryController)
+from pycigar.controllers.battery_peak_shaving_controller import BatteryPeakShavingController
+from pycigar.controllers.battery_peak_shaving_controller_lpf import BatteryPeakShavingControllerLPF
+from pycigar.utils.registry import register_devcon
+from pycigar.controllers.battery_storage_controller import BatteryStorageController
+from pycigar.devices.battery_storage_device import BatteryStorageDevice
+from pycigar.devices.battery_storage_device_advanced import BatteryStorageDeviceAdvanced
+# register_devcon('battery_storage_controller', BatteryStorageController)
+# register_devcon('battery_peak_shaving_controller', BatteryPeakShavingController)
+register_devcon('battery_peak_shaving_controller_lpf', BatteryPeakShavingControllerLPF)
+register_devcon('battery_storage_device_advanced', BatteryStorageDeviceAdvanced)
 
 
 env = FooEnv(sim_params)
