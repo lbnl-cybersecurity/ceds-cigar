@@ -5,6 +5,8 @@ import numpy as np
 from pycigar.envs.wrappers.wrappers_constants import ACTION_RANGE
 from pycigar.utils.logging import logger
 from matplotlib.ticker import FormatStrFormatter
+import re
+
 BASE_VOLTAGE = 120
 
 
@@ -295,7 +297,7 @@ def plot_new(log_dict, custom_metrics, epoch='', unbalance=False, multiagent=Fal
         ax[6, 1].legend(loc=4, ncol=2)
 
     else:
-        inv_ks = [k for k in log_dict if k.startswith('inverter_s701')] #or k.startswith('inverter_s728')]
+        inv_ks = [k for k in log_dict if k.startswith('inverter_s1')] #or k.startswith('inverter_s728')]
         regs = [k for k in log_dict if 'reg' in k]
         reg = regs[0] if regs else None
 
@@ -308,8 +310,8 @@ def plot_new(log_dict, custom_metrics, epoch='', unbalance=False, multiagent=Fal
         title = '[epoch {}][time {}][hack {}] total reward: {:.2f} || total unbalance: {:.4f}'.format(0, custom_metrics['start_time'], custom_metrics['hack'], 0, sum(log_dict['u_metrics']['u_worst']))
         f.suptitle(title)
         for i, k in enumerate(inv_ks):
-            ax[0, 0].plot(log_dict[log_dict[k]['node']]['voltage'], label='voltage ({})'.format(k))
-
+            #ax[0, 0].plot(log_dict[log_dict[k]['node']]['voltage'], label='voltage ({})'.format(k))
+            pass
             #if not multiagent:
             #    translation, slope = get_translation_and_slope(
             #        log_dict[k]['control_setting'], custom_metrics['init_control_settings'][k]
@@ -365,7 +367,7 @@ def plot_new(log_dict, custom_metrics, epoch='', unbalance=False, multiagent=Fal
         for i in range(len(inv_ks)):
             ax[2 + i, 0].set_ylim([-ACTION_RANGE * 1.1, ACTION_RANGE * 1.1])
 
-        node_714 = [[], [], []]
+        """node_714 = [[], [], []]
         node_722 = [[], [], []]
         node_742 = [[], [], []]
         for i in log_dict['v_metrics'].keys():
@@ -410,8 +412,18 @@ def plot_new(log_dict, custom_metrics, epoch='', unbalance=False, multiagent=Fal
         ax[5, 1].plot(np.array(log_dict['inverter_s701c']['q_out']), label='q_out_s701c')
         #ax[4, 1].plot(np.array(log_dict['inverter_s701c']['sbar_solarirr'])*np.sign(log_dict['inverter_s701c']['q_out'])/(1.5e-3), label='q_avail_s701c')
         ax[5, 1].plot(np.array(log_dict['inverter_s701c']['q_avail_real']), label='q_avail_s701c')
-        ax[5, 1].plot(np.array(log_dict['inverter_s701c']['q_set']), label='q_set_s701c')
+        ax[5, 1].plot(np.array(log_dict['inverter_s701c']['q_set']), label='q_set_s701c')"""
 
+        node_8 = [[], [], []]
+        node_18 = [[], [], []]
+        for i in log_dict['v_metrics'].keys():
+            node_8[0].append(log_dict['v_metrics'][i][0]['8'][0])
+            node_8[1].append(log_dict['v_metrics'][i][0]['8'][1])
+            node_8[2].append(log_dict['v_metrics'][i][0]['8'][2])
+
+            node_18[0].append(log_dict['v_metrics'][i][0]['18'][0])
+            node_18[1].append(log_dict['v_metrics'][i][0]['18'][1])
+            node_18[2].append(log_dict['v_metrics'][i][0]['18'][2])
 
         for row in ax:
             for a in row:
@@ -562,7 +574,7 @@ def plot_cluster(log_dict, custom_metrics, epoch='', unbalance=False, multiagent
     ax[0, 0].set_ylim([0.93, 1.07])
     ax[1, 0].set_ylim([0, 0.05])
     ax[2, 0].set_ylim([0, 0.5])
-    ax[3, 0].set_ylim([-0.06, 0.06])
+    ax[3, 0].set_ylim([-0.1, 0.1])
 
     voltage = np.array(log_dict['inverter_s727c']['v'])
     ax[0, 1].plot(voltage[:, 0], label='voltage_a')
@@ -579,7 +591,7 @@ def plot_cluster(log_dict, custom_metrics, epoch='', unbalance=False, multiagent
     ax[0, 1].set_ylim([0.93, 1.07])
     ax[1, 1].set_ylim([0, 0.05])
     ax[2, 1].set_ylim([0, 0.5])
-    ax[3, 1].set_ylim([-0.06, 0.06])
+    ax[3, 1].set_ylim([-0.1, 0.1])
 
     voltage = np.array(log_dict['inverter_s736b']['v'])
     ax[0, 2].plot(voltage[:, 0], label='voltage_a')
@@ -596,13 +608,165 @@ def plot_cluster(log_dict, custom_metrics, epoch='', unbalance=False, multiagent
     ax[0, 2].set_ylim([0.93, 1.07])
     ax[1, 2].set_ylim([0, 0.05])
     ax[2, 2].set_ylim([0, 0.5])
-    ax[3, 2].set_ylim([-0.06, 0.06])
+    ax[3, 2].set_ylim([-0.1, 0.1])
 
     for row in ax:
         for a in row:
             a.grid(b=True, which='both')
             a.legend(loc=1, ncol=2)
 
+    plt.tight_layout()
+    plt.subplots_adjust(top=0.95)
+    return f
+
+
+def plot_new(log_dict, custom_metrics, epoch='', unbalance=False, multiagent=False):
+    def get_translation_and_slope(a_val, init_a):
+        points = np.array(a_val)
+        slope = points[:, 1] - points[:, 0]
+        translation = points[:, 2] - init_a[2]
+        return translation, slope
+
+    plt.rc('font', size=15)
+    plt.rc('figure', titlesize=35)
+
+    inv_ks = [k for k in log_dict if k.startswith('inverter_s49')] #or k.startswith('inverter_s728')]
+    regs = [k for k in log_dict if 'reg' in k]
+    reg = regs[0] if regs else None
+
+    f, ax = plt.subplots(
+        3 + len(inv_ks) + (reg is not None), 2, figsize=(25, 8 + 4 * len(inv_ks) + 4 * (reg is not None))
+    )
+    #title = '[epoch {}][time {}][hack {}] total reward: {:.2f} || total unbalance: {:.4f}'.format(
+    #    epoch, custom_metrics['start_time'], custom_metrics['hack'], sum(log_dict[inv_ks[0]]['reward']), sum(log_dict['u_metrics']['u_worst'])
+    #)
+    title = '[epoch {}][time {}][hack {}] total reward: {:.2f} || total unbalance: {:.4f}'.format(0, custom_metrics['start_time'], custom_metrics['hack'], 0, sum(log_dict['u_metrics']['u_worst']))
+    f.suptitle(title)
+    for i, k in enumerate(inv_ks):
+        #ax[0, 0].plot(log_dict[log_dict[k]['node']]['voltage'], label='voltage ({})'.format(k))
+        pass
+        #if not multiagent:
+        #    translation, slope = get_translation_and_slope(
+        #        log_dict[k]['control_setting'], custom_metrics['init_control_settings'][k]
+        #    )
+        #    ax[2 + i, 0].plot(translation, label='RL translation ({})'.format(k))
+        #    ax[2 + i, 0].plot(slope, label='RL slope (a2-a1) ({})'.format(k))
+
+    inv_a = [k for k in log_dict if k.endswith('a') and k.startswith('inverter_')]
+    inv_b = [k for k in log_dict if k.endswith('b') and k.startswith('inverter_')]
+    inv_c = [k for k in log_dict if k.endswith('c') and k.startswith('inverter_')]
+
+    for i, k in enumerate(inv_a[0:1]):
+        translation, slope = get_translation_and_slope(
+            log_dict[k]['control_setting'], custom_metrics['init_control_settings'][k]
+        )
+        ax[2, 0].plot(translation, label='RL translation ({})'.format(k))
+        #ax[2, 0].plot(slope, label='RL slope (a2-a1) ({})'.format(k))
+
+    for i, k in enumerate(inv_b[0:1]):
+        translation, slope = get_translation_and_slope(
+            log_dict[k]['control_setting'], custom_metrics['init_control_settings'][k]
+        )
+        ax[3, 0].plot(translation, label='RL translation ({})'.format(k))
+        #ax[3, 0].plot(slope, label='RL slope (a2-a1) ({})'.format(k))
+
+    for i, k in enumerate(inv_c[0:1]):
+        translation, slope = get_translation_and_slope(
+            log_dict[k]['control_setting'], custom_metrics['init_control_settings'][k]
+        )
+        ax[4, 0].plot(translation, label='RL translation ({})'.format(k))
+        #ax[4, 0].plot(slope, label='RL slope (a2-a1) ({})'.format(k))
+
+    ax[0, 0].plot(log_dict['y_metrics']['y_worst'], label='y worst')
+    ax[0, 0].plot(log_dict['y_metrics']['y_mean'], label='y mean')
+
+    ax[1, 0].plot(log_dict['u_metrics']['u_worst'], label='unbalance observer')
+    ax[1, 0].plot(log_dict['u_metrics']['u_mean'], label='unbalance mean')
+    ax[1, 0].fill_between(np.array(log_dict['u_metrics']['u_mean'])+np.array(log_dict['u_metrics']['u_std']), np.array(log_dict['u_metrics']['u_mean'])-np.array(log_dict['u_metrics']['u_std']), facecolor='orange', alpha=0.5)
+    if multiagent:
+        phases = ['a', 'b', 'c']
+        for k in log_dict:
+            if k.startswith('inverter'):
+                idx = phases.index(k[-1]) if k[-1] in phases else 3
+                translation, slope = get_translation_and_slope(
+                    log_dict[k]['control_setting'], custom_metrics['init_control_settings'][k]
+                )
+                ax[2 + idx, 0].plot(translation, label=k)
+                #ax[2 + idx].plot(slope, label='RL slope (a2-a1) ({})'.format(k))
+
+    for reg in regs:
+        ax[-1, 0].plot(log_dict[reg]['tap_number'], label=reg)
+
+    ax[0, 0].set_ylim([0, 0.3])
+    ax[1, 0].set_ylim([0, 0.1])
+    ax[2, 0].set_ylim([-280, 280])
+    for i in range(len(inv_ks)):
+        ax[2 + i, 0].set_ylim([-ACTION_RANGE * 1.1, ACTION_RANGE * 1.1])
+
+    worst_node_v = [[], [], []]
+    worst_load = log_dict['y_metrics']['y_worst_node'][350]
+    worst_node = re.sub("[^[0-9]", "", worst_load)
+    node_18 = [[], [], []]
+    node_13 = [[], [], []]
+    for i in log_dict['v_metrics'].keys():
+        worst_node_v[0].append(log_dict['v_metrics'][i][0][worst_node][0])
+        worst_node_v[1].append(log_dict['v_metrics'][i][0][worst_node][1])
+        worst_node_v[2].append(log_dict['v_metrics'][i][0][worst_node][2])
+
+        node_18[0].append(log_dict['v_metrics'][i][0]['18'][0])
+        node_18[1].append(log_dict['v_metrics'][i][0]['18'][1])
+        node_18[2].append(log_dict['v_metrics'][i][0]['18'][2])
+
+        node_13[0].append(log_dict['v_metrics'][i][0]['13'][0])
+        node_13[1].append(log_dict['v_metrics'][i][0]['13'][1])
+        node_13[2].append(log_dict['v_metrics'][i][0]['13'][2])
+
+    ax[0, 1].plot(worst_node_v[0], label='voltage {}a'.format(worst_node))
+    ax[0, 1].plot(worst_node_v[1], label='voltage {}b'.format(worst_node))
+    ax[0, 1].plot(worst_node_v[2], label='voltage {}c'.format(worst_node))
+    
+    ax[1, 1].plot(node_18[0], label='voltage 18a')
+    ax[1, 1].plot(node_18[1], label='voltage 18b')
+    ax[1, 1].plot(node_18[2], label='voltage 18c')
+
+    ax[2, 1].plot(node_13[0], label='voltage 13a')
+    ax[2, 1].plot(node_13[1], label='voltage 13b')
+    ax[2, 1].plot(node_13[2], label='voltage 13c')
+    
+    ax[0, 1].set_ylim([0.90, 1.10])
+    ax[1, 1].set_ylim([0.90, 1.10])
+    ax[2, 1].set_ylim([0.90, 1.10])
+
+    if 'inverter_' + worst_load in log_dict:
+        ax[3, 1].plot(np.array(log_dict['inverter_' + worst_load]['q_out']), label='q_out_{}'.format(worst_node))
+        #ax[3, 1].plot(np.array(log_dict['inverter_s49a']['sbar_solarirr'])*np.sign(log_dict['inverter_s49a']['q_out'])/(1.5e-3), label='q_avail_s49a')
+        ax[3, 1].plot(np.array(log_dict['inverter_' + worst_load]['q_avail_real']), label='q_avail_{}'.format(worst_node))
+        ax[3, 1].plot(np.array(log_dict['inverter_' + worst_load]['q_set']), label='q_set_{}'.format(worst_node))
+    else:
+        if 'inverter_' + worst_load[:-1] + 'a' in log_dict:
+            ax[3, 1].plot(np.array(log_dict['inverter_' + worst_load[:-1] + 'a']['q_out']), label='q_out_{}a'.format(worst_node))
+            #ax[3, 1].plot(np.array(log_dict['inverter_s49a']['sbar_solarirr'])*np.sign(log_dict['inverter_s49a']['q_out'])/(1.5e-3), label='q_avail_s49a')
+            ax[3, 1].plot(np.array(log_dict['inverter_' + worst_load[:-1] + 'a']['q_avail_real']), label='q_avail_{}a'.format(worst_node))
+            ax[3, 1].plot(np.array(log_dict['inverter_' + worst_load[:-1] + 'a']['q_set']), label='q_set_{}a'.format(worst_node))
+
+        if 'inverter_' + worst_load[:-1] + 'b' in log_dict:
+            ax[4, 1].plot(np.array(log_dict['inverter_' + worst_load[:-1] + 'b']['q_out']), label='q_out_{}b'.format(worst_node))
+            #ax[4, 1].plot(np.array(log_dict['inverter_s49b']['sbar_solarirr'])*np.sign(log_dict['inverter_s49b']['q_out'])/(1.5e-3), label='q_avail_s49b')
+            ax[4, 1].plot(np.array(log_dict['inverter_' + worst_load[:-1] + 'b']['q_avail_real']), label='q_avail_{}b'.format(worst_node))
+            ax[4, 1].plot(np.array(log_dict['inverter_' + worst_load[:-1] + 'b']['q_set']), label='q_set_{}b'.format(worst_node))
+
+        if 'inverter_' + worst_load[:-1] + 'c' in log_dict:
+            ax[5, 1].plot(np.array(log_dict['inverter_' + worst_load[:-1] + 'c']['q_out']), label='q_out_{}c'.format(worst_node))
+            #ax[5, 1].plot(np.array(log_dict['inverter_s49c']['sbar_solarirr'])*np.sign(log_dict['inverter_s49c']['q_out'])/(1.5e-3), label='q_avail_s49c')
+            ax[5, 1].plot(np.array(log_dict['inverter_' + worst_load[:-1] + 'c']['q_avail_real']), label='q_avail_{}c'.format(worst_node))
+            ax[5, 1].plot(np.array(log_dict['inverter_' + worst_load[:-1] + 'c']['q_set']), label='q_set_{}c'.format(worst_node))
+
+    for row in ax:
+        for a in row:
+            a.grid(b=True, which='both')
+            a.legend(loc=1, ncol=2)
+            a.yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
+    ax[4,0].legend(loc=3, ncol=2)
     plt.tight_layout()
     plt.subplots_adjust(top=0.95)
     return f
