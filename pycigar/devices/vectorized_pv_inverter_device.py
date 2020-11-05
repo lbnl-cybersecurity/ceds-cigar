@@ -208,5 +208,5 @@ class VectorizedPVDevice:
                 if self.Sbar != []:
                     Logger.log(device_id, 'sbar_solarirr', 1.5e-3*(abs(self.Sbar[i] ** 2 - max(10, self.solar_irr[i]) ** 2)) ** (1 / 2))
                     Logger.log(device_id, 'sbar_pset', self.p_set[i] / self.Sbar[i])
-
+                    Logger.log(device_id, 'q_avail_real', abs(self.Sbar[i] ** 2 - self.p_out[i] ** 2) ** (1 / 2)*np.sign(self.q_out[i]))
                 Logger.log(device_id, 'solar_irr', self.solar_irr[i])
