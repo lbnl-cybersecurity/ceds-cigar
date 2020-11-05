@@ -78,8 +78,8 @@ class BatteryPeakShavingControllerLPF(BaseController):
         self.p_in = deque([0, 0],maxlen=2)
         self.p_out = deque([0, 0],maxlen=2)
 
-        self.eta = 0.01
-        self.P_target = 750
+        self.eta = 0.2
+        self.P_target = 725
 
         self.print_interval = 1
 
@@ -135,7 +135,15 @@ class BatteryPeakShavingControllerLPF(BaseController):
             ##################################################
             ##################################################
 
-            self.p_set.append(self.p_set[-1] - self.eta * (self.P_target - self.measured_active_power_lpf[-2]))
+            # self.p_set_temp - self.p_set[-1] - self.eta * (self.P_target - self.measured_active_power_lpf[-2])
+            # if self.p_set_temp >= 0 and self.p_set_temp >= self.self.measured_active_power_lpf[-2] - self.P_target: 
+            #     self.p_set_temp = self.P_target - self.self.measured_active_power_lpf[-2]
+            # elif self.p_set_temp <= 0 and self.p_set_temp <= self.P_target - self.self.measured_active_power_lpf[-2]:
+            #     self.p_set_temp = self.P_target - self.self.measured_active_power_lpf[-2]
+
+            # self.p_set.append(self.p_set[-1] - self.eta * (self.P_target - self.measured_active_power_lpf[-2]))
+
+            self.p_set.append((1 - self.Ts*self.eta)*self.p_set[-1] - self.Ts*self.eta*(self.P_target - self.measured_active_power_lpf[-2]))
 
             if self.p_set[-1] <= 0:
 
