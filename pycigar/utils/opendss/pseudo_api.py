@@ -196,12 +196,12 @@ class PyCIGAROpenDSSAPI(object):
                 vc = 0
 
             v_all[bus] = [va, vb, vc]
-            mean = (va + vb + vc) / 3
-            max_diff = max(abs(va - mean), abs(vb - mean), abs(vc - mean))
-            try:
+
+            u = 0
+            if va != 0 and vb != 0 and vc != 0:
+                mean = (va + vb + vc) / 3
+                max_diff = max(abs(va - mean), abs(vb - mean), abs(vc - mean))
                 u = max_diff / mean
-            except:
-                u = 0
             if u > u_worst:
                 u_worst = u
                 v_worst = [va, vb, vc]
