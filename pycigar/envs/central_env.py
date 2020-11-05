@@ -170,6 +170,8 @@ class CentralEnv(Env):
             result = {}
             try:
                 y = self.k.device.get_vectorized_y()
+                y_worst_node_idx = y.argmax()
+                y_worst_node = self.k.device.vectorized_pv_inverter_device.list_device[y_worst_node_idx].split('_')[1]
                 y_worst = np.max(y)
                 y = np.mean(y)
                 p_set_p_max = np.mean(self.k.device.get_vectorized_device_p_set_p_max())
@@ -180,6 +182,9 @@ class CentralEnv(Env):
                          }
                 result['y_worst'] = y_worst
                 result['v_worst'] = v_worst
+                Logger.log('y_metrics', 'y_worst', y_worst)
+                Logger.log('y_metrics', 'y_worst_node', y_worst_node)
+                Logger.log('y_metrics', 'y_mean', y)
                 result['u_worst'] = u_worst
                 result['u_mean'] = u_mean
                 result['u_std'] = u_std
