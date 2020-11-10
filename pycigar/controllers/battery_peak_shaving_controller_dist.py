@@ -7,7 +7,7 @@ import pycigar.utils.signal_processing as signal_processing
 from pycigar.utils.logging import logger
 
 
-class BatteryPeakShavingControllerLPF(BaseController):
+class BatteryPeakShavingControllerDist(BaseController):
     """Fixed controller is the controller that do nothing.
     It only returns the 'default_control_setting' value when being called.
     Attributes

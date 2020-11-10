@@ -63,11 +63,11 @@ scenario_config:
 
   controllers:
       - name: psc_1
-        controller: battery_peak_shaving_controller_lpf
+        controller: battery_peak_shaving_controller_dist
         custom_controller_configs: {default_control_setting: 'standby'}
         list_devices: ['bsd_1']
 
       - name: psc_2
-        controller: battery_peak_shaving_controller_lpf
+        controller: battery_peak_shaving_controller_dist
         custom_controller_configs: {default_control_setting: 'standby'}
         list_devices: ['bsd_2']
