@@ -43,6 +43,7 @@ class BatteryStorageDeviceAdvanced(BaseDevice):
         self.current_capacity = 0*1000*3600
         self.current_capacity = 8.5*1000*3600
         self.current_capacity = self.additional_params.get('current_capacity', 10.00*1000*3600/(1000*3600)) # [kWh]
+        print(self.device_id)
         print(self.current_capacity)
 
         self.max_charge_power = self.additional_params.get('max_charge_power', 1.00*1000/1000) # [kW]
@@ -119,7 +120,7 @@ class BatteryStorageDeviceAdvanced(BaseDevice):
         if self.control_setting == 'charge':
             self.p_in = 100000
             self.p_in = 150000
-            self.p_in = self.max_charge
+            self.p_in = self.max_charge_power
             self.p_out = 0
 
             if 'p_in' in self.custom_control_setting:
@@ -130,7 +131,7 @@ class BatteryStorageDeviceAdvanced(BaseDevice):
                 self.p_in = 0
                 self.current_capacity = 1.0*self.total_capacity
 
-            elif self.current_capacity + self.Ts* self.p_in >= 1.0*self.total_capacity:
+            elif self.current_capacity + self.Ts* self.p_in/3600 >= 1.0*self.total_capacity:
 
                 self.p_out = 1/self.Ts*(1.0*self.total_capacity - self.current_capacity)
                 self.current_capacity = 1.0*self.total_capacity
@@ -145,13 +146,13 @@ class BatteryStorageDeviceAdvanced(BaseDevice):
             if self.current_capacity >= self.total_capacity:
                 self.current_capacity = self.total_capacity
             self.SOC = self.current_capacity/self.total_capacity
-            k.node.nodes[node_id]['PQ_injection']['P'] += 1*self.p_in/1000
+            k.node.nodes[node_id]['PQ_injection']['P'] += 1*self.p_in
 
         if self.control_setting == 'discharge':
             self.p_in = 0
             self.p_out = 150000
             self.p_out = 200000
-            self.p_out = self.max_discharge
+            self.p_out = self.max_discharge_power
 
             if 'p_out' in self.custom_control_setting:
                 self.p_out = self.custom_control_setting['p_out']
@@ -161,17 +162,24 @@ class BatteryStorageDeviceAdvanced(BaseDevice):
                 self.p_out = 0
                 self.current_capacity = 0.2*self.total_capacity
 
-            elif self.current_capacity - self.Ts*self.p_out < 0.2*self.total_capacity:
+            elif self.current_capacity - self.Ts/3600*self.p_out < 0.2*self.total_capacity:
 
-                self.p_out = 1/self.Ts*(self.current_capacity - 0.2*self.total_capacity)
+                self.p_out = 3600/self.Ts*(self.current_capacity - 0.2*self.total_capacity)
                 self.current_capacity = 0.2*self.total_capacity
+
+                print('assbutt01')
+                print(self.p_out)
 
             else:
 
-                self.current_capacity = self.current_capacity - self.Ts*self.p_out
+                self.current_capacity = self.current_capacity - self.Ts/3600*self.p_out
+
+                print('assbutt02')
 
             self.SOC = self.current_capacity/self.total_capacity
-            k.node.nodes[node_id]['PQ_injection']['P'] += 1*-self.p_out/1000
+            k.node.nodes[node_id]['PQ_injection']['P'] += 1*-self.p_out
+
+            print(self.current_capacity)
 
         if self.control_setting == 'voltwatt':
             if self.current_capacity >= self.total_capacity:

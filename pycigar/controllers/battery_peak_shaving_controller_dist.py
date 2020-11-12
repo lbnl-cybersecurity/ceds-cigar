@@ -155,14 +155,14 @@ class BatteryPeakShavingControllerDist(BaseController):
                 self.control_setting.append('charge')
                 self.p_in.append(-self.p_set[-1])
                 self.p_out.append(0)
-                self.custom_control_setting = {'p_in': 1e3*self.p_in[-1]}
+                self.custom_control_setting = {'p_in': 1*self.p_in[-1]}
 
             elif self.p_set[-1] > 0:
                 
                 self.control_setting.append('discharge')
                 self.p_in.append(0)
                 self.p_out.append(self.p_set[-1])
-                self.custom_control_setting = {'p_out': 1e3*self.p_out[-1]}
+                self.custom_control_setting = {'p_out': 1*self.p_out[-1]}
 
             ##################################################
             ##################################################

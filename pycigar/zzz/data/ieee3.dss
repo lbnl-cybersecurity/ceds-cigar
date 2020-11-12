@@ -38,7 +38,7 @@ New Load.S701a Bus1=701.1 Phases=1 Conn=Wye Model=1 kV=2.7712812921102037 kW=200
 
 New Load.S702a Bus1=702.1 Phases=1 Conn=Wye Model=1 kV=2.7712812921102037 kW=400.0 kVAR=100.0
 
-New Load.S703a   Bus1=703.1 Phases=1 Conn=Wye Model=1 kV=2.7712812921102037 kW= 100.0 kVAR=50.0
+New Load.S703a Bus1=703.1 Phases=1 Conn=Wye Model=1 kV=2.7712812921102037 kW= 100.0 kVAR=50.0
 
 Set VoltageBases = "230,4.8"
 CalcVoltageBases
