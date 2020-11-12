@@ -152,98 +152,60 @@ def input_parser(dss_path):
             device_list.append(i)
         else:
             controller_list.append(i)
-            
-    print("\n\n")
-    print(device_list, '\n')
-    print(controller_list)
 
 
-    device_count = len(device_list)
-    print(device_count)
+    #device_count = len(device_list)
+    req = ['name', 'node', 'class']
+
     for s in device_list:
         node_description = {}
-        node_description['name'] = re.findall("name=(\w+)", s ) #separate
-        # node_description['load_profile'] = None
-        # node_description['devices'] = []
+        node_description['devices'] = []
         device = {}
-
         device['custom_device_configs'] = {}
 
-     
-        device['node'] = re.findall(r"node=(\w+)", s) #separate
-        device['class'] = re.findall(r"class=(\w+)", s) #separate
-        device['custom_device_configs']['control_mode'] = re.findall(r"control_mode=(\w+)", s)
-        device['node_default_control_setting'] = re.findall(r"default_control_setting=(\w+)", s)
-        device['custom_device_configs']['total_energy_capacity'] =  re.findall(r"total_energy_capcity=(\w+)", s)
-        device['custom_device_configs']['starting_energy'] =  re.findall(r"starting_energy=(\w+)", s)
+        key = re.findall(r"(\w+)=", s)
+        val = re.findall(r"=(\w+)|=\[([\w,]+)\]", s)
 
-        device['custom_device_configs']['minimum_energy_allowable'] =  re.findall(r"minimum_energy_allowable=(\w+)", s)
-        device['custom_device_configs']['maximum_energy_allowable'] = re.findall(r"maximum_energy_allowable=(\w+)", s)
+        for v in range(len(val)):
+            print(val[v])
+            if val[v][0] != '':
+                val[v] = val[v][0]
+            else:          
+                val[v] = val[v][1]
 
-
-        device['custom_device_configs']['starting_SOC'] = re.findall(r"starting_SOC=(\w+)", s)
-        device['custom_device_configs']['minimum_SOC'] = re.findall(r"minimum_SOC=(\w+)", s)
-        device['custom_device_configs']['maximum_SOC'] = re.findall(r"maximum_SOC=(\w+)", s)
-
-        device['custom_device_configs']['minimum_power_input_charge'] = re.findall(r"minimum_power_input=(\w+)", s)
-        device['custom_device_configs']['maximum_power_input_discharge'] = re.findall(r"maximum_power_input=(\w+)", s)
-
-        device['custom_device_configs']['max_power_ramp_rate'] = re.findall(r"max_power_ramp_rate=(\w+)", s)
-
-        device['custom_device_configs']['charge_efficiency'] =  re.findall(r"charge_efficiency=(\w+)", s)
-        device['custom_device_configs']['discharge_efficiency'] = re.findall(r"discharge_efficiency=(\w+)", s)
-
-        device['custom_device_configs']['low_pass_filter_freq'] = re.findall(r"low_pass_filter_freq=(\w+)", s)
-        
+        for k in range(len(key)):
+            if key[k] not in req:
+                device['custom_device_configs'][key[k]] = val[k]
+            else:
+                node_description[key[k]] = val[k]
+ 
         node_description['devices'].append(device)
         json_query['scenario_config']['nodes'].append(node_description)
-        # print('name', name)
-        # print('node', node)
-        # print('class', bsd_class)
-        # print('control_mode', control_mode)
-        # print('def_control_setting', default_control_setting)
-        # print('total_energy_capacity', total_energy_capacity)
-        # print('starting_energy', starting_energy)
-        # print('min allow', minimum_energy_allowable)
-        # print('max allow', maximum_energy_allowable)
-        # print('starting soc', starting_SOC)
-        # print('min SOC', minimum_SOC)
-        # print('max SOC', maximum_SOC)
-        # print('min input charge', minimum_power_input_charge)
-        # print('max input charge', maximum_power_input_discharge)
-        # print('charge_efficiency', charge_efficiency)
-        # print('discharge e', discharge_efficiency)
-        # print('lpf w', low_pass_filter_freq)
-        # print("\n")
-
-   
-    controller_count = len(controller_list)
-    for controller in controller_list: 
-        device = {}
-        device['name'] = re.findall(r"name=(\w+)", controller)
-        device['node'] = re.findall(r"node=(\w+)", controller)
-        device['class'] = re.findall(r"class=(\w+)", controller)
-        device['custom_controller_configs']['control_mode'] = re.findall(r"control_mode=(\w+)", controller)
-        device['custom_controller_configs']['active_power_target'] = re.findall(r"active_power_target=(\w+)", controller)
-        
-        device['custom_controller_configs']['default_control_setting'] = re.findall(r"default_control_setting=(\w+)", s)
-        device['custom_controller_configs']['eta'] = re.findall(r"eta=(\w+)", controller)
-        device['custom_controller_configs']['lpf_freq'] = re.findall(r"low_pass_filter_freq=(\w+)", controller)
-        node_description['devices'].append(device)
-        json_query['scenario_config']['nodes'].append(node_description)
-
-        # print('name', name)
-        # print('node', node)
-        # print('class', bps_class)
-        # print('def_control_setting', default_control_setting)
-        
-        # print('control_mode', control_mode)
-        # print('eta', eta)
-        # print('active_power_target', active_power_target)
-        # print('lpf w', lpf_freq)
     
 
+    #controller_count = len(controller_list)
+    
+    for controller in controller_list: 
+        node_description = {}
+        node_description['devices'] = []
+        device = {}
+        device['custom_controller_configs'] = {}
+        key = re.findall(r"(\w+)=", controller )
+        val = re.findall(r"=(\w+)|=\[([\w,]+)\]", controller )
 
+        for v in range(len(val)):
+            if val[v][0] != '':
+                val[v] = val[v][0]
+            else:   
+                val[v] = val[v][1]
+       
+        for k in range(len(key)):
+            if key[k] not in req:
+                device['custom_controller_configs'][key[k]] = val[k]
+            else:
+                node_description[key[k]] = val[k]
 
+        node_description['devices'].append(device)
+        json_query['scenario_config']['nodes'].append(node_description)
 
     return json_query
