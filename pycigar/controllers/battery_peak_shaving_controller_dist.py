@@ -16,13 +16,16 @@ class BatteryPeakShavingControllerDist(BaseController):
         The parameters of the controller
     """
 
-    def __init__(self, device_id, additional_params):
+    def __init__(self, device_id, additional_params, controller_id):
         """Instantiate an fixed Controller."""
         BaseController.__init__(
-            self,
-            device_id,
+            self,            
+            device_id, # devices controlled
+            controller_id # this controller
         )
         self.additional_params = additional_params
+
+        print(self.controller_id)
 
 #     def get_action(self, env):
 #         """See parent class."""

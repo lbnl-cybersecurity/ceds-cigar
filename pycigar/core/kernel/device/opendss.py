@@ -102,7 +102,7 @@ class OpenDSSDevice(KernelDevice):
         self.kernel_api = kernel_api
 
     def add_controller(self, name, controller=('centralized_battery_controller', None, [])):
-        controller_obj = pycigar_make(controller[0], device_id=controller[2], additional_params=controller[1])
+        controller_obj = pycigar_make(controller[0], device_id=controller[2], additional_params=controller[1], controller_id=name)
         self.group_controllers[name] = controller_obj
 
         for device in controller[2]:

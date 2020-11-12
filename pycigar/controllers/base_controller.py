@@ -7,7 +7,7 @@ class BaseController:
         The device id which the controller controls
     """
 
-    def __init__(self, device_id):
+    def __init__(self, device_id, controller_id=None):
         """Instantiate the base controller.
 
         Parameters
@@ -19,6 +19,8 @@ class BaseController:
             self.device_id = device_id[0]
         else:
             self.device_id = device_id
+        if controller_id:
+            self.controller_id = controller_id
 
     def get_action(self, env):
         """Get the control setting that the controller may want to set for the device.
