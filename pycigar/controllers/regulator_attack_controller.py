@@ -23,7 +23,7 @@ class RegulatorAttackController(BaseController):
 
         self.action = self.additional_params['default_control_setting']
 
-        self.time_delay = 50
+        self.time_delay = 100
 
     def get_action(self, env):
         """See parent class."""

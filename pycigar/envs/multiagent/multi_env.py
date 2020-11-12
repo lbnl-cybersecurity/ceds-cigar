@@ -193,7 +193,7 @@ class MultiEnv(MultiAgentEnv, Env):
 
     def get_state(self):
         obs = {}
-        _, _, _, _, v_all, u_all, load_to_bus = self.k.kernel_api.get_worst_u_node()
+        u_worst, _, _, _, v_all, u_all, load_to_bus = self.k.kernel_api.get_worst_u_node()
         Logger = logger()
 
         if not self.sim_params['vectorized_mode']:
@@ -232,4 +232,5 @@ class MultiEnv(MultiAgentEnv, Env):
                 )
                 Logger.log(rl_id, 'u', u_all[load_to_bus[connected_node]])
                 Logger.log(rl_id, 'v', v_all[load_to_bus[connected_node]])
+            Logger.log('u_metrics', 'u_worst', u_worst)
         return obs

@@ -329,10 +329,10 @@ if __name__ == '__main__':
     #base_config['env_config']['scenario_config']['custom_configs']['slack_bus_voltage'] = 1.04
     #base_config['evaluation_config']['env_config']['scenario_config']['custom_configs']['slack_bus_voltage'] = 1.04
 
-    base_config['env_config']['M'] = 1500
-    base_config['env_config']['N'] = 1
-    base_config['env_config']['P'] = 20
-    base_config['env_config']['Q'] = 25
+    base_config['env_config']['M'] = 150
+    base_config['env_config']['N'] = 0.2
+    base_config['env_config']['P'] = 3
+    base_config['env_config']['Q'] = 1
     base_config['env_config']['T'] = 0
 
     if args.unbalance:
@@ -362,7 +362,7 @@ if __name__ == '__main__':
 
     for i in range(1):
         config = deepcopy(full_config)
-        config['config']['lr'] = ray.tune.grid_search([1e-4])
+        config['config']['lr'] = ray.tune.grid_search([5e-4])
         run_hp_experiment(config, 'main')
 
     ray.shutdown()
