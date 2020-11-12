@@ -20,8 +20,9 @@ class BatteryStorageDeviceAdvanced(BaseDevice):
             device_id,
             additional_params
         )
+        self.additional_params = additional_params
 
-        self.control_setting = additional_params.get('default_control_setting', DEFAULT_CONTROL_SETTING)
+        self.control_setting = self.additional_params.get('default_control_setting', DEFAULT_CONTROL_SETTING)
 
         Logger = logger()
 
@@ -38,12 +39,19 @@ class BatteryStorageDeviceAdvanced(BaseDevice):
         self.p_in = 0
         self.p_out = 0
         self.total_capacity = 10*1000*3600
+        self.total_capacity = self.additional_params.get('total_capacity', 10*1000*3600/(1000*3600)) # [kWh]
         self.current_capacity = 0*1000*3600
         self.current_capacity = 8.5*1000*3600
+        self.current_capacity = self.additional_params.get('current_capacity', 10.00*1000*3600/(1000*3600)) # [kWh]
+        print(self.current_capacity)
 
-        self.max_charge = 100e3
+        self.max_charge_power = self.additional_params.get('max_charge_power', 1.00*1000/1000) # [kW]
 
-        self.max_discharge = 200e3
+        self.max_discharge_power = self.additional_params.get('max_discharge_power', 1.25*1000/1000) # [kW]
+
+        self.max_ramp_rate = self.additional_params.get('max_ramp_rate', 0.10*1000/1000) # [kW/s]
+
+
 
         self.SOC = self.current_capacity/self.total_capacity
 

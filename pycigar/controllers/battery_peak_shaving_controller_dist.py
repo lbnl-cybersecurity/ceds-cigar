@@ -20,7 +20,7 @@ class BatteryPeakShavingControllerDist(BaseController):
         """Instantiate an fixed Controller."""
         BaseController.__init__(
             self,
-            device_id
+            device_id,
         )
         self.additional_params = additional_params
 
@@ -38,6 +38,9 @@ class BatteryPeakShavingControllerDist(BaseController):
 
 #         return control_setting
 
+        # self.P_target = 725
+        self.P_target = self.additional_params.get('active_power_target', 800)
+
         self.min_active_power = -500
         self.max_active_power = 900
 
@@ -45,7 +48,8 @@ class BatteryPeakShavingControllerDist(BaseController):
 
         # Lowpass filter for power
         self.Ts = 1
-        self.fl = 0.010
+        # self.fl = 0.010
+        self.fl = self.additional_params.get('lowpass_filter_frequency', 0.010)
         lp1s, temp = signal_processing.butterworth_lowpass(1, 2 * np.pi * 1 * self.fl)
         self.lp1s = lp1s
         self.lp1z = signal_processing.c2dbilinear(self.lp1s, self.Ts)
@@ -78,8 +82,9 @@ class BatteryPeakShavingControllerDist(BaseController):
         self.p_in = deque([0, 0],maxlen=2)
         self.p_out = deque([0, 0],maxlen=2)
 
-        self.eta = 0.2
-        self.P_target = 725
+        # self.eta = 0.01
+        self.eta = self.additional_params.get('eta', 0.02)
+        
 
         self.print_interval = 1
 
@@ -141,9 +146,9 @@ class BatteryPeakShavingControllerDist(BaseController):
             # elif self.p_set_temp <= 0 and self.p_set_temp <= self.P_target - self.self.measured_active_power_lpf[-2]:
             #     self.p_set_temp = self.P_target - self.self.measured_active_power_lpf[-2]
 
-            # self.p_set.append(self.p_set[-1] - self.eta * (self.P_target - self.measured_active_power_lpf[-2]))
+            self.p_set.append(self.p_set[-2] - self.eta * (self.P_target - self.measured_active_power_lpf[-2]))
 
-            self.p_set.append((1 - self.Ts*self.eta)*self.p_set[-1] - self.Ts*self.eta*(self.P_target - self.measured_active_power_lpf[-2]))
+            # self.p_set.append((1 - self.Ts*self.eta)*self.p_set[-1] - self.Ts*self.eta*(self.P_target - self.measured_active_power_lpf[-2]))
 
             if self.p_set[-1] <= 0:
 
