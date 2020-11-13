@@ -156,14 +156,28 @@ class BatteryPeakShavingControllerDist(BaseController):
 
             # self.p_set.append((1 - self.Ts*self.eta)*self.p_set[-1] - self.Ts*self.eta*(self.P_target - self.measured_active_power_lpf[-2]))
 
-            if self.p_set[-1] <= 0:
+            # if self.p_set[-1] <= 0:
+
+            #     if self.p_set[-1] <= -env.k.device.devices[self.device_id]['device'].max_discharge_power:
+            #         self.p_set[-1] = -env.k.device.devices[self.device_id]['device'].max_discharge_power
+            #     if self.p_set[-1] <= -(self.P_target - self.measured_active_power_lpf[-2]):
+            #         self.p_set[-1] = -(self.P_target - self.measured_active_power_lpf[-2])
+
+            # if self.p_set[-1] >= 0:
+
+            #     if self.p_set[-1] >= env.k.device.devices[self.device_id]['device'].max_charge_power:
+            #         self.p_set[-1] = env.k.device.devices[self.device_id]['device'].max_charge_power
+            #     if self.p_set[-1] >= (self.P_target - self.measured_active_power_lpf[-2]):
+            #         self.p_set[-1] = (self.P_target - self.measured_active_power_lpf[-2])
+
+            if self.p_set[-1] >= 0:
 
                 self.control_setting.append('charge')
-                self.p_in.append(-self.p_set[-1])
+                self.p_in.append(self.p_set[-1])
                 self.p_out.append(0)
                 self.custom_control_setting = {'p_in': 1*self.p_in[-1]}
 
-            elif self.p_set[-1] > 0:
+            elif self.p_set[-1] <= 0:
                 
                 self.control_setting.append('discharge')
                 self.p_in.append(0)
@@ -247,7 +261,7 @@ class BatteryPeakShavingControllerDist(BaseController):
             print('Controller: ' + self.controller_id)
             print('Device: ' + self.device_id)
 
-            print('Battery SOC: ' + env.k.device.devices[self.device_id]['device'].SOC)
+            print('Battery SOC: ' + str(env.k.device.devices[self.device_id]['device'].SOC))
 
             print('Measured active power [kW]: ' + str(self.measured_active_power[-1]))
             print('Measured reactive power [kVAr]: ' + str(self.measured_reactive_power[-1]))

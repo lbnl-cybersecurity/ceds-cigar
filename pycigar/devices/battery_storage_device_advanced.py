@@ -131,14 +131,14 @@ class BatteryStorageDeviceAdvanced(BaseDevice):
                 self.p_in = 0
                 self.current_capacity = 1.0*self.total_capacity
 
-            elif self.current_capacity + self.Ts* self.p_in/3600 >= 1.0*self.total_capacity:
+            elif self.current_capacity + self.Ts/3600*self.p_in >= 1.0*self.total_capacity:
 
-                self.p_out = 1/self.Ts*(1.0*self.total_capacity - self.current_capacity)
+                self.p_in = 3600/self.Ts*(1.0*self.total_capacity - self.current_capacity)
                 self.current_capacity = 1.0*self.total_capacity
 
             else:
 
-                self.current_capacity = self.current_capacity + self.Ts + self.p_in
+                self.current_capacity = self.current_capacity + self.Ts/3600*self.p_in
 
             self.current_capacity = self.current_capacity + self.Ts*self.p_in
             if self.current_capacity <= 0:
