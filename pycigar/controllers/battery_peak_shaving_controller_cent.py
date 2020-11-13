@@ -7,7 +7,7 @@ import pycigar.utils.signal_processing as signal_processing
 from pycigar.utils.logging import logger
 
 
-class BatteryPeakShavingControllerDist(BaseController):
+class BatteryPeakShavingControllerCent(BaseController):
     """Fixed controller is the controller that do nothing.
     It only returns the 'default_control_setting' value when being called.
     Attributes
@@ -151,9 +151,6 @@ class BatteryPeakShavingControllerDist(BaseController):
 
             self.p_set.append(self.p_set[-2] - self.eta * (self.P_target - self.measured_active_power_lpf[-2]))
 
-            # if self.p_set <= 0:
-            #     if self.p_set <= env.k.devices[self.device_id].SOC
-
             # self.p_set.append((1 - self.Ts*self.eta)*self.p_set[-1] - self.Ts*self.eta*(self.P_target - self.measured_active_power_lpf[-2]))
 
             if self.p_set[-1] <= 0:
@@ -246,8 +243,6 @@ class BatteryPeakShavingControllerDist(BaseController):
             print('Time: ' + str(env.k.time))
             print('Controller: ' + self.controller_id)
             print('Device: ' + self.device_id)
-
-            print('Battery SOC: ' + env.k.device.devices[self.device_id]['device'].SOC)
 
             print('Measured active power [kW]: ' + str(self.measured_active_power[-1]))
             print('Measured reactive power [kVAr]: ' + str(self.measured_reactive_power[-1]))

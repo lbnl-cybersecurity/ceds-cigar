@@ -71,10 +71,10 @@ from pycigar.controllers.battery_storage_controller import BatteryStorageControl
 from pycigar.devices.battery_storage_device import BatteryStorageDevice
 from pycigar.devices.battery_storage_device_advanced import BatteryStorageDeviceAdvanced
 
-from pycigar.controllers.battery_peak_shaving_controller import BatteryPeakShavingController
+from pycigar.controllers.battery_peak_shaving_controller_dist import BatteryPeakShavingControllerDist
 
 # register_devcon('battery_storage_controller', BatteryStorageController)
-register_devcon('battery_peak_shaving_controller', BatteryPeakShavingController)
+register_devcon('battery_peak_shaving_controller_dist', BatteryPeakShavingControllerDist)
 register_devcon('battery_storage_device_advanced', BatteryStorageDeviceAdvanced)
 
 

@@ -167,19 +167,12 @@ class BatteryStorageDeviceAdvanced(BaseDevice):
                 self.p_out = 3600/self.Ts*(self.current_capacity - 0.2*self.total_capacity)
                 self.current_capacity = 0.2*self.total_capacity
 
-                print('assbutt01')
-                print(self.p_out)
-
             else:
 
                 self.current_capacity = self.current_capacity - self.Ts/3600*self.p_out
 
-                print('assbutt02')
-
             self.SOC = self.current_capacity/self.total_capacity
             k.node.nodes[node_id]['PQ_injection']['P'] += 1*-self.p_out
-
-            print(self.current_capacity)
 
         if self.control_setting == 'voltwatt':
             if self.current_capacity >= self.total_capacity:
