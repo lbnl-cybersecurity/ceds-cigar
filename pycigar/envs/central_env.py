@@ -182,6 +182,7 @@ class CentralEnv(Env):
                          }
                 result['y_worst'] = y_worst
                 result['v_worst'] = v_worst
+                Logger.log('v_worst_metrics', 'v_worst', v_worst)
                 Logger.log('y_metrics', 'y_worst', y_worst)
                 Logger.log('y_metrics', 'y_worst_node', y_worst_node)
                 Logger.log('y_metrics', 'y_mean', y)

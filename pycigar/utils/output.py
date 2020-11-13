@@ -770,6 +770,11 @@ def plot_new(log_dict, custom_metrics, epoch='', unbalance=False, multiagent=Fal
             ax[5, 1].plot(np.array(log_dict['inverter_' + worst_load[:-1] + 'c']['q_avail_real']), label='q_avail_{}c'.format(worst_node))
             ax[5, 1].plot(np.array(log_dict['inverter_' + worst_load[:-1] + 'c']['q_set']), label='q_set_{}c'.format(worst_node))
 
+    v_worst_u = np.array(log_dict['v_worst_metrics']['v_worst'])
+    ax[-1, 1].plot(v_worst_u[:, 0], label='a')
+    ax[-1, 1].plot(v_worst_u[:, 1], label='b')
+    ax[-1, 1].plot(v_worst_u[:, 2], label='c')
+
     for row in ax:
         for a in row:
             a.grid(b=True, which='both')
