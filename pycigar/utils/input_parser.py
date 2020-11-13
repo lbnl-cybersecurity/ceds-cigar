@@ -1,9 +1,9 @@
 import os
 import pandas as pd
 import numpy as np
+import re
 
-
-def input_parser(misc_inputs_path, dss_path, load_solar_path, breakpoints_path=None, benchmark=False, percentage_hack=0.45, adv=False, norl_mode=False, vectorized_mode=False):
+def input_parser(misc_inputs_path, dss_path, load_solar_path, breakpoints_path=None, battery_path=None, benchmark=False, percentage_hack=0.45, adv=False, norl_mode=False, vectorized_mode=False):
     """Take multiple .csv files and parse them into the .yml file that required by pycigar.
     Parameters
     ----------
@@ -26,6 +26,73 @@ def input_parser(misc_inputs_path, dss_path, load_solar_path, breakpoints_path=N
     dict
         a dictionary contains full information to run the experiment
     """
+
+    def _battery_input_parser(battery_path):
+        f = open(battery_path, "r")
+        input_file = f.read()
+
+        input_list = [x.lower() for x in input_file.split("\n")]
+
+        device_list = []
+        controller_list = []
+
+        for i in input_list:
+            i = i.split(' ')
+            if i[0] == 'device':
+                device_list.append(i[1:])
+            elif i[0] == 'controller':
+                controller_list.append(i[1:])
+
+        for s in device_list:
+            custom_props = {}
+            for prop in s:
+                key, val  = prop.split('=')
+                try:
+                    val = float(val)
+                except ValueError:
+                    pass
+
+                if key == 'name':
+                    name = val
+                elif key == 'node':
+                    node = val
+                elif key == 'class':
+                    device = val
+                else:
+                    custom_props[key] = val
+            json_query['custom_device_configs'] = {}
+            for n in json_query['scenario_config']['nodes']:
+                if n['name'] == node:
+                    n['devices'].append({'name': name,
+                                         'device': device,
+                                         'custom_device_configs': custom_props})
+
+        if controller_list:
+            json_query['scenario_config']['controllers'] = []
+
+        for s in controller_list:
+            custom_props = {}
+            for prop in s:
+                key, val = prop.split('=')
+                try:
+                    val = float(val)
+                except ValueError:
+                    pass
+
+                if key == 'name':
+                    name = val
+                elif key == 'class':
+                    controller = val
+                elif key == 'devices':
+                    list_devices = val.strip('[]').split(',')
+                else:
+                    custom_props[key] = val
+
+            json_query['scenario_config']['controllers'].append({'name': name,
+                                                                 'controller': controller,
+                                                                 'custom_controller_configs': custom_props,
+                                                                 'list_devices': list_devices
+                                                                })
 
     file_misc_inputs_path = misc_inputs_path
     file_dss_path = dss_path
@@ -172,4 +239,9 @@ def input_parser(misc_inputs_path, dss_path, load_solar_path, breakpoints_path=N
     json_query['scenario_config']['regulators']['tap_delay'] = tap_delay
     json_query['scenario_config']['regulators']['delay'] = delay
 
+    if battery_path:
+        _battery_input_parser(battery_path)
+
     return json_query
+
+
