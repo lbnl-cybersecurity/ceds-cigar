@@ -49,25 +49,48 @@ scenario_config:
                 default_control_setting: 'standby',
                 total_capacity: 10,
                 current_capacity: 9.0,
-                max_charge_power: 1.00,
-                max_discharge_power: 1.25,
-                max_ramp_rate: 0.1
+                max_charge_power: 20.00,
+                max_discharge_power: 25.00,
+                max_ramp_rate: 0.001
               }
 
+            # - name: bsd_2
+            #   device: battery_storage_device_advanced
+            #   custom_device_configs: {
+            #     default_control_setting: 'standby',
+            #     total_capacity: 10,
+            #     current_capacity: 8.0,
+            #     max_charge_power: 20.00,
+            #     max_discharge_power: 30.00,
+            #     max_ramp_rate: 0.1
+            #   }
+
+      - name: s702a
+        devices:
             - name: bsd_2
               device: battery_storage_device_advanced
               custom_device_configs: {
                 default_control_setting: 'standby',
                 total_capacity: 10,
                 current_capacity: 8.0,
-                max_charge_power: 1.00,
-                max_discharge_power: 1.25,
-                max_ramp_rate: 0.1
+                max_charge_power: 20.00,
+                max_discharge_power: 30.00,
+                max_ramp_rate: 0.001
               }
-
-      - name: s702a
+        
 
       - name: s703a
+        devices:
+            - name: bsd_3
+              device: battery_storage_device_advanced
+              custom_device_configs: {
+                default_control_setting: 'standby',
+                total_capacity: 10,
+                current_capacity: 8.0,
+                max_charge_power: 5.00,
+                max_discharge_power: 10.00,
+                max_ramp_rate: 0.001
+              }
 
   # controllers:
   #     - name: cen_bat_1
@@ -95,3 +118,13 @@ scenario_config:
           eta: 0.01
         }
         list_devices: ['bsd_2']
+
+      - name: psc_3
+        controller: battery_peak_shaving_controller_dist
+        custom_controller_configs: {
+          default_control_setting: 'standby',
+          lowpass_filter_frequency: 0.01, 
+          active_power_target: 750,
+          eta: 0.01
+        }
+        list_devices: ['bsd_3']
