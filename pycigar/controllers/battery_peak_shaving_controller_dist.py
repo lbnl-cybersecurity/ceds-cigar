@@ -158,8 +158,8 @@ class BatteryPeakShavingControllerDist(BaseController):
 
             if self.p_set[-1] >= 0:
 
-                if self.p_set[-1] >= env.k.device.devices[self.device_id]['device'].max_charge_power:
-                    self.p_set[-1] = env.k.device.devices[self.device_id]['device'].max_charge_power
+                if self.p_set[-1] >= env.k.device.devices[self.device_id]['device'].max_charge_power/1e3:
+                    self.p_set[-1] = env.k.device.devices[self.device_id]['device'].max_charge_power/1e3
                 # if self.p_set[-1] >= (self.P_target - self.measured_active_power_lpf[-2]):
                 #     self.p_set[-1] = (self.P_target - self.measured_active_power_lpf[-2])
 
@@ -170,8 +170,8 @@ class BatteryPeakShavingControllerDist(BaseController):
 
             elif self.p_set[-1] <= 0:
 
-                if self.p_set[-1] <= -env.k.device.devices[self.device_id]['device'].max_discharge_power:
-                    self.p_set[-1] = -env.k.device.devices[self.device_id]['device'].max_discharge_power
+                if self.p_set[-1] <= -env.k.device.devices[self.device_id]['device'].max_discharge_power/1e3:
+                    self.p_set[-1] = -env.k.device.devices[self.device_id]['device'].max_discharge_power/1e3
                 # if self.p_set[-1] <= (self.P_target - self.measured_active_power_lpf[-2]):
                 #     self.p_set[-1] = (self.P_target - self.measured_active_power_lpf[-2])
                 

@@ -39,18 +39,21 @@ class BatteryStorageDeviceAdvanced(BaseDevice):
         self.p_in = 0
         self.p_out = 0
         self.total_capacity = 10*1000*3600
-        self.total_capacity = self.additional_params.get('total_capacity', 10*1000*3600/(1000*3600)) # [kWh]
+        self.total_capacity = self.additional_params.get('total_capacity', 10)*1000*3600 # [kWh] --> [J]
         self.current_capacity = 0*1000*3600
         self.current_capacity = 8.5*1000*3600
-        self.current_capacity = self.additional_params.get('current_capacity', 10.00*1000*3600/(1000*3600)) # [kWh]
+        self.current_capacity = self.additional_params.get('current_capacity', 10)*1000*3600 # [kWh] --> [J]
         print(self.device_id)
         print(self.current_capacity)
 
-        self.max_charge_power = self.additional_params.get('max_charge_power', 1.00*1000/1000) # [kW]
+        self.max_charge_power = self.additional_params.get('max_charge_power', 1.00)*1000 # [kW] --> [W]
 
-        self.max_discharge_power = self.additional_params.get('max_discharge_power', 1.25*1000/1000) # [kW]
+        self.max_discharge_power = self.additional_params.get('max_discharge_power', 1.25)*1000 # [kW] --> [W]
 
-        self.max_ramp_rate = self.additional_params.get('max_ramp_rate', 0.010*1000/1000) # [kW/s]
+        self.max_ramp_rate = self.additional_params.get('max_ramp_rate', 0.010)*1000 # [kW/s] --> [W/s]
+
+        self.max_SOC = self.additional_params.get('max_SOC', 1.0)
+        self.min_SOC = self.additional_params.get('min_SOC', 0.2)
 
 
 
@@ -120,29 +123,29 @@ class BatteryStorageDeviceAdvanced(BaseDevice):
         if self.control_setting == 'charge':
             # self.p_in = 100000
             # self.p_in = 150000
-            self.p_in = self.max_charge_power
+            # self.p_in = self.max_charge_power
             self.p_out = 0
 
             if 'p_in' in self.custom_control_setting:
 
-                if self.custom_control_setting['p_in'] >= self.p_in + self.Ts*self.max_ramp_rate:
-                    self.p_oup_int = self.p_in + self.Ts*self.max_ramp_rate
+                if self.custom_control_setting['p_in']*1000 >= self.p_in + self.Ts*self.max_ramp_rate:
+                    self.p_in = self.p_in + self.Ts*self.max_ramp_rate
                 else:
-                    self.p_in = self.custom_control_setting['p_in']
+                    self.p_in = self.custom_control_setting['p_in']*1000 # [kW] --> [W]
 
-            if self.current_capacity >= 1.0*self.total_capacity:
+            if self.current_capacity >= self.max_SOC*self.total_capacity:
 
                 self.p_in = 0
-                self.current_capacity = 1.0*self.total_capacity
+                self.current_capacity = self.max_SOC*self.total_capacity
 
-            elif self.current_capacity + self.Ts/3600*self.p_in >= 1.0*self.total_capacity:
+            elif self.current_capacity + self.Ts*self.p_in >= self.max_SOC*self.total_capacity:
 
-                self.p_in = 3600/self.Ts*(1.0*self.total_capacity - self.current_capacity)
-                self.current_capacity = 1.0*self.total_capacity
+                self.p_in = 1/self.Ts*(self.max_SOC*self.total_capacity - self.current_capacity)
+                self.current_capacity = self.max_SOC*self.total_capacity
 
             else:
 
-                self.current_capacity = self.current_capacity + self.Ts/3600*self.p_in
+                self.current_capacity = self.current_capacity + self.Ts*self.p_in
 
             self.current_capacity = self.current_capacity + self.Ts*self.p_in
             if self.current_capacity <= 0:
@@ -150,41 +153,41 @@ class BatteryStorageDeviceAdvanced(BaseDevice):
             if self.current_capacity >= self.total_capacity:
                 self.current_capacity = self.total_capacity
             self.SOC = self.current_capacity/self.total_capacity
-            k.node.nodes[node_id]['PQ_injection']['P'] += 1*self.p_in
+            k.node.nodes[node_id]['PQ_injection']['P'] += 1*self.p_in/1000 # [W] --> [kW]
 
         if self.control_setting == 'discharge':
             self.p_in = 0
             # self.p_out = 150000
             # self.p_out = 200000
-            self.p_out = self.max_discharge_power
+            # self.p_out = self.max_discharge_power
 
             if 'p_out' in self.custom_control_setting:
 
-                print('test00')
+                # print('test00')
                 
-                if self.custom_control_setting['p_out'] >= self.p_out + self.Ts*self.max_ramp_rate:
+                if self.custom_control_setting['p_out']*1000 >= self.p_out + self.Ts*self.max_ramp_rate:
                     self.p_out = self.p_out + self.Ts*self.max_ramp_rate
-                    print('test01')
+                    # print('test01')
                 else:
-                    self.p_out = self.custom_control_setting['p_out']
-                    print('test02')
+                    self.p_out = self.custom_control_setting['p_out']*1000 # [kW] --> [W]
+                    # print('test02')
 
-            if self.current_capacity <= 0.2*self.total_capacity:
+            if self.current_capacity <= self.min_SOC*self.total_capacity:
 
                 self.p_out = 0
-                self.current_capacity = 0.2*self.total_capacity
+                self.current_capacity = self.min_SOC*self.total_capacity
 
-            elif self.current_capacity - self.Ts/3600*self.p_out < 0.2*self.total_capacity:
+            elif self.current_capacity - self.Ts*self.p_out < self.min_SOC*self.total_capacity:
 
-                self.p_out = -3600/self.Ts*(self.current_capacity - 0.2*self.total_capacity)
-                self.current_capacity = 0.2*self.total_capacity
+                self.p_out = 1/self.Ts*(self.current_capacity - self.min_SOC*self.total_capacity)
+                self.current_capacity = self.min_SOC*self.total_capacity # [J]
 
             else:
 
-                self.current_capacity = self.current_capacity - self.Ts/3600*self.p_out
+                self.current_capacity = self.current_capacity - self.Ts*self.p_out
 
             self.SOC = self.current_capacity/self.total_capacity
-            k.node.nodes[node_id]['PQ_injection']['P'] += -1*self.p_out
+            k.node.nodes[node_id]['PQ_injection']['P'] += -1*self.p_out/1e3 # [W] --> [kW]
 
         if self.control_setting == 'voltwatt':
             if self.current_capacity >= self.total_capacity:
