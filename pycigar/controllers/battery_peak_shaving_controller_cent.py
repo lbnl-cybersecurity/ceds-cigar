@@ -157,31 +157,47 @@ class BatteryPeakShavingControllerCent(BaseController):
 
             # self.p_set.append((1 - self.Ts*self.eta)*self.p_set[-1] - self.Ts*self.eta*(self.P_target - self.measured_active_power_lpf[-2]))
 
-            if self.p_set[-1] >= 0:
+            result = {}
 
-                for device in self.device_id:
+            for device in self.device_id:
+
+                if self.p_set[-1] >= 0:
+
                     if self.p_set[-1] >= env.k.device.devices[device]['device'].max_charge_power/1e3:
-                        self.p_set[-1] = env.k.device.devices[device]['device'].max_charge_power/1e3
+                        # self.p_set[-1] = env.k.device.devices[device]['device'].max_charge_power/1e3
+                        result[device] = ('charge',  {'p_in': env.k.device.devices[device]['device'].max_charge_power/1e3})
+                    else:
+                        result[device] = ('charge',  {'p_in': 1*self.p_set[-1]})
                     # if self.p_set[-1] >= (self.P_target - self.measured_active_power_lpf[-2]):
                     #     self.p_set[-1] = (self.P_target - self.measured_active_power_lpf[-2])
 
-                    self.control_setting.append('charge')
-                    self.p_in.append(self.p_set[-1])
-                    self.p_out.append(0)
-                    self.custom_control_setting = {'p_in': 1*self.p_in[-1]}
+                    # self.control_setting.append('charge')
+                    # self.p_in.append(self.p_set[-1])
+                    # self.p_out.append(0)
+                    # self.custom_control_setting = {'p_in': 1*self.p_in[-1]}
 
-            elif self.p_set[-1] <= 0:
+                elif self.p_set[-1] <= 0:
 
-                for device in self.device_id:
                     if self.p_set[-1] <= -env.k.device.devices[device]['device'].max_discharge_power/1e3:
-                        self.p_set[-1] = -env.k.device.devices[device]['device'].max_discharge_power/1e3
-                # if self.p_set[-1] <= (self.P_target - self.measured_active_power_lpf[-2]):
-                #     self.p_set[-1] = (self.P_target - self.measured_active_power_lpf[-2])
+                        # self.p_out[-1] = -env.k.device.devices[device]['device'].max_discharge_power/1e3
+                        result[device] = ('discharge',  {'p_out': -env.k.device.devices[device]['device'].max_discharge_power/1e3})
+                    else:
+                        # self.p_out.append(self.p_set[-1])
+                        result[device] = ('discharge',  {'p_out': -1*self.p_set[-1]})
+
+                    # if self.p_set[-1] <= (self.P_target - self.measured_active_power_lpf[-2]):
+                    #     self.p_set[-1] = (self.P_target - self.measured_active_power_lpf[-2])
                 
-                    self.control_setting.append('discharge')
-                    self.p_in.append(0)
-                    self.p_out.append(-self.p_set[-1])
-                    self.custom_control_setting = {'p_out': 1*self.p_out[-1]}
+                    # self.control_setting.append('discharge')
+                    # self.p_in.append(0)
+                    # # self.p_out.append(-self.p_set[-1])
+                    # self.custom_control_setting = {'p_out': 1*self.p_out[-1]}
+
+                    # result[device] = ('discharge',  {'p_out': 1*self.p_out[-1]})
+
+            print(result)
+
+            return result
 
             ##################################################
             ##################################################

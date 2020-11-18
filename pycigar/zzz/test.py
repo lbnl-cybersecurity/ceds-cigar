@@ -73,23 +73,25 @@ class FooEnv(Env):
     def compute_reward(self, rl_actions, **kwargs):
         return 0
 
-stream = open("/home/toanngo/Documents/GitHub/cigar-document/ceds-cigar/pycigar/zzz/data/pycigar_config.yaml", "r")
+stream = open("./IEEE_03_Node/pycigar_config_ieee_03_cent.yaml", "r")
 sim_params = yaml.safe_load(stream)
 print('Simulation Complete')
 
 
 from pycigar.utils.registry import register_devcon
-from pycigar.controllers.battery_storage_controller import BatteryStorageController
-from pycigar.devices.battery_storage_device import BatteryStorageDevice
-from pycigar.controllers.battery_peak_shaving_controller import BatteryPeakShavingController
-from pycigar.controllers.battery_peak_shaving_controller_lpf import BatteryPeakShavingControllerLPF
+from pycigar.controllers.battery_peak_shaving_controller_dist import BatteryPeakShavingControllerDist
+from pycigar.controllers.battery_peak_shaving_controller_cent import BatteryPeakShavingControllerCent
+from pycigar.devices.battery_storage_device_advanced import BatteryStorageDeviceAdvanced
+# from pycigar.controllers.battery_peak_shaving_controller import BatteryPeakShavingController
+# from pycigar.controllers.battery_peak_shaving_controller_lpf import BatteryPeakShavingControllerLPF
 from pycigar.utils.registry import register_devcon
 from pycigar.controllers.battery_storage_controller import BatteryStorageController
 from pycigar.devices.battery_storage_device import BatteryStorageDevice
 from pycigar.devices.battery_storage_device_advanced import BatteryStorageDeviceAdvanced
 # register_devcon('battery_storage_controller', BatteryStorageController)
 # register_devcon('battery_peak_shaving_controller', BatteryPeakShavingController)
-register_devcon('battery_peak_shaving_controller_lpf', BatteryPeakShavingControllerLPF)
+register_devcon('battery_peak_shaving_controller_dist', BatteryPeakShavingControllerDist)
+register_devcon('battery_peak_shaving_controller_cent', BatteryPeakShavingControllerCent)
 register_devcon('battery_storage_device_advanced', BatteryStorageDeviceAdvanced)
 
 

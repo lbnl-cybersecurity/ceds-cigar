@@ -555,17 +555,17 @@ class OpenDSSDevice(KernelDevice):
         control_setting : list
             The control setting of the device (e.g. VBP for PVDevice...)
         """
-        if type(device_id) == str:
+        if isinstance(device_id, str):
             device_id = [device_id]
             control_setting = [control_setting]
 
-        for i, device_id in enumerate(device_id):
+        for i, d in enumerate(device_id):
             if control_setting[i] is not None:
-                device = self.devices[device_id]['device']
+                device = self.devices[d]['device']
                 device.set_control_setting(control_setting[i]) if type(control_setting[i]) is not tuple else device.set_control_setting(*control_setting[i])
 
                 if self.master_kernel.sim_params['vectorized_mode']:
-                    self.vectorized_pv_inverter_device.set_control_setting(device_id, control_setting[i])
+                    self.vectorized_pv_inverter_device.set_control_setting(d, control_setting[i])
 
 
     def set_device_internal_scenario(self, device_id, internal_scenario):
