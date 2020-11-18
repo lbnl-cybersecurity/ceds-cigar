@@ -26,6 +26,7 @@ class BatteryPeakShavingControllerCent(BaseController):
         self.additional_params = additional_params
 
         print(self.controller_id)
+        print(self.device_id)
 
 #     def get_action(self, env):
 #         """See parent class."""
@@ -96,7 +97,7 @@ class BatteryPeakShavingControllerCent(BaseController):
         if env.k.time == 0 or env.k.time == 51:
 
             print('Time: ' + str(env.k.time))
-            print('Initialize: ' + self.device_id)
+            print('Initialize: ' + str(self.device_id))
 
             for k1 in range(0,2):               
 
@@ -149,23 +150,38 @@ class BatteryPeakShavingControllerCent(BaseController):
             # elif self.p_set_temp <= 0 and self.p_set_temp <= self.P_target - self.self.measured_active_power_lpf[-2]:
             #     self.p_set_temp = self.P_target - self.self.measured_active_power_lpf[-2]
 
-            self.p_set.append(self.p_set[-2] - self.eta * (self.P_target - self.measured_active_power_lpf[-2]))
+            self.p_set.append(self.p_set[-2] + self.eta * (self.P_target - self.measured_active_power_lpf[-2]))
+
+            # if self.p_set <= 0:
+            #     if self.p_set <= env.k.devices[self.device_id].SOC
 
             # self.p_set.append((1 - self.Ts*self.eta)*self.p_set[-1] - self.Ts*self.eta*(self.P_target - self.measured_active_power_lpf[-2]))
 
-            if self.p_set[-1] <= 0:
+            if self.p_set[-1] >= 0:
 
-                self.control_setting.append('charge')
-                self.p_in.append(-self.p_set[-1])
-                self.p_out.append(0)
-                self.custom_control_setting = {'p_in': 1*self.p_in[-1]}
+                for device in self.device_id:
+                    if self.p_set[-1] >= env.k.device.devices[device]['device'].max_charge_power/1e3:
+                        self.p_set[-1] = env.k.device.devices[device]['device'].max_charge_power/1e3
+                    # if self.p_set[-1] >= (self.P_target - self.measured_active_power_lpf[-2]):
+                    #     self.p_set[-1] = (self.P_target - self.measured_active_power_lpf[-2])
 
-            elif self.p_set[-1] > 0:
+                    self.control_setting.append('charge')
+                    self.p_in.append(self.p_set[-1])
+                    self.p_out.append(0)
+                    self.custom_control_setting = {'p_in': 1*self.p_in[-1]}
+
+            elif self.p_set[-1] <= 0:
+
+                for device in self.device_id:
+                    if self.p_set[-1] <= -env.k.device.devices[device]['device'].max_discharge_power/1e3:
+                        self.p_set[-1] = -env.k.device.devices[device]['device'].max_discharge_power/1e3
+                # if self.p_set[-1] <= (self.P_target - self.measured_active_power_lpf[-2]):
+                #     self.p_set[-1] = (self.P_target - self.measured_active_power_lpf[-2])
                 
-                self.control_setting.append('discharge')
-                self.p_in.append(0)
-                self.p_out.append(self.p_set[-1])
-                self.custom_control_setting = {'p_out': 1*self.p_out[-1]}
+                    self.control_setting.append('discharge')
+                    self.p_in.append(0)
+                    self.p_out.append(-self.p_set[-1])
+                    self.custom_control_setting = {'p_out': 1*self.p_out[-1]}
 
             ##################################################
             ##################################################
@@ -242,7 +258,10 @@ class BatteryPeakShavingControllerCent(BaseController):
         if env.k.time % self.print_interval == 0:
             print('Time: ' + str(env.k.time))
             print('Controller: ' + self.controller_id)
-            print('Device: ' + self.device_id)
+
+            for device in self.device_id:
+                print('Device: ' + str(device))
+                print('Battery SOC: ' + str(env.k.device.devices[device]['device'].SOC))
 
             print('Measured active power [kW]: ' + str(self.measured_active_power[-1]))
             print('Measured reactive power [kVAr]: ' + str(self.measured_reactive_power[-1]))
@@ -292,26 +311,26 @@ class BatteryPeakShavingControllerCent(BaseController):
 
         # log history
         Logger = logger()
-        Logger.log(self.device_id + '_psc', 'control_setting', self.control_setting[-1])
-        Logger.log(self.device_id + '_psc', 'control_setting', self.custom_control_setting)
+        Logger.log(self.controller_id, 'control_setting', self.control_setting[-1])
+        Logger.log(self.controller_id, 'control_setting', self.custom_control_setting)
 
-        Logger.log(self.device_id + '_psc', 'measured_active_power', self.measured_active_power[-1])
-        Logger.log(self.device_id + '_psc', 'measured_reactive_power', self.measured_reactive_power[-1])
-        Logger.log(self.device_id + '_psc', 'measured_apparent_power', self.measured_apparent_power[-1])
+        Logger.log(self.controller_id, 'measured_active_power', self.measured_active_power[-1])
+        Logger.log(self.controller_id, 'measured_reactive_power', self.measured_reactive_power[-1])
+        Logger.log(self.controller_id, 'measured_apparent_power', self.measured_apparent_power[-1])
 
-        Logger.log(self.device_id + '_psc', 'measured_active_power_lpf', self.measured_active_power_lpf[-1])
-        Logger.log(self.device_id + '_psc', 'measured_reactive_power_lpf', self.measured_reactive_power_lpf[-1])
-        Logger.log(self.device_id + '_psc', 'measured_apparent_power_lpf', self.measured_apparent_power_lpf[-1])
+        Logger.log(self.controller_id, 'measured_active_power_lpf', self.measured_active_power_lpf[-1])
+        Logger.log(self.controller_id, 'measured_reactive_power_lpf', self.measured_reactive_power_lpf[-1])
+        Logger.log(self.controller_id, 'measured_apparent_power_lpf', self.measured_apparent_power_lpf[-1])
 
-        Logger.log(self.device_id + '_psc', 'load_active_power', self.load_active_power[-1])
-        Logger.log(self.device_id + '_psc', 'load_reactive_power', self.load_reactive_power[-1])
-        Logger.log(self.device_id + '_psc', 'load_apparent_power', self.load_apparent_power[-1])
+        Logger.log(self.controller_id, 'load_active_power', self.load_active_power[-1])
+        Logger.log(self.controller_id, 'load_reactive_power', self.load_reactive_power[-1])
+        Logger.log(self.controller_id, 'load_apparent_power', self.load_apparent_power[-1])
 
-        Logger.log(self.device_id + '_psc', 'p_target', self.P_target)
+        Logger.log(self.controller_id, 'p_target', self.P_target)
 
-        Logger.log(self.device_id + '_psc', 'p_set', self.p_set[-1])
-        Logger.log(self.device_id + '_psc', 'p_in', self.p_in[-1])
-        Logger.log(self.device_id + '_psc', 'p_out', self.p_out[-1])
+        Logger.log(self.controller_id, 'p_set', self.p_set[-1])
+        Logger.log(self.controller_id, 'p_in', self.p_in[-1])
+        Logger.log(self.controller_id, 'p_out', self.p_out[-1])
         
 
         # Logger.log(self.device_id, 'current_capacity', self.current_capacity)

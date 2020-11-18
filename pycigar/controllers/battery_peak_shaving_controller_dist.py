@@ -307,26 +307,26 @@ class BatteryPeakShavingControllerDist(BaseController):
 
         # log history
         Logger = logger()
-        Logger.log(self.device_id + '_psc', 'control_setting', self.control_setting[-1])
-        Logger.log(self.device_id + '_psc', 'control_setting', self.custom_control_setting)
+        Logger.log(self.controller_id, 'control_setting', self.control_setting[-1])
+        Logger.log(self.controller_id, 'control_setting', self.custom_control_setting)
 
-        Logger.log(self.device_id + '_psc', 'measured_active_power', self.measured_active_power[-1])
-        Logger.log(self.device_id + '_psc', 'measured_reactive_power', self.measured_reactive_power[-1])
-        Logger.log(self.device_id + '_psc', 'measured_apparent_power', self.measured_apparent_power[-1])
+        Logger.log(self.controller_id, 'measured_active_power', self.measured_active_power[-1])
+        Logger.log(self.controller_id, 'measured_reactive_power', self.measured_reactive_power[-1])
+        Logger.log(self.controller_id, 'measured_apparent_power', self.measured_apparent_power[-1])
 
-        Logger.log(self.device_id + '_psc', 'measured_active_power_lpf', self.measured_active_power_lpf[-1])
-        Logger.log(self.device_id + '_psc', 'measured_reactive_power_lpf', self.measured_reactive_power_lpf[-1])
-        Logger.log(self.device_id + '_psc', 'measured_apparent_power_lpf', self.measured_apparent_power_lpf[-1])
+        Logger.log(self.controller_id, 'measured_active_power_lpf', self.measured_active_power_lpf[-1])
+        Logger.log(self.controller_id, 'measured_reactive_power_lpf', self.measured_reactive_power_lpf[-1])
+        Logger.log(self.controller_id, 'measured_apparent_power_lpf', self.measured_apparent_power_lpf[-1])
 
-        Logger.log(self.device_id + '_psc', 'load_active_power', self.load_active_power[-1])
-        Logger.log(self.device_id + '_psc', 'load_reactive_power', self.load_reactive_power[-1])
-        Logger.log(self.device_id + '_psc', 'load_apparent_power', self.load_apparent_power[-1])
+        Logger.log(self.controller_id, 'load_active_power', self.load_active_power[-1])
+        Logger.log(self.controller_id, 'load_reactive_power', self.load_reactive_power[-1])
+        Logger.log(self.controller_id, 'load_apparent_power', self.load_apparent_power[-1])
 
-        Logger.log(self.device_id + '_psc', 'p_target', self.P_target)
+        Logger.log(self.controller_id, 'p_target', self.P_target)
 
-        Logger.log(self.device_id + '_psc', 'p_set', self.p_set[-1])
-        Logger.log(self.device_id + '_psc', 'p_in', self.p_in[-1])
-        Logger.log(self.device_id + '_psc', 'p_out', self.p_out[-1])
+        Logger.log(self.controller_id, 'p_set', self.p_set[-1])
+        Logger.log(self.controller_id, 'p_in', self.p_in[-1])
+        Logger.log(self.controller_id, 'p_out', self.p_out[-1])
         
 
         # Logger.log(self.device_id, 'current_capacity', self.current_capacity)
