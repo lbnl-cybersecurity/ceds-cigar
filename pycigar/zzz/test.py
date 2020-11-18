@@ -31,8 +31,12 @@ class FooEnv(Env):
                 for group_controller_name, group_controller in self.k.device.group_controllers.items():
                     action = group_controller.get_action(self)
                     if isinstance(action, tuple):
-                        devices.extend([group_controller.device_id])
-                        control_setting.extend((action,)*len([group_controller.device_id]))
+                        if isinstance(group_controller.device_id, str):
+                            devices.extend([group_controller.device_id])
+                            control_setting.extend((action,))
+                        else:
+                            devices.extend(group_controller.device_id)
+                            control_setting.extend((action,)*len(group_controller.device_id))
                     elif isinstance(action, dict):
                         devices.extend(action.keys())
                         control_setting.extend(action.values())
