@@ -531,7 +531,7 @@ class OpenDSSDevice(KernelDevice):
         control_setting : list
             The control setting of the device (e.g. VBP for PVDevice...)
         """
-        if type(device_id) == str:
+        if isinstance(device_id, str):
             device_id = [device_id]
             control_setting = [control_setting]
 

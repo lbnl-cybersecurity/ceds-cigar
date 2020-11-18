@@ -236,20 +236,20 @@ class PVDevice(BaseDevice):
 
     def log(self):
         # log history
-            if not self.is_disable_log:
-                Logger = logger()
-                Logger.log(self.device_id, 'y', self.y)
-                Logger.log(self.device_id, 'u', self.u)
-                Logger.log(self.device_id, 'p_set', self.p_set[1])
-                Logger.log(self.device_id, 'q_set', self.q_set[1])
-                Logger.log(self.device_id, 'p_out', self.p_out[1])
-                Logger.log(self.device_id, 'q_out', self.q_out[1])
-                Logger.log(self.device_id, 'control_setting', self.control_setting)
-                if self.Sbar:
-                    Logger.log(self.device_id, 'sbar_solarirr', 1.5e-3*(abs(self.Sbar ** 2 - max(10, self.solar_irr) ** 2)) ** (1 / 2))
-                    Logger.log(self.device_id, 'sbar_pset', self.p_set[1] / self.Sbar)
-                    Logger.log(self.device_id, 'pset_pmax', self.p_set[1] / max(10, self.solar_irr))
-                    Logger.log(self.device_id, 'q_avail_real', abs(self.Sbar ** 2 - self.p_out[1] ** 2) ** (1 / 2)*np.sign(self.q_out[1]))
-                Logger.log(self.device_id, 'solar_irr', self.solar_irr)
-                if hasattr(self, 'node_id'):
-                    Logger.log_single(self.device_id, 'node', self.node_id)
+        if not self.is_disable_log:
+            Logger = logger()
+            Logger.log(self.device_id, 'y', self.y)
+            Logger.log(self.device_id, 'u', self.u)
+            Logger.log(self.device_id, 'p_set', self.p_set[1])
+            Logger.log(self.device_id, 'q_set', self.q_set[1])
+            Logger.log(self.device_id, 'p_out', self.p_out[1])
+            Logger.log(self.device_id, 'q_out', self.q_out[1])
+            Logger.log(self.device_id, 'control_setting', self.control_setting)
+            if self.Sbar:
+                Logger.log(self.device_id, 'sbar_solarirr', 1.5e-3*(abs(self.Sbar ** 2 - max(10, self.solar_irr) ** 2)) ** (1 / 2))
+                Logger.log(self.device_id, 'sbar_pset', self.p_set[1] / self.Sbar)
+                Logger.log(self.device_id, 'pset_pmax', self.p_set[1] / max(10, self.solar_irr))
+                Logger.log(self.device_id, 'q_avail_real', abs(self.Sbar ** 2 - self.p_out[1] ** 2) ** (1 / 2)*np.sign(self.q_out[1]))
+            Logger.log(self.device_id, 'solar_irr', self.solar_irr)
+            if hasattr(self, 'node_id'):
+                Logger.log_single(self.device_id, 'node', self.node_id)

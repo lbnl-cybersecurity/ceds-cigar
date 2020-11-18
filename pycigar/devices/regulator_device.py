@@ -38,9 +38,10 @@ class RegulatorDevice(BaseDevice):
 
     def log(self):
         """See parent class."""
-        Logger = logger()
-        Logger.log(self.device_id, 'max_tap_change', self.max_tap_change)
-        Logger.log(self.device_id, 'forward_band', self.kernel_api.get_regulator_forwardband(self.device_id))
-        Logger.log(self.device_id, 'tap_number', self.kernel_api.get_regulator_tap(self.device_id))
-        Logger.log(self.device_id, 'tap_delay', self.tap_delay)
-        Logger.log(self.device_id, 'regulator_forwardvreg', self.kernel_api.get_regulator_forwardvreg(self.device_id))
+        if not self.is_disable_log:
+            Logger = logger()
+            Logger.log(self.device_id, 'max_tap_change', self.max_tap_change)
+            Logger.log(self.device_id, 'forward_band', self.kernel_api.get_regulator_forwardband(self.device_id))
+            Logger.log(self.device_id, 'tap_number', self.kernel_api.get_regulator_tap(self.device_id))
+            Logger.log(self.device_id, 'tap_delay', self.tap_delay)
+            Logger.log(self.device_id, 'regulator_forwardvreg', self.kernel_api.get_regulator_forwardvreg(self.device_id))
