@@ -180,119 +180,47 @@ class BatteryPeakShavingControllerDist(BaseController):
                 self.p_out.append(-self.p_set[-1])
                 self.custom_control_setting = {'p_out': 1*self.p_out[-1]}
 
-            ##################################################
-            ##################################################
-            ##################################################
-
-            # if self.control_setting[-1] == 'charge':
-            #     self.load_active_power.append(self.measured_active_power_lpf[-1] - self.p_in[-2])
-            # if self.control_setting[-1] == 'discharge':
-            #     self.load_active_power.append(self.measured_active_power_lpf[-1] + self.p_out[-2])
-
-            # self.load_reactive_power.append(self.measured_reactive_power[-1])
-            # self.load_apparent_power.append((self.load_active_power[-1]**2 + self.load_reactive_power[-1]**2)**(1/2))
-
-            # if self.load_active_power[-1] >= self.max_active_power:
-
-            #     self.control_setting.append('discharge')
-
-            #     self.p_set.append(self.load_active_power[-1] - self.max_active_power)
-
-            #     self.p_out.append(0*min(self.p_set[-1], env.k.device.devices[self.device_id]['device'].max_discharge/1e3))
-
-            #     self.p_in.append(0)
-
-            #     self.custom_control_setting = {'p_out': 1e3*self.p_out[-1]}
-
-            # elif self.load_active_power[-1] <= self.max_active_power and self.load_active_power[-1] >= 0:
-
-            #     self.control_setting.append('charge')
-
-            #     self.p_set.append(self.max_active_power - self.load_active_power[-1])
-
-            #     self.p_in.append(0*min(self.p_set[-1], env.k.device.devices[self.device_id]['device'].max_charge/1e3))
-
-            #     self.p_out.append(0)
-
-            #     self.custom_control_setting = {'p_in': 1e3*self.p_in[-1]}
-
-            ##################################################
-            ##################################################
-            ##################################################
-            
-            # if self.total_apparent_power >= self.max_apparent_power:
-
-            #     if self.total_active_power >= 0:
-
-            #         self.control_setting = 'discharge'
-
-            #         self.p_set = (self.max_apparent_power - (self.max_apparent_power**2 - self.total_reactive_power**2)**(1/2))
-
-            #         self.p_out = min(self.p_set, env.k.device.devices[self.device_id]['device'].max_discharge/1e3)
-
-            #         self.custom_control_setting = {'p_out': 1e3*self.p_out}
-
-            #         if env.k.time % self.print_interval == 0:
-            #             print('Discharge')
-            #             print('Discharge power non rectified [kW]: ' + str(self.p_set))
-            #             print('Discharge power [kW]: ' + str(self.p_out))
-
-            #     if self.total_active_power <= 0:
-                    
-            #         self.control_setting = 'charge'
-
-            #         self.p_set = 1e3*(self.max_apparent_power - (self.max_apparent_power**2 - self.total_reactive_power**2)**(1/2))
-
-            #         self.p_in = min(self.p_set, env.k.device.devices[self.device_id]['device'].max_charge/1e3)
-
-            #         self.custom_control_setting = {'p_in': 1e3*self.p_in}
-
-            #         if env.k.time % self.print_interval == 0:
-            #                 print('Charge')
-            #                 print('Charge power non rectified [kW]: ' + str(self.p_set))
-            #                 print('Charge power [kW]: ' + str(self.p_in))
-
         if env.k.time % self.print_interval == 0:
             print('Time: ' + str(env.k.time))
             print('Controller: ' + self.controller_id)
-            print('Device: ' + self.device_id)
 
+            print('Device: ' + self.device_id)
             print('Battery SOC: ' + str(env.k.device.devices[self.device_id]['device'].SOC))
 
-            print('Measured active power [kW]: ' + str(self.measured_active_power[-1]))
-            print('Measured reactive power [kVAr]: ' + str(self.measured_reactive_power[-1]))
-            print('Measured apparent power [kVA]: ' + str(self.measured_apparent_power[-1]))
+            # print('Measured active power [kW]: ' + str(self.measured_active_power[-1]))
+            # print('Measured reactive power [kVAr]: ' + str(self.measured_reactive_power[-1]))
+            # print('Measured apparent power [kVA]: ' + str(self.measured_apparent_power[-1]))
 
             print('Measured active power lpf [kW]: ' + str(self.measured_active_power_lpf[-1]))
             print('Measured reactive power lpf [kVAr]: ' + str(self.measured_reactive_power_lpf[-1]))
             print('Measured apparent power lpf [kVA]: ' + str(self.measured_apparent_power_lpf[-1]))
 
-            if self.control_setting[-2] == 'charge':
-                print('Charge')
-                print('Active Power Control k-1 [kW]: ' + str(self.p_in[-2]))
-            if self.control_setting[-1] == 'discharge':
-                print('Discharge')
-                print('Active Power Control k-1 [kW]: ' + str(self.p_out[-2]))
+            # if self.control_setting[-2] == 'charge':
+            #     print('Charge')
+            #     print('Active Power Control k-1 [kW]: ' + str(self.p_in[-2]))
+            # if self.control_setting[-1] == 'discharge':
+            #     print('Discharge')
+            #     print('Active Power Control k-1 [kW]: ' + str(self.p_out[-2]))
 
-            print('Load active power [kW]: ' + str(self.load_active_power[-1]))
-            print('Load reactive power [kVAr]: ' + str(self.load_reactive_power[-1]))
-            print('Load apparent power [kVA]: ' + str(self.load_apparent_power[-1]))
+            # print('Load active power [kW]: ' + str(self.load_active_power[-1]))
+            # print('Load reactive power [kVAr]: ' + str(self.load_reactive_power[-1]))
+            # print('Load apparent power [kVA]: ' + str(self.load_apparent_power[-1]))
             # print('')
 
             if self.control_setting[-1] == 'charge':
                 print('Discharge')
-                print('Discharge power non rectified [kW]: ' + str(self.p_set[-1]))
+                # print('Discharge power non rectified [kW]: ' + str(self.p_set[-1]))
                 print('Discharge power [kW]: ' + str(self.p_in[-1]))
 
             if self.control_setting[-1] == 'discharge':
                 print('Discharge')
-                print('Discharge power non rectified [kW]: ' + str(self.p_set[-1]))
+                # print('Discharge power non rectified [kW]: ' + str(self.p_set[-1]))
                 print('Discharge power [kW]: ' + str(self.p_out[-1]))            
             
 
             print('')
 
-            self.log()
+        self.log()
 
         return self.control_setting[-1], self. custom_control_setting
 

@@ -97,7 +97,7 @@ scenario_config:
         controller: battery_peak_shaving_controller_cent
         custom_controller_configs: {
           default_control_setting: 'standby',
-          lowpass_filter_frequency: 0.01, 
+          lowpass_filter_frequency: 0.05, 
           active_power_target: 750,
           eta: 0.01
         }
