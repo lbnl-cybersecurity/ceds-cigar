@@ -1,0 +1,4 @@
+device class=battery_storage_device_advanced name=bsd_1 node=s701a default_control_setting=standby min_soc=0.2 max_soc=0.2 total_energy_capacity=100 starting_energy_capacity=100
+device class=battery_storage_device_advanced node=s701a default_control_setting=standby name=bsd_2 min_soc=0.2 max_soc=0.2 total_energy_capacity=100 starting_energy_capacity=80
+controller class=battery_peak_shaving_controller_dist low_pass_filter_freq=0.1 default_control_setting=standby devices=[bsd01]
+controller class=battery_peak_shaving_controller_dist low_pass_filter_freq=0.1 default_control_setting=standby devices=[bsd02]
