@@ -37,7 +37,7 @@ New Transformer.Reg3 phases=1 bank=reg1 XHL=0.01 kVAs=[1666 1666]
 ~ Buses=[650.3 RG60.3] kVs=[2.4 2.4] %LoadLoss=0.01
 new regcontrol.Reg3 transformer=Reg3 winding=2 vreg=122 band=2 ptratio=20 ctprim=700 R=3 X=9 !TapNum=9
 
-Set Controlmode=OFF
+! Set Controlmode=ON
 
 
 !TRANSFORMER DEFINITION 
