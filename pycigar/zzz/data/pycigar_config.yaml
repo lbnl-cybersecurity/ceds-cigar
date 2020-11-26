@@ -51,7 +51,7 @@ scenario_config:
                 current_capacity: 9.0,
                 max_charge_power: 20.00,
                 max_discharge_power: 25.00,
-                max_ramp_rate: 0.1,
+                max_ramp_rate: 0.001,
                 max_SOC: 1.0,
                 min_SOC: 0.2
               }
@@ -77,7 +77,7 @@ scenario_config:
                 current_capacity: 8.0,
                 max_charge_power: 20.00,
                 max_discharge_power: 30.00,
-                max_ramp_rate: 0.1,
+                max_ramp_rate: 0.001,
                 max_SOC: 1.0,
                 min_SOC: 0.2
               }
@@ -93,7 +93,7 @@ scenario_config:
                 current_capacity: 8.0,
                 max_charge_power: 5.00,
                 max_discharge_power: 10.00,
-                max_ramp_rate: 0.1,
+                max_ramp_rate: 0.001,
                 max_SOC: 1.0,
                 min_SOC: 0.2
               }
@@ -109,9 +109,11 @@ scenario_config:
         controller: battery_peak_shaving_controller_dist
         custom_controller_configs: {
           default_control_setting: 'standby',
-          lowpass_filter_frequency: 0.01, 
+          lowpass_filter_frequency: 0.1, 
           active_power_target: 750,
-          eta: 0.01
+          eta: 0.01,
+          K_P: 10.0,
+          K_I: 0.01
         }
         list_devices: ['bsd_1']
 
@@ -119,9 +121,11 @@ scenario_config:
         controller: battery_peak_shaving_controller_dist
         custom_controller_configs: {
           default_control_setting: 'standby',
-          lowpass_filter_frequency: 0.01, 
+          lowpass_filter_frequency: 0.1, 
           active_power_target: 750,
-          eta: 0.01
+          eta: 0.01,
+          K_P: 10.0,
+          K_I: 0.01
         }
         list_devices: ['bsd_2']
 
@@ -129,8 +133,10 @@ scenario_config:
         controller: battery_peak_shaving_controller_dist
         custom_controller_configs: {
           default_control_setting: 'standby',
-          lowpass_filter_frequency: 0.01, 
+          lowpass_filter_frequency: 0.1, 
           active_power_target: 750,
-          eta: 0.01
+          eta: 0.01,
+          K_P: 10.0,
+          K_I: 0.01
         }
         list_devices: ['bsd_3']

@@ -47,7 +47,9 @@ class BatteryStorageDeviceAdvanced(BaseDevice):
 
         self.max_discharge_power = self.additional_params.get('max_discharge_power', 1.25)*1000 # [kW --> W]
 
-        self.max_ramp_rate = self.additional_params.get('max_ramp_rate', 0.010)*1000 # [kW/s --> W/s]
+        self.max_ramp_rate = self.additional_params.get('max_ramp_rate', 0.015)*1000 # [kW/s --> W/s]
+
+        print(self.max_ramp_rate)
 
         self.max_SOC = self.additional_params.get('max_SOC', 1.0)
         self.min_SOC = self.additional_params.get('min_SOC', 0.2)
@@ -161,14 +163,18 @@ class BatteryStorageDeviceAdvanced(BaseDevice):
 
             if 'p_out' in self.custom_control_setting:
 
-                # print('test00')
+                print('Device: ' + self.device_id)
+                print('p_out_setpoint: ' + str(self.custom_control_setting['p_out']*1000))
                 
                 if self.custom_control_setting['p_out']*1000 >= self.p_out + self.Ts*self.max_ramp_rate: # [W]
                     self.p_out = self.p_out + self.Ts*self.max_ramp_rate # [W]
-                    # print('test01')
+                    print('test01')
                 else:
                     self.p_out = self.custom_control_setting['p_out']*1000 # [kW --> W]
-                    # print('test02')
+                    print('test02')
+
+                print('p_out_rectified: ' + str(self.p_out))
+                print('')
 
             if self.current_capacity <= self.min_SOC*self.total_capacity:
 
