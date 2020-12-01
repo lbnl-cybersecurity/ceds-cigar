@@ -99,6 +99,9 @@ scenario_config:
           default_control_setting: 'standby',
           lowpass_filter_frequency: 0.05, 
           active_power_target: 750,
-          eta: 0.01
+          eta: 0.01,
+          K_P: 0.75,
+          K_I: 0.05,
+          K_D: 0.02
         }
         list_devices: ['bsd_1','bsd_2','bsd_3']

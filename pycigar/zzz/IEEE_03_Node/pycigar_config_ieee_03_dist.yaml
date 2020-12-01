@@ -51,7 +51,7 @@ scenario_config:
                 current_capacity: 9.0,
                 max_charge_power: 20.00,
                 max_discharge_power: 25.00,
-                max_ramp_rate: 0.2,
+                max_ramp_rate: 0.5,
                 max_SOC: 1.0,
                 min_SOC: 0.2
               }
@@ -66,7 +66,7 @@ scenario_config:
                 current_capacity: 8.0,
                 max_charge_power: 20.00,
                 max_discharge_power: 30.00,
-                max_ramp_rate: 0.2,
+                max_ramp_rate: 0.5,
                 max_SOC: 1.0,
                 min_SOC: 0.2
               }        
@@ -81,7 +81,7 @@ scenario_config:
                 current_capacity: 8.0,
                 max_charge_power: 5.00,
                 max_discharge_power: 10.00,
-                max_ramp_rate: 0.2,
+                max_ramp_rate: 0.5,
                 max_SOC: 1.0,
                 min_SOC: 0.2
               }
@@ -100,9 +100,9 @@ scenario_config:
           lowpass_filter_frequency: 0.05, 
           active_power_target: 750,
           eta: 0.01,
-          K_P: 0.5,
+          K_P: 0.75,
           K_I: 0.05,
-          K_D: 0.01
+          K_D: 0.02
         }
         list_devices: ['bsd_1']
 
@@ -113,9 +113,9 @@ scenario_config:
           lowpass_filter_frequency: 0.05, 
           active_power_target: 750,
           eta: 0.01,
-          K_P: 0.5,
+          K_P: 0.75,
           K_I: 0.05,
-          K_D: 0.01
+          K_D: 0.02
         }
         list_devices: ['bsd_2']
 
@@ -126,8 +126,8 @@ scenario_config:
           lowpass_filter_frequency: 0.05, 
           active_power_target: 750,
           eta: 0.01,
-          K_P: 0.5,
+          K_P: 0.75,
           K_I: 0.05,
-          K_D: 0.01
+          K_D: 0.02
         }
         list_devices: ['bsd_3']
