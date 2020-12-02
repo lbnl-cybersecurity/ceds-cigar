@@ -51,7 +51,7 @@ scenario_config:
                 current_capacity: 9.0,
                 max_charge_power: 20.00,
                 max_discharge_power: 25.00,
-                max_ramp_rate: 0.1,
+                max_ramp_rate: 0.5,
                 max_SOC: 1.0,
                 min_SOC: 0.2
               }
@@ -66,7 +66,7 @@ scenario_config:
                 current_capacity: 8.0,
                 max_charge_power: 20.00,
                 max_discharge_power: 30.00,
-                max_ramp_rate: 0.1,
+                max_ramp_rate: 0.5,
                 max_SOC: 1.0,
                 min_SOC: 0.2
               }        
@@ -81,7 +81,7 @@ scenario_config:
                 current_capacity: 8.0,
                 max_charge_power: 5.00,
                 max_discharge_power: 10.00,
-                max_ramp_rate: 0.1,
+                max_ramp_rate: 0.5,
                 max_SOC: 1.0,
                 min_SOC: 0.2
               }

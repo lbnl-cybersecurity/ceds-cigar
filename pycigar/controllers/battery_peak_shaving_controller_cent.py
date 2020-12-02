@@ -184,7 +184,7 @@ class BatteryPeakShavingControllerCent(BaseController):
 
             # self.p_set.append(self.p_set[-2] + self.eta * (self.P_target - self.measured_active_power_lpf[-2]))
 
-            self.p_set.append(self.p_set)
+            self.p_set.append(self.p_set_temp)
 
             # if self.p_set <= 0:
             #     if self.p_set <= env.k.devices[self.device_id].SOC
@@ -202,6 +202,8 @@ class BatteryPeakShavingControllerCent(BaseController):
                 max_discharge_power_list.append(env.k.device.devices[device]['device'].max_discharge_power/1e3)
 
             for device in self.device_id:
+
+                # print(self.p_set[-1])
 
                 if self.p_set[-1] >= 0:
 
