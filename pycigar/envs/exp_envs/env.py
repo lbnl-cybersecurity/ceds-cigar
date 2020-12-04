@@ -73,6 +73,8 @@ class CentralEnv(Env):
             rl_actions = self.old_actions
 
         self.reset_delay = False
+        action_penalty = (rl_actions[rl_id] != self.old_actions[rl_id]).all() and self.delay != 0
+
         if (rl_actions[rl_id] == self.old_actions[rl_id]).all():
             if self.delay != 0:
                 self.delay -= 1
@@ -130,7 +132,8 @@ class CentralEnv(Env):
                 'y': obs['y'],
                 'p_set_p_max': obs['p_set_p_max'],
                 'sbar_solar_irr': obs['sbar_solar_irr'],
-                'delay': self.delay
+                'delay': self.delay,
+                'no_action_penalty':  action_penalty
             }
             for key in self.k.device.get_rl_device_ids()
         }

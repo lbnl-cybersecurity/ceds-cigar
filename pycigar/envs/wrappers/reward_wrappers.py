@@ -145,6 +145,7 @@ class CentralGlobalRewardWrapper(RewardWrapper):
         P = self.k.sim_params['P']
         Q = self.k.sim_params['Q']
         T = self.k.sim_params['T']
+
         global_reward = 0
         # we accumulate agents reward into global_reward and divide it with the number of agents.
         y_or_u = 'u_mean' if self.unbalance else 'y'
@@ -163,14 +164,18 @@ class CentralGlobalRewardWrapper(RewardWrapper):
 
             r = 0
 
-            action = np.array(action)
+            """action = np.array(action)
             old_action = np.array(old_action)
             if isinstance(self.action_space, Box):
                 roa = np.abs(action - old_action).sum()
             elif (action == old_action).all():
                 roa = 0
             else:
+                roa = 1"""
+            if info[key]['no_action_penalty']:
                 roa = 1
+            else:
+                roa = 0
 
             if not self.multi_attack:
                 r += -(
