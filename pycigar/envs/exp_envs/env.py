@@ -38,6 +38,9 @@ class CentralEnv(Env):
         pv_device_ids = self.k.device.get_pv_device_ids()
         for device_id in pv_device_ids:
             self.INIT_ACTION[device_id] = np.array(self.k.device.get_control_setting(device_id))
+
+        self.reset_delay = False
+        self.delay = DELAY
         self.delay -= 1
         return states
 
@@ -69,15 +72,20 @@ class CentralEnv(Env):
         if rl_actions is None:
             rl_actions = self.old_actions
 
-        if self.delay == 0:
-            for i in range(5):
-                rl_ids_key = np.array(self.k.device.get_rl_device_ids())[randomize_rl_update == 0]
-                randomize_rl_update -= 1
-                rl_dict = {k: rl_actions[k] for k in rl_ids_key}
-                self.apply_rl_actions(rl_dict)
-            self.delay = DELAY-1
+        self.reset_delay = False
+        if (rl_actions[rl_id] == self.old_actions[rl_id]).all():
+            if self.delay != 0:
+                self.delay -= 1
         else:
-            self.delay -= 1
+            if self.delay != 0:
+                self.delay -= 1
+            else:
+                for i in range(5):
+                    rl_ids_key = np.array(self.k.device.get_rl_device_ids())[randomize_rl_update == 0]
+                    randomize_rl_update -= 1
+                    rl_dict = {k: rl_actions[k] for k in rl_ids_key}
+                    self.apply_rl_actions(rl_dict)
+                self.reset_delay = True
 
         # perform action update for PV inverter device
         if len(self.k.device.get_norl_device_ids()) > 0:
@@ -145,6 +153,8 @@ class CentralEnv(Env):
         else:
             reward = self.compute_reward(rl_actions, fail=not converged)
 
+        if self.reset_delay:
+            self.delay = DELAY - 1
         return obs, reward, done, infos
 
     def get_state(self):
