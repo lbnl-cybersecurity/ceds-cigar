@@ -164,18 +164,18 @@ class CentralGlobalRewardWrapper(RewardWrapper):
 
             r = 0
 
-            """action = np.array(action)
+            action = np.array(action)
             old_action = np.array(old_action)
             if isinstance(self.action_space, Box):
                 roa = np.abs(action - old_action).sum()
             elif (action == old_action).all():
                 roa = 0
             else:
-                roa = 1"""
-            if info[key]['no_action_penalty']:
+                roa = 1
+            """if info[key]['no_action_penalty']:
                 roa = 1
             else:
-                roa = 0
+                roa = 0"""
 
             if not self.multi_attack:
                 r += -(
