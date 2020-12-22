@@ -10,6 +10,8 @@ class inverter_manager():
         pass
 
 
+# Inverter object class
+
 class inverter():
     
     # Initialize
@@ -17,17 +19,27 @@ class inverter():
                 
         self.reactive_power = 0 # current reactive power
     
-        
+        # Volt-VAr curve breakpoints
+        # inject maximum reactive power at Vlp <= VBP[0] : f(Vlp <= VBP[0]) = -1
+        # inject reactive power based on linear function from VBP[0]<= Vlp <= VBP[1] : f(VBP[0]) = -1, f(VBP[1]) = 0
+        # inject no reactive power from VBP[1]<= Vlp <= VBP[2] : f(VBP[1] = Vlp <= VBP[2] ) = 0
+        # consume reactive power based on linear function from VBP[2]<= Vlp <= VBP[3] : f(VBP[2]) = 0, f(VBP[3]) = +1
+        # inject maximum reactive power at Vlp >= VBP[3] : f(Vlp >= VBP[3]) = +1
         self.VBP = np.array([0.97, 0.99, 1.01, 1.03]) # Volt-VAr curve breakpoints
         
+        # lowpass filter cutoff frequency - this determines how much low and high frequency content of voltage magnitude measurements pass thourh
+        # lower values mean the filter reacts more slowly to rapid changes in voltage magnitude (more inertia)
+        # higher values mean the filter reacts faster to rapid changes in voltage magnitude (less inertia)
+        # Important: wlp/(2*pi) <= (1/2)*(1/Ts)
+        self.flp = 2.0 # lowpass filter cutoff frequency [Hz]
+        self.wlp = 2*np.pi*self.flp # lowpass filter cutoff frequency [rad/s]     
         
-        self.wlp = 2*np.pi*2.0 # lowpass filter cutoff frequency        
+        self.Ts = 1.0 # lowpass filter timestep [s]        
         
-        self.Ts = 1.0 # lowpass filter timestep        
+        # measured voltage magnitude
+        self.Vmeas = [0] # measured voltage        
         
-        self.Vmeas = [0] # measured voltage
-        
-        
+        # filtered voltage magnitude - this value is input to the Volt-VAr curve
         self.Vlp = [0] # lowpass filter voltage
         
         
@@ -43,7 +55,7 @@ class inverter():
         self.qin = [0] # reactive power consumed
     
     # Set timesteps for asynchronous inverter operation
-    def set_timesteps(self, Ts, time, numTimeSteps):        
+    def set_timesteps(self, Ts, time, numTimeSteps):
         
         self.Ts = Ts # Simulation timestep        
         
@@ -101,8 +113,9 @@ class inverter():
         self.VAr_capacity = VAr_capacity
     
     # set lowpass filter cutoff frequency
-    def set_lowpass_frequency(self, wlp):
-        self.wlp = wlp
+    def set_lowpass_frequency(self, flp):
+        self.flp = flp
+        self.wlp = 2*np.pi*self.flp
     
     # set Volt-VAr curve breakpoints
     def set_VBP(self, VBP):
@@ -311,4 +324,3 @@ class inverter():
 #         self.qset = self.qset[0:self.Nop+1]
 #         self.qin = self.qin[0:self.Nop+1]
 #         self.VBPhist = self.VBPhist[0:self.Nop+1,:]
-        
