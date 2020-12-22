@@ -1,5 +1,5 @@
 import numpy as np
-import signal_processing as signal_processing
+import util.signal_processing as signal_processing
 
 class voltage_imbalance_observer_manager():
 

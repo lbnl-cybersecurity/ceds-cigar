@@ -1,7 +1,7 @@
 # Inverter object class
 
 import numpy as np
-import signal_processing as signal_processing
+import util.signal_processing as signal_processing
 
 class inverter_manager():
 
