@@ -5,9 +5,70 @@ import util.signal_processing as signal_processing
 
 class inverter_manager():
 
-    def __init__(Self):
+    def __init__(self, time, Ts, buslist, VbaseLN, jsondata):
 
-        pass
+        self.inverterlist = []
+
+        self.time = time
+        self.Ts = Ts
+
+        self.buslist = buslist
+        self.VbaseLN = VbaseLN
+
+        self.jsondata = jsondata
+
+
+    def parse_json(self):
+
+        self.invertersjson = self.jsondata['inverters']
+
+        for k1 in range(len(self.invertersjson)):
+
+            tempinverter = inverter()
+
+            tempinverter.set_timesteps(self.Ts,self.time,len(self.time))
+            tempinverter.set_opertime(self.invertersjson[k1]['Top'],self.invertersjson[k1]['Toff'])    
+            tempinverter.set_busname(self.invertersjson[k1]['bus'])
+            tempinverter.set_phase(self.invertersjson[k1]['phase'])
+            tempinverter.set_connection(self.invertersjson[k1]['conn'])
+            
+            tempinverter.set_lowpass_frequency(2*np.pi*self.invertersjson[k1]['flp'])
+            tempinverter.set_VAr_capacity(self.invertersjson[k1]['kVAr'])
+            tempinverter.set_VBP(np.array(self.invertersjson[k1]['VBP']))
+            
+            count = 0
+            for k2 in range(0,k1+1):
+                if self.invertersjson[k1]['bus'] == self.invertersjson[k2]['bus'] and self.invertersjson[k1]['phase'] == self.invertersjson[k2]['phase']:
+                    count = count + 1
+
+            temploadname = 'inverter_' + str(self.invertersjson[k1]['bus']) + '_' + str(self.invertersjson[k1]['phase']) + '_' + str(count)
+            print(temploadname)
+
+            tempinverter.set_loadname(temploadname)
+
+            #####
+
+            dss_command_str = 'New Load.' + temploadname + ' '
+            dss_command_str += 'Bus1=' + self.invertersjson[k1]['bus'] + '.'
+
+            basekv = float(self.VbaseLN[self.buslist.index(self.invertersjson[k1]['bus'])])
+            
+            if len(self.invertersjson[k1]['phase'].split('.')) == 1:
+                dss_command_str += str(self.invertersjson[k1]['phase']) + ' Phases=1 Conn=Wye Model=1 kV=' + str(basekv) + ' kW=0.0 kVAR=0.0'
+            elif len(self.invertersjson[k1]['phase'].split('.')) == 2:
+                dss_command_str += str(self.invertersjson[k1]['phase']) + ' Phases=2 Conn=Wye Model=1 kV=' + str(np.sqrt(3)*basekv) + ' kW=0.0 kVAR=0.0'
+            elif len(self.invertersjson[k1]['phase'].split('.')) == 3:
+                dss_command_str += str(self.invertersjson[k1]['phase']) + ' Phases=3 Conn=Wye Model=1 kV=' + str(np.sqrt(3)*basekv) + ' kW=0.0 kVAR=0.0'
+
+            print(dss_command_str)
+
+            tempinverter.dss_command_str = dss_command_str
+
+            #####
+            
+            self.inverterlist.append(tempinverter)
+
+        return self.inverterlist
 
 
 # Inverter object class

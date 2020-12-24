@@ -5,9 +5,86 @@ import util.signal_processing as signal_processing
 
 class esc_manager():
 
-    def __init__(self):
+    def __init__(self, time, Ts, buslist, VbaseLN, jsondata):
 
-        pass
+        self.esclist = []
+
+        self.time = time
+        self.Ts = Ts
+
+        self.buslist = buslist
+        self.VbaseLN = VbaseLN
+
+        self.jsondata = jsondata
+
+    def parse_json(self):
+
+        self.escsjson = self.jsondata['escs']
+
+        for k1 in range(len(self.escsjson)):
+
+            tempesc = esc()
+
+            tempesc.set_timesteps(self.Ts,self.time,len(self.time))
+            tempesc.set_opertime(self.escsjson[k1]['Top'],self.escsjson[k1]['Toff'])    
+            tempesc.set_busname(self.escsjson[k1]['bus'])
+            tempesc.set_phase(self.escsjson[k1]['phase'])
+            tempesc.set_connection(self.escsjson[k1]['conn'])
+            tempesc.set_esc_params(self.escsjson[k1]['fes'],self.escsjson[k1]['aesp'],self.escsjson[k1]['aesq'],self.escsjson[k1]['kesp'],self.escsjson[k1]['kesq'])
+            tempesc.set_esc_limits(1*self.escsjson[k1]['pmin'],1*self.escsjson[k1]['pmax'],1*self.escsjson[k1]['qmin'],1*self.escsjson[k1]['qmax'],1*self.escsjson[k1]['smax'])
+
+            count = 0
+            for k2 in range(0,k1+1):
+                if self.escsjson[k1]['bus'] == self.escsjson[k2]['bus'] and self.escsjson[k1]['phase'] == self.escsjson[k2]['phase']:
+                    count = count + 1
+
+            temploadname = 'esc_' + str(self.escsjson[k1]['bus']) + '_' + str(self.escsjson[k1]['phase']) + '_' + str(count)
+            print(temploadname)
+
+            tempesc.set_loadname(temploadname)
+
+            #####
+
+            dss_command_str = 'New Load.' + temploadname + ' '
+            dss_command_str += 'Bus1=' + self.escsjson[k1]['bus'] + '.'
+
+            basekv = float(self.VbaseLN[self.buslist.index(self.escsjson[k1]['bus'])])
+            
+            if len(self.escsjson[k1]['phase'].split('.')) == 1:
+                dss_command_str += str(self.escsjson[k1]['phase']) + ' Phases=1 Conn=Wye Model=1 kV=' + str(basekv) + ' kW=0.0 kVAR=0.0'
+            elif len(self.escsjson[k1]['phase'].split('.')) == 2:
+                dss_command_str += str(self.escsjson[k1]['phase']) + ' Phases=2 Conn=Wye Model=1 kV=' + str(np.sqrt(3)*basekv) + ' kW=0.0 kVAR=0.0'
+            elif len(self.escsjson[k1]['phase'].split('.')) == 3:
+                dss_command_str += str(self.escsjson[k1]['phase']) + ' Phases=3 Conn=Wye Model=1 kV=' + str(np.sqrt(3)*basekv) + ' kW=0.0 kVAR=0.0'
+
+            print(dss_command_str)
+
+            tempesc.dss_command_str = dss_command_str
+
+            #####
+            
+            self.esclist.append(tempesc)
+
+        return self.esclist
+
+
+    def create_opendss_load_command(self, temploadname):
+
+        dss_command_str = 'New Load.' + temploadname + ' '
+        dss_command_str += 'Bus1=' + self.escsjson[k1]['bus'] + '.'
+
+        basekv = float(self.VbaseLN[self.buslist.index(self.escsjson[k1]['bus'])])
+        
+        if len(self.escsjson['phase'].split('.')) == 1:
+            dss_command_str += str(self.escsjson[k1]['phase']) + ' Phases=1 Conn=Wye Model=1 kV=' + str(basekv) + ' kW=0.0 kVAR=0.0'
+        elif len(self.escsjson['phase'].split('.')) == 2:
+            dss_command_str += str(self.escsjson[k1]['phase']) + ' Phases=2 Conn=Wye Model=1 kV=' + str(np.sqrt(3)*basekv) + ' kW=0.0 kVAR=0.0'
+        elif len(self.escsjson['phase'].split('.')) == 3:
+            dss_command_str += str(self.escsjson[k1]['phase']) + ' Phases=3 Conn=Wye Model=1 kV=' + str(np.sqrt(3)*basekv) + ' kW=0.0 kVAR=0.0'
+
+        print(dss_command_str)
+        
+        return dss_command_str
 
 class esc():
     
@@ -87,14 +164,16 @@ class esc():
         
         self.Tlast = self.Toff # ES last operation timestep
         
-    def set_esc_params(self, fes, aes, kes):
+    def set_esc_params(self, fes, aesp, aesq, kesp, kesq):
 
         self.fes = fes # ES probe frequency [Hz]
         self.wes = 2*np.pi*self.fes # ES probe angular frequency [rad/sec]
-        self.aes = aes # ES probe amplitude [kW or kVAr]
+        self.aesp = aesp # ES probe amplitude [kW or kVAr]
+        self.aesq = aesq # ES probe amplitude [kW or kVAr]
         self.wh = self.wes/10 # ES highpass filter cutoff frequency [rad/sec]
         self.wl = self.wes/10 # ES lowpass filter cutoff frequency [rad/sec]
-        self.kes = kes # ES integrator gain
+        self.kesp = kesp # ES integrator gain
+        self.kesq = kesq # ES integrator gain
 
     def set_esc_limits(self, pmin, pmax, qmin, qmax, smax):
 
@@ -164,7 +243,7 @@ class esc():
             self.epsp[kop] = self.psi[kop] - self.rhop[kop]
 
             # demodulate - multiply by probe divide by amplitude
-            self.sigmap[kop] = 2/self.aes*np.cos(self.wes*timevalkm1)*self.rhop[kop]
+            self.sigmap[kop] = 2/self.aesp*np.cos(self.wes*timevalkm1)*self.rhop[kop]
 
             # lowpass filter to obtain gradient estimate
             self.xip[kop] = (1 - self.Top*self.wl)*self.xip[kop-1] + self.Top*self.wl*self.sigmap[kop-1]
@@ -173,8 +252,8 @@ class esc():
             # only integrate gradient estimate to update setpoint if objective function is above threshold
             # otherwise, keep setpoint constant
             if np.abs(self.psi[kop]) >= 1e-99:
-                self.phat[kop] = self.phat[kop-1] - 0.1*1*self.Top*self.kes*self.xip[kop-1]
-                self.phat[kop] = self.phat[kop-1] - 0.1*1/2*self.Top*self.kes*(self.xip[kop] + self.xip[kop-1])
+                self.phat[kop] = self.phat[kop-1] - 0.1*1*self.Top*self.kesp*self.xip[kop-1]
+                self.phat[kop] = self.phat[kop-1] - 0.1*1/2*self.Top*self.kesp*(self.xip[kop] + self.xip[kop-1])
             else:
                 self.phat[kop] = self.phat[kop-1]
                 self.phat[kop] = self.phat[kop-1]
@@ -204,7 +283,7 @@ class esc():
             self.epsq[kop] = self.psi[kop] - self.rhoq[kop]
 
             # demodulate - multiply by probe divide by amplitude
-            self.sigmaq[kop] = 2/self.aes*np.sin(self.wes*timevalkm1)*self.rhoq[kop]
+            self.sigmaq[kop] = 2/self.aesq*np.sin(self.wes*timevalkm1)*self.rhoq[kop]
 
             # lowpass filter to obtain gradient estimate
             self.xiq[kop] = (1 - self.Top*self.wl)*self.xiq[kop-1] + self.Top*self.wl*self.sigmaq[kop-1]
@@ -213,8 +292,8 @@ class esc():
             # only integrate gradient estimate to update setpoint if objective function is above threshold
             # otherwise, keep setpoint constant
             if np.abs(self.psi[kop]) >= 1e-99:
-                self.qhat[kop] = self.qhat[kop-1] - 1*self.Top*self.kes*self.xiq[kop-1]
-                self.qhat[kop] = self.qhat[kop-1] - 1/2*self.Top*self.kes*(self.xiq[kop] + self.xiq[kop-1])
+                self.qhat[kop] = self.qhat[kop-1] - 1*self.Top*self.kesq*self.xiq[kop-1]
+                self.qhat[kop] = self.qhat[kop-1] - 1/2*self.Top*self.kesq*(self.xiq[kop] + self.xiq[kop-1])
             else:
                 self.qhat[kop] = self.qhat[kop-1]
                 self.qhat[kop] = self.qhat[kop-1]
@@ -241,10 +320,10 @@ class esc():
             #     self.qhat[kop] = self.qhat[kop]*gammatemp
 
             # modulate - add probe to setpoint
-            self.p[kop] = self.phat[kop] + self.aes*np.cos(self.wes*timevalk)
+            self.p[kop] = self.phat[kop] + self.aesp*np.cos(self.wes*timevalk)
 
             # modulate - add probe to setpoint
-            self.q[kop] = self.qhat[kop] + self.aes*np.sin(self.wes*timevalk)
+            self.q[kop] = self.qhat[kop] + self.aesq*np.sin(self.wes*timevalk)
             
     def truncate_time_data(self):
         

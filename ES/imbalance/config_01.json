@@ -1,0 +1,17 @@
+{
+"dssfile": "asdf.txt",
+"inverters": [
+{"bus": "671", "phase": "1", "conn": "wye", "Top": 0.1, "Toff": 0.0, "flp": 2, "kVAr": 100 , "VBP": [0.95,0.98,1.02,1.05]},
+{"bus": "671", "phase": "2", "conn": "wye", "Top": 0.1, "Toff": 0.0, "flp": 2, "kVAr": 100 , "VBP": [0.95,0.98,1.02,1.05]},
+{"bus": "671", "phase": "3", "conn": "wye", "Top": 0.1, "Toff": 0.0, "flp": 2, "kVAr": 100 , "VBP": [0.95,0.98,1.02,1.05]}
+],
+"escs": [
+{"bus": "671", "phase": "1", "conn": "wye", "Top": 0.1, "Toff": 0.0, "fes": 1.01, "aesp": 10, "aesq": 10, "kesp": 500, "kesq": 500, "pmin": -300, "pmax": 300, "qmin": -300, "qmax": 300, "smax": 300},
+{"bus": "671", "phase": "2", "conn": "wye", "Top": 0.1, "Toff": 0.0, "fes": 1.03, "aesp": 10, "aesq": 10, "kesp": 500, "kesq": 500, "pmin": -300, "pmax": 300, "qmin": -300, "qmax": 300, "smax": 300},
+{"bus": "671", "phase": "3", "conn": "wye", "Top": 0.1, "Toff": 0.0, "fes": 1.05, "aesp": 10, "aesq": 10, "kesp": 500, "kesq": 500, "pmin": -300, "pmax": 300, "qmin": -300, "qmax": 300, "smax": 300},
+{"bus": "671", "phase": "1.2.3", "conn": "wye", "Top": 0.1, "Toff": 0.0, "fes": 1.07, "aesp": 10, "aesq": 10, "kesp": 0, "kesq": 0, "pmin": -300, "pmax": 300, "qmin": -300, "qmax": 300, "smax": 300}
+],
+"pmus": [],
+"vios": [],
+"voos": []
+}
