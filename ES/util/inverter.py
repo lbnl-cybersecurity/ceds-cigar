@@ -26,10 +26,14 @@ class inverter_manager():
 
             tempinverter = inverter()
 
+            Toff = 1/100*np.floor(10*np.random.rand())
+
             tempinverter.set_timesteps(self.Ts,self.time,len(self.time))
-            tempinverter.set_opertime(self.invertersjson[k1]['Top'],self.invertersjson[k1]['Toff'])    
-            tempinverter.set_busname(self.invertersjson[k1]['bus'])
-            tempinverter.set_phase(self.invertersjson[k1]['phase'])
+            # tempinverter.set_opertime(self.invertersjson[k1]['Top'],self.invertersjson[k1]['Toff'])
+            tempinverter.set_opertime(self.invertersjson[k1]['Top'],Toff)    
+            tempinverter.set_busname(str(self.invertersjson[k1]['bus']))
+            tempinverter.set_phase(np.asarray(self.invertersjson[k1]['phase'].split('.'), dtype=int))
+            print(np.asarray(self.invertersjson[k1]['phase'].split('.'), dtype=int))
             tempinverter.set_connection(self.invertersjson[k1]['conn'])
             
             tempinverter.set_lowpass_frequency(2*np.pi*self.invertersjson[k1]['flp'])

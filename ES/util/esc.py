@@ -25,10 +25,14 @@ class esc_manager():
 
             tempesc = esc()
 
+            Toff = 1/100*np.floor(10*np.random.rand())
+
             tempesc.set_timesteps(self.Ts,self.time,len(self.time))
-            tempesc.set_opertime(self.escsjson[k1]['Top'],self.escsjson[k1]['Toff'])    
-            tempesc.set_busname(self.escsjson[k1]['bus'])
-            tempesc.set_phase(self.escsjson[k1]['phase'])
+            # tempesc.set_opertime(self.escsjson[k1]['Top'],self.escsjson[k1]['Toff'])
+            tempesc.set_opertime(self.escsjson[k1]['Top'],Toff)
+            tempesc.set_busname(str(self.escsjson[k1]['bus']))
+            tempesc.set_phase(np.asarray(self.escsjson[k1]['phase'].split('.'), dtype=int))
+            print(np.asarray(self.escsjson[k1]['phase'].split('.'), dtype=int))
             tempesc.set_connection(self.escsjson[k1]['conn'])
             tempesc.set_esc_params(self.escsjson[k1]['fes'],self.escsjson[k1]['aesp'],self.escsjson[k1]['aesq'],self.escsjson[k1]['kesp'],self.escsjson[k1]['kesq'])
             tempesc.set_esc_limits(1*self.escsjson[k1]['pmin'],1*self.escsjson[k1]['pmax'],1*self.escsjson[k1]['qmin'],1*self.escsjson[k1]['qmax'],1*self.escsjson[k1]['smax'])
