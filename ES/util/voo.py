@@ -4,9 +4,42 @@ import util.signal_processing as signal_processing
 
 class voltage_oscillation_observer_manager():
     
-    def __init__(self):
+    def __init__(self, time, Ts, jsondata):
+
+        self.voolist = []
+
+        self.time = time
+        self.Ts = Ts
+
+        self.jsondata = jsondata
         
-        pass
+        
+    def parse_json(self):
+
+        self.voosjson = self.jsondata['voos']
+
+        for k1 in range(len(self.voosjson)):
+
+            tempvoo = voltage_oscillation_observer()
+
+            Toff = 1/100*np.floor(10*np.random.rand())
+
+            tempvoo.set_timesteps(self.Ts,self.time,len(self.time))
+            # tempesc.set_opertime(self.escsjson[k1]['Top'],self.escsjson[k1]['Toff'])
+            tempvoo.set_opertime(self.voosjson[k1]['Top'],Toff,self.voosjson[k1]['fvoo'])
+
+            tempvoo.set_voo_frequency(self.voosjson[k1]['fvoo'])
+            
+            tempvoo.set_busname(str(self.voosjson[k1]['bus']))
+            tempvoo.set_conn(self.voosjson[k1]['conn'])
+            # tempvoo.set_phase(self.voosjson[k1]['phase'])
+
+            tempvoo.set_phase(np.asarray(self.voosjson[k1]['phase'].split('.'), dtype=int))
+            print(np.asarray(self.voosjson[k1]['phase'].split('.'), dtype=int))
+
+            self.voolist.append(tempvoo)
+
+        return self.voolist
 
 class voltage_oscillation_observer():
     
@@ -32,7 +65,7 @@ class voltage_oscillation_observer():
         self.timeop = np.zeros(numTimeSteps)
         self.Nop = 0
         
-    def set_opertime(self, Top, Toff):
+    def set_opertime(self, Top, Toff, fosc):
         
         self.kop = 0
         

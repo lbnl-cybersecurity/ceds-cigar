@@ -3,9 +3,39 @@ import util.signal_processing as signal_processing
 
 class voltage_imbalance_observer_manager():
 
-    def __init__(self):
-        
-        pass
+    def __init__(self, time, Ts, jsondata):
+
+        self.violist = []
+
+        self.time = time
+        self.Ts = Ts
+
+        self.jsondata = jsondata
+
+    def parse_json(self):
+
+        self.viosjson = self.jsondata['voos']
+
+        for k1 in range(len(self.viosjson)):
+
+            tempvio = voltage_imbalance_observer()
+
+            Toff = 1/100*np.floor(10*np.random.rand())
+
+            tempvio.set_timesteps(self.Ts,self.time,len(self.time))
+            # tempesc.set_opertime(self.escsjson[k1]['Top'],self.escsjson[k1]['Toff'])
+            tempvio.set_opertime(self.viosjson[k1]['Top'],Toff)
+
+            
+            tempvio.set_busname(str(self.voosjson[k1]['bus']))
+            tempvio.set_conn(self.voosjson[k1]['conn'])
+
+            tempvio.set_phase(np.asarray(self.voosjson[k1]['phase'].split('.'), dtype=int))
+            print(np.asarray(self.voosjson[k1]['phase'].split('.'), dtype=int))
+
+            self.voolist.append(tempvio)
+
+        return self.violist
 
 
 class voltage_imbalance_observer():

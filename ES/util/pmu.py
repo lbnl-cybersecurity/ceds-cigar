@@ -3,6 +3,12 @@
 import numpy as np
 import util.signal_processing as signal_processing
 
+class phasor_measurement_unit_manager():
+
+    def __init__(self):
+
+        pass
+
 class phasor_measurement_unit():
     
     def __init__(self):

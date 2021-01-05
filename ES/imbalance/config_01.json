@@ -12,6 +12,15 @@
 {"bus": "671", "phase": "1.2.3", "conn": "wye", "Top": 0.1, "Toff": 0.0, "fes": 1.07, "aesp": 10, "aesq": 10, "kesp": 500, "kesq": 300, "pmin": -300, "pmax": 300, "qmin": -300, "qmax": 300, "smax": 300}
 ],
 "pmus": [],
-"vios": [],
-"voos": []
+"vios": [
+{"bus": "632", "phase": "1.2", "conn": "wye", "Top": 0.1, "Toff": 0.0},
+{"bus": "632", "phase": "2.3", "conn": "wye", "Top": 0.1, "Toff": 0.0},
+{"bus": "632", "phase": "3.1", "conn": "wye", "Top": 0.1, "Toff": 0.0},
+{"bus": "671", "phase": "1.2.3", "conn": "wye", "Top": 0.1, "Toff": 0.0}
+],
+"voos": [
+{"bus": "632", "phase": "1", "conn": "wye", "Top": 0.1, "Toff": 0.0, "fvoo": 2.0},
+{"bus": "632", "phase": "2", "conn": "wye", "Top": 0.1, "Toff": 0.0, "fvoo": 2.0},
+{"bus": "632", "phase": "3", "conn": "wye", "Top": 0.1, "Toff": 0.0, "fvoo": 2.0}
+]
 }
