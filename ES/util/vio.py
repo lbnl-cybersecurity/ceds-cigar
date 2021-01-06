@@ -14,7 +14,7 @@ class voltage_imbalance_observer_manager():
 
     def parse_json(self):
 
-        self.viosjson = self.jsondata['voos']
+        self.viosjson = self.jsondata['vios']
 
         for k1 in range(len(self.viosjson)):
 
@@ -27,13 +27,13 @@ class voltage_imbalance_observer_manager():
             tempvio.set_opertime(self.viosjson[k1]['Top'],Toff)
 
             
-            tempvio.set_busname(str(self.voosjson[k1]['bus']))
-            tempvio.set_conn(self.voosjson[k1]['conn'])
+            tempvio.set_busname(str(self.viosjson[k1]['bus']))
+            tempvio.set_conn(self.viosjson[k1]['conn'])
 
-            tempvio.set_phase(np.asarray(self.voosjson[k1]['phase'].split('.'), dtype=int))
-            print(np.asarray(self.voosjson[k1]['phase'].split('.'), dtype=int))
+            tempvio.set_phase(np.asarray(self.viosjson[k1]['phase'].split('.'), dtype=int))
+            print(np.asarray(self.viosjson[k1]['phase'].split('.'), dtype=int))
 
-            self.voolist.append(tempvio)
+            self.violist.append(tempvio)
 
         return self.violist
 
