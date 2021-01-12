@@ -8,7 +8,7 @@ env_config:
 
 simulation_config:
   # network_model_directory: '/home/toanngo/Documents/GitHub/cigar-document/ceds-cigar/pycigar/zzz/data/ieee3.dss'
-  network_model_directory: '/home/michael/Desktop/git/ceds-cigar/pycigar/zzz/IEEE_03_Node/ieee3.dss'
+  network_model_directory: '/home/michael/Desktop/git/ceds-cigar/pycigar/zzz/IEEE_03_Node/ieee03.dss'
   custom_configs:  {solution_mode: 1,
                     solution_number: 1,
                     solution_step_size: 1,
