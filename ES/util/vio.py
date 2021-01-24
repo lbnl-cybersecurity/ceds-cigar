@@ -50,9 +50,9 @@ class voltage_imbalance_observer():
         
         self.numTimeSteps = numTimeSteps
         
-        self.Vimb = np.zeros((4,numTimeSteps))
+        self.Vimb = np.zeros((numTimeSteps,4))
 
-        self.Vimblpf = np.zeros((4,numTimeSteps))
+        self.Vimblpf = np.zeros((numTimeSteps,4))
        
         self.kop = 0
         self.timeop = np.zeros(numTimeSteps)
@@ -86,32 +86,55 @@ class voltage_imbalance_observer():
     def set_phase(self, phase):
         self.phase = phase
 
-    def observe_voltage(self, kop, vk):
+    def observe_voltage(self, kop, Vmag):
+
+        Vab = 0
+        Vbc = 0
+        Vca = 0
+        Vabc = 0
+
+        # if self.phase == '1.2' and len(Vmag) == 2:
+        #     Vab = ((Vmag[0] - Vmag[1])**2) / 0.01**2
+        # elif self.phase == '1.2' and len(Vmag) == 3:
+        #     Vab = ((Vmag[0] - Vmag[1])**2) / 0.01**2
+        # elif self.phase == '2.3' and len(Vmag) == 2:
+        #     Vbc = ((Vmag[0] - Vmag[1])**2) / 0.01**2
+        # elif self.phase == '2.3' and len(Vmag) == 3:
+        #     Vbc = ((Vmag[1] - Vmag[2])**2) / 0.01**2
+        # elif self.phase == '3.1' and len(Vmag) == 2:
+        #     Vca = ((Vmag[1] - Vmag[0])**2) / 0.01**2
+        # elif self.phase == '3.1' and len(Vmag) == 3:
+        #     Vca = ((Vmag[2] - Vmag[0])**2) / 0.01**2
+        # elif self.phase == '1.2.3' and len(Vmag) == 3:
+        #     Vab = ((Vmag[0] - Vmag[1])**2) / 0.01**2
+        #     Vbc = ((Vmag[1] - Vmag[2])**2) / 0.01**2
+        #     Vca = ((Vmag[2] - Vmag[0])**2) / 0.01**2
+        #     Vabc = Vab + Vbc + Vca
+
+        if np.all(self.phase == [1, 2]) and len(Vmag) == 2:
+            Vab = ((Vmag[0] - Vmag[1])**2) / 0.01**2
+        elif np.all(self.phase == [1, 2]) and len(Vmag) == 3:
+            Vab = ((Vmag[0] - Vmag[1])**2) / 0.01**2
+        elif np.all(self.phase == [2, 3]) and len(Vmag) == 2:
+            Vbc = ((Vmag[0] - Vmag[1])**2) / 0.01**2
+        elif np.all(self.phase == [2, 3]) and len(Vmag) == 3:
+            Vbc = ((Vmag[1] - Vmag[2])**2) / 0.01**2
+        elif np.all(self.phase == [3, 1]) and len(Vmag) == 2:
+            Vca = ((Vmag[1] - Vmag[0])**2) / 0.01**2
+        elif np.all(self.phase == [3, 1]) and len(Vmag) == 3:
+            Vca = ((Vmag[2] - Vmag[0])**2) / 0.01**2
+        elif np.all(self.phase == [1, 2, 3]) and len(Vmag) == 3:
+            Vab = ((Vmag[0] - Vmag[1])**2) / 0.01**2
+            Vbc = ((Vmag[1] - Vmag[2])**2) / 0.01**2
+            Vca = ((Vmag[2] - Vmag[0])**2) / 0.01**2
+            Vabc = Vab + Vbc + Vca
         
-#         vk = np.abs(k.node.nodes[node_id]['voltage'][k.time - 1])
-#         vkm1 = np.abs(k.node.nodes[node_id]['voltage'][k.time - 2])
-#         self.v_meas_k = vk
-#         self.v_meas_km1 = vkm1
-
-        self.x[kop] = vk
-    
-        if kop >= self.BP1z.shape[1]:
-
-            np.sum(-self.BP1z[1,0:-1]*self.y1[kop-self.BP1z.shape[1]+1:kop])
-            np.sum(self.BP1z[0,:]*self.x[kop-self.BP1z.shape[1]+1:kop+1])
-            
-            self.y1[kop] = (1/self.BP1z[1,-1]*(np.sum(-self.BP1z[1,0:-1]*self.y1[kop-self.BP1z.shape[1]+1:kop]) + np.sum(self.BP1z[0,:]*self.x[kop-self.BP1z.shape[1]+1:kop+1])))
-            self.y2[kop] = (self.y1[kop]**2)
-            self.y3[kop] = (1/self.LPF2z[1,-1]*(np.sum(-self.LPF2z[1,0:-1]*self.y3[kop-self.LPF2z.shape[1]+1:kop]) + np.sum(self.LPF2z[0,:]*self.y2[kop-self.LPF2z.shape[1]+1:kop+1])))
-#             self.y4[kop] = np.sqrt(np.abs(self.y3[kop]))
-            self.y4[kop] = 1e3*(self.y3[kop])
+        self.Vimb[kop, :] = [Vab, Vbc, Vca, Vabc]
     
     def truncate_time_data(self):
         
         self.Nop = self.kop
         self.timeop = self.timeop[0:self.Nop+1]
-        self.x = self.x[0:self.Nop+1]
-        self.y1 = self.y1[0:self.Nop+1]
-        self.y2 = self.y2[0:self.Nop+1]
-        self.y3 = self.y3[0:self.Nop+1]
-        self.y4 = self.y4[0:self.Nop+1]
+        self.Vimb = self.Vimb[0:self.Nop+1,:]
+        self.Vimblpf = self.Vimblpf[0:self.Nop+1,:]
+        
