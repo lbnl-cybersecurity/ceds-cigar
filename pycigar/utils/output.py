@@ -784,3 +784,223 @@ def plot_new(log_dict, custom_metrics, epoch='', unbalance=False, multiagent=Fal
     plt.tight_layout()
     plt.subplots_adjust(top=0.95)
     return f
+
+from pycigar.envs.wrappers.wrappers_constants import ACTION_RANGE
+from matplotlib.ticker import FormatStrFormatter
+def plot_new(log_dict, custom_metrics, epoch='', unbalance=False, multiagent=False):
+    def get_translation_and_slope(a_val, init_a):
+        points = np.array(a_val)
+        slope = points[:, 1] - points[:, 0]
+        translation = points[:, 2] - init_a[2]
+        return translation, slope
+
+    plt.rc('font', size=15)
+    plt.rc('figure', titlesize=35)
+
+    if not unbalance:
+        inv_k = next(k for k in log_dict if 'inverter' in k)
+        f, ax = plt.subplots(7, 2, figsize=(30, 40))
+        title = '[epoch {}][time {}][hack {}] total reward: {:.2f}'.format(
+            epoch, custom_metrics['start_time'], custom_metrics['hack'], sum(log_dict[inv_k]['reward'])
+        )
+        f.suptitle(title)
+        ax[0, 0].plot(log_dict[inv_k[9:]]['voltage'], color='tab:blue', label='voltage')
+
+        ax[1, 0].plot(log_dict[inv_k]['y'], color='tab:blue', label='oscillation observer')
+
+        ax[2, 0].plot(log_dict[inv_k]['q_set'], color='tab:blue', label='q_set')
+        ax[2, 0].plot(log_dict[inv_k]['q_out'], color='tab:orange', label='q_val')
+
+        for inv in log_dict:
+            if 'adversary_' not in inv and 'inverter_' in inv:
+                translation, slope = get_translation_and_slope(
+                    log_dict[inv_k]['control_setting'], custom_metrics['init_control_settings'][inv_k]
+                )
+                ax[3, 0].plot(translation, color='tab:blue')
+                ax[3, 0].plot(slope, color='tab:purple')
+            elif 'adversary_' in inv:
+                translation, slope = get_translation_and_slope(
+                    log_dict['adversary_' + inv_k]['control_setting'],
+                    custom_metrics['init_control_settings']['adversary_' + inv_k],
+                )
+                ax[4, 0].plot(translation, color='tab:orange')
+                ax[4, 0].plot(slope, color='tab:red')
+
+        ax[5, 0].plot(log_dict[inv_k]['sbar_solarirr'], color='tab:blue', label='sbar solar irr')
+        ax[6, 0].plot(log_dict[inv_k]['sbar_pset'], color='tab:blue', label='sbar pset')
+
+        ax[0, 0].set_ylim([0.93, 1.07])
+        ax[1, 0].set_ylim([0, 0.8])
+        ax[2, 0].set_ylim([-280, 280])
+        ax[3, 0].set_ylim([-0.06, 0.06])
+        ax[4, 0].set_ylim([-0.06, 0.06])
+
+        for inv in log_dict:
+            if 'adversary_' not in inv and 'inverter_' in inv:
+                translation, slope = get_translation_and_slope(
+                    log_dict[inv_k]['control_setting'], custom_metrics['init_control_settings'][inv_k]
+                )
+                ax[0, 1].plot(translation, color='tab:blue')
+                ax[0, 1].plot(slope, color='tab:purple')
+            elif 'adversary_' in inv:
+                translation, slope = get_translation_and_slope(
+                    log_dict['adversary_' + inv_k]['control_setting'],
+                    custom_metrics['init_control_settings']['adversary_' + inv_k],
+                )
+                ax[1, 1].plot(translation, color='tab:orange')
+                ax[1, 1].plot(slope, color='tab:red')
+
+        ax[2, 1].plot(log_dict['component_observation']['component_y'], label='obs_component_y')
+        ax[3, 1].plot(log_dict['component_observation']['component_pset'], label='obs_component_pset')
+        #ax[4, 1].plot(log_dict['component_observation']['component_ymax'], label='obs_component_ymax')
+        component_y = np.array(log_dict['component_reward']['component_y'])
+        component_oa = np.array(log_dict['component_reward']['component_oa'])
+        component_init = np.array(log_dict['component_reward']['component_init'])
+        component_pset_pmax = np.array(log_dict['component_reward']['component_pset_pmax'])
+
+        total_reward = component_y + component_oa + component_init + component_pset_pmax
+
+        ax[5, 1].plot(-component_y, label='abs_reward_component_y')
+        ax[5, 1].plot(-component_oa, label='abs_reward_component_oa')
+        ax[5, 1].plot(-component_init, label='abs_reward_component_init')
+        ax[5, 1].plot(-component_pset_pmax, label='abs_reward_component_pset_pmax')
+        ax[5, 1].plot(-total_reward, label='abs_total_reward')
+
+        x = range(len(component_y))
+        y_stack = np.cumsum(
+            np.array([component_y, component_oa, component_init, component_pset_pmax]), axis=0
+        )  # a 3x10 array
+        y_stack = y_stack / total_reward
+        ax[6, 1].fill_between(x, 0, y_stack[0, :], facecolor="#CC6666", alpha=0.7, label='reward_component_y')
+        ax[6, 1].fill_between(
+            x, y_stack[0, :], y_stack[1, :], facecolor="#1DACD6", alpha=0.7, label='reward_component_oa'
+        )
+        ax[6, 1].fill_between(x, y_stack[1, :], y_stack[2, :], facecolor="#6E5160", label='reward_component_init')
+        ax[6, 1].fill_between(x, y_stack[2, :], y_stack[3, :], facecolor="#E3F59C", label='reward_component_pset_pmax')
+
+        for i in range(7):
+            for j in range(2):
+                ax[i, j].grid(b=True, which='both')
+                ax[i, j].legend(loc=1, ncol=2)
+        ax[6, 1].legend(loc=4, ncol=2)
+
+    else:
+        inv_ks = [k for k in log_dict if k.startswith('inverter_s701')] #or k.startswith('inverter_s728')]
+        regs = [k for k in log_dict if 'reg' in k]
+        reg = regs[0] if regs else None
+
+        f, ax = plt.subplots(
+            3 + len(inv_ks) + (reg is not None), 2, figsize=(25, 8 + 4 * len(inv_ks) + 4 * (reg is not None))
+        )
+        #title = '[epoch {}][time {}][hack {}] total reward: {:.2f} || total unbalance: {:.4f}'.format(
+        #    epoch, custom_metrics['start_time'], custom_metrics['hack'], sum(log_dict[inv_ks[0]]['reward']), sum(log_dict['u_metrics']['u_worst'])
+        #)
+        title = '[epoch {}][time {}][hack {}] total reward: {:.2f} || total unbalance: {:.4f}'.format(0, custom_metrics['start_time'], custom_metrics['hack'], 0, sum(log_dict['u_metrics']['u_worst']))
+        f.suptitle(title)
+        for i, k in enumerate(inv_ks):
+            #ax[0, 0].plot(log_dict[log_dict[k]['node']]['voltage'], label='voltage ({})'.format(k))
+            pass
+            #if not multiagent:
+            #    translation, slope = get_translation_and_slope(
+            #        log_dict[k]['control_setting'], custom_metrics['init_control_settings'][k]
+            #    )
+            #    ax[2 + i, 0].plot(translation, label='RL translation ({})'.format(k))
+            #    ax[2 + i, 0].plot(slope, label='RL slope (a2-a1) ({})'.format(k))
+
+        inv_a = [k for k in log_dict if k.endswith('a') and k.startswith('inverter_')][:1]
+        inv_b = [k for k in log_dict if k.endswith('b') and k.startswith('inverter_')][:1]
+        inv_c = [k for k in log_dict if k.endswith('c') and k.startswith('inverter_')][:1]
+
+        for i, k in enumerate(inv_a):
+            translation, slope = get_translation_and_slope(
+                log_dict[k]['control_setting'], custom_metrics['init_control_settings'][k]
+            )
+            ax[2, 0].plot(translation, label='trans. {}'.format(k))
+            #ax[2, 0].plot(slope, label='RL slope (a2-a1) ({})'.format(k))
+
+        for i, k in enumerate(inv_b):
+            translation, slope = get_translation_and_slope(
+                log_dict[k]['control_setting'], custom_metrics['init_control_settings'][k]
+            )
+            ax[2, 0].plot(translation, label='trans. {}'.format(k))
+            #ax[3, 0].plot(slope, label='RL slope (a2-a1) ({})'.format(k))
+
+        for i, k in enumerate(inv_c):
+            translation, slope = get_translation_and_slope(
+                log_dict[k]['control_setting'], custom_metrics['init_control_settings'][k]
+            )
+            ax[2, 0].plot(translation, label='trans. {}'.format(k))
+            #ax[4, 0].plot(slope, label='RL slope (a2-a1) ({})'.format(k))
+
+        ax[1, 0].plot(log_dict['u_metrics']['u_worst'], label='unbalance observer')
+        ax[1, 0].plot(log_dict['u_metrics']['u_mean'], label='unbalance mean')
+        ax[1, 0].fill_between(np.array(log_dict['u_metrics']['u_mean'])+np.array(log_dict['u_metrics']['u_std']), np.array(log_dict['u_metrics']['u_mean'])-np.array(log_dict['u_metrics']['u_std']), facecolor='orange', alpha=0.5)
+        if multiagent:
+            phases = ['a', 'b', 'c']
+            for k in log_dict:
+                if k.startswith('inverter'):
+                    idx = phases.index(k[-1]) if k[-1] in phases else 3
+                    translation, slope = get_translation_and_slope(
+                        log_dict[k]['control_setting'], custom_metrics['init_control_settings'][k]
+                    )
+                    ax[2 + idx, 0].plot(translation, label=k)
+                    #ax[2 + idx].plot(slope, label='RL slope (a2-a1) ({})'.format(k))
+
+        if reg:
+            ax[-1, 0].plot(log_dict[reg]['tap_number'], label=reg)
+
+        ax[0, 0].set_ylim([0.90, 1.10])
+
+        ax[2, 0].set_ylim([-ACTION_RANGE * 1.1, ACTION_RANGE * 1.1])
+
+        node_701 = [[], [], []]
+        for i in log_dict['v_metrics'].keys():
+            node_701[0].append(log_dict['v_metrics'][i][0]['701'][0])
+            node_701[1].append(log_dict['v_metrics'][i][0]['701'][1])
+            node_701[2].append(log_dict['v_metrics'][i][0]['701'][2])
+
+
+        ax[0, 0].plot(node_701[0], label='voltage 701a')
+        ax[0, 0].plot(node_701[1], label='voltage 701b')
+        ax[0, 0].plot(node_701[2], label='voltage 701c')
+        
+
+        ax[0, 1].plot(np.array(log_dict['inverter_s701a']['q_out']), label='q_out_s701a')
+        #ax[2, 1].plot(np.array(log_dict['inverter_s701a']['sbar_solarirr'])*np.sign(log_dict['inverter_s701a']['q_out'])/(1.5e-3), label='q_avail_s701a')
+        ax[0, 1].plot(np.array(log_dict['inverter_s701a']['q_avail_real']), label='q_avail_s701a')
+        ax[0, 1].plot(np.array(log_dict['inverter_s701a']['q_set']), label='q_set_s701a')
+
+        ax[1, 1].plot(np.array(log_dict['inverter_s701b']['q_out']), label='q_out_s701b')
+        #ax[3, 1].plot(np.array(log_dict['inverter_s701b']['sbar_solarirr'])*np.sign(log_dict['inverter_s701b']['q_out'])/(1.5e-3), label='q_avail_s701b')
+        ax[1, 1].plot(np.array(log_dict['inverter_s701b']['q_avail_real']), label='q_avail_s701b')
+        ax[1, 1].plot(np.array(log_dict['inverter_s701b']['q_set']), label='q_set_s701b')
+
+        ax[2, 1].plot(np.array(log_dict['inverter_s701c']['q_out']), label='q_out_s701c')
+        #ax[4, 1].plot(np.array(log_dict['inverter_s701c']['sbar_solarirr'])*np.sign(log_dict['inverter_s701c']['q_out'])/(1.5e-3), label='q_avail_s701c')
+        ax[2, 1].plot(np.array(log_dict['inverter_s701c']['q_avail_real']), label='q_avail_s701c')
+        ax[2, 1].plot(np.array(log_dict['inverter_s701c']['q_set']), label='q_set_s701c')
+
+    v_worst_u = np.array(log_dict['v_worst_metrics']['v_worst'])
+    ax[-1, 1].plot(v_worst_u[:, 0], label='a')
+    ax[-1, 1].plot(v_worst_u[:, 1], label='b')
+    ax[-1, 1].plot(v_worst_u[:, 2], label='c')
+
+    lines = ['l1', 'l2', 'l3']
+    for i, l in enumerate(lines):
+        ax[i+3,0].plot(np.array(log_dict['current'][l])[:, 0], label='P. A {}'.format(l))
+        ax[i+3,0].plot(np.array(log_dict['current'][l])[:, 1], label='P. B {}'.format(l))
+        ax[i+3,0].plot(np.array(log_dict['current'][l])[:, 2], label='P. C {}'.format(l))
+        #ax[i+3,0].legend(['Phase A', 'Phase B', 'Phase C'])
+    for i, l in enumerate(lines):
+        ax[i+3,1].plot(np.array(log_dict['relative_current'][l])[:, 0], label='P. A {}'.format(l))
+        ax[i+3,1].plot(np.array(log_dict['relative_current'][l])[:, 1], label='P. B {}'.format(l))
+        ax[i+3,1].plot(np.array(log_dict['relative_current'][l])[:, 2], label='P. C {}'.format(l))
+    for row in ax:
+        for a in row:
+            a.grid(b=True, which='both')
+            a.legend(loc=1, ncol=2)
+            a.yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
+    ax[4,0].legend(loc=3, ncol=2)
+    plt.tight_layout()
+    plt.subplots_adjust(top=0.95)
+    return f

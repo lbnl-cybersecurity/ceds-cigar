@@ -238,20 +238,20 @@ if __name__ == '__main__':
     register_env(env_name, create_env)
 
     if not args.unbalance:
-        misc_inputs_path = pycigar.DATA_DIR + "/ieee123busdata/misc_inputs.csv"
-        dss_path = pycigar.DATA_DIR + "/ieee123busdata/ieee123.dss"
-        load_solar_path = pycigar.DATA_DIR + "/ieee123busdata/load_solar_data.csv"
-        breakpoints_path = pycigar.DATA_DIR + "/ieee123busdata/breakpoints.csv"
+        misc_inputs_path = pycigar.DATA_DIR + "/ieee37busdata/misc_inputs.csv"
+        dss_path = pycigar.DATA_DIR + "/ieee37busdata/ieee37.dss"
+        load_solar_path = pycigar.DATA_DIR + "/ieee37busdata/load_solar_data.csv"
+        breakpoints_path = pycigar.DATA_DIR + "/ieee37busdata/breakpoints.csv"
     else:
-        #misc_inputs_path = pycigar.DATA_DIR + "/ieee37busdata_regulator_attack/misc_inputs.csv"
-        #dss_path = pycigar.DATA_DIR + "/ieee37busdata_regulator_attack/ieee37.dss"
-        #load_solar_path = pycigar.DATA_DIR + "/ieee37busdata_regulator_attack/load_solar_data.csv"
-        #breakpoints_path = pycigar.DATA_DIR + "/ieee37busdata_regulator_attack/breakpoints.csv"
+        misc_inputs_path = pycigar.DATA_DIR + "/ieee37busdata/misc_inputs.csv"
+        dss_path = pycigar.DATA_DIR + "/ieee37busdata/ieee37.dss"
+        load_solar_path = pycigar.DATA_DIR + "/ieee37busdata/load_solar_data.csv"
+        breakpoints_path = pycigar.DATA_DIR + "/ieee37busdata/breakpoints.csv"
 
-        misc_inputs_path = pycigar.DATA_DIR + "/ieee123busdata/misc_inputs.csv"
-        dss_path = pycigar.DATA_DIR + "/ieee123busdata/ieee123.dss"
-        load_solar_path = pycigar.DATA_DIR + "/ieee123busdata/load_solar_data.csv"
-        breakpoints_path = pycigar.DATA_DIR + "/ieee123busdata/breakpoints.csv"
+        #misc_inputs_path = pycigar.DATA_DIR + "/ieee123busdata/misc_inputs.csv"
+        #dss_path = pycigar.DATA_DIR + "/ieee123busdata/ieee123.dss"
+        #load_solar_path = pycigar.DATA_DIR + "/ieee123busdata/load_solar_data.csv"
+        #breakpoints_path = pycigar.DATA_DIR + "/ieee123busdata/breakpoints.csv"
 
     sim_params = input_parser(misc_inputs_path, dss_path, load_solar_path, breakpoints_path)
     sim_params['vectorized_mode'] = True
@@ -314,7 +314,6 @@ if __name__ == '__main__':
     }
     # eval environment should not be random across workers
     if args.unbalance:
-        adjust_default_curves(base_config)
         base_config['env_config']['attack_randomization']['generator'] = 'UnbalancedAttackDefinitionGeneratorEvaluationRandom'
         base_config['evaluation_config']['env_config']['attack_randomization']['generator'] = 'UnbalancedAttackDefinitionGeneratorEvaluation'
     else:
@@ -333,15 +332,15 @@ if __name__ == '__main__':
     base_config['env_config']['N'] = 0.2
     base_config['env_config']['P'] = 3
     base_config['env_config']['Q'] = 1
-    base_config['env_config']['T'] = 0
-
+    base_config['env_config']['T'] = 100
+    base_config['env_config']['Z'] = 100
     if args.unbalance:
         for node in base_config['env_config']['scenario_config']['nodes']:
             for d in node['devices']:
-                d['adversary_controller'] = 'unbalanced_fixed_controller'
+                d['adversary_controller'] = 'adaptive_unbalanced_fixed_controller'
         for node in base_config['evaluation_config']['env_config']['scenario_config']['nodes']:
             for d in node['devices']:
-                d['adversary_controller'] = 'unbalanced_fixed_controller'
+                d['adversary_controller'] = 'adaptive_unbalanced_fixed_controller'
     else:
         for node in base_config['env_config']['scenario_config']['nodes']:
             for d in node['devices']:

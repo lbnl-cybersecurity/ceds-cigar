@@ -145,6 +145,7 @@ class CentralGlobalRewardWrapper(RewardWrapper):
         P = self.k.sim_params['P']
         Q = self.k.sim_params['Q']
         T = self.k.sim_params['T']
+        Z = self.k.sim_params['Z']
 
         global_reward = 0
         # we accumulate agents reward into global_reward and divide it with the number of agents.
@@ -200,6 +201,10 @@ class CentralGlobalRewardWrapper(RewardWrapper):
 
             global_reward += r
         global_reward = global_reward / len(list(info.keys()))
+
+        if 'protection' in info[key]:
+            protection_penalty = max(max(info[key]['protection']), 0)
+            global_reward -= protection_penalty * Z
 
         n = len(list(info.keys()))
         for _ in range(self.env.k.sim_params['env_config']['sims_per_step']):

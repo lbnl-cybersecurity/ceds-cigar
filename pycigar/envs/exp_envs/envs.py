@@ -1,5 +1,5 @@
-from env import CentralEnv
-from wrapper import DelayObservation, CentralFramestackObservationWrapper
+from .env import CentralEnv
+from .wrapper import DelayObservation, CentralFramestackObservationWrapper
 from pycigar.envs.wrappers.action_wrappers import SingleRelativeInitPhaseSpecificDiscreteActionWrapper
 from pycigar.envs.wrappers.reward_wrappers import CentralGlobalRewardWrapper
 from pycigar.envs.wrappers.wrapper import Wrapper

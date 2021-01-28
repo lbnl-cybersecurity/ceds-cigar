@@ -71,14 +71,18 @@ class CentralLocalObservationWrapper(ObservationWrapper):
             self.a_size = sum(a_space.shape)
             self.init_action = np.zeros(self.a_size)  # action is continuous relative, so init is 0
 
+        self.protection_size = 0
+        if self.env.unwrapped.k.sim_params['protection']:
+            self.protection_size = 3*len(self.env.unwrapped.k.sim_params['protection']['line'])
+
     @property
     def observation_space(self):
         if self.unbalance:
-            return Box(low=-float('inf'), high=float('inf'), shape=(5 + self.a_size,), dtype=np.float64)
+            return Box(low=-float('inf'), high=float('inf'), shape=(5 + self.a_size + self.protection_size,), dtype=np.float64)
         elif self.multi_attack:
-            return Box(low=-float('inf'), high=float('inf'), shape=(6 + self.a_size,), dtype=np.float64)
+            return Box(low=-float('inf'), high=float('inf'), shape=(6 + self.a_size + self.protection_size,), dtype=np.float64)
         else:
-            return Box(low=-float('inf'), high=float('inf'), shape=(2 + self.a_size,), dtype=np.float64)
+            return Box(low=-float('inf'), high=float('inf'), shape=(2 + self.a_size + self.protection_size,), dtype=np.float64)
 
     def observation(self, observation, info):
         if info:
@@ -122,6 +126,15 @@ class CentralLocalObservationWrapper(ObservationWrapper):
             #observation = np.array([observation['y']*10, p_set, *old_a_encoded])
         else:
             observation = np.array([observation['y'], p_set, *old_a_encoded])
+
+        # add protection observation
+        if self.protection_size:
+            if info:
+                protection = info[list(info.keys())[0]]['protection']
+            else:
+                protection = np.zeros(self.protection_size)
+
+            observation = np.array([*observation, *protection])
 
         return observation
 

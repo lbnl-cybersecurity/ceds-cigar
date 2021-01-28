@@ -5,6 +5,8 @@ import warnings
 from pycigar.utils.logging import logger
 import time
 
+SBASE = 1000000.0
+
 class PyCIGAROpenDSSAPI(object):
     """An API used to interact with OpenDSS via a TCP connection."""
 
@@ -19,8 +21,10 @@ class PyCIGAROpenDSSAPI(object):
         self.port = port
 
     def simulation_step(self):
+        #start_time = time.time()
         """Advance the simulator by one step."""
         dss.Solution.Solve()
+        #print(time.time() - start_time)
 
     def simulation_command(self, command):
         """Run an custom command on simulator."""
@@ -48,6 +52,14 @@ class PyCIGAROpenDSSAPI(object):
             if pd_type == 'Line':
                 self.current_offsets[pd_name] = [pos, dss.CktElement.NumPhases()]
             pos += len(dss.CktElement.CurrentsMagAng())
+
+        self.ibase = {}
+        for line in self.current_offsets.keys():
+            dss.Lines.Name(line)
+            bus = dss.Lines.Bus1()
+            dss.Circuit.SetActiveBus(bus)
+            IBase = SBASE/(dss.Bus.kVBase()*1000)
+            self.ibase[line] = IBase
 
     def set_solution_mode(self, value):
         """Set solution mode on simulator."""
@@ -92,6 +104,7 @@ class PyCIGAROpenDSSAPI(object):
         self.currents = dss.PDElements.AllCurrentsMagAng()
         result = {}
         for line in self.current_offsets:
+            #result[line] = np.array(self.currents[self.current_offsets[line][0]:self.current_offsets[line][0] + self.current_offsets[line][1]*2:2])/self.ibase[line]
             result[line] = self.currents[self.current_offsets[line][0]:self.current_offsets[line][0] + self.current_offsets[line][1]*2:2]
 
         return result

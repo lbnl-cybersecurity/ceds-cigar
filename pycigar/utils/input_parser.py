@@ -37,7 +37,8 @@ def input_parser(misc_inputs_path, dss_path, load_solar_path, breakpoints_path=N
         'N': 10,  # weight for taking different action from the initial action
         'P': 10,  # weight for taking different action from last timestep action
         'Q': 0.5,
-        'T': 1000,
+        'T': 100,
+        'Z': 100,
 
         'is_disable_log': False,
         'is_disable_y': False,
@@ -81,15 +82,24 @@ def input_parser(misc_inputs_path, dss_path, load_solar_path, breakpoints_path=N
     misc_inputs_data.columns = new_header  # set the header row as the df header
     misc_inputs_data = misc_inputs_data.to_dict()
 
-    M = misc_inputs_data['Oscillation Penalty'][1]
-    N = misc_inputs_data['Action Penalty'][1]
-    P = misc_inputs_data['Deviation from Optimal Penalty'][1]
-    Q = misc_inputs_data['PsetPmax Penalty'][1]
-    power_factor = misc_inputs_data['power factor'][1]
-    load_scaling_factor = misc_inputs_data['load scaling factor'][1]
-    solar_scaling_factor = misc_inputs_data['solar scaling factor'][1]
-    p_ramp_rate = misc_inputs_data['p ramp rate'][1]
-    q_ramp_rate = misc_inputs_data['q ramp rate'][1]
+    M = float(misc_inputs_data['Oscillation Penalty'][1])
+    N = float(misc_inputs_data['Action Penalty'][1])
+    P = float(misc_inputs_data['Deviation from Optimal Penalty'][1])
+    Q = float(misc_inputs_data['PsetPmax Penalty'][1])
+    power_factor = float(misc_inputs_data['power factor'][1])
+    load_scaling_factor = float(misc_inputs_data['load scaling factor'][1])
+    solar_scaling_factor = float(misc_inputs_data['solar scaling factor'][1])
+    p_ramp_rate = float(misc_inputs_data['p ramp rate'][1])
+    q_ramp_rate = float(misc_inputs_data['q ramp rate'][1])
+
+    protection_line = misc_inputs_data.get('protection line', None)
+    protection_threshold = misc_inputs_data.get('protection threshold', None)
+    if protection_line and protection_threshold:
+        json_query['protection'] = {}
+        protection_line = protection_line[1].split()
+        protection_threshold = protection_threshold[1].split()
+        json_query['protection']['line'] = protection_line
+        json_query['protection']['threshold'] = np.array(protection_threshold, dtype=float)
 
     json_query['M'] = M
     json_query['N'] = N
@@ -100,10 +110,10 @@ def input_parser(misc_inputs_path, dss_path, load_solar_path, breakpoints_path=N
     json_query['scenario_config']['custom_configs']['solar_scaling_factor'] = solar_scaling_factor
     json_query['scenario_config']['custom_configs']['power_factor'] = power_factor
 
-    low_pass_filter_measure_mean = misc_inputs_data['measurement filter time constant mean'][1]
-    low_pass_filter_measure_std = misc_inputs_data['measurement filter time constant std'][1]
-    low_pass_filter_output_mean = misc_inputs_data['output filter time constant mean'][1]
-    low_pass_filter_output_std = misc_inputs_data['output filter time constant std'][1]
+    low_pass_filter_measure_mean = float(misc_inputs_data['measurement filter time constant mean'][1])
+    low_pass_filter_measure_std = float(misc_inputs_data['measurement filter time constant std'][1])
+    low_pass_filter_output_mean = float(misc_inputs_data['output filter time constant mean'][1])
+    low_pass_filter_output_std = float(misc_inputs_data['output filter time constant std'][1])
     default_control_setting = [
         misc_inputs_data['bp1 default'][1],
         misc_inputs_data['bp2 default'][1],

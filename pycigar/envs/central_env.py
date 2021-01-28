@@ -97,20 +97,36 @@ class CentralEnv(Env):
 
         # the episode will be finished if it is not converged.
         done = not converged or (self.k.time == self.k.t)
-        infos = {
-            key: {
-                'y_worst': obs['y_worst'],
-                'u_worst': obs['u_worst'],
-                'v_worst': obs['v_worst'],
-                'u_mean': obs['u_mean'],
-                'y_mean': obs['y_mean'],
-                'y': obs['y'],
-                'p_set_p_max': obs['p_set_p_max'],
-                'sbar_solar_irr': obs['sbar_solar_irr'],
+        if 'protection' in self.sim_params:
+            protection = np.subtract(np.array(list(self.relative_line_current.values())).T, self.sim_params['protection']['threshold']).T-1
+            infos = {
+                key: {
+                    'protection': protection.flatten(),
+                    'y_worst': obs['y_worst'],
+                    'u_worst': obs['u_worst'],
+                    'v_worst': obs['v_worst'],
+                    'u_mean': obs['u_mean'],
+                    'y_mean': obs['y_mean'],
+                    'y': obs['y'],
+                    'p_set_p_max': obs['p_set_p_max'],
+                    'sbar_solar_irr': obs['sbar_solar_irr'],
+                }
+                for key in self.k.device.get_rl_device_ids()
             }
-            for key in self.k.device.get_rl_device_ids()
-        }
-
+        else:
+            infos = {
+                key: {
+                    'y_worst': obs['y_worst'],
+                    'u_worst': obs['u_worst'],
+                    'v_worst': obs['v_worst'],
+                    'u_mean': obs['u_mean'],
+                    'y_mean': obs['y_mean'],
+                    'y': obs['y'],
+                    'p_set_p_max': obs['p_set_p_max'],
+                    'sbar_solar_irr': obs['sbar_solar_irr'],
+                }
+                for key in self.k.device.get_rl_device_ids()
+            }
 
         for key in self.k.device.get_rl_device_ids():
             if self.old_actions is not None:
@@ -198,7 +214,33 @@ class CentralEnv(Env):
 
     def additional_command(self):
         current = self.k.kernel_api.get_all_currents()
-        Logger = logger()
-        for line in current:
-            Logger.log('current', line, current[line])
+
+        if 'protection' in self.sim_params:
+            self.line_current = {}
+            self.relative_line_current = {}
+            for line in self.sim_params['protection']['line']:
+                self.line_current[line] = np.array(current[line])
+                if line not in self.accumulate_current:
+                    self.accumulate_current[line] = [current[line]]
+                elif line in self.accumulate_current and line not in self.average_current:
+                    self.accumulate_current[line].append(current[line])
+                if len(self.accumulate_current[line]) == self.sim_params['env_config']['sims_per_step'] and line not in self.average_current:
+                    self.average_current[line] = np.mean(self.accumulate_current[line], axis=0)
+                    self.average_current_done = True
+
+            if self.average_current_done:
+                for line in self.sim_params['protection']['line']:
+                    self.relative_line_current[line] = self.line_current[line]/self.average_current[line]
+
+        if not self.sim_params['is_disable_log']:
+            Logger = logger()
+            for line in current:
+                Logger.log('current', line, current[line])
+
+            if self.average_current_done:
+                for line in self.relative_line_current:
+                    Logger.log('relative_current', line, self.relative_line_current[line])
+            else:
+                for line in self.sim_params['protection']['line']:
+                    Logger.log('relative_current', line, np.ones(3))
 
