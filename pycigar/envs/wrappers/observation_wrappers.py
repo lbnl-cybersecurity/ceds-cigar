@@ -72,7 +72,7 @@ class CentralLocalObservationWrapper(ObservationWrapper):
             self.init_action = np.zeros(self.a_size)  # action is continuous relative, so init is 0
 
         self.protection_size = 0
-        if self.env.unwrapped.k.sim_params['protection']:
+        if 'protection' in self.env.unwrapped.k.sim_params:
             self.protection_size = 3*len(self.env.unwrapped.k.sim_params['protection']['line'])
 
     @property

@@ -98,7 +98,7 @@ class CentralEnv(Env):
         # the episode will be finished if it is not converged.
         done = not converged or (self.k.time == self.k.t)
         if 'protection' in self.sim_params:
-            protection = np.subtract(np.array(list(self.relative_line_current.values())).T, self.sim_params['protection']['threshold']).T-1
+            protection = (np.array(list(self.relative_line_current.values())).T/self.sim_params['protection']['threshold']-1).T
             infos = {
                 key: {
                     'protection': protection.flatten(),
@@ -230,17 +230,18 @@ class CentralEnv(Env):
 
             if self.average_current_done:
                 for line in self.sim_params['protection']['line']:
-                    self.relative_line_current[line] = self.line_current[line]/self.average_current[line]
+                    self.relative_line_current[line] = self.line_current[line] #/self.average_current[line]
 
         if not self.sim_params['is_disable_log']:
             Logger = logger()
             for line in current:
                 Logger.log('current', line, current[line])
 
-            if self.average_current_done:
-                for line in self.relative_line_current:
-                    Logger.log('relative_current', line, self.relative_line_current[line])
-            else:
-                for line in self.sim_params['protection']['line']:
-                    Logger.log('relative_current', line, np.ones(3))
+            if 'protection' in self.sim_params:
+                if self.average_current_done:
+                    for line in self.relative_line_current:
+                        Logger.log('relative_current', line, self.relative_line_current[line])
+                else:
+                    for line in self.sim_params['protection']['line']:
+                        Logger.log('relative_current', line, np.ones(3))
 
