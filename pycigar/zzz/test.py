@@ -23,7 +23,7 @@ class FooEnv(Env):
 
         for _ in range(self.sim_params['env_config']["sims_per_step"]):
             self.env_time += 1
-
+            
             # perform action update for PV inverter device
             if len(self.k.device.group_controllers.keys()) > 0:
                 control_setting = []
@@ -41,6 +41,7 @@ class FooEnv(Env):
                         devices.extend(action.keys())
                         control_setting.extend(action.values())
                 self.k.device.apply_control(devices, control_setting)
+
             # perform action update for PV inverter device
             if len(self.k.device.get_local_device_ids()) > 0:
                 control_setting = []
@@ -77,8 +78,9 @@ class FooEnv(Env):
     def compute_reward(self, rl_actions, **kwargs):
         return 0
 
-stream = open("./IEEE_03_Node/pycigar_config_ieee_03_cent.yaml", "r")
+stream = open("./IEEE_13_Node/pycigar_config_ieee_13_dist.yaml", "r")
 sim_params = yaml.safe_load(stream)
+
 print('Simulation Complete')
 
 
