@@ -131,7 +131,7 @@ New Load.670b Bus1=670.2 Phases=1 Conn=Wye Model=1 kV=2.4 kW=66 kvar=38
 New Load.670c Bus1=670.3 Phases=1 Conn=Wye Model=1 kV=2.4 kW=117 kvar=68
 
 
-New Load.bsd_671a Bus1=671.1 Phases=3 Conn=Wye Model=1 kV=2.4 kW=0 kvar=0
+New Load.bsd_671a Bus1=671.1 Phases=1 Conn=Wye Model=1 kV=2.4 kW=0 kvar=0
 ! New Load.bsd_671b Bus1=671.2 Phases=3 Conn=Wye Model=1 kV=2.4 kW=0 kvar=0
 ! New Load.bsd_671c Bus1=671.3 Phases=3 Conn=Wye Model=1 kV=2.4 kW=0 kvar=0
 

@@ -253,10 +253,18 @@ class OpenDSSScenario(KernelScenario):
             profile = pd.read_csv(network_data_directory_path)
             profile.columns = map(str.lower, profile.columns)
 
-            for node in sim_params['scenario_config']['nodes']:
-                node_id = node['name']
-                load = np.array(profile[node_id])[start_time:end_time] * load_scaling_factor
+            #for node in sim_params['scenario_config']['nodes']:
+            #    node_id = node['name']
+            #    load = np.array(profile[node_id])[start_time:end_time] * load_scaling_factor
+            #    self.master_kernel.node.set_node_load(node_id, load)
+
+            for node_id in self.master_kernel.node.nodes.keys():
+                if node_id in profile:
+                    load = np.array(profile[node_id])[start_time:end_time] * load_scaling_factor
+                else:
+                    load = np.zeros(end_time-start_time)
                 self.master_kernel.node.set_node_load(node_id, load)
+
             solar_scaling_factor = sim_params['scenario_config']['custom_configs']['solar_scaling_factor']
             list_pv_device_ids = self.master_kernel.device.get_pv_device_ids()
 
