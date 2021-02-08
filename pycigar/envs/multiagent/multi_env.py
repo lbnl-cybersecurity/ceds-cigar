@@ -179,7 +179,9 @@ class MultiEnv(MultiAgentEnv, Env):
     def reset(self):
         # TODOs: delete here
         # self.tempo_controllers = {}
-
+        self.accumulate_current = {}
+        self.average_current = {}
+        self.average_current_done = False
         self.env_time = 0
         self.k.update(reset=True)  # hotfix: return new sim_params sample in kernel?
         self.sim_params = self.k.sim_params
@@ -234,3 +236,36 @@ class MultiEnv(MultiAgentEnv, Env):
                 Logger.log(rl_id, 'v', v_all[load_to_bus[connected_node]])
             Logger.log('u_metrics', 'u_worst', u_worst)
         return obs
+
+    def additional_command(self):
+        current = self.k.kernel_api.get_all_currents()
+
+        if 'protection' in self.sim_params:
+            self.line_current = {}
+            self.relative_line_current = {}
+            for line in self.sim_params['protection']['line']:
+                self.line_current[line] = np.array(current[line])
+                if line not in self.accumulate_current:
+                    self.accumulate_current[line] = [current[line]]
+                elif line in self.accumulate_current and line not in self.average_current:
+                    self.accumulate_current[line].append(current[line])
+                if len(self.accumulate_current[line]) == self.sim_params['env_config']['sims_per_step'] and line not in self.average_current:
+                    self.average_current[line] = np.mean(self.accumulate_current[line], axis=0)
+                    self.average_current_done = True
+
+            if self.average_current_done:
+                for line in self.sim_params['protection']['line']:
+                    self.relative_line_current[line] = self.line_current[line] #/self.average_current[line]
+
+        if not self.sim_params['is_disable_log']:
+            Logger = logger()
+            for line in current:
+                Logger.log('current', line, current[line])
+
+            if 'protection' in self.sim_params:
+                if self.average_current_done:
+                    for line in self.relative_line_current:
+                        Logger.log('relative_current', line, self.relative_line_current[line])
+                else:
+                    for line in self.sim_params['protection']['line']:
+                        Logger.log('relative_current', line, np.ones(3))

@@ -44,6 +44,7 @@ class PyCIGAROpenDSSAPI(object):
             self.loads[load] = [['.'.join([bus_phase[0], i]) for i in bus_phase[1:] if i != '0'], dss.CktElement.NumPhases()]
             self.load_to_bus[load] = bus_phase[0]
 
+        #  current
         self.current_offsets = {}
         pos = 0
         for pd in dss.PDElements.AllNames():
@@ -60,6 +61,25 @@ class PyCIGAROpenDSSAPI(object):
             dss.Circuit.SetActiveBus(bus)
             IBase = SBASE/(dss.Bus.kVBase()*1000)
             self.ibase[line] = IBase
+
+        # ieee8500
+        bus_to_bus = {}
+        for t in dss.Transformers.AllNames():
+            dss.Transformers.Name(t)
+            bus_list = dss.CktElement.BusNames()
+            bus_to_bus[bus_list[1].split('.')[0]] = bus_list[0].split('.')[0]
+        new_load_to_bus = {}
+        for load in self.load_to_bus:
+            new_load_to_bus[load] = bus_to_bus[self.load_to_bus[load][1:]]
+        self.load_to_bus = new_load_to_bus
+
+        for load in self.loads:
+            bus = self.load_to_bus[load]
+            dss.Circuit.SetActiveBus(bus)
+            phase = dss.Bus.Nodes()
+            self.loads[load] = [['.'.join([bus, str(i)]) for i in phase if str(i) != '0'], len(phase)]
+
+        self.all_bus_name = list(bus_to_bus.values())
 
     def set_solution_mode(self, value):
         """Set solution mode on simulator."""

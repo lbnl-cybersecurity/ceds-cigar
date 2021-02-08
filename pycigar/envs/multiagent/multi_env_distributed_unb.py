@@ -153,7 +153,9 @@ class UnbMultiEnv(MultiAgentEnv, Env):
     def reset(self):
         # TODOs: delete here
         # self.tempo_controllers = {}
-
+        self.accumulate_current = {}
+        self.average_current = {}
+        self.average_current_done = False
         self.env_time = 0
         self.k.update(reset=True)  # hotfix: return new sim_params sample in kernel?
         self.sim_params = self.k.sim_params
