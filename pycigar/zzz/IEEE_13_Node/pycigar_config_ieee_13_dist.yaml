@@ -21,9 +21,9 @@ scenario_config:
   # network_data_directory: '/home/toanngo/Documents/GitHub/cigar-document/ceds-cigar/pycigar/zzz/data/load_solar_data.csv'
   network_data_directory: '/home/michael/Desktop/git/ceds-cigar/pycigar/zzz/IEEE_13_Node/load_solar_data.csv'
   multi_config: False
-  start_end_time: [3601, 10800]
+  start_end_time: [3601, 14400]
   custom_configs: {load_scaling_factor: 1.00,
-                   solar_scaling_factor: 1.00,
+                   solar_scaling_factor: 0.00,
                    slack_bus_voltage: 1.04,
                    load_generation_noise: False,
                    power_factor: 0.9}

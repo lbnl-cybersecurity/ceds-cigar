@@ -161,20 +161,14 @@ class BatteryStorageDeviceAdvanced(BaseDevice):
             # self.p_out = 200000
             # self.p_out = self.max_discharge_power
 
-            if 'p_out' in self.custom_control_setting:
-
-                print('Device: ' + self.device_id)
-                print('p_out_setpoint: ' + str(self.custom_control_setting['p_out']*1000))
+            if 'p_out' in self.custom_control_setting:                
                 
                 if self.custom_control_setting['p_out']*1000 >= self.p_out + self.Ts*self.max_ramp_rate: # [W]
                     self.p_out = self.p_out + self.Ts*self.max_ramp_rate # [W]
-                    print('test01')
                 else:
                     self.p_out = self.custom_control_setting['p_out']*1000 # [kW --> W]
-                    print('test02')
 
-                print('p_out_rectified: ' + str(self.p_out))
-                print('')
+                
 
             if self.current_capacity <= self.min_SOC*self.total_capacity:
 
@@ -199,17 +193,11 @@ class BatteryStorageDeviceAdvanced(BaseDevice):
             if self.current_capacity <= 0:
                 self.current_capacity = self.current_capacity
 
-        # if self.control_setting == 'peak_shaving':
-        #     self.p_in = 0
-        #     self.p_out = 0
-
-        #     if self.current_capacity <= 0:
-        #         self.current_capacity = self.current_capacity
-        #     if self.current_capacity >= self.total_capacity:
-        #         self.current_capacity = self.current_capacity
-
-        #     self.SOC = self.current_capacity/self.total_capacity
-        #     k.node.nodes[node_id]['PQ_injection']['P'] += -self.p_out/1000
+        # if env.k.time % self.print_interval == 0:
+        #     print('Device: ' + self.device_id)
+        #     print('p_out_setpoint: ' + str(self.custom_control_setting['p_out']*1000))
+        #     print('p_out_rectified: ' + str(self.p_out))
+        #     print('')
             
 
         self.SOC = self.current_capacity/self.total_capacity
