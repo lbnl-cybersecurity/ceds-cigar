@@ -21,9 +21,9 @@ scenario_config:
   # network_data_directory: '/home/toanngo/Documents/GitHub/cigar-document/ceds-cigar/pycigar/zzz/data/load_solar_data.csv'
   network_data_directory: '/home/michael/Desktop/git/ceds-cigar/pycigar/zzz/IEEE_13_Node/load_solar_data.csv'
   multi_config: False
-  start_end_time: [3601, 14400]
+  start_end_time: [0, 14400]
   custom_configs: {load_scaling_factor: 1.00,
-                   solar_scaling_factor: 0.25,
+                   solar_scaling_factor: 1.50,
                    slack_bus_voltage: 1.04,
                    load_generation_noise: False,
                    power_factor: 0.9}
@@ -239,87 +239,87 @@ scenario_config:
           # adversary_custom_controller_configs: {default_control_setting: [1.014, 1.015, 1.015, 1.016, 1.017]}
           # hack: [300, 0.4]
 
-    - name: bsd_671a
-      devices:
-          - name: bsd_671a
-            device: battery_storage_device_advanced
-            custom_device_configs: {
-              default_control_setting: 'standby',
-              total_capacity: 100,
-              current_capacity: 50.0,
-              max_charge_power: 100.00,
-              max_discharge_power: 150.00,
-              max_ramp_rate: 0.5,
-              max_SOC: 1.0,
-              min_SOC: 0.2
-            }
+    # - name: bsd_671a
+    #   devices:
+    #       - name: bsd_671a
+    #         device: battery_storage_device_advanced
+    #         custom_device_configs: {
+    #           default_control_setting: 'standby',
+    #           total_capacity: 100,
+    #           current_capacity: 90.0,
+    #           max_charge_power: 100.00,
+    #           max_discharge_power: 150.00,
+    #           max_ramp_rate: 0.5,
+    #           max_SOC: 1.0,
+    #           min_SOC: 0.2
+    #         }
 
-    - name: bsd_671b
-      devices:
-          - name: bsd_671b
-            device: battery_storage_device_advanced
-            custom_device_configs: {
-              default_control_setting: 'standby',
-              total_capacity: 100,
-              current_capacity: 50.0,
-              max_charge_power: 100.00,
-              max_discharge_power: 150.00,
-              max_ramp_rate: 0.5,
-              max_SOC: 1.0,
-              min_SOC: 0.2
-            }
+    # - name: bsd_671b
+    #   devices:
+    #       - name: bsd_671b
+    #         device: battery_storage_device_advanced
+    #         custom_device_configs: {
+    #           default_control_setting: 'standby',
+    #           total_capacity: 100,
+    #           current_capacity: 90.0,
+    #           max_charge_power: 100.00,
+    #           max_discharge_power: 150.00,
+    #           max_ramp_rate: 0.5,
+    #           max_SOC: 1.0,
+    #           min_SOC: 0.2
+    #         }
 
-    - name: bsd_671c
-      devices:
-          - name: bsd_671c
-            device: battery_storage_device_advanced
-            custom_device_configs: {
-              default_control_setting: 'standby',
-              total_capacity: 100,
-              current_capacity: 50.0,
-              max_charge_power: 100.00,
-              max_discharge_power: 150.00,
-              max_ramp_rate: 0.5,
-              max_SOC: 1.0,
-              min_SOC: 0.2
-            }
+    # - name: bsd_671c
+    #   devices:
+    #       - name: bsd_671c
+    #         device: battery_storage_device_advanced
+    #         custom_device_configs: {
+    #           default_control_setting: 'standby',
+    #           total_capacity: 100,
+    #           current_capacity: 90.0,
+    #           max_charge_power: 100.00,
+    #           max_discharge_power: 150.00,
+    #           max_ramp_rate: 0.5,
+    #           max_SOC: 1.0,
+    #           min_SOC: 0.2
+    #         }
 
-  controllers:
-    - name: psc_bsd_671a
-      controller: battery_peak_shaving_controller_dist
-      custom_controller_configs: {
-        default_control_setting: 'standby',
-        lowpass_filter_frequency: 0.05, 
-        active_power_target: 750,
-        eta: 0.01,
-        K_P: 0.75,
-        K_I: 0.05,
-        K_D: 0.02
-      }
-      list_devices: ['bsd_671a']
+  # controllers:
+  #   - name: psc_bsd_671a
+  #     controller: battery_peak_shaving_controller_dist
+  #     custom_controller_configs: {
+  #       default_control_setting: 'standby',
+  #       lowpass_filter_frequency: 0.05, 
+  #       active_power_target: 750,
+  #       eta: 0.01,
+  #       K_P: 0.75,
+  #       K_I: 0.05,
+  #       K_D: 0.02
+  #     }
+  #     list_devices: ['bsd_671a']
 
-    - name: psc_bsd_671b
-      controller: battery_peak_shaving_controller_dist
-      custom_controller_configs: {
-        default_control_setting: 'standby',
-        lowpass_filter_frequency: 0.05, 
-        active_power_target: 750,
-        eta: 0.01,
-        K_P: 0.75,
-        K_I: 0.05,
-        K_D: 0.02
-      }
-      list_devices: ['bsd_671b']
+  #   - name: psc_bsd_671b
+  #     controller: battery_peak_shaving_controller_dist
+  #     custom_controller_configs: {
+  #       default_control_setting: 'standby',
+  #       lowpass_filter_frequency: 0.05, 
+  #       active_power_target: 750,
+  #       eta: 0.01,
+  #       K_P: 0.75,
+  #       K_I: 0.05,
+  #       K_D: 0.02
+  #     }
+  #     list_devices: ['bsd_671b']
 
-    - name: psc_bsd_671c
-      controller: battery_peak_shaving_controller_dist
-      custom_controller_configs: {
-        default_control_setting: 'standby',
-        lowpass_filter_frequency: 0.05, 
-        active_power_target: 750,
-        eta: 0.01,
-        K_P: 0.75,
-        K_I: 0.05,
-        K_D: 0.02
-      }
-      list_devices: ['bsd_671c']
+  #   - name: psc_bsd_671c
+  #     controller: battery_peak_shaving_controller_dist
+  #     custom_controller_configs: {
+  #       default_control_setting: 'standby',
+  #       lowpass_filter_frequency: 0.05, 
+  #       active_power_target: 750,
+  #       eta: 0.01,
+  #       K_P: 0.75,
+  #       K_I: 0.05,
+  #       K_D: 0.02
+  #     }
+  #     list_devices: ['bsd_671c']

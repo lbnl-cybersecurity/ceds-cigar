@@ -23,7 +23,7 @@ scenario_config:
   multi_config: False
   start_end_time: [3601, 14400]
   custom_configs: {load_scaling_factor: 1.00,
-                   solar_scaling_factor: 0.25,
+                   solar_scaling_factor: 1.50,
                    slack_bus_voltage: 1.04,
                    load_generation_noise: False,
                    power_factor: 0.9}
@@ -246,7 +246,7 @@ scenario_config:
             custom_device_configs: {
               default_control_setting: 'standby',
               total_capacity: 100,
-              current_capacity: 50.0,
+              current_capacity: 40.0,
               max_charge_power: 100.00,
               max_discharge_power: 150.00,
               max_ramp_rate: 0.5,
@@ -261,7 +261,7 @@ scenario_config:
             custom_device_configs: {
               default_control_setting: 'standby',
               total_capacity: 100,
-              current_capacity: 50.0,
+              current_capacity: 35.0,
               max_charge_power: 100.00,
               max_discharge_power: 150.00,
               max_ramp_rate: 0.5,
@@ -276,7 +276,7 @@ scenario_config:
             custom_device_configs: {
               default_control_setting: 'standby',
               total_capacity: 100,
-              current_capacity: 50.0,
+              current_capacity: 30.0,
               max_charge_power: 100.00,
               max_discharge_power: 150.00,
               max_ramp_rate: 0.5,
@@ -290,7 +290,7 @@ scenario_config:
       custom_controller_configs: {
         default_control_setting: 'standby',
         lowpass_filter_frequency: 0.05, 
-        active_power_target: 750,
+        active_power_target: -500,
         eta: 0.01,
         K_P: 0.75,
         K_I: 0.05,
@@ -303,7 +303,7 @@ scenario_config:
       custom_controller_configs: {
         default_control_setting: 'standby',
         lowpass_filter_frequency: 0.05, 
-        active_power_target: 750,
+        active_power_target: -500,
         eta: 0.01,
         K_P: 0.75,
         K_I: 0.05,
@@ -316,7 +316,7 @@ scenario_config:
       custom_controller_configs: {
         default_control_setting: 'standby',
         lowpass_filter_frequency: 0.05, 
-        active_power_target: 750,
+        active_power_target: -500,
         eta: 0.01,
         K_P: 0.75,
         K_I: 0.05,
