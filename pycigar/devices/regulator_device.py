@@ -16,29 +16,29 @@ class RegulatorDevice(BaseDevice):
         self.kernel_api = additional_params.get('kernel_api')
         
         if device_id == 'feeder_rega':
-            self.tap_number = 10
+            self.tap_number = 14
         elif device_id == 'feeder_regb':
-            self.tap_number = 9
+            self.tap_number = 13
         elif device_id == 'feeder_regc':
-            self.tap_number = 10
+            self.tap_number = 15
         elif device_id == 'vreg2_a':
             self.tap_number = 7
         elif device_id == 'vreg2_b':
-            self.tap_number = 4
+            self.tap_number = 5
         elif device_id == 'vreg2_c':
-            self.tap_number = 3
+            self.tap_number = 4
         elif device_id == 'vreg3_a':
-            self.tap_number = 13
+            self.tap_number = 14
         elif device_id == 'vreg3_b':
-            self.tap_number = 8
+            self.tap_number = 10
         elif device_id == 'vreg3_c':
-            self.tap_number = 7
+            self.tap_number = 10
         elif device_id == 'vreg4_a':
-            self.tap_number = 8
-        elif device_id == 'vreg4_b':
-            self.tap_number = 7
-        elif device_id == 'vreg4_c':
             self.tap_number = 9
+        elif device_id == 'vreg4_b':
+            self.tap_number = 8
+        elif device_id == 'vreg4_c':
+            self.tap_number = 11
 
         self.kernel_api.set_regulator_property(
             device_id,
