@@ -81,6 +81,12 @@ class PyCIGAROpenDSSAPI(object):
 
         self.all_bus_name = list(bus_to_bus.values())
 
+        self.load_to_phase = {}
+        for load in self.get_node_ids():
+            dss.Loads.Name(load)
+            bus_phase = dss.CktElement.BusNames()[0].split('.')[0][-1]
+            self.load_to_phase[load] = bus_phase
+
     def set_solution_mode(self, value):
         """Set solution mode on simulator."""
         dss.Solution.Mode(value)
@@ -108,6 +114,8 @@ class PyCIGAROpenDSSAPI(object):
     def check_simulation_converged(self):
         """Check if the solver has converged."""
         output = dss.Solution.Converged
+        if not dss.Solution.Converged():
+            print('check it out')
         if output is False:
             warnings.warn('OpenDSS does not converge.')
         return output
@@ -118,16 +126,20 @@ class PyCIGAROpenDSSAPI(object):
         return nodes
 
     def update_all_bus_voltages(self):
-        self.puvoltage = dss.Circuit.AllBusMagPu()
+        if not np.isinf(dss.Circuit.AllBusMagPu()).any():
+            self.puvoltage = dss.Circuit.AllBusMagPu()
+        else:
+            print('check it out')
 
     def get_all_currents(self):
         self.currents = dss.PDElements.AllCurrentsMagAng()
-        result = {}
-        for line in self.current_offsets:
+        if not np.isinf(self.currents).any():
+            self.current_result = {}
+            for line in self.current_offsets:
             #result[line] = np.array(self.currents[self.current_offsets[line][0]:self.current_offsets[line][0] + self.current_offsets[line][1]*2:2])/self.ibase[line]
-            result[line] = self.currents[self.current_offsets[line][0]:self.current_offsets[line][0] + self.current_offsets[line][1]*2:2]
+                self.current_result[line] = self.currents[self.current_offsets[line][0]:self.current_offsets[line][0] + self.current_offsets[line][1]*2:2]
 
-        return result
+        return self.current_result
 
     def get_node_voltage(self, node_id):
         puvoltage = 0 # get rid of this
@@ -213,6 +225,7 @@ class PyCIGAROpenDSSAPI(object):
         u_all = []
         v_all = {}
         u_all_real = {}
+        v_worst = [1.0, 1.0, 1.0]
         u_worst = 0
         for bus in self.all_bus_name:
             try:

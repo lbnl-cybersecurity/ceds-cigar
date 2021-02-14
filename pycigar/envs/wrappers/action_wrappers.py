@@ -163,11 +163,14 @@ class SingleRelativeInitPhaseSpecificDiscreteActionWrapper(ActionWrapper):
         return Tuple([Discrete(DISCRETIZE_RELATIVE)] * 3)
 
     def action(self, action, rl_id, *_):
-        if rl_id.endswith('a'):
+        new_rl_id = rl_id.split('_')[1]
+        # hotfix for ieee8500
+        new_rl_id = self.unwrapped.k.kernel_api.load_to_phase[new_rl_id]
+        if new_rl_id.endswith('a'):
             translation = action[0]
-        elif rl_id.endswith('b'):
+        elif new_rl_id.endswith('b'):
             translation = action[1]
-        elif rl_id.endswith('c'):
+        elif new_rl_id.endswith('c'):
             translation = action[2]
         else:
             translation = int(DISCRETIZE_RELATIVE / 2)

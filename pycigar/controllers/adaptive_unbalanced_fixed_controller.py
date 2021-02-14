@@ -28,14 +28,20 @@ class AdaptiveUnbalancedFixedController(BaseController):
         """See parent class."""
         # nothing to do here, the setting in the device is as default
         self.action = np.array(env.k.device.devices[self.device_id]['device'].control_setting)
+        
+        # hotfix for 8500
+        new_device_id = self.device_id.split('_')[2]
+        # hotfix for ieee8500
+        new_device_id = env.k.kernel_api.load_to_phase[new_device_id]
+
         if self.trigger is False:
-            if self.device_id[-1].isdigit():
+            if new_device_id[-1].isdigit():
                 self.action += self.hack_curve_all_translation
-            elif self.device_id[-1] == 'a':
+            elif new_device_id[-1] == 'a':
                 self.action += self.hack_curve_a_translation
-            elif self.device_id[-1] == 'b':
+            elif new_device_id[-1] == 'b':
                 self.action += self.hack_curve_b_translation
-            elif self.device_id[-1] == 'c':
+            elif new_device_id[-1] == 'c':
                 self.action += self.hack_curve_c_translation
 
             self.trigger = True
