@@ -23,7 +23,7 @@ scenario_config:
   multi_config: False
   start_end_time: [3601, 14400]
   custom_configs: {load_scaling_factor: 1.00,
-                   solar_scaling_factor: 0.,
+                   solar_scaling_factor: 0.875,
                    slack_bus_voltage: 1.04,
                    load_generation_noise: False,
                    power_factor: 0.9}
