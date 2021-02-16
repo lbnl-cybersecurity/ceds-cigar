@@ -285,8 +285,8 @@ scenario_config:
             }
 
   controllers:
-    - name: psc_bsd_671a
-      controller: battery_peak_shaving_controller_dist
+    - name: psc_bsd_cent
+      controller: battery_peak_shaving_controller_cent
       custom_controller_configs: {
         default_control_setting: 'standby',
         lowpass_filter_frequency: 0.05, 
@@ -296,30 +296,4 @@ scenario_config:
         K_I: 0.05,
         K_D: 0.02
       }
-      list_devices: ['bsd_671a']
-
-    - name: psc_bsd_671b
-      controller: battery_peak_shaving_controller_dist
-      custom_controller_configs: {
-        default_control_setting: 'standby',
-        lowpass_filter_frequency: 0.05, 
-        active_power_target: 0.0,
-        eta: 0.01,
-        K_P: 0.75,
-        K_I: 0.05,
-        K_D: 0.02
-      }
-      list_devices: ['bsd_671b']
-
-    - name: psc_bsd_671c
-      controller: battery_peak_shaving_controller_dist
-      custom_controller_configs: {
-        default_control_setting: 'standby',
-        lowpass_filter_frequency: 0.05, 
-        active_power_target: 0.0,
-        eta: 0.01,
-        K_P: 0.75,
-        K_I: 0.05,
-        K_D: 0.02
-      }
-      list_devices: ['bsd_671c']
+      list_devices: ['bsd_671a', 'bsd_671b', 'bsd_671c']
