@@ -235,6 +235,7 @@ class MultiEnv(MultiAgentEnv, Env):
                 Logger.log(rl_id, 'u', u_all[load_to_bus[connected_node]])
                 Logger.log(rl_id, 'v', v_all[load_to_bus[connected_node]])
             Logger.log('u_metrics', 'u_worst', u_worst)
+            Logger.log('y_metrics', 'y_worst', max(y))
         return obs
 
     def additional_command(self):

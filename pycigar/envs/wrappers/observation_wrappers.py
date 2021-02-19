@@ -136,6 +136,8 @@ class CentralLocalObservationWrapper(ObservationWrapper):
 
             observation = np.array([*observation, *protection])
 
+        if np.isinf(observation).any():
+            print('final check')
         return observation
 
 

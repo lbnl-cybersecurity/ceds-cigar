@@ -206,6 +206,10 @@ class CentralGlobalRewardWrapper(RewardWrapper):
             protection_penalty = max(max(info[key]['protection']), 0)
             global_reward -= protection_penalty * Z
 
+        if global_reward == float('inf') or global_reward == float('-inf') or global_reward == float('nan') or np.isnan(global_reward):
+            print('check this out')
+        print(global_reward, type(global_reward), global_reward == 'nan', np.isnan(global_reward))
+
         n = len(list(info.keys()))
         for _ in range(self.env.k.sim_params['env_config']['sims_per_step']):
             Logger.log('component_reward', 'component_y', component_y / n)
@@ -366,6 +370,9 @@ class ClusterRewardWrapper(RewardWrapper):
     def __init__(self, env):
         super().__init__(env)
         self.cluster = env.k.sim_params['cluster']
+        self.env = env
+        self.env.unwrapped.total_reward = {'1': np.zeros(5),'2': np.zeros(5),'3': np.zeros(5),'4': np.zeros(5), '5': np.zeros(5)}
+
     def reward(self, reward, info):
         M = self.k.sim_params['M']
         N = self.k.sim_params['N']
@@ -376,7 +383,13 @@ class ClusterRewardWrapper(RewardWrapper):
         cluster_reward = {}
         for agent in self.cluster.keys():
             reward = 0
+            r_T = 0
+            r_M = 0
+            r_N = 0
+            r_P = 0
+            r_Q = 0
             for key in self.cluster[agent]:
+                worst_y = 0
                 key = 'inverter_' + key
                 action = info[key]['current_action']
                 if action is None:
@@ -398,14 +411,29 @@ class ClusterRewardWrapper(RewardWrapper):
 
                 r += -(
                     T * info[key]['u']
-                    + M * info[key]['y']
+                    #+ M * info[key]['y']
                     + N * roa
                     + P * np.linalg.norm(action - self.INIT_ACTION[key])
                     + Q * (1 - abs(info[key]['p_set_p_max'])) ** 2
                 )
+                r_T += - T * info[key]['u']
+                r_M += - M * info[key]['y']
+                r_N += - N * roa
+                r_P += - P * np.linalg.norm(action - self.INIT_ACTION[key])
+                r_Q += - Q * (1 - abs(info[key]['p_set_p_max'])) ** 2
 
                 reward += r
+                if worst_y < info[key]['y']:
+                    worst_y = info[key]['y']
             reward = reward / len(self.cluster[agent])
+            #r_T = r_T / len(self.cluster[agent])
+            #r_M = r_M / len(self.cluster[agent])
+            #r_N = r_N / len(self.cluster[agent])
+            #r_P = r_P / len(self.cluster[agent])
+            #r_Q = r_Q / len(self.cluster[agent])
+            #print('a: {}, r_M: {}, r_N: {}, r_P: {}, r_Q: {}, r_T: {}'.format(agent, r_M, r_N, r_P, r_Q, r_T))
+            #self.env.unwrapped.total_reward[agent] += np.array([r_M, r_N, r_P, r_Q, r_T])
+            reward += - M * worst_y
             cluster_reward[agent] = reward
 
         return cluster_reward

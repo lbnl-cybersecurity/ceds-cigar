@@ -62,7 +62,7 @@ class PyCIGAROpenDSSAPI(object):
             IBase = SBASE/(dss.Bus.kVBase()*1000)
             self.ibase[line] = IBase
 
-        # ieee8500
+        """# ieee8500
         bus_to_bus = {}
         for t in dss.Transformers.AllNames():
             dss.Transformers.Name(t)
@@ -79,7 +79,7 @@ class PyCIGAROpenDSSAPI(object):
             phase = dss.Bus.Nodes()
             self.loads[load] = [['.'.join([bus, str(i)]) for i in phase if str(i) != '0'], len(phase)]
 
-        self.all_bus_name = list(bus_to_bus.values())
+        self.all_bus_name = list(bus_to_bus.values())"""
 
         self.load_to_phase = {}
         for load in self.get_node_ids():

@@ -6,6 +6,7 @@ from pycigar.utils.logging import logger
 from copy import deepcopy
 import time
 import re
+import opendssdirect as dss
 
 class CentralEnv(Env):
     def __init__(self, *args, **kwargs):
@@ -150,7 +151,7 @@ class CentralEnv(Env):
     def get_state(self):
         obs = []
         Logger = logger()
-        u_worst, v_worst, u_mean, u_std, v_all, u_all_bus, load_to_bus = self.k.kernel_api.get_worst_u_node()
+        u_worst, v_worst, u_mean, u_std, v_all, u_all_bus, self.load_to_bus = self.k.kernel_api.get_worst_u_node()
 
         Logger.log('u_metrics', 'u_worst', u_worst)
         Logger.log('u_metrics', 'u_mean', u_mean)
@@ -244,4 +245,10 @@ class CentralEnv(Env):
                 else:
                     for line in self.sim_params['protection']['line']:
                         Logger.log('relative_current', line, np.ones(3))
+
+
+            capacitors = dss.Capacitors.AllNames()
+            for cap in capacitors:
+                dss.Capacitors.Name(cap)
+                Logger.log('capbank', cap, dss.Capacitors.States()[0])
 

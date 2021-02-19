@@ -933,7 +933,8 @@ def plot_new(log_dict, custom_metrics, epoch='', unbalance=False, multiagent=Fal
             #ax[4, 0].plot(slope, label='RL slope (a2-a1) ({})'.format(k))
 
         ax[1, 0].plot(log_dict['u_metrics']['u_worst'], label='unbalance observer')
-        ax[1, 0].plot(log_dict['u_metrics']['u_mean'], label='unbalance mean')
+        #ax[1, 0].plot(log_dict['u_metrics']['u_mean'], label='unbalance mean')
+        ax[1, 0].plot(log_dict['inverter_s701a']['u'], label='unbalance mean')
         ax[1, 0].fill_between(np.array(log_dict['u_metrics']['u_mean'])+np.array(log_dict['u_metrics']['u_std']), np.array(log_dict['u_metrics']['u_mean'])-np.array(log_dict['u_metrics']['u_std']), facecolor='orange', alpha=0.5)
         if multiagent:
             phases = ['a', 'b', 'c']
@@ -1004,3 +1005,235 @@ def plot_new(log_dict, custom_metrics, epoch='', unbalance=False, multiagent=Fal
     plt.tight_layout()
     plt.subplots_adjust(top=0.95)
     return f
+
+def plot_cluster(log_dict, custom_metrics, epoch='', unbalance=False, multiagent=False):
+    def get_translation_and_slope(a_val, init_a):
+        points = np.array(a_val)
+        slope = points[:, 1] - points[:, 0]
+        translation = points[:, 2] - init_a[2]
+        return translation, slope
+
+    plt.rc('font', size=15)
+    plt.rc('figure', titlesize=35)
+
+    cluster = {1: ['s1a', 's2b', 's4c', 's5c', 's6c', 's7a', 's9a', 's10a', 's11a', 's12b', 's16c', 's17c', 's34c'],
+               2: ['s52a', 's53a', 's55a', 's56b', 's58b', 's59b', 's86b', 's87b', 's88a', 's90b', 's92c', 's94a', 's95b', 's96b'],
+               3: ['s19a', 's20a', 's22b', 's24c', 's28a', 's29a', 's30c', 's31c', 's32c', 's33a', 's35a', 's37a', 's38b', 's39b', 's41c', 's42a', 's43b', 's45a', 's46a', 's47', 's48', 's49a', 's49b', 's49c', 's50c', 's51a'],
+               4: ['s102c', 's103c', 's104c', 's106b', 's107b', 's109a', 's111a', 's112a', 's113a', 's114a'],
+               5: ['s60a', 's62c', 's63a', 's64b', 's65a', 's65b', 's65c', 's66c', 's68a', 's69a', 's70a', 's71a', 's73c', 's74c', 's75c', 's76a', 's76b', 's76c', 's77b', 's79a', 's80b', 's82a', 's83c', 's84c', 's85c', 's98a', 's99b', 's100c']}
+
+    f, ax = plt.subplots(5, 5, figsize=(30, 15))
+    title = '[epoch {}][time {}][hack {}] reward: a_1: {:.2f}, a_2: {:.2f}, a_3: {:.2f}, a_4: {:.2f}, a_5: {:.2f}'.format(
+            epoch, custom_metrics['start_time'], custom_metrics['hack'],
+            sum(log_dict['1']['reward']), sum(log_dict['2']['reward']),
+            sum(log_dict['3']['reward']), sum(log_dict['4']['reward']),
+            sum(log_dict['5']['reward'])
+        )
+    f.suptitle(title)
+
+    voltage = np.array(log_dict['inverter_s1a']['v'])
+    ax[0, 0].plot(voltage[:, 0], label='voltage_a')
+    ax[0, 0].plot(voltage[:, 1], label='voltage_b')
+    ax[0, 0].plot(voltage[:, 2], label='voltage_c')
+    ax[1, 0].plot(np.array(log_dict['inverter_s1a']['u'])*100, label='unbalance')
+    ax[1, 0].plot(np.array(log_dict['u_metrics']['u_worst'])*100, label='unbalance_worst')
+    ax[2, 0].plot(np.array(log_dict['y_metrics']['y_worst']), label='oscillation_worst')
+    ax[2, 0].plot(log_dict['inverter_s1a']['y'], label='oscillation')
+    translation, slope = get_translation_and_slope(log_dict['inverter_s1a']['control_setting'], custom_metrics['init_control_settings']['inverter_s1a'])
+    ax[3, 0].plot(translation, color='tab:blue', label='act_phase_a')
+    translation, slope = get_translation_and_slope(log_dict['inverter_s2b']['control_setting'], custom_metrics['init_control_settings']['inverter_s2b'])
+    ax[3, 0].plot(translation, color='tab:orange', label='act_phase_b')
+    translation, slope = get_translation_and_slope(log_dict['inverter_s4c']['control_setting'], custom_metrics['init_control_settings']['inverter_s4c'])
+    ax[3, 0].plot(translation, color='tab:green', label='act_phase_c')
+    ax[0, 0].set_ylim([0.93, 1.07])
+    ax[1, 0].set_ylim([0, 6.5])
+    ax[1, 0].axhline(3, linestyle='--', color='orange')
+    ax[1, 0].axhline(6, linestyle='--', color='red')
+    ax[2, 0].set_ylim([0, 0.5])
+    ax[3, 0].set_ylim([-0.1, 0.1])
+
+    voltage = np.array(log_dict['inverter_s52a']['v'])
+    ax[0, 1].plot(voltage[:, 0], label='voltage_a')
+    ax[0, 1].plot(voltage[:, 1], label='voltage_b')
+    ax[0, 1].plot(voltage[:, 2], label='voltage_c')
+    ax[1, 1].plot(np.array(log_dict['inverter_s52a']['u'])*100, label='unbalance')
+    ax[1, 1].plot(np.array(log_dict['u_metrics']['u_worst'])*100, label='unbalance_worst')
+    ax[2, 1].plot(np.array(log_dict['y_metrics']['y_worst']), label='oscillation_worst')
+    ax[2, 1].plot(log_dict['inverter_s52a']['y'], label='oscillation')
+    translation, slope = get_translation_and_slope(log_dict['inverter_s52a']['control_setting'], custom_metrics['init_control_settings']['inverter_s52a'])
+    ax[3, 1].plot(translation, color='tab:blue', label='act_phase_a')
+    translation, slope = get_translation_and_slope(log_dict['inverter_s56b']['control_setting'], custom_metrics['init_control_settings']['inverter_s56b'])
+    ax[3, 1].plot(translation, color='tab:orange', label='act_phase_b')
+    translation, slope = get_translation_and_slope(log_dict['inverter_s92c']['control_setting'], custom_metrics['init_control_settings']['inverter_s92c'])
+    ax[3, 1].plot(translation, color='tab:green', label='act_phase_c')
+    ax[0, 1].set_ylim([0.93, 1.07])
+    ax[1, 1].set_ylim([0, 6.5])
+    ax[1, 1].axhline(3, linestyle='--', color='orange')
+    ax[1, 1].axhline(6, linestyle='--', color='red')
+    ax[2, 1].set_ylim([0, 0.5])
+    ax[3, 1].set_ylim([-0.1, 0.1])
+
+    voltage = np.array(log_dict['inverter_s28a']['v'])
+    ax[0, 2].plot(voltage[:, 0], label='voltage_a')
+    ax[0, 2].plot(voltage[:, 1], label='voltage_b')
+    ax[0, 2].plot(voltage[:, 2], label='voltage_c')
+    ax[1, 2].plot(np.array(log_dict['inverter_s28a']['u'])*100, label='unbalance')
+    ax[1, 2].plot(np.array(log_dict['u_metrics']['u_worst'])*100, label='unbalance_worst')
+    ax[2, 2].plot(np.array(log_dict['y_metrics']['y_worst']), label='oscillation_worst')
+    ax[2, 2].plot(log_dict['inverter_s28a']['y'], label='oscillation')
+    translation, slope = get_translation_and_slope(log_dict['inverter_s19a']['control_setting'], custom_metrics['init_control_settings']['inverter_s19a'])
+    ax[3, 2].plot(translation, color='tab:blue', label='act_phase_a')
+    translation, slope = get_translation_and_slope(log_dict['inverter_s22b']['control_setting'], custom_metrics['init_control_settings']['inverter_s22b'])
+    ax[3, 2].plot(translation, color='tab:orange', label='act_phase_b')
+    translation, slope = get_translation_and_slope(log_dict['inverter_s24c']['control_setting'], custom_metrics['init_control_settings']['inverter_s24c'])
+    ax[3, 2].plot(translation, color='tab:green', label='act_phase_c')
+    ax[0, 2].set_ylim([0.93, 1.07])
+    ax[1, 2].set_ylim([0, 6.5])
+    ax[1, 2].axhline(3, linestyle='--', color='orange')
+    ax[1, 2].axhline(6, linestyle='--', color='red')
+    ax[2, 2].set_ylim([0, 0.5])
+    ax[3, 2].set_ylim([-0.1, 0.1])
+
+    voltage = np.array(log_dict['inverter_s102c']['v'])
+    ax[0, 3].plot(voltage[:, 0], label='voltage_a')
+    ax[0, 3].plot(voltage[:, 1], label='voltage_b')
+    ax[0, 3].plot(voltage[:, 2], label='voltage_c')
+    ax[1, 3].plot(np.array(log_dict['inverter_s102c']['u'])*100, label='unbalance')
+    ax[1, 3].plot(np.array(log_dict['u_metrics']['u_worst'])*100, label='unbalance_worst')
+    ax[2, 3].plot(np.array(log_dict['y_metrics']['y_worst']), label='oscillation_worst')
+    ax[2, 3].plot(log_dict['inverter_s102c']['y'], label='oscillation')
+    translation, slope = get_translation_and_slope(log_dict['inverter_s114a']['control_setting'], custom_metrics['init_control_settings']['inverter_s114a'])
+    ax[3, 3].plot(translation, color='tab:blue', label='act_phase_a')
+    translation, slope = get_translation_and_slope(log_dict['inverter_s107b']['control_setting'], custom_metrics['init_control_settings']['inverter_s107b'])
+    ax[3, 3].plot(translation, color='tab:orange', label='act_phase_b')
+    translation, slope = get_translation_and_slope(log_dict['inverter_s104c']['control_setting'], custom_metrics['init_control_settings']['inverter_s104c'])
+    ax[3, 3].plot(translation, color='tab:green', label='act_phase_c')
+    ax[0, 3].set_ylim([0.93, 1.07])
+    ax[1, 3].set_ylim([0, 6.5])
+    ax[1, 3].axhline(3, linestyle='--', color='orange')
+    ax[1, 3].axhline(6, linestyle='--', color='red')
+    ax[2, 3].set_ylim([0, 0.5])
+    ax[3, 3].set_ylim([-0.1, 0.1])
+
+    voltage = np.array(log_dict['inverter_s60a']['v'])
+    ax[0, 4].plot(voltage[:, 0], label='voltage_a')
+    ax[0, 4].plot(voltage[:, 1], label='voltage_b')
+    ax[0, 4].plot(voltage[:, 2], label='voltage_c')
+    ax[1, 4].plot(np.array(log_dict['inverter_s60a']['u'])*100, label='unbalance')
+    ax[1, 4].plot(np.array(log_dict['u_metrics']['u_worst'])*100, label='unbalance_worst')
+    ax[2, 4].plot(np.array(log_dict['y_metrics']['y_worst']), label='oscillation_worst')
+    ax[2, 4].plot(log_dict['inverter_s60a']['y'], label='oscillation')
+    translation, slope = get_translation_and_slope(log_dict['inverter_s60a']['control_setting'], custom_metrics['init_control_settings']['inverter_s60a'])
+    ax[3, 4].plot(translation, color='tab:blue', label='act_phase_a')
+    translation, slope = get_translation_and_slope(log_dict['inverter_s64b']['control_setting'], custom_metrics['init_control_settings']['inverter_s64b'])
+    ax[3, 4].plot(translation, color='tab:orange', label='act_phase_b')
+    translation, slope = get_translation_and_slope(log_dict['inverter_s62c']['control_setting'], custom_metrics['init_control_settings']['inverter_s62c'])
+    ax[3, 4].plot(translation, color='tab:green', label='act_phase_c')
+    ax[0, 4].set_ylim([0.93, 1.07])
+    ax[1, 4].set_ylim([0, 6.5])
+    ax[1, 4].axhline(3, linestyle='--', color='orange')
+    ax[1, 4].axhline(6, linestyle='--', color='red')
+    ax[2, 4].set_ylim([0, 0.5])
+    ax[3, 4].set_ylim([-0.1, 0.1])
+
+    regs = [k for k in log_dict if 'reg' in k]
+    for reg in regs:
+        ax[4, 0].plot(log_dict[reg]['tap_number'])
+
+    ax[4, 0].set_xlabel('time (s)')
+    ax[4, 0].set_ylabel('tap number')
+
+    for row in ax:
+        for a in row:
+            a.grid(b=True, which='both')
+            a.legend(loc=1, ncol=2)
+
+    plt.tight_layout()
+    plt.subplots_adjust(top=0.95)
+    return f
+
+
+def save_cluster_csv(log_dict, custom_metrics, epoch='', unbalance=False, multiagent=False):
+    def get_translation_and_slope(a_val, init_a):
+        points = np.array(a_val)
+        slope = points[:, 1] - points[:, 0]
+        translation = points[:, 2] - init_a[2]
+        return translation, slope
+    result = {}
+    result['r_1'] = sum(log_dict['1']['reward'])
+    result['r_2'] = sum(log_dict['2']['reward'])
+    result['r_3'] = sum(log_dict['3']['reward'])
+    result['r_4'] = sum(log_dict['4']['reward'])
+    result['r_5'] = sum(log_dict['5']['reward'])
+
+    invs = ['inverter_s1a', 'inverter_s52a', 'inverter_s28a', 'inverter_s102c', 'inverter_s60a']
+    for i, inv in enumerate(invs):
+        v = np.array(log_dict[inv]['v'])
+        result['v_{}_a'.format(i+1)] = v[:, 0].tolist()
+        result['v_{}_b'.format(i+1)] = v[:, 1].tolist()
+        result['v_{}_c'.format(i+1)] = v[:, 2].tolist()
+
+    for i, inv in enumerate(invs):
+        u = np.array(np.array(log_dict[inv]['u'])*100)
+        u_worst = np.array(np.array(log_dict['u_metrics']['u_worst'])*100)
+        result['u_{}'.format(i+1)] = u.tolist()
+        result['uw_{}'.format(i+1)] = u_worst.tolist()
+
+    for i, inv in enumerate(invs):
+        y = np.array(np.array(log_dict[inv]['y']))
+        y_worst = np.array(np.array(log_dict['y_metrics']['y_worst']))
+        result['y_{}'.format(i+1)] = y.tolist()
+        result['yw_{}'.format(i+1)] = y_worst.tolist()
+
+    result['a_1_a'] = np.round(get_translation_and_slope(log_dict['inverter_s1a']['control_setting'], custom_metrics['init_control_settings']['inverter_s1a'])[0], 2).tolist()
+    result['a_1_b'] = np.round(get_translation_and_slope(log_dict['inverter_s2b']['control_setting'], custom_metrics['init_control_settings']['inverter_s2b'])[0], 2).tolist()
+    result['a_1_c'] = np.round(get_translation_and_slope(log_dict['inverter_s4c']['control_setting'], custom_metrics['init_control_settings']['inverter_s4c'])[0], 2).tolist()
+
+    result['a_2_a'] = np.round(get_translation_and_slope(log_dict['inverter_s52a']['control_setting'], custom_metrics['init_control_settings']['inverter_s52a'])[0], 2).tolist()
+    result['a_2_b'] = np.round(get_translation_and_slope(log_dict['inverter_s56b']['control_setting'], custom_metrics['init_control_settings']['inverter_s56b'])[0], 2).tolist()
+    result['a_2_c'] = np.round(get_translation_and_slope(log_dict['inverter_s92c']['control_setting'], custom_metrics['init_control_settings']['inverter_s92c'])[0], 2).tolist()
+
+    result['a_3_a'] = np.round(get_translation_and_slope(log_dict['inverter_s19a']['control_setting'], custom_metrics['init_control_settings']['inverter_s19a'])[0], 2).tolist()
+    result['a_3_b'] = np.round(get_translation_and_slope(log_dict['inverter_s22b']['control_setting'], custom_metrics['init_control_settings']['inverter_s22b'])[0], 2).tolist()
+    result['a_3_c'] = np.round(get_translation_and_slope(log_dict['inverter_s24c']['control_setting'], custom_metrics['init_control_settings']['inverter_s24c'])[0], 2).tolist()
+
+    result['a_4_a'] = np.round(get_translation_and_slope(log_dict['inverter_s114a']['control_setting'], custom_metrics['init_control_settings']['inverter_s114a'])[0], 2).tolist()
+    result['a_4_b'] = np.round(get_translation_and_slope(log_dict['inverter_s107b']['control_setting'], custom_metrics['init_control_settings']['inverter_s107b'])[0], 2).tolist()
+    result['a_4_c'] = np.round(get_translation_and_slope(log_dict['inverter_s104c']['control_setting'], custom_metrics['init_control_settings']['inverter_s104c'])[0], 2).tolist()
+
+    result['a_5_a'] = np.round(get_translation_and_slope(log_dict['inverter_s60a']['control_setting'], custom_metrics['init_control_settings']['inverter_s60a'])[0], 2).tolist()
+    result['a_5_b'] = np.round(get_translation_and_slope(log_dict['inverter_s64b']['control_setting'], custom_metrics['init_control_settings']['inverter_s64b'])[0], 2).tolist()
+    result['a_5_c'] = np.round(get_translation_and_slope(log_dict['inverter_s62c']['control_setting'], custom_metrics['init_control_settings']['inverter_s62c'])[0], 2).tolist()
+
+    return result
+
+def save_cluster_csv_lite(log_dict, custom_metrics, epoch='', unbalance=False, multiagent=False):
+    def get_translation_and_slope(a_val, init_a):
+        points = np.array(a_val)
+        slope = points[:, 1] - points[:, 0]
+        translation = points[:, 2] - init_a[2]
+        return translation, slope
+
+    result = {}
+
+    result['a_1_a'] = (get_translation_and_slope(log_dict['inverter_s1a']['control_setting'], custom_metrics['init_control_settings']['inverter_s1a'])[0]/0.01 + 10).astype(int).tolist()[::30]
+    result['a_1_b'] = (get_translation_and_slope(log_dict['inverter_s2b']['control_setting'], custom_metrics['init_control_settings']['inverter_s2b'])[0]/0.01 + 10).astype(int).tolist()[::30]
+    result['a_1_c'] = (get_translation_and_slope(log_dict['inverter_s4c']['control_setting'], custom_metrics['init_control_settings']['inverter_s4c'])[0]/0.01 + 10).astype(int).tolist()[::30]
+
+    result['a_2_a'] = (get_translation_and_slope(log_dict['inverter_s52a']['control_setting'], custom_metrics['init_control_settings']['inverter_s52a'])[0]*10 + 10).astype(int).tolist()[::30]
+    result['a_2_b'] = (get_translation_and_slope(log_dict['inverter_s56b']['control_setting'], custom_metrics['init_control_settings']['inverter_s56b'])[0]/0.01 + 10).astype(int).tolist()[::30]
+    result['a_2_c'] = (get_translation_and_slope(log_dict['inverter_s92c']['control_setting'], custom_metrics['init_control_settings']['inverter_s92c'])[0]/0.01 + 10).astype(int).tolist()[::30]
+
+    result['a_3_a'] = (get_translation_and_slope(log_dict['inverter_s19a']['control_setting'], custom_metrics['init_control_settings']['inverter_s19a'])[0]/0.01 + 10).astype(int).tolist()[::30]
+    result['a_3_b'] = (get_translation_and_slope(log_dict['inverter_s22b']['control_setting'], custom_metrics['init_control_settings']['inverter_s22b'])[0]/0.01 + 10).astype(int).tolist()[::30]
+    result['a_3_c'] = (get_translation_and_slope(log_dict['inverter_s24c']['control_setting'], custom_metrics['init_control_settings']['inverter_s24c'])[0]/0.01 + 10).astype(int).tolist()[::30]
+
+    result['a_4_a'] = (get_translation_and_slope(log_dict['inverter_s114a']['control_setting'], custom_metrics['init_control_settings']['inverter_s114a'])[0]/0.01 + 10).astype(int).tolist()[::30]
+    result['a_4_b'] = (get_translation_and_slope(log_dict['inverter_s107b']['control_setting'], custom_metrics['init_control_settings']['inverter_s107b'])[0]/0.01 + 10).astype(int).tolist()[::30]
+    result['a_4_c'] = (get_translation_and_slope(log_dict['inverter_s104c']['control_setting'], custom_metrics['init_control_settings']['inverter_s104c'])[0]/0.01 + 10).astype(int).tolist()[::30]
+
+    result['a_5_a'] = (get_translation_and_slope(log_dict['inverter_s60a']['control_setting'], custom_metrics['init_control_settings']['inverter_s60a'])[0]/0.01 + 10).astype(int).tolist()[::30]
+    result['a_5_b'] = (get_translation_and_slope(log_dict['inverter_s64b']['control_setting'], custom_metrics['init_control_settings']['inverter_s64b'])[0]/0.01 + 10).astype(int).tolist()[::30]
+    result['a_5_c'] = (get_translation_and_slope(log_dict['inverter_s62c']['control_setting'], custom_metrics['init_control_settings']['inverter_s62c'])[0]/0.01 + 10).astype(int).tolist()[::30]
+
+    return result
