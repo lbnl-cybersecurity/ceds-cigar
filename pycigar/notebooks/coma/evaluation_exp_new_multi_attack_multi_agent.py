@@ -120,6 +120,8 @@ def save_best_policy(trainer, episodes):
         trainer.get_policy('agent_4').export_model(os.path.join(trainer.global_vars['reporter_dir'], 'latest', 'policy' + '_' + str(trainer.iteration), 'agent_4'))
         trainer.get_policy('agent_5').export_model(os.path.join(trainer.global_vars['reporter_dir'], 'latest', 'policy' + '_' + str(trainer.iteration), 'agent_5'))
 
+    trainer.save(os.path.join(trainer.global_vars['reporter_dir'], 'checkpoint'))
+
 def run_train(config, reporter):
     trainer_cls = CCTrainer
     trainer = trainer_cls(config=config['config'])
@@ -130,7 +132,7 @@ def run_train(config, reporter):
         results = trainer.train()
         if 'logger' in results['hist_stats']:
             del results['hist_stats']['logger']  # don't send to tensorboard
-        if 'evaluation' in results:
+        if 'evaluation' in results and 'logger' in results['evaluation']['hist_stats']:
             del results['evaluation']['hist_stats']['logger']
         reporter(**results)
 
@@ -271,9 +273,9 @@ if __name__ == '__main__':
     #base_config['env_config']['scenario_config']['custom_configs']['slack_bus_voltage'] = 1.04
     #base_config['evaluation_config']['env_config']['scenario_config']['custom_configs']['slack_bus_voltage'] = 1.04
 
-    base_config['env_config']['M'] = 150
-    base_config['env_config']['N'] = 0.2
-    base_config['env_config']['P'] = 3
+    base_config['env_config']['M'] = 200
+    base_config['env_config']['N'] = 0.3
+    base_config['env_config']['P'] = 2
     base_config['env_config']['Q'] = 1
     base_config['env_config']['T'] = 15
 
@@ -304,7 +306,7 @@ if __name__ == '__main__':
 
     for i in range(1):
         config = deepcopy(full_config)
-        config['config']['lr'] = ray.tune.grid_search([5e-4, 1e-4, 5e-4])
+        config['config']['lr'] = ray.tune.grid_search([5e-4])
         run_hp_experiment(config, 'main')
 
     ray.shutdown()

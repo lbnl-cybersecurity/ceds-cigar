@@ -1205,6 +1205,12 @@ def save_cluster_csv(log_dict, custom_metrics, epoch='', unbalance=False, multia
     result['a_5_b'] = np.round(get_translation_and_slope(log_dict['inverter_s64b']['control_setting'], custom_metrics['init_control_settings']['inverter_s64b'])[0], 2).tolist()
     result['a_5_c'] = np.round(get_translation_and_slope(log_dict['inverter_s62c']['control_setting'], custom_metrics['init_control_settings']['inverter_s62c'])[0], 2).tolist()
 
+    regs = [reg for reg in log_dict.keys() if 'reg' in reg]
+    result_reg = []
+    for reg in regs:
+        result_reg.append(log_dict[reg]['tap_number'])
+    result['reg'] = np.array(result_reg).T.tolist()
+
     return result
 
 def save_cluster_csv_lite(log_dict, custom_metrics, epoch='', unbalance=False, multiagent=False):

@@ -15,6 +15,21 @@ class RegulatorDevice(BaseDevice):
         self.delay = additional_params.get('delay', None)
         self.kernel_api = additional_params.get('kernel_api')
 
+        if device_id ==  'creg1a':
+            self.tap_number = 5
+        elif device_id == 'creg2a':
+            self.tap_number = -1
+        elif device_id == 'creg3a':
+            self.tap_number = 1
+        elif device_id == 'creg3c':
+            self.tap_number = 0
+        elif device_id == 'creg4a':
+            self.tap_number = 12
+        elif device_id == 'creg4b':
+            self.tap_number = 8
+        elif device_id == 'creg4c':
+            self.tap_number = 8
+
         self.kernel_api.set_regulator_property(
             device_id,
             {
