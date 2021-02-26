@@ -1,0 +1,123 @@
+is_disable_log: False
+is_disable_y: False
+vectorized_mode: False
+
+env_config:
+  clip_actions: True,
+  sims_per_step: 20
+
+simulation_config:
+  # network_model_directory: '/home/toanngo/Documents/GitHub/cigar-document/ceds-cigar/pycigar/zzz/data/ieee3.dss'
+  network_model_directory: '/home/michael/Desktop/git/ceds-cigar/pycigar/zzz/IEEE_37_Node/ieee37.dss'
+  custom_configs:  {solution_mode: 1,
+                    solution_number: 1,
+                    solution_step_size: 1,
+                    solution_control_mode: -1,
+                    solution_max_control_iterations: 1000000,
+                    solution_max_iterations: 30000,
+                    power_factor: 0.9}
+
+scenario_config:
+  # network_data_directory: '/home/toanngo/Documents/GitHub/cigar-document/ceds-cigar/pycigar/zzz/data/load_solar_data.csv'
+  network_data_directory: '/home/michael/Desktop/git/ceds-cigar/pycigar/zzz/IEEE_37_Node/load_solar_data_peak_shaving.csv'
+  multi_config: False
+  start_end_time: [3601, 14400]
+  custom_configs: {load_scaling_factor: 1.00,
+                   solar_scaling_factor: 1.0,
+                   slack_bus_voltage: 1.04,
+                   load_generation_noise: False,
+                   power_factor: 0.9}
+
+  nodes:
+    - name: 's701a'
+      devices:
+        - name: pv_inverter_S701a
+          device: pv_device
+          custom_device_configs: {default_control_setting: [0.98, 1.01, 1.01, 1.04, 1.06],
+                                  gain: 100000,
+                                  low_pass_filter_measure_mean: 1.2,
+                                  low_pass_filter_output_mean: 0.115}
+          controller: fixed_controller
+          custom_controller_configs: {default_control_setting: [0.98, 1.01, 1.01, 1.04, 1.06]}
+          # adversary_controller: fixed_controller
+          # adversary_custom_controller_configs: {default_control_setting: [1.014, 1.015, 1.015, 1.016, 1.017]}
+          # hack: [300, 0.4]
+        - name: bsd_s701a
+          device: battery_storage_device_advanced
+          custom_device_configs: {
+            default_control_setting: 'standby',
+            total_capacity: 500,
+            current_capacity: 400.0,
+            max_charge_power: 100.00,
+            max_discharge_power: 150.00,
+            max_ramp_rate: 1.0,
+            max_SOC: 1.0,
+            min_SOC: 0.2
+          }
+    - name: 's701b'
+      devices:
+        - name: pv_inverter_S701b
+          device: pv_device
+          custom_device_configs: {default_control_setting: [0.98, 1.01, 1.01, 1.04, 1.06],
+                                  gain: 100000,
+                                  low_pass_filter_measure_mean: 1.2,
+                                  low_pass_filter_output_mean: 0.115}
+          controller: fixed_controller
+          custom_controller_configs: {default_control_setting: [0.98, 1.01, 1.01, 1.04, 1.06]}
+          # adversary_controller: fixed_controller
+          # adversary_custom_controller_configs: {default_control_setting: [1.014, 1.015, 1.015, 1.016, 1.017]}
+          # hack: [300, 0.4]
+        - name: bsd_s701b
+          device: battery_storage_device_advanced
+          custom_device_configs: {
+            default_control_setting: 'standby',
+            total_capacity: 500,
+            current_capacity: 400.0,
+            max_charge_power: 100.00,
+            max_discharge_power: 150.00,
+            max_ramp_rate: 1.0,
+            max_SOC: 1.0,
+            min_SOC: 0.2
+          }
+    - name: 's701c'
+      devices:
+        - name: pv_inverter_S701c
+          device: pv_device
+          custom_device_configs: {default_control_setting: [0.98, 1.01, 1.01, 1.04, 1.06],
+                                  gain: 100000,
+                                  low_pass_filter_measure_mean: 1.2,
+                                  low_pass_filter_output_mean: 0.115}
+          controller: fixed_controller
+          custom_controller_configs: {default_control_setting: [0.98, 1.01, 1.01, 1.04, 1.06]}
+          # adversary_controller: fixed_controller
+          # adversary_custom_controller_configs: {default_control_setting: [1.014, 1.015, 1.015, 1.016, 1.017]}
+          # hack: [300, 0.4]
+        - name: bsd_s701c
+          device: battery_storage_device_advanced
+          custom_device_configs: {
+            default_control_setting: 'standby',
+            total_capacity: 500,
+            current_capacity: 400.0,
+            max_charge_power: 100.00,
+            max_discharge_power: 150.00,
+            max_ramp_rate: 1.0,
+            max_SOC: 1.0,
+            min_SOC: 0.2
+          }
+
+  controllers:
+    - name: psc_cent
+      controller: battery_peak_shaving_controller_cent
+      custom_controller_configs: {
+        default_control_setting: 'standby',
+        lowpass_filter_frequency: 0.05, 
+        active_power_target: 2400.0,
+        # eta: 0.01,
+        # K_P: 0.75,
+        # K_I: 0.05,
+        # K_D: 0.02
+        K_P: 0.05,
+        K_I: 0.001,
+        K_D: 0.002
+      }
+      list_devices: ['bsd_s701a', 'bsd_s701b', 'bsd_s701c']
