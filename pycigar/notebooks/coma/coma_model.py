@@ -9,6 +9,7 @@ from ray.rllib.utils.framework import try_import_tf
 tf1, tf, tfv = try_import_tf()
 COOP_OBS = "coop_obs"
 COOP_ACTION = "coop_action"
+#tf.compat.v1.disable_eager_execution()
 
 class CentralizedCriticModel(TFModelV2):
     """Multi-agent model that implements a centralized value function."""
@@ -22,7 +23,8 @@ class CentralizedCriticModel(TFModelV2):
                                            num_outputs, model_config, name)
         self.register_variables(self.model.variables())
 
-        # Central VF maps (obs, opp_obs, opp_act) -> vf_pred
+        #with tf1.variable_scope('central_critic/', reuse=tf1.AUTO_REUSE) as scope:
+            # Central VF maps (obs, opp_obs, opp_act) -> vf_pred
         obs = tf.keras.layers.Input(shape=obs_space.shape, name="obs")
 
         other_agent_obs_acts = []
@@ -33,7 +35,9 @@ class CentralizedCriticModel(TFModelV2):
         concat_obs = tf.keras.layers.Concatenate(axis=1)(
             [obs, *other_agent_obs_acts])
         central_vf_dense = tf.keras.layers.Dense(
-            16, activation=tf.nn.tanh, name="c_vf_dense")(concat_obs)
+            32, activation=tf.nn.tanh, name="c_vf_dense_1")(concat_obs)
+        central_vf_dense = tf.keras.layers.Dense(
+            16, activation=tf.nn.tanh, name="c_vf_dense_2")(central_vf_dense)
         central_vf_out = tf.keras.layers.Dense(
             1, activation=None, name="c_vf_out")(central_vf_dense)
 

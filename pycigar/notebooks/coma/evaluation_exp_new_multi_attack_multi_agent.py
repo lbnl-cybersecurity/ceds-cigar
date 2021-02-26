@@ -224,7 +224,7 @@ if __name__ == '__main__':
             #'lstm_use_prev_action_reward': True,
             'framestack': False,
         },
-
+        "vf_loss_coeff": 0.000001,
         'multiagent': {
             'policies': {'agent_1': (None, obs_space, act_space, {}),
                          'agent_2': (None, obs_space, act_space, {}),
@@ -273,9 +273,9 @@ if __name__ == '__main__':
     #base_config['env_config']['scenario_config']['custom_configs']['slack_bus_voltage'] = 1.04
     #base_config['evaluation_config']['env_config']['scenario_config']['custom_configs']['slack_bus_voltage'] = 1.04
 
-    base_config['env_config']['M'] = 200
-    base_config['env_config']['N'] = 0.3
-    base_config['env_config']['P'] = 2
+    base_config['env_config']['M'] = 500
+    base_config['env_config']['N'] = 0.3   #last
+    base_config['env_config']['P'] = 2     #intt
     base_config['env_config']['Q'] = 1
     base_config['env_config']['T'] = 15
 
@@ -306,7 +306,7 @@ if __name__ == '__main__':
 
     for i in range(1):
         config = deepcopy(full_config)
-        config['config']['lr'] = ray.tune.grid_search([5e-4])
+        config['config']['lr'] = ray.tune.grid_search([1e-4])
         run_hp_experiment(config, 'main')
 
     ray.shutdown()

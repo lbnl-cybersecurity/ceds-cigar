@@ -1006,6 +1006,7 @@ def plot_new(log_dict, custom_metrics, epoch='', unbalance=False, multiagent=Fal
     plt.subplots_adjust(top=0.95)
     return f
 
+"""
 def plot_cluster(log_dict, custom_metrics, epoch='', unbalance=False, multiagent=False):
     def get_translation_and_slope(a_val, init_a):
         points = np.array(a_val)
@@ -1151,7 +1152,7 @@ def plot_cluster(log_dict, custom_metrics, epoch='', unbalance=False, multiagent
     plt.tight_layout()
     plt.subplots_adjust(top=0.95)
     return f
-
+"""
 
 def save_cluster_csv(log_dict, custom_metrics, epoch='', unbalance=False, multiagent=False):
     def get_translation_and_slope(a_val, init_a):

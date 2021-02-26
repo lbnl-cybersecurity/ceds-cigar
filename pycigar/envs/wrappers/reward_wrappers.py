@@ -388,8 +388,9 @@ class ClusterRewardWrapper(RewardWrapper):
             r_N = 0
             r_P = 0
             r_Q = 0
+
+            worst_y = 0
             for key in self.cluster[agent]:
-                worst_y = 0
                 key = 'inverter_' + key
                 action = info[key]['current_action']
                 if action is None:
@@ -397,8 +398,6 @@ class ClusterRewardWrapper(RewardWrapper):
                 old_action = info[key]['old_action']
                 if old_action is None:
                     old_action = self.INIT_ACTION[key]
-
-                r = 0
 
                 action = np.array(action)
                 old_action = np.array(old_action)
@@ -409,7 +408,7 @@ class ClusterRewardWrapper(RewardWrapper):
                 else:
                     roa = 1
 
-                r += -(
+                r = -(
                     T * info[key]['u']
                     #+ M * info[key]['y']
                     + N * roa
