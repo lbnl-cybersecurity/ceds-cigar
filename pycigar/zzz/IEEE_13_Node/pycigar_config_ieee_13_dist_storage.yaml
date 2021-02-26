@@ -31,17 +31,17 @@ scenario_config:
   nodes:
     - name: '671'
       devices:
-          - name: pv_671
-            device: pv_device
-            custom_device_configs: {default_control_setting: [0.98, 1.01, 1.01, 1.04, 1.06],
-                                    gain: 1e5,
-                                    low_pass_filter_measure_mean: 1.2,
-                                    low_pass_filter_output_mean: 0.115}
-            controller: fixed_controller
-            custom_controller_configs: {default_control_setting: [0.98, 1.01, 1.01, 1.04, 1.06]}
-            # adversary_controller: fixed_controller
-            # adversary_custom_controller_configs: {default_control_setting: [1.014, 1.015, 1.015, 1.016, 1.017]}
-            # hack: [300, 0.4]
+        - name: pv_671
+          device: pv_device
+          custom_device_configs: {default_control_setting: [0.98, 1.01, 1.01, 1.04, 1.06],
+                                  gain: 1e5,
+                                  low_pass_filter_measure_mean: 1.2,
+                                  low_pass_filter_output_mean: 0.115}
+          controller: fixed_controller
+          custom_controller_configs: {default_control_setting: [0.98, 1.01, 1.01, 1.04, 1.06]}
+          # adversary_controller: fixed_controller
+          # adversary_custom_controller_configs: {default_control_setting: [1.014, 1.015, 1.015, 1.016, 1.017]}
+          # hack: [300, 0.4]
 
     - name: '634a'
       devices:
@@ -225,19 +225,19 @@ scenario_config:
           # adversary_custom_controller_configs: {default_control_setting: [1.014, 1.015, 1.015, 1.016, 1.017]}
           # hack: [300, 0.4]
 
-    - name: '670c'
-      devices:
-        - name: pv_670c
-          device: pv_device
-          custom_device_configs: {default_control_setting: [0.98, 1.01, 1.01, 1.04, 1.06],
-                                  gain: 1e5,
-                                  low_pass_filter_measure_mean: 1.2,
-                                  low_pass_filter_output_mean: 0.115}
-          controller: fixed_controller
-          custom_controller_configs: {default_control_setting: [0.98, 1.01, 1.01, 1.04, 1.06]}
-          # adversary_controller: fixed_controller
-          # adversary_custom_controller_configs: {default_control_setting: [1.014, 1.015, 1.015, 1.016, 1.017]}
-          # hack: [300, 0.4]
+    # - name: '670c'
+    #   devices:
+    #     - name: pv_670c
+    #       device: pv_device
+    #       custom_device_configs: {default_control_setting: [0.98, 1.01, 1.01, 1.04, 1.06],
+    #                               gain: 1e5,
+    #                               low_pass_filter_measure_mean: 1.2,
+    #                               low_pass_filter_output_mean: 0.115}
+    #       controller: fixed_controller
+    #       custom_controller_configs: {default_control_setting: [0.98, 1.01, 1.01, 1.04, 1.06]}
+    #       # adversary_controller: fixed_controller
+    #       # adversary_custom_controller_configs: {default_control_setting: [1.014, 1.015, 1.015, 1.016, 1.017]}
+    #       # hack: [300, 0.4]
 
     - name: bsd_671a
       devices:

@@ -1,0 +1,1092 @@
+M: 20.0
+N: 0.1
+P: 18.0
+Q: 50.0
+T: 1000
+attack_randomization:
+  generator: AttackDefinitionGenerator
+env_config:
+  clip_actions: true
+  sims_per_step: 20
+hack_setting:
+  default_control_setting:
+  - 1.039
+  - 1.04
+  - 1.04
+  - 1.041
+  - 1.042
+is_disable_log: false
+is_disable_y: false
+scenario_config:
+  custom_configs:
+    load_generation_noise: false
+    load_scaling_factor: 2.0
+    power_factor: 0.9
+    slack_bus_voltage: 1.02
+    solar_scaling_factor: 2.0
+  multi_config: true
+  network_data_directory: /home/michael/Desktop/git/ceds-cigar/pycigar/data/../zzz/IEEE_37_Node/load_solar_data.csv
+  nodes:
+  - devices:
+    - adversary_controller: adaptive_fixed_controller
+      adversary_custom_controller_configs:
+        default_control_setting:
+        - 1.014
+        - 1.015
+        - 1.015
+        - 1.016
+        - 1.017
+      controller: rl_controller
+      custom_controller_configs:
+        default_control_setting: &id001
+        - 0.9808955999844802
+        - 1.0108955999844802
+        - 1.0108955999844802
+        - 1.0408955999844802
+        - 1.0608955999844802
+      custom_device_configs:
+        default_control_setting: *id001
+        gain: 100000.0
+        is_butterworth_filter: false
+        low_pass_filter_measure_mean: 1.2
+        low_pass_filter_measure_std: 0.2
+        low_pass_filter_output_mean: 0.1
+        low_pass_filter_output_std: 0.02
+        p_ramp_rate: 1.0
+        q_ramp_rate: 0.03
+      device: pv_device
+      hack:
+      - 250
+      - 0.0
+      - 500
+      name: inverter_s701a
+    load_profile: null
+    name: s701a
+  - devices:
+    - adversary_controller: adaptive_fixed_controller
+      adversary_custom_controller_configs:
+        default_control_setting:
+        - 1.014
+        - 1.015
+        - 1.015
+        - 1.016
+        - 1.017
+      controller: rl_controller
+      custom_controller_configs:
+        default_control_setting: &id002
+        - 0.9785126299963456
+        - 1.0085126299963456
+        - 1.0085126299963456
+        - 1.0385126299963456
+        - 1.0585126299963457
+      custom_device_configs:
+        default_control_setting: *id002
+        gain: 100000.0
+        is_butterworth_filter: false
+        low_pass_filter_measure_mean: 1.2
+        low_pass_filter_measure_std: 0.2
+        low_pass_filter_output_mean: 0.1
+        low_pass_filter_output_std: 0.02
+        p_ramp_rate: 1.0
+        q_ramp_rate: 0.03
+      device: pv_device
+      hack:
+      - 250
+      - 0.0
+      - 500
+      name: inverter_s701b
+    load_profile: null
+    name: s701b
+  - devices:
+    - adversary_controller: adaptive_fixed_controller
+      adversary_custom_controller_configs:
+        default_control_setting:
+        - 1.014
+        - 1.015
+        - 1.015
+        - 1.016
+        - 1.017
+      controller: rl_controller
+      custom_controller_configs:
+        default_control_setting: &id003
+        - 0.985533079027274
+        - 1.015533079027274
+        - 1.015533079027274
+        - 1.045533079027274
+        - 1.0655330790272741
+      custom_device_configs:
+        default_control_setting: *id003
+        gain: 100000.0
+        is_butterworth_filter: false
+        low_pass_filter_measure_mean: 1.2
+        low_pass_filter_measure_std: 0.2
+        low_pass_filter_output_mean: 0.1
+        low_pass_filter_output_std: 0.02
+        p_ramp_rate: 1.0
+        q_ramp_rate: 0.03
+      device: pv_device
+      hack:
+      - 250
+      - 0.0
+      - 500
+      name: inverter_s701c
+    load_profile: null
+    name: s701c
+  - devices:
+    - adversary_controller: adaptive_fixed_controller
+      adversary_custom_controller_configs:
+        default_control_setting:
+        - 1.014
+        - 1.015
+        - 1.015
+        - 1.016
+        - 1.017
+      controller: rl_controller
+      custom_controller_configs:
+        default_control_setting: &id004
+        - 0.9879324456490616
+        - 1.0179324456490615
+        - 1.0179324456490615
+        - 1.0479324456490615
+        - 1.0679324456490615
+      custom_device_configs:
+        default_control_setting: *id004
+        gain: 100000.0
+        is_butterworth_filter: false
+        low_pass_filter_measure_mean: 1.2
+        low_pass_filter_measure_std: 0.2
+        low_pass_filter_output_mean: 0.1
+        low_pass_filter_output_std: 0.02
+        p_ramp_rate: 1.0
+        q_ramp_rate: 0.03
+      device: pv_device
+      hack:
+      - 250
+      - 0.0
+      - 500
+      name: inverter_s712c
+    load_profile: null
+    name: s712c
+  - devices:
+    - adversary_controller: adaptive_fixed_controller
+      adversary_custom_controller_configs:
+        default_control_setting:
+        - 1.014
+        - 1.015
+        - 1.015
+        - 1.016
+        - 1.017
+      controller: rl_controller
+      custom_controller_configs:
+        default_control_setting: &id005
+        - 0.9908998999446976
+        - 1.0208998999446977
+        - 1.0208998999446977
+        - 1.0508998999446977
+        - 1.0708998999446977
+      custom_device_configs:
+        default_control_setting: *id005
+        gain: 100000.0
+        is_butterworth_filter: false
+        low_pass_filter_measure_mean: 1.2
+        low_pass_filter_measure_std: 0.2
+        low_pass_filter_output_mean: 0.1
+        low_pass_filter_output_std: 0.02
+        p_ramp_rate: 1.0
+        q_ramp_rate: 0.03
+      device: pv_device
+      hack:
+      - 250
+      - 0.0
+      - 500
+      name: inverter_s713c
+    load_profile: null
+    name: s713c
+  - devices:
+    - adversary_controller: adaptive_fixed_controller
+      adversary_custom_controller_configs:
+        default_control_setting:
+        - 1.014
+        - 1.015
+        - 1.015
+        - 1.016
+        - 1.017
+      controller: rl_controller
+      custom_controller_configs:
+        default_control_setting: &id006
+        - 0.9830961082786972
+        - 1.0130961082786971
+        - 1.0130961082786971
+        - 1.0430961082786971
+        - 1.0630961082786972
+      custom_device_configs:
+        default_control_setting: *id006
+        gain: 100000.0
+        is_butterworth_filter: false
+        low_pass_filter_measure_mean: 1.2
+        low_pass_filter_measure_std: 0.2
+        low_pass_filter_output_mean: 0.1
+        low_pass_filter_output_std: 0.02
+        p_ramp_rate: 1.0
+        q_ramp_rate: 0.03
+      device: pv_device
+      hack:
+      - 250
+      - 0.0
+      - 500
+      name: inverter_s714a
+    load_profile: null
+    name: s714a
+  - devices:
+    - adversary_controller: adaptive_fixed_controller
+      adversary_custom_controller_configs:
+        default_control_setting:
+        - 1.014
+        - 1.015
+        - 1.015
+        - 1.016
+        - 1.017
+      controller: rl_controller
+      custom_controller_configs:
+        default_control_setting: &id007
+        - 0.98
+        - 1.01
+        - 1.01
+        - 1.04
+        - 1.07
+      custom_device_configs:
+        default_control_setting: *id007
+        gain: 100000.0
+        is_butterworth_filter: false
+        low_pass_filter_measure_mean: 1.2
+        low_pass_filter_measure_std: 0.2
+        low_pass_filter_output_mean: 0.1
+        low_pass_filter_output_std: 0.02
+        p_ramp_rate: 1.0
+        q_ramp_rate: 0.03
+      device: pv_device
+      hack:
+      - 250
+      - 0.0
+      - 500
+      name: inverter_s714b
+    load_profile: null
+    name: s714b
+  - devices:
+    - adversary_controller: adaptive_fixed_controller
+      adversary_custom_controller_configs:
+        default_control_setting:
+        - 1.014
+        - 1.015
+        - 1.015
+        - 1.016
+        - 1.017
+      controller: rl_controller
+      custom_controller_configs:
+        default_control_setting: &id008
+        - 0.9863586104257409
+        - 1.0163586104257412
+        - 1.0163586104257412
+        - 1.0463586104257412
+        - 1.0663586104257412
+      custom_device_configs:
+        default_control_setting: *id008
+        gain: 100000.0
+        is_butterworth_filter: false
+        low_pass_filter_measure_mean: 1.2
+        low_pass_filter_measure_std: 0.2
+        low_pass_filter_output_mean: 0.1
+        low_pass_filter_output_std: 0.02
+        p_ramp_rate: 1.0
+        q_ramp_rate: 0.03
+      device: pv_device
+      hack:
+      - 250
+      - 0.0
+      - 500
+      name: inverter_s718a
+    load_profile: null
+    name: s718a
+  - devices:
+    - adversary_controller: adaptive_fixed_controller
+      adversary_custom_controller_configs:
+        default_control_setting:
+        - 1.014
+        - 1.015
+        - 1.015
+        - 1.016
+        - 1.017
+      controller: rl_controller
+      custom_controller_configs:
+        default_control_setting: &id009
+        - 0.9842065864785728
+        - 1.0142065864785728
+        - 1.0142065864785728
+        - 1.0442065864785728
+        - 1.0642065864785728
+      custom_device_configs:
+        default_control_setting: *id009
+        gain: 100000.0
+        is_butterworth_filter: false
+        low_pass_filter_measure_mean: 1.2
+        low_pass_filter_measure_std: 0.2
+        low_pass_filter_output_mean: 0.1
+        low_pass_filter_output_std: 0.02
+        p_ramp_rate: 1.0
+        q_ramp_rate: 0.03
+      device: pv_device
+      hack:
+      - 250
+      - 0.0
+      - 500
+      name: inverter_s720c
+    load_profile: null
+    name: s720c
+  - devices:
+    - adversary_controller: adaptive_fixed_controller
+      adversary_custom_controller_configs:
+        default_control_setting:
+        - 1.014
+        - 1.015
+        - 1.015
+        - 1.016
+        - 1.017
+      controller: rl_controller
+      custom_controller_configs:
+        default_control_setting: &id010
+        - 0.9786904982810178
+        - 1.008690498281018
+        - 1.008690498281018
+        - 1.038690498281018
+        - 1.058690498281018
+      custom_device_configs:
+        default_control_setting: *id010
+        gain: 100000.0
+        is_butterworth_filter: false
+        low_pass_filter_measure_mean: 1.2
+        low_pass_filter_measure_std: 0.2
+        low_pass_filter_output_mean: 0.1
+        low_pass_filter_output_std: 0.02
+        p_ramp_rate: 1.0
+        q_ramp_rate: 0.03
+      device: pv_device
+      hack:
+      - 250
+      - 0.0
+      - 500
+      name: inverter_s722b
+    load_profile: null
+    name: s722b
+  - devices:
+    - adversary_controller: adaptive_fixed_controller
+      adversary_custom_controller_configs:
+        default_control_setting:
+        - 1.014
+        - 1.015
+        - 1.015
+        - 1.016
+        - 1.017
+      controller: rl_controller
+      custom_controller_configs:
+        default_control_setting: &id011
+        - 0.9759728950449528
+        - 1.005972895044953
+        - 1.005972895044953
+        - 1.035972895044953
+        - 1.055972895044953
+      custom_device_configs:
+        default_control_setting: *id011
+        gain: 100000.0
+        is_butterworth_filter: false
+        low_pass_filter_measure_mean: 1.2
+        low_pass_filter_measure_std: 0.2
+        low_pass_filter_output_mean: 0.1
+        low_pass_filter_output_std: 0.02
+        p_ramp_rate: 1.0
+        q_ramp_rate: 0.03
+      device: pv_device
+      hack:
+      - 250
+      - 0.0
+      - 500
+      name: inverter_s722c
+    load_profile: null
+    name: s722c
+  - devices:
+    - adversary_controller: adaptive_fixed_controller
+      adversary_custom_controller_configs:
+        default_control_setting:
+        - 1.014
+        - 1.015
+        - 1.015
+        - 1.016
+        - 1.017
+      controller: rl_controller
+      custom_controller_configs:
+        default_control_setting: &id012
+        - 0.9771046611677864
+        - 1.0071046611677863
+        - 1.0071046611677863
+        - 1.0371046611677863
+        - 1.0571046611677863
+      custom_device_configs:
+        default_control_setting: *id012
+        gain: 100000.0
+        is_butterworth_filter: false
+        low_pass_filter_measure_mean: 1.2
+        low_pass_filter_measure_std: 0.2
+        low_pass_filter_output_mean: 0.1
+        low_pass_filter_output_std: 0.02
+        p_ramp_rate: 1.0
+        q_ramp_rate: 0.03
+      device: pv_device
+      hack:
+      - 250
+      - 0.0
+      - 500
+      name: inverter_s724b
+    load_profile: null
+    name: s724b
+  - devices:
+    - adversary_controller: adaptive_fixed_controller
+      adversary_custom_controller_configs:
+        default_control_setting:
+        - 1.014
+        - 1.015
+        - 1.015
+        - 1.016
+        - 1.017
+      controller: rl_controller
+      custom_controller_configs:
+        default_control_setting: &id013
+        - 0.9846130971130403
+        - 1.0146130971130405
+        - 1.0146130971130405
+        - 1.0446130971130403
+        - 1.0646130971130403
+      custom_device_configs:
+        default_control_setting: *id013
+        gain: 100000.0
+        is_butterworth_filter: false
+        low_pass_filter_measure_mean: 1.2
+        low_pass_filter_measure_std: 0.2
+        low_pass_filter_output_mean: 0.1
+        low_pass_filter_output_std: 0.02
+        p_ramp_rate: 1.0
+        q_ramp_rate: 0.03
+      device: pv_device
+      hack:
+      - 250
+      - 0.0
+      - 500
+      name: inverter_s725b
+    load_profile: null
+    name: s725b
+  - devices:
+    - adversary_controller: adaptive_fixed_controller
+      adversary_custom_controller_configs:
+        default_control_setting:
+        - 1.014
+        - 1.015
+        - 1.015
+        - 1.016
+        - 1.017
+      controller: rl_controller
+      custom_controller_configs:
+        default_control_setting: &id014
+        - 0.9758404942386364
+        - 1.0058404942386363
+        - 1.0058404942386363
+        - 1.0358404942386366
+        - 1.0558404942386366
+      custom_device_configs:
+        default_control_setting: *id014
+        gain: 100000.0
+        is_butterworth_filter: false
+        low_pass_filter_measure_mean: 1.2
+        low_pass_filter_measure_std: 0.2
+        low_pass_filter_output_mean: 0.1
+        low_pass_filter_output_std: 0.02
+        p_ramp_rate: 1.0
+        q_ramp_rate: 0.03
+      device: pv_device
+      hack:
+      - 250
+      - 0.0
+      - 500
+      name: inverter_s727c
+    load_profile: null
+    name: s727c
+  - devices:
+    - adversary_controller: adaptive_fixed_controller
+      adversary_custom_controller_configs:
+        default_control_setting:
+        - 1.014
+        - 1.015
+        - 1.015
+        - 1.016
+        - 1.017
+      controller: rl_controller
+      custom_controller_configs:
+        default_control_setting: &id015
+        - 0.9769643876610408
+        - 1.0069643876610408
+        - 1.0069643876610408
+        - 1.0369643876610408
+        - 1.0569643876610408
+      custom_device_configs:
+        default_control_setting: *id015
+        gain: 100000.0
+        is_butterworth_filter: false
+        low_pass_filter_measure_mean: 1.2
+        low_pass_filter_measure_std: 0.2
+        low_pass_filter_output_mean: 0.1
+        low_pass_filter_output_std: 0.02
+        p_ramp_rate: 1.0
+        q_ramp_rate: 0.03
+      device: pv_device
+      hack:
+      - 250
+      - 0.0
+      - 500
+      name: inverter_s728
+    load_profile: null
+    name: s728
+  - devices:
+    - adversary_controller: adaptive_fixed_controller
+      adversary_custom_controller_configs:
+        default_control_setting:
+        - 1.014
+        - 1.015
+        - 1.015
+        - 1.016
+        - 1.017
+      controller: rl_controller
+      custom_controller_configs:
+        default_control_setting: &id016
+        - 0.9790347778155511
+        - 1.0090347778155513
+        - 1.0090347778155513
+        - 1.039034777815551
+        - 1.059034777815551
+      custom_device_configs:
+        default_control_setting: *id016
+        gain: 100000.0
+        is_butterworth_filter: false
+        low_pass_filter_measure_mean: 1.2
+        low_pass_filter_measure_std: 0.2
+        low_pass_filter_output_mean: 0.1
+        low_pass_filter_output_std: 0.02
+        p_ramp_rate: 1.0
+        q_ramp_rate: 0.03
+      device: pv_device
+      hack:
+      - 250
+      - 0.0
+      - 500
+      name: inverter_s729a
+    load_profile: null
+    name: s729a
+  - devices:
+    - adversary_controller: adaptive_fixed_controller
+      adversary_custom_controller_configs:
+        default_control_setting:
+        - 1.014
+        - 1.015
+        - 1.015
+        - 1.016
+        - 1.017
+      controller: rl_controller
+      custom_controller_configs:
+        default_control_setting: &id017
+        - 0.9851551684528572
+        - 1.0151551684528572
+        - 1.0151551684528572
+        - 1.0451551684528573
+        - 1.0651551684528573
+      custom_device_configs:
+        default_control_setting: *id017
+        gain: 100000.0
+        is_butterworth_filter: false
+        low_pass_filter_measure_mean: 1.2
+        low_pass_filter_measure_std: 0.2
+        low_pass_filter_output_mean: 0.1
+        low_pass_filter_output_std: 0.02
+        p_ramp_rate: 1.0
+        q_ramp_rate: 0.03
+      device: pv_device
+      hack:
+      - 250
+      - 0.0
+      - 500
+      name: inverter_s730c
+    load_profile: null
+    name: s730c
+  - devices:
+    - adversary_controller: adaptive_fixed_controller
+      adversary_custom_controller_configs:
+        default_control_setting:
+        - 1.014
+        - 1.015
+        - 1.015
+        - 1.016
+        - 1.017
+      controller: rl_controller
+      custom_controller_configs:
+        default_control_setting: *id007
+      custom_device_configs:
+        default_control_setting: *id007
+        gain: 100000.0
+        is_butterworth_filter: false
+        low_pass_filter_measure_mean: 1.2
+        low_pass_filter_measure_std: 0.2
+        low_pass_filter_output_mean: 0.1
+        low_pass_filter_output_std: 0.02
+        p_ramp_rate: 1.0
+        q_ramp_rate: 0.03
+      device: pv_device
+      hack:
+      - 250
+      - 0.0
+      - 500
+      name: inverter_s731b
+    load_profile: null
+    name: s731b
+  - devices:
+    - adversary_controller: adaptive_fixed_controller
+      adversary_custom_controller_configs:
+        default_control_setting:
+        - 1.014
+        - 1.015
+        - 1.015
+        - 1.016
+        - 1.017
+      controller: rl_controller
+      custom_controller_configs:
+        default_control_setting: &id018
+        - 0.9694712541759004
+        - 0.9994712541759004
+        - 0.9994712541759004
+        - 1.0294712541759004
+        - 1.0494712541759004
+      custom_device_configs:
+        default_control_setting: *id018
+        gain: 100000.0
+        is_butterworth_filter: false
+        low_pass_filter_measure_mean: 1.2
+        low_pass_filter_measure_std: 0.2
+        low_pass_filter_output_mean: 0.1
+        low_pass_filter_output_std: 0.02
+        p_ramp_rate: 1.0
+        q_ramp_rate: 0.03
+      device: pv_device
+      hack:
+      - 250
+      - 0.0
+      - 500
+      name: inverter_s732c
+    load_profile: null
+    name: s732c
+  - devices:
+    - adversary_controller: adaptive_fixed_controller
+      adversary_custom_controller_configs:
+        default_control_setting:
+        - 1.014
+        - 1.015
+        - 1.015
+        - 1.016
+        - 1.017
+      controller: rl_controller
+      custom_controller_configs:
+        default_control_setting: &id019
+        - 0.9724364647144008
+        - 1.0024364647144006
+        - 1.0024364647144006
+        - 1.0324364647144006
+        - 1.0524364647144009
+      custom_device_configs:
+        default_control_setting: *id019
+        gain: 100000.0
+        is_butterworth_filter: false
+        low_pass_filter_measure_mean: 1.2
+        low_pass_filter_measure_std: 0.2
+        low_pass_filter_output_mean: 0.1
+        low_pass_filter_output_std: 0.02
+        p_ramp_rate: 1.0
+        q_ramp_rate: 0.03
+      device: pv_device
+      hack:
+      - 250
+      - 0.0
+      - 500
+      name: inverter_s733a
+    load_profile: null
+    name: s733a
+  - devices:
+    - adversary_controller: adaptive_fixed_controller
+      adversary_custom_controller_configs:
+        default_control_setting:
+        - 1.014
+        - 1.015
+        - 1.015
+        - 1.016
+        - 1.017
+      controller: rl_controller
+      custom_controller_configs:
+        default_control_setting: &id020
+        - 0.974724411040148
+        - 1.004724411040148
+        - 1.004724411040148
+        - 1.034724411040148
+        - 1.054724411040148
+      custom_device_configs:
+        default_control_setting: *id020
+        gain: 100000.0
+        is_butterworth_filter: false
+        low_pass_filter_measure_mean: 1.2
+        low_pass_filter_measure_std: 0.2
+        low_pass_filter_output_mean: 0.1
+        low_pass_filter_output_std: 0.02
+        p_ramp_rate: 1.0
+        q_ramp_rate: 0.03
+      device: pv_device
+      hack:
+      - 250
+      - 0.0
+      - 500
+      name: inverter_s734c
+    load_profile: null
+    name: s734c
+  - devices:
+    - adversary_controller: adaptive_fixed_controller
+      adversary_custom_controller_configs:
+        default_control_setting:
+        - 1.014
+        - 1.015
+        - 1.015
+        - 1.016
+        - 1.017
+      controller: rl_controller
+      custom_controller_configs:
+        default_control_setting: &id021
+        - 0.9751990584699296
+        - 1.0051990584699295
+        - 1.0051990584699295
+        - 1.0351990584699298
+        - 1.0551990584699298
+      custom_device_configs:
+        default_control_setting: *id021
+        gain: 100000.0
+        is_butterworth_filter: false
+        low_pass_filter_measure_mean: 1.2
+        low_pass_filter_measure_std: 0.2
+        low_pass_filter_output_mean: 0.1
+        low_pass_filter_output_std: 0.02
+        p_ramp_rate: 1.0
+        q_ramp_rate: 0.03
+      device: pv_device
+      hack:
+      - 250
+      - 0.0
+      - 500
+      name: inverter_s735c
+    load_profile: null
+    name: s735c
+  - devices:
+    - adversary_controller: adaptive_fixed_controller
+      adversary_custom_controller_configs:
+        default_control_setting:
+        - 1.014
+        - 1.015
+        - 1.015
+        - 1.016
+        - 1.017
+      controller: rl_controller
+      custom_controller_configs:
+        default_control_setting: &id022
+        - 0.9855543773119416
+        - 1.0155543773119418
+        - 1.0155543773119418
+        - 1.0455543773119418
+        - 1.0655543773119418
+      custom_device_configs:
+        default_control_setting: *id022
+        gain: 100000.0
+        is_butterworth_filter: false
+        low_pass_filter_measure_mean: 1.2
+        low_pass_filter_measure_std: 0.2
+        low_pass_filter_output_mean: 0.1
+        low_pass_filter_output_std: 0.02
+        p_ramp_rate: 1.0
+        q_ramp_rate: 0.03
+      device: pv_device
+      hack:
+      - 250
+      - 0.0
+      - 500
+      name: inverter_s736b
+    load_profile: null
+    name: s736b
+  - devices:
+    - adversary_controller: adaptive_fixed_controller
+      adversary_custom_controller_configs:
+        default_control_setting:
+        - 1.014
+        - 1.015
+        - 1.015
+        - 1.016
+        - 1.017
+      controller: rl_controller
+      custom_controller_configs:
+        default_control_setting: &id023
+        - 0.9848146244962002
+        - 1.0148146244962002
+        - 1.0148146244962002
+        - 1.0448146244962002
+        - 1.0648146244962002
+      custom_device_configs:
+        default_control_setting: *id023
+        gain: 100000.0
+        is_butterworth_filter: false
+        low_pass_filter_measure_mean: 1.2
+        low_pass_filter_measure_std: 0.2
+        low_pass_filter_output_mean: 0.1
+        low_pass_filter_output_std: 0.02
+        p_ramp_rate: 1.0
+        q_ramp_rate: 0.03
+      device: pv_device
+      hack:
+      - 250
+      - 0.0
+      - 500
+      name: inverter_s737a
+    load_profile: null
+    name: s737a
+  - devices:
+    - adversary_controller: adaptive_fixed_controller
+      adversary_custom_controller_configs:
+        default_control_setting:
+        - 1.014
+        - 1.015
+        - 1.015
+        - 1.016
+        - 1.017
+      controller: rl_controller
+      custom_controller_configs:
+        default_control_setting: &id024
+        - 0.9898373975264944
+        - 1.0198373975264945
+        - 1.0198373975264945
+        - 1.0498373975264943
+        - 1.0698373975264943
+      custom_device_configs:
+        default_control_setting: *id024
+        gain: 100000.0
+        is_butterworth_filter: false
+        low_pass_filter_measure_mean: 1.2
+        low_pass_filter_measure_std: 0.2
+        low_pass_filter_output_mean: 0.1
+        low_pass_filter_output_std: 0.02
+        p_ramp_rate: 1.0
+        q_ramp_rate: 0.03
+      device: pv_device
+      hack:
+      - 250
+      - 0.0
+      - 500
+      name: inverter_s738a
+    load_profile: null
+    name: s738a
+  - devices:
+    - adversary_controller: adaptive_fixed_controller
+      adversary_custom_controller_configs:
+        default_control_setting:
+        - 1.014
+        - 1.015
+        - 1.015
+        - 1.016
+        - 1.017
+      controller: rl_controller
+      custom_controller_configs:
+        default_control_setting: &id025
+        - 0.9735876957672556
+        - 1.0035876957672558
+        - 1.0035876957672558
+        - 1.0335876957672558
+        - 1.053587695767256
+      custom_device_configs:
+        default_control_setting: *id025
+        gain: 100000.0
+        is_butterworth_filter: false
+        low_pass_filter_measure_mean: 1.2
+        low_pass_filter_measure_std: 0.2
+        low_pass_filter_output_mean: 0.1
+        low_pass_filter_output_std: 0.02
+        p_ramp_rate: 1.0
+        q_ramp_rate: 0.03
+      device: pv_device
+      hack:
+      - 250
+      - 0.0
+      - 500
+      name: inverter_s740c
+    load_profile: null
+    name: s740c
+  - devices:
+    - adversary_controller: adaptive_fixed_controller
+      adversary_custom_controller_configs:
+        default_control_setting:
+        - 1.014
+        - 1.015
+        - 1.015
+        - 1.016
+        - 1.017
+      controller: rl_controller
+      custom_controller_configs:
+        default_control_setting: &id026
+        - 0.9824672982174968
+        - 1.012467298217497
+        - 1.012467298217497
+        - 1.042467298217497
+        - 1.062467298217497
+      custom_device_configs:
+        default_control_setting: *id026
+        gain: 100000.0
+        is_butterworth_filter: false
+        low_pass_filter_measure_mean: 1.2
+        low_pass_filter_measure_std: 0.2
+        low_pass_filter_output_mean: 0.1
+        low_pass_filter_output_std: 0.02
+        p_ramp_rate: 1.0
+        q_ramp_rate: 0.03
+      device: pv_device
+      hack:
+      - 250
+      - 0.0
+      - 500
+      name: inverter_s741c
+    load_profile: null
+    name: s741c
+  - devices:
+    - adversary_controller: adaptive_fixed_controller
+      adversary_custom_controller_configs:
+        default_control_setting:
+        - 1.014
+        - 1.015
+        - 1.015
+        - 1.016
+        - 1.017
+      controller: rl_controller
+      custom_controller_configs:
+        default_control_setting: &id027
+        - 0.9868542626633596
+        - 1.0168542626633597
+        - 1.0168542626633597
+        - 1.0468542626633597
+        - 1.0668542626633597
+      custom_device_configs:
+        default_control_setting: *id027
+        gain: 100000.0
+        is_butterworth_filter: false
+        low_pass_filter_measure_mean: 1.2
+        low_pass_filter_measure_std: 0.2
+        low_pass_filter_output_mean: 0.1
+        low_pass_filter_output_std: 0.02
+        p_ramp_rate: 1.0
+        q_ramp_rate: 0.03
+      device: pv_device
+      hack:
+      - 250
+      - 0.0
+      - 500
+      name: inverter_s742a
+    load_profile: null
+    name: s742a
+  - devices:
+    - adversary_controller: adaptive_fixed_controller
+      adversary_custom_controller_configs:
+        default_control_setting:
+        - 1.014
+        - 1.015
+        - 1.015
+        - 1.016
+        - 1.017
+      controller: rl_controller
+      custom_controller_configs:
+        default_control_setting: &id028
+        - 0.9770103298206818
+        - 1.0070103298206818
+        - 1.0070103298206818
+        - 1.037010329820682
+        - 1.057010329820682
+      custom_device_configs:
+        default_control_setting: *id028
+        gain: 100000.0
+        is_butterworth_filter: false
+        low_pass_filter_measure_mean: 1.2
+        low_pass_filter_measure_std: 0.2
+        low_pass_filter_output_mean: 0.1
+        low_pass_filter_output_std: 0.02
+        p_ramp_rate: 1.0
+        q_ramp_rate: 0.03
+      device: pv_device
+      hack:
+      - 250
+      - 0.0
+      - 500
+      name: inverter_s742b
+    load_profile: null
+    name: s742b
+  - devices:
+    - adversary_controller: adaptive_fixed_controller
+      adversary_custom_controller_configs:
+        default_control_setting:
+        - 1.014
+        - 1.015
+        - 1.015
+        - 1.016
+        - 1.017
+      controller: rl_controller
+      custom_controller_configs:
+        default_control_setting: &id029
+        - 0.9905176306226474
+        - 1.020517630622647
+        - 1.020517630622647
+        - 1.0505176306226474
+        - 1.0705176306226474
+      custom_device_configs:
+        default_control_setting: *id029
+        gain: 100000.0
+        is_butterworth_filter: false
+        low_pass_filter_measure_mean: 1.2
+        low_pass_filter_measure_std: 0.2
+        low_pass_filter_output_mean: 0.1
+        low_pass_filter_output_std: 0.02
+        p_ramp_rate: 1.0
+        q_ramp_rate: 0.03
+      device: pv_device
+      hack:
+      - 250
+      - 0.0
+      - 500
+      name: inverter_s744a
+    load_profile: null
+    name: s744a
+  regulators:
+    delay: 30.0
+    forward_band: 1.0
+    max_tap_change: 0.0
+    tap_delay: 2.0
+    tap_number: 0.0
+  start_end_time: 750
+simulation_config:
+  custom_configs:
+    power_factor: 0.9
+    solution_control_mode: 2
+    solution_max_control_iterations: 1000000
+    solution_max_iterations: 30000
+    solution_mode: 1
+    solution_number: 1
+    solution_step_size: 1
+  network_model_directory: /home/michael/Desktop/git/ceds-cigar/pycigar/data/../zzz/IEEE_37_Node/ieee37.dss
+vectorized_mode: false
