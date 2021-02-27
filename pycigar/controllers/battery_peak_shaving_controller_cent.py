@@ -189,18 +189,7 @@ class BatteryPeakShavingControllerCent(BaseController):
             if self.control_mode == 'power_target_tracking':
                 self.pid_flag = True
             elif self.control_mode == 'peak_shaving':
-                if self.measured_active_power_lpf[-1] >= 0.98*self.P_target:
-                    self.pid_flag = True
-                else:
-                    self.pid_flag = False
-            elif self.control_mode == 'valley_filling':
-                if self.measured_active_power_lpf[-1] <= 1.02*self.P_target:
-                    self.pid_flag = True
-                else:                    
-                    self.pid_flag = False
-
-            if self.pid_flag == True:                
-                self.active_power_error.append(self.P_target - self.measured_active_power_lpf[-1])
+                self.active_power_error.append(min(0,self.P_target - self.measured_active_power_lpf[-1]))
                 self.reactive_power_error.append(self.P_target - self.measured_reactive_power_lpf[-1])
                 self.apparent_power_error.append(self.P_target - self.measured_apparent_power_lpf[-1])
 
@@ -213,23 +202,43 @@ class BatteryPeakShavingControllerCent(BaseController):
                 self.apparent_power_error_int.append(self.apparent_power_error_int[-2] + self.Ts*self.apparent_power_error[-2])
 
                 self.p_set_temp = self.K_P*self.active_power_error[-1] + self.K_I*self.active_power_error_int[-1] + self.K_D*self.active_power_error_der[-1]
-            else:                
-                self.active_power_error.append(0)
-                self.reactive_power_error.append(0)
-                self.apparent_power_error.append(0)
+            elif self.control_mode == 'valley_filling':
+                if self.measured_active_power_lpf[-1] <= 1.05*self.P_target:
+                    self.pid_flag = True
+                else:                    
+                    self.pid_flag = False
 
-                self.active_power_error_der.append(0)
-                self.reactive_power_error_der.append(0)
-                self.apparent_power_error_der.append(0)
+            # if self.pid_flag == True:                
+            #     self.active_power_error.append(self.P_target - self.measured_active_power_lpf[-1])
+            #     self.reactive_power_error.append(self.P_target - self.measured_reactive_power_lpf[-1])
+            #     self.apparent_power_error.append(self.P_target - self.measured_apparent_power_lpf[-1])
 
-                self.active_power_error_int.append(0)
-                self.reactive_power_error_int.append(0)
-                self.apparent_power_error_int.append(0)
+            #     self.active_power_error_der.append(1/self.Ts*(self.active_power_error[-1] - self.active_power_error[-2]))
+            #     self.reactive_power_error_der.append(1/self.Ts*(self.reactive_power_error[-1] - self.reactive_power_error[-2]))
+            #     self.apparent_power_error_der.append(1/self.Ts*(self.apparent_power_error[-1] - self.apparent_power_error[-2]))
 
-                self.p_set_temp = 0
+            #     self.active_power_error_int.append(self.active_power_error_int[-2] + self.Ts*self.active_power_error[-2])
+            #     self.reactive_power_error_int.append(self.reactive_power_error_int[-2] + self.Ts*self.reactive_power_error[-2])
+            #     self.apparent_power_error_int.append(self.apparent_power_error_int[-2] + self.Ts*self.apparent_power_error[-2])
+
+            #     self.p_set_temp = self.K_P*self.active_power_error[-1] + self.K_I*self.active_power_error_int[-1] + self.K_D*self.active_power_error_der[-1]
+            # else:                
+            #     self.active_power_error.append(0)
+            #     self.reactive_power_error.append(0)
+            #     self.apparent_power_error.append(0)
+
+            #     self.active_power_error_der.append(0)
+            #     self.reactive_power_error_der.append(0)
+            #     self.apparent_power_error_der.append(0)
+
+            #     self.active_power_error_int.append(0)
+            #     self.reactive_power_error_int.append(0)
+            #     self.apparent_power_error_int.append(0)
+
+            #     self.p_set_temp = 0
 
             
-            self.p_set.append(self.p_set_temp)
+            self.p_set.append(0*self.p_set_temp)
 
             # if self.p_set <= 0:
             #     if self.p_set <= env.k.devices[self.device_id].SOC
@@ -375,6 +384,10 @@ class BatteryPeakShavingControllerCent(BaseController):
         Logger.log(self.controller_id, 'load_active_power', self.load_active_power[-1])
         Logger.log(self.controller_id, 'load_reactive_power', self.load_reactive_power[-1])
         Logger.log(self.controller_id, 'load_apparent_power', self.load_apparent_power[-1])
+
+        Logger.log(self.controller_id, 'active_power_error', self.active_power_error[-1])
+        Logger.log(self.controller_id, 'active_power_error_int', self.active_power_error_int[-1])
+        Logger.log(self.controller_id, 'active_power_error_der', self.active_power_error_der[-1])
 
         Logger.log(self.controller_id, 'p_target', self.P_target)
 
