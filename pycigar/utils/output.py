@@ -981,12 +981,12 @@ def plot_new(log_dict, custom_metrics, epoch='', unbalance=False, multiagent=Fal
         ax[2, 1].plot(np.array(log_dict['inverter_s701c']['q_avail_real']), label='q_avail_s701c')
         ax[2, 1].plot(np.array(log_dict['inverter_s701c']['q_set']), label='q_set_s701c')
 
-    v_worst_u = np.array(log_dict['v_worst_metrics']['v_worst'])
-    ax[-1, 1].plot(v_worst_u[:, 0], label='a')
-    ax[-1, 1].plot(v_worst_u[:, 1], label='b')
-    ax[-1, 1].plot(v_worst_u[:, 2], label='c')
+    #v_worst_u = np.array(log_dict['v_worst_metrics']['v_worst'])
+    #ax[-1, 1].plot(v_worst_u[:, 0], label='a')
+    #ax[-1, 1].plot(v_worst_u[:, 1], label='b')
+    #ax[-1, 1].plot(v_worst_u[:, 2], label='c')
 
-    lines = ['l1', 'l2', 'l3']
+    """lines = ['l1', 'l2', 'l3']
     for i, l in enumerate(lines):
         ax[i+3,0].plot(np.array(log_dict['current'][l])[:, 0], label='P. A {}'.format(l))
         ax[i+3,0].plot(np.array(log_dict['current'][l])[:, 1], label='P. B {}'.format(l))
@@ -995,7 +995,7 @@ def plot_new(log_dict, custom_metrics, epoch='', unbalance=False, multiagent=Fal
     for i, l in enumerate(lines):
         ax[i+3,1].plot(np.array(log_dict['relative_current'][l])[:, 0], label='P. A {}'.format(l))
         ax[i+3,1].plot(np.array(log_dict['relative_current'][l])[:, 1], label='P. B {}'.format(l))
-        ax[i+3,1].plot(np.array(log_dict['relative_current'][l])[:, 2], label='P. C {}'.format(l))
+        ax[i+3,1].plot(np.array(log_dict['relative_current'][l])[:, 2], label='P. C {}'.format(l))"""
     for row in ax:
         for a in row:
             a.grid(b=True, which='both')
