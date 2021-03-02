@@ -104,7 +104,7 @@ class ClusterEnv(Wrapper):
         env = SingleRelativeInitPhaseSpecificDiscreteActionWrapper(env)
         env = ClusterSingleRelativeInitPhaseSpecificDiscreteActionWrapper(env)
         env = ClusterObservationWrapper(env)
-        #env = ClusterFramestackObservationWrapper(env)
+        env = ClusterFramestackObservationWrapper(env)
         env = ClusterRewardWrapper(env)
         env = ClusterInfoWrapper(env)
         self.env = env

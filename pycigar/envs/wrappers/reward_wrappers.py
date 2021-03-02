@@ -208,7 +208,7 @@ class CentralGlobalRewardWrapper(RewardWrapper):
 
         if global_reward == float('inf') or global_reward == float('-inf') or global_reward == float('nan') or np.isnan(global_reward):
             print('check this out')
-        print(global_reward, type(global_reward), global_reward == 'nan', np.isnan(global_reward))
+        #print(global_reward, type(global_reward), global_reward == 'nan', np.isnan(global_reward))
 
         n = len(list(info.keys()))
         for _ in range(self.env.k.sim_params['env_config']['sims_per_step']):
@@ -425,13 +425,13 @@ class ClusterRewardWrapper(RewardWrapper):
                 if worst_y < info[key]['y']:
                     worst_y = info[key]['y']
             reward = reward / len(self.cluster[agent])
-            #r_T = r_T / len(self.cluster[agent])
-            #r_M = r_M / len(self.cluster[agent])
-            #r_N = r_N / len(self.cluster[agent])
-            #r_P = r_P / len(self.cluster[agent])
-            #r_Q = r_Q / len(self.cluster[agent])
+            r_T = r_T / len(self.cluster[agent])
+            r_M = - M * worst_y
+            r_N = r_N / len(self.cluster[agent])
+            r_P = r_P / len(self.cluster[agent])
+            r_Q = r_Q / len(self.cluster[agent])
             #print('a: {}, r_M: {}, r_N: {}, r_P: {}, r_Q: {}, r_T: {}'.format(agent, r_M, r_N, r_P, r_Q, r_T))
-            #self.env.unwrapped.total_reward[agent] += np.array([r_M, r_N, r_P, r_Q, r_T])
+            self.env.unwrapped.total_reward[agent] += np.array([r_M, r_N, r_P, r_Q, r_T])
             reward += - M * worst_y
             cluster_reward[agent] = reward
 

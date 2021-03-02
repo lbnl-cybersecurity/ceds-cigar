@@ -45,13 +45,14 @@ class MultiEnv(MultiAgentEnv, Env):
         """
         observations = {}
         self.old_actions = {}
-        randomize_rl_update = {}
+        for rl_id in self.k.device.get_rl_device_ids():
+            self.old_actions[rl_id] = self.k.device.get_control_setting(rl_id)
         if rl_actions is None:
             rl_actions = self.old_actions
 
-        for rl_id in rl_actions.keys():
-            self.old_actions[rl_id] = self.k.device.get_control_setting(rl_id)
-            randomize_rl_update[rl_id] = np.random.randint(low=0, high=3)
+        if randomize_rl_update is None:
+            randomize_rl_update = np.random.randint(5, size=len(self.k.device.get_rl_device_ids()))
+
 
         # TODOs: disable defense action here
         # if rl_actions != {}:
@@ -61,27 +62,13 @@ class MultiEnv(MultiAgentEnv, Env):
 
         for _ in range(self.sim_params['env_config']['sims_per_step']):
             self.env_time += 1
-            # perform action update for PV inverter device controlled by RL control
-            if rl_actions != {}:
-                temp_rl_actions = {}
-                for rl_id in self.k.device.get_rl_device_ids():
-                    if rl_id in rl_actions:
-                        temp_rl_actions[rl_id] = rl_actions[rl_id]
-
-                rl_dict = {}
-                for rl_id in temp_rl_actions.keys():
-                    if randomize_rl_update[rl_id] == 0:
-                        rl_dict[rl_id] = temp_rl_actions[rl_id]
-                    else:
-                        randomize_rl_update[rl_id] -= 1
-
-                for rl_id in rl_dict.keys():
-                    del temp_rl_actions[rl_id]
-
-                self.apply_rl_actions(rl_dict)
+            rl_ids_key = np.array(self.k.device.get_rl_device_ids())[randomize_rl_update == 0]
+            randomize_rl_update -= 1
+            rl_dict = {k: rl_actions[k] for k in rl_ids_key}
+            self.apply_rl_actions(rl_dict)
 
             # perform action update for PV inverter device controlled by adaptive control
-                        # perform action update for PV inverter device
+            # perform action update for PV inverter device
             if len(self.k.device.get_norl_device_ids()) > 0:
                 control_setting = []
                 for device_id in self.k.device.get_norl_device_ids():

@@ -107,18 +107,11 @@ def save_best_policy(trainer, episodes):
             shutil.rmtree(os.path.join(trainer.global_vars['reporter_dir'], 'best', 'policy'), ignore_errors=True)
             trainer.get_policy('agent_1').export_model(os.path.join(trainer.global_vars['reporter_dir'], 'best', 'policy' + '_' + str(trainer.iteration), 'agent_1'))
             trainer.get_policy('agent_2').export_model(os.path.join(trainer.global_vars['reporter_dir'], 'best', 'policy' + '_' + str(trainer.iteration), 'agent_2'))
-            trainer.get_policy('agent_3').export_model(os.path.join(trainer.global_vars['reporter_dir'], 'best', 'policy' + '_' + str(trainer.iteration), 'agent_3'))
-            trainer.get_policy('agent_4').export_model(os.path.join(trainer.global_vars['reporter_dir'], 'best', 'policy' + '_' + str(trainer.iteration), 'agent_4'))
-            trainer.get_policy('agent_5').export_model(os.path.join(trainer.global_vars['reporter_dir'], 'best', 'policy' + '_' + str(trainer.iteration), 'agent_5'))
-
     # save policy
     if not trainer.global_vars['unbalance']:
         shutil.rmtree(os.path.join(trainer.global_vars['reporter_dir'], 'latest', 'policy'), ignore_errors=True)
         trainer.get_policy('agent_1').export_model(os.path.join(trainer.global_vars['reporter_dir'], 'latest', 'policy' + '_' + str(trainer.iteration), 'agent_1'))
         trainer.get_policy('agent_2').export_model(os.path.join(trainer.global_vars['reporter_dir'], 'latest', 'policy' + '_' + str(trainer.iteration), 'agent_2'))
-        trainer.get_policy('agent_3').export_model(os.path.join(trainer.global_vars['reporter_dir'], 'latest', 'policy' + '_' + str(trainer.iteration), 'agent_3'))
-        trainer.get_policy('agent_4').export_model(os.path.join(trainer.global_vars['reporter_dir'], 'latest', 'policy' + '_' + str(trainer.iteration), 'agent_4'))
-        trainer.get_policy('agent_5').export_model(os.path.join(trainer.global_vars['reporter_dir'], 'latest', 'policy' + '_' + str(trainer.iteration), 'agent_5'))
 
     trainer.save(os.path.join(trainer.global_vars['reporter_dir'], 'checkpoint'))
 
@@ -174,19 +167,21 @@ if __name__ == '__main__':
     sim_params = input_parser(misc_inputs_path, dss_path, load_solar_path, breakpoints_path)
     sim_params['vectorized_mode'] = True
     sim_params['is_disable_log'] = True
-    sim_params['cluster'] = {'1': ['s1a', 's2b', 's4c', 's5c', 's6c', 's7a', 's9a', 's10a', 's11a', 's12b', 's16c', 's17c', 's34c'],
-                             '2': ['s52a', 's53a', 's55a', 's56b', 's58b', 's59b', 's86b', 's87b', 's88a', 's90b', 's92c', 's94a', 's95b', 's96b'],
-                             '3': ['s19a', 's20a', 's22b', 's24c', 's28a', 's29a', 's30c', 's31c', 's32c', 's33a', 's35a', 's37a', 's38b', 's39b', 's41c', 's42a', 's43b', 's45a', 's46a', 's47', 's48', 's49a', 's49b', 's49c', 's50c', 's51a'],
-                             '4': ['s102c', 's103c', 's104c', 's106b', 's107b', 's109a', 's111a', 's112a', 's113a', 's114a'],
-                             '5': ['s60a', 's62c', 's63a', 's64b', 's65a', 's65b', 's65c', 's66c', 's68a', 's69a', 's70a', 's71a', 's73c', 's74c', 's75c', 's76a', 's76b', 's76c', 's77b', 's79a', 's80b', 's82a', 's83c', 's84c', 's85c', 's98a', 's99b', 's100c']}
+    sim_params['cluster'] = {'1': ['s1a', 's2b', 's4c', 's5c', 's6c', 's7a', 's9a', 's10a', 's11a', 's12b', 's16c', 's17c', 's34c', 's52a', 's53a', 's55a', 's56b', 's58b', 's59b', 's86b', 's87b', 's88a', 's90b', 's92c', 's94a', 's95b', 's96b'],
+                             '2': ['s19a', 's20a', 's22b', 's24c', 's28a', 's29a', 's30c', 's31c', 's32c', 's33a', 's35a', 's37a', 's38b', 's39b', 's41c', 's42a', 's43b', 's45a', 's46a', 's47', 's48', 's49a', 's49b', 's49c', 's50c', 's51a',
+                                   's102c', 's103c', 's104c', 's106b', 's107b', 's109a', 's111a', 's112a', 's113a', 's114a', 's60a', 's62c', 's63a', 's64b', 's65a', 's65b', 's65c', 's66c', 's68a', 's69a', 's70a', 's71a', 's73c', 's74c', 's75c',
+                                   's76a', 's76b', 's76c', 's77b', 's79a', 's80b', 's82a', 's83c', 's84c', 's85c', 's98a', 's99b', 's100c', 's60a', 's62c', 's63a', 's64b', 's65a', 's65b', 's65c', 's66c', 's68a', 's69a', 's70a', 's71a', 's73c',
+                                   's74c', 's75c', 's76a', 's76b', 's76c', 's77b', 's79a', 's80b', 's82a', 's83c', 's84c', 's85c', 's98a', 's99b', 's100c'],
+                            }
     sim_params_eval = input_parser(misc_inputs_path, dss_path, load_solar_path, breakpoints_path, benchmark=True)
     sim_params_eval['vectorized_mode'] = True
     sim_params_eval['is_disable_log'] = False
-    sim_params_eval['cluster'] = {'1': ['s1a', 's2b', 's4c', 's5c', 's6c', 's7a', 's9a', 's10a', 's11a', 's12b', 's16c', 's17c', 's34c'],
-                             '2': ['s52a', 's53a', 's55a', 's56b', 's58b', 's59b', 's86b', 's87b', 's88a', 's90b', 's92c', 's94a', 's95b', 's96b'],
-                             '3': ['s19a', 's20a', 's22b', 's24c', 's28a', 's29a', 's30c', 's31c', 's32c', 's33a', 's35a', 's37a', 's38b', 's39b', 's41c', 's42a', 's43b', 's45a', 's46a', 's47', 's48', 's49a', 's49b', 's49c', 's50c', 's51a'],
-                             '4': ['s102c', 's103c', 's104c', 's106b', 's107b', 's109a', 's111a', 's112a', 's113a', 's114a'],
-                             '5': ['s60a', 's62c', 's63a', 's64b', 's65a', 's65b', 's65c', 's66c', 's68a', 's69a', 's70a', 's71a', 's73c', 's74c', 's75c', 's76a', 's76b', 's76c', 's77b', 's79a', 's80b', 's82a', 's83c', 's84c', 's85c', 's98a', 's99b', 's100c']}
+    sim_params_eval['cluster'] = {'1': ['s1a', 's2b', 's4c', 's5c', 's6c', 's7a', 's9a', 's10a', 's11a', 's12b', 's16c', 's17c', 's34c', 's52a', 's53a', 's55a', 's56b', 's58b', 's59b', 's86b', 's87b', 's88a', 's90b', 's92c', 's94a', 's95b', 's96b'],
+                                  '2': ['s19a', 's20a', 's22b', 's24c', 's28a', 's29a', 's30c', 's31c', 's32c', 's33a', 's35a', 's37a', 's38b', 's39b', 's41c', 's42a', 's43b', 's45a', 's46a', 's47', 's48', 's49a', 's49b', 's49c', 's50c', 's51a',
+                                        's102c', 's103c', 's104c', 's106b', 's107b', 's109a', 's111a', 's112a', 's113a', 's114a', 's60a', 's62c', 's63a', 's64b', 's65a', 's65b', 's65c', 's66c', 's68a', 's69a', 's70a', 's71a', 's73c', 's74c', 's75c',
+                                        's76a', 's76b', 's76c', 's77b', 's79a', 's80b', 's82a', 's83c', 's84c', 's85c', 's98a', 's99b', 's100c', 's60a', 's62c', 's63a', 's64b', 's65a', 's65b', 's65c', 's66c', 's68a', 's69a', 's70a', 's71a', 's73c',
+                                        's74c', 's75c', 's76a', 's76b', 's76c', 's77b', 's79a', 's80b', 's82a', 's83c', 's84c', 's85c', 's98a', 's99b', 's100c'],
+                                 }
     test_env = create_env(sim_params)
     obs_space = test_env.observation_space
     act_space = test_env.action_space
@@ -205,7 +200,7 @@ if __name__ == '__main__':
         'train_batch_size': 20*args.workers, #256, #250
         'clip_param': 0.1,
         'lambda': 0.95,
-        'vf_clip_param': 100,
+        'vf_clip_param': 10,
 
         'num_workers': args.workers,
         'num_cpus_per_worker': 1,
@@ -220,23 +215,20 @@ if __name__ == '__main__':
             'free_log_std': False,
             'vf_share_layers': False,
             'use_lstm': True,
-            'lstm_cell_size': 16,
-            'max_seq_len': 5,
+            'lstm_cell_size': 32,
+            'max_seq_len': 7,
             'lstm_use_prev_action_reward': False,
             'framestack': False,
         },
         #"vf_loss_coeff": 0.000001,
         'multiagent': {
             'policies': {'agent_1': (None, obs_space, act_space, {}),
-                         'agent_2': (None, obs_space, act_space, {}),
-                         'agent_3': (None, obs_space, act_space, {}),
-                         'agent_4': (None, obs_space, act_space, {}),
-                         'agent_5': (None, obs_space, act_space, {})},
+                         'agent_2': (None, obs_space, act_space, {})},
             'policy_mapping_fn': policy_mapping_fn,
         },
         "model": {
             "custom_model": "cc_model",
-            "custom_model_config": {"num_agents": 5}
+            "custom_model_config": {"num_agents": 2}
         },
         # ==== EXPLORATION ====
         'explore': True,
@@ -274,11 +266,11 @@ if __name__ == '__main__':
     #base_config['env_config']['scenario_config']['custom_configs']['slack_bus_voltage'] = 1.04
     #base_config['evaluation_config']['env_config']['scenario_config']['custom_configs']['slack_bus_voltage'] = 1.04
 
-    base_config['env_config']['M'] = 500
-    base_config['env_config']['N'] = 0.3   #last
+    base_config['env_config']['M'] = 300
+    base_config['env_config']['N'] = 0.1   #last
     base_config['env_config']['P'] = 2     #intt
     base_config['env_config']['Q'] = 1
-    base_config['env_config']['T'] = 5
+    base_config['env_config']['T'] = 0#15
 
     if args.unbalance:
         for node in base_config['env_config']['scenario_config']['nodes']:
@@ -307,7 +299,7 @@ if __name__ == '__main__':
 
     for i in range(1):
         config = deepcopy(full_config)
-        config['config']['lr'] = ray.tune.grid_search([5e-4])
+        config['config']['lr'] = ray.tune.grid_search([1e-4, 5e-4, 5e-4])
         run_hp_experiment(config, 'main')
 
     ray.shutdown()

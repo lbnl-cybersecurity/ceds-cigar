@@ -32,12 +32,13 @@ class CentralizedCriticModel(TFModelV2):
             other_agent_obs_acts.append(tf.keras.layers.Input(shape=obs_space.shape, name="coop_obs_{}".format(i)))
             other_agent_obs_acts.append(tf.keras.layers.Input(shape=21*3, name="coop_act_{}".format(i)))
 
-        concat_obs = tf.keras.layers.Concatenate(axis=1)(
-            [obs, *other_agent_obs_acts])
+        concat_obs = obs
+        if other_agent_obs_acts != []:
+            concat_obs = tf.keras.layers.Concatenate(axis=1)([obs, *other_agent_obs_acts])
         central_vf_dense = tf.keras.layers.Dense(
             32, activation=tf.nn.tanh, name="c_vf_dense_1")(concat_obs)
         central_vf_dense = tf.keras.layers.Dense(
-            16, activation=tf.nn.tanh, name="c_vf_dense_2")(central_vf_dense)
+            32, activation=tf.nn.tanh, name="c_vf_dense_2")(central_vf_dense)
         central_vf_out = tf.keras.layers.Dense(
             1, activation=None, name="c_vf_out")(central_vf_dense)
 

@@ -1244,3 +1244,100 @@ def save_cluster_csv_lite(log_dict, custom_metrics, epoch='', unbalance=False, m
     result['a_5_c'] = (get_translation_and_slope(log_dict['inverter_s62c']['control_setting'], custom_metrics['init_control_settings']['inverter_s62c'])[0]/0.01 + 10).astype(int).tolist()[::30]
 
     return result
+
+
+def save_cluster_csv(log_dict, custom_metrics, epoch='', unbalance=False, multiagent=False):
+    def get_translation_and_slope(a_val, init_a):
+        points = np.array(a_val)
+        slope = points[:, 1] - points[:, 0]
+        translation = points[:, 2] - init_a[2]
+        return translation, slope
+    result = {}
+    if '1'in log_dict:
+        result['r_1'] = sum(log_dict['1']['reward'])
+    if '2'in log_dict:
+        result['r_2'] = sum(log_dict['2']['reward'])
+    if '3'in log_dict:
+        result['r_3'] = sum(log_dict['3']['reward'])
+    if '4'in log_dict:
+        result['r_4'] = sum(log_dict['4']['reward'])
+    if '5'in log_dict:
+        result['r_5'] = sum(log_dict['5']['reward'])
+
+    invs = ['inverter_s1a', 'inverter_s52a', 'inverter_s28a', 'inverter_s102c', 'inverter_s60a']
+    for i, inv in enumerate(invs):
+        v = np.array(log_dict[inv]['v'])
+        result['v_{}_a'.format(i+1)] = v[:, 0].tolist()
+        result['v_{}_b'.format(i+1)] = v[:, 1].tolist()
+        result['v_{}_c'.format(i+1)] = v[:, 2].tolist()
+
+    for i, inv in enumerate(invs):
+        u = np.array(np.array(log_dict[inv]['u'])*100)
+        u_worst = np.array(np.array(log_dict['u_metrics']['u_worst'])*100)
+        result['u_{}'.format(i+1)] = u.tolist()
+        result['uw_{}'.format(i+1)] = u_worst.tolist()
+
+    for i, inv in enumerate(invs):
+        y = np.array(np.array(log_dict[inv]['y']))
+        y_worst = np.array(np.array(log_dict['y_metrics']['y_worst']))
+        result['y_{}'.format(i+1)] = y.tolist()
+        result['yw_{}'.format(i+1)] = y_worst.tolist()
+
+    result['a_1_a'] = np.round(get_translation_and_slope(log_dict['inverter_s1a']['control_setting'], custom_metrics['init_control_settings']['inverter_s1a'])[0], 2).tolist()
+    result['a_1_b'] = np.round(get_translation_and_slope(log_dict['inverter_s2b']['control_setting'], custom_metrics['init_control_settings']['inverter_s2b'])[0], 2).tolist()
+    result['a_1_c'] = np.round(get_translation_and_slope(log_dict['inverter_s4c']['control_setting'], custom_metrics['init_control_settings']['inverter_s4c'])[0], 2).tolist()
+
+    result['a_2_a'] = np.round(get_translation_and_slope(log_dict['inverter_s52a']['control_setting'], custom_metrics['init_control_settings']['inverter_s52a'])[0], 2).tolist()
+    result['a_2_b'] = np.round(get_translation_and_slope(log_dict['inverter_s56b']['control_setting'], custom_metrics['init_control_settings']['inverter_s56b'])[0], 2).tolist()
+    result['a_2_c'] = np.round(get_translation_and_slope(log_dict['inverter_s92c']['control_setting'], custom_metrics['init_control_settings']['inverter_s92c'])[0], 2).tolist()
+
+    result['a_3_a'] = np.round(get_translation_and_slope(log_dict['inverter_s19a']['control_setting'], custom_metrics['init_control_settings']['inverter_s19a'])[0], 2).tolist()
+    result['a_3_b'] = np.round(get_translation_and_slope(log_dict['inverter_s22b']['control_setting'], custom_metrics['init_control_settings']['inverter_s22b'])[0], 2).tolist()
+    result['a_3_c'] = np.round(get_translation_and_slope(log_dict['inverter_s24c']['control_setting'], custom_metrics['init_control_settings']['inverter_s24c'])[0], 2).tolist()
+
+    result['a_4_a'] = np.round(get_translation_and_slope(log_dict['inverter_s114a']['control_setting'], custom_metrics['init_control_settings']['inverter_s114a'])[0], 2).tolist()
+    result['a_4_b'] = np.round(get_translation_and_slope(log_dict['inverter_s107b']['control_setting'], custom_metrics['init_control_settings']['inverter_s107b'])[0], 2).tolist()
+    result['a_4_c'] = np.round(get_translation_and_slope(log_dict['inverter_s104c']['control_setting'], custom_metrics['init_control_settings']['inverter_s104c'])[0], 2).tolist()
+
+    result['a_5_a'] = np.round(get_translation_and_slope(log_dict['inverter_s60a']['control_setting'], custom_metrics['init_control_settings']['inverter_s60a'])[0], 2).tolist()
+    result['a_5_b'] = np.round(get_translation_and_slope(log_dict['inverter_s64b']['control_setting'], custom_metrics['init_control_settings']['inverter_s64b'])[0], 2).tolist()
+    result['a_5_c'] = np.round(get_translation_and_slope(log_dict['inverter_s62c']['control_setting'], custom_metrics['init_control_settings']['inverter_s62c'])[0], 2).tolist()
+
+    regs = [reg for reg in log_dict.keys() if 'reg' in reg]
+    result_reg = []
+    for reg in regs:
+        result_reg.append(log_dict[reg]['tap_number'])
+    result['reg'] = np.array(result_reg).T.tolist()
+
+    return result
+
+def save_cluster_csv_lite(log_dict, custom_metrics, epoch='', unbalance=False, multiagent=False):
+    def get_translation_and_slope(a_val, init_a):
+        points = np.array(a_val)
+        slope = points[:, 1] - points[:, 0]
+        translation = points[:, 2] - init_a[2]
+        return translation, slope
+
+    result = {}
+
+    result['a_1_a'] = (get_translation_and_slope(log_dict['inverter_s1a']['control_setting'], custom_metrics['init_control_settings']['inverter_s1a'])[0]/0.01 + 10).astype(int).tolist()[::30]
+    result['a_1_b'] = (get_translation_and_slope(log_dict['inverter_s2b']['control_setting'], custom_metrics['init_control_settings']['inverter_s2b'])[0]/0.01 + 10).astype(int).tolist()[::30]
+    result['a_1_c'] = (get_translation_and_slope(log_dict['inverter_s4c']['control_setting'], custom_metrics['init_control_settings']['inverter_s4c'])[0]/0.01 + 10).astype(int).tolist()[::30]
+
+    result['a_2_a'] = (get_translation_and_slope(log_dict['inverter_s52a']['control_setting'], custom_metrics['init_control_settings']['inverter_s52a'])[0]/0.01 + 10).astype(int).tolist()[::30]
+    result['a_2_b'] = (get_translation_and_slope(log_dict['inverter_s56b']['control_setting'], custom_metrics['init_control_settings']['inverter_s56b'])[0]/0.01 + 10).astype(int).tolist()[::30]
+    result['a_2_c'] = (get_translation_and_slope(log_dict['inverter_s92c']['control_setting'], custom_metrics['init_control_settings']['inverter_s92c'])[0]/0.01 + 10).astype(int).tolist()[::30]
+
+    result['a_3_a'] = (get_translation_and_slope(log_dict['inverter_s19a']['control_setting'], custom_metrics['init_control_settings']['inverter_s19a'])[0]/0.01 + 10).astype(int).tolist()[::30]
+    result['a_3_b'] = (get_translation_and_slope(log_dict['inverter_s22b']['control_setting'], custom_metrics['init_control_settings']['inverter_s22b'])[0]/0.01 + 10).astype(int).tolist()[::30]
+    result['a_3_c'] = (get_translation_and_slope(log_dict['inverter_s24c']['control_setting'], custom_metrics['init_control_settings']['inverter_s24c'])[0]/0.01 + 10).astype(int).tolist()[::30]
+
+    result['a_4_a'] = (get_translation_and_slope(log_dict['inverter_s114a']['control_setting'], custom_metrics['init_control_settings']['inverter_s114a'])[0]/0.01 + 10).astype(int).tolist()[::30]
+    result['a_4_b'] = (get_translation_and_slope(log_dict['inverter_s107b']['control_setting'], custom_metrics['init_control_settings']['inverter_s107b'])[0]/0.01 + 10).astype(int).tolist()[::30]
+    result['a_4_c'] = (get_translation_and_slope(log_dict['inverter_s104c']['control_setting'], custom_metrics['init_control_settings']['inverter_s104c'])[0]/0.01 + 10).astype(int).tolist()[::30]
+
+    result['a_5_a'] = (get_translation_and_slope(log_dict['inverter_s60a']['control_setting'], custom_metrics['init_control_settings']['inverter_s60a'])[0]/0.01 + 10).astype(int).tolist()[::30]
+    result['a_5_b'] = (get_translation_and_slope(log_dict['inverter_s64b']['control_setting'], custom_metrics['init_control_settings']['inverter_s64b'])[0]/0.01 + 10).astype(int).tolist()[::30]
+    result['a_5_c'] = (get_translation_and_slope(log_dict['inverter_s62c']['control_setting'], custom_metrics['init_control_settings']['inverter_s62c'])[0]/0.01 + 10).astype(int).tolist()[::30]
+
+    return result
