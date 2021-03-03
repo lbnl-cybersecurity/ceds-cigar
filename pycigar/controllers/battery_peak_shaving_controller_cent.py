@@ -25,90 +25,84 @@ class BatteryPeakShavingControllerCent(BaseController):
         )
         self.additional_params = additional_params
 
-        print(self.controller_id)
-        print(self.device_id)
+        print('Initialize: ' + str(self.controller_id))
+        print('BSDs: ' + str(self.device_id))
+        print('')
 
-#     def get_action(self, env):
-#         """See parent class."""
-#         power_reactive_power = env.k.kernel_api.get_total_power()
-#         if env.k.device.devices[self.device_id]['device'].SOC <= 0.2:
-# #             print('CHARGE')
-#             control_setting = 'charge'
-#         elif env.k.device.devices[self.device_id]['device'].SOC >= 0.8:
-# #             print('DISCHARGE')
-#             control_setting = 'discharge'
-#         else:
-#             control_setting = env.k.device.devices[self.device_id]['device'].control_setting
+        # Substation active power target, for target tracking, peak shaving, valley filling
+        self.P_target = self.additional_params.get('active_power_target', 1000)
+        # Substation reactive power target, for target tracking, peak shaving, valley filling
+        self.Q_target = self.additional_params.get('reactive_power_target', 1000)
+        # Substation aapparent power target, for target tracking, peak shaving, valley filling
+        self.S_target = self.additional_params.get('apaprent_power_target', 1000)
 
-#         return control_setting
 
-        # self.P_target = 725
-        self.P_target = self.additional_params.get('active_power_target', 800)
-
-        self.min_active_power = -500
-        self.max_active_power = 900
-
-        self.max_apparent_power = 1000
-
-        # Lowpass filter for power
+        # Lowpass filter for substation power
+        # timestep
         self.Ts = 1
-        # self.fl = 0.010
-        self.fl = self.additional_params.get('lowpass_filter_frequency', 0.010)
+        # lowpass filter frequency
+        self.fl = self.additional_params.get('lowpass_filter_frequency', 0.10)
+        # lowpass filter array in CT
         lp1s, temp = signal_processing.butterworth_lowpass(1, 2 * np.pi * 1 * self.fl)
         self.lp1s = lp1s
+        # lowpass filter array in DT
         self.lp1z = signal_processing.c2dbilinear(self.lp1s, self.Ts)
-        self.Plp = deque([0]*self.lp1z.shape[1],maxlen=self.lp1z.shape[1])
 
-        # print(self.lp1s)
-        # print(self.lp1z)
-
+        # Measured substation active, reactive, apparent power values in deque arrays
         self.measured_active_power = deque([0, 0],maxlen=2)
         self.measured_reactive_power = deque([0, 0],maxlen=2)
         self.measured_apparent_power = deque([0, 0],maxlen=2)
 
+        # LPF substation active, reactive, apparent power values in deque arrays
         self.measured_active_power_lpf = deque([0, 0],maxlen=2)
         self.measured_reactive_power_lpf = deque([0, 0],maxlen=2)
         self.measured_apparent_power_lpf = deque([0, 0],maxlen=2)
 
+        # Load active, reactive, apparent power values in deque arrays
         self.load_active_power = deque([0, 0],maxlen=2)
         self.load_reactive_power = deque([0, 0],maxlen=2)
         self.load_apparent_power = deque([0, 0],maxlen=2)
 
+        # LPF load active, reactive, apparent power values in deque arrays
         self.load_active_power_lpf = deque([0, 0],maxlen=2)
         self.load_reactive_power_lpf = deque([0, 0],maxlen=2)
         self.load_apparent_power_lpf = deque([0, 0],maxlen=2)
         
+        # Control setting in deque array
         self.control_setting = deque(['standby', 'standby'],maxlen=2)
         self.custom_control_setting = {}
 
+        # Active, reactive, apparent power error for PID
         self.active_power_error = deque([0, 0],maxlen=2)
         self.reactive_power_error = deque([0, 0],maxlen=2)
         self.apparent_power_error = deque([0, 0],maxlen=2)
 
+        # Derivative of active, reactive, apparent power error for PID
         self.active_power_error_der = deque([0, 0],maxlen=2)
         self.reactive_power_error_der = deque([0, 0],maxlen=2)
         self.apparent_power_error_der = deque([0, 0],maxlen=2)
 
+        # Integral of active, reactive, apparent power error for PID
         self.active_power_error_int = deque([0, 0],maxlen=2)
         self.reactive_power_error_int = deque([0, 0],maxlen=2)
         self.apparent_power_error_int = deque([0, 0],maxlen=2)
 
+        # Active power setpoint for BSD, deque array
         self.p_set = deque([0, 0],maxlen=2)
+        # Temporary active power setpoint
+        self.p_set_temp = 0
 
         self.p_in = deque([0, 0],maxlen=2)
         self.p_out = deque([0, 0],maxlen=2)
 
-        # self.eta = 0.01
-        self.eta = self.additional_params.get('eta', 0.05)
-
+        # PID gains
         self.K_P = self.additional_params.get('K_P', 0.1)
         self.K_I = self.additional_params.get('K_I', 0.01)
         self.K_D = self.additional_params.get('K_D', 0.01)
 
-        self.control_mode = 'peak_shaving'
-        self.pid_flag = False
-        
+        self.control_mode = self.additional_params.get('control_mode', 'standby')
 
+        # Timestep interval for printing
         self.print_interval = 1
 
     def get_action(self, env):
@@ -116,10 +110,25 @@ class BatteryPeakShavingControllerCent(BaseController):
         result = {}
 
         if env.k.time == 0 or env.k.time == 51:
+            self.control_mode = 'peak_shaving'
+            self.P_target = 2600
+
+        if env.k.time == 4000:
+            self.control_mode = 'peak_shaving'
+            self.P_target = 2500
+
+        if env.k.time == 8000:
+            self.control_mode = 'valley_filling'
+            self.P_target = 2400
+
+        # Initialization period for pycigar
+        if env.k.time == 0 or env.k.time == 51:
 
             print('Time: ' + str(env.k.time))
-            print('Initialize: ' + str(self.device_id))
+            print('Initialize: ' + str(self.controller_id) + ' arrays')
+            print('')
 
+            # Fill deque arrays with same value, and intialized LPFs
             for k1 in range(0,2):               
 
                 self.measured_active_power.append(-env.k.kernel_api.get_total_power()[0])
@@ -140,30 +149,33 @@ class BatteryPeakShavingControllerCent(BaseController):
 
         else:
 
-            # Pk = np.abs(k.node.nodes[node_id]['voltage'][k.time - 1])
-            # Pkm1 = np.abs(k.node.nodes[node_id]['voltage'][k.time - 2])
+            ##################################################
+            # Measure powers and lowpass filter
 
+            # Measured substation active and reactive power
             self.measured_active_power.append(-env.k.kernel_api.get_total_power()[0])
             self.measured_reactive_power.append(-env.k.kernel_api.get_total_power()[1])
 
-            # print(total_apparent_power)
+            # Measured substation apparent power
             self.measured_apparent_power.append((self.measured_active_power[-1]**2 + self.measured_reactive_power[-1]**2)**(1/2))
             # print(total_apparent_power)
 
-            # if self.lp1z.shape[1] <= 2:
-            #     self.Plp[-1] = 1/self.lp1z[1,-1]*(np.sum(self.lp1z[1,1]*self.Plp[-1]) + np.sum(self.lp1z[0,:]*[self.v_meas_km1, self.v_meas_k]))
-
+            # LPF substation active power
             ptemp = 1/self.lp1z[1,1]*(-self.lp1z[1,0]*self.measured_active_power_lpf[0] + self.lp1z[0,0]*self.measured_active_power[0] + self.lp1z[0,1]*self.measured_active_power[1])
             self.measured_active_power_lpf.append(ptemp)
 
+            # LPF substation reactive power
             qtemp = 1/self.lp1z[1,1]*(-self.lp1z[1,0]*self.measured_reactive_power_lpf[0] + self.lp1z[0,0]*self.measured_reactive_power[0] + self.lp1z[0,1]*self.measured_reactive_power[1])
             self.measured_reactive_power_lpf.append(qtemp)
 
-            self.measured_apparent_power_lpf.append((self.measured_active_power_lpf[-1]**2 + self.measured_reactive_power_lpf[-1]**2)**(1/2))
+            # LPF substation apparent power
+            # self.measured_apparent_power_lpf.append((self.measured_active_power_lpf[-1]**2 + self.measured_reactive_power_lpf[-1]**2)**(1/2))
+            stemp = 1/self.lp1z[1,1]*(-self.lp1z[1,0]*self.measured_apparent_power_lpf[0] + self.lp1z[0,0]*self.measured_apparent_power[0] + self.lp1z[0,1]*self.measured_apparent_power[1])
+            self.measured_apparent_power_lpf.append(stemp)
+
 
             ##################################################
-            ##################################################
-            ##################################################
+            # PID control to track reference
 
             # self.p_set_temp - self.p_set[-1] - self.eta * (self.P_target - self.measured_active_power_lpf[-2])
             # if self.p_set_temp >= 0 and self.p_set_temp >= self.self.measured_active_power_lpf[-2] - self.P_target: 
@@ -171,102 +183,128 @@ class BatteryPeakShavingControllerCent(BaseController):
             # elif self.p_set_temp <= 0 and self.p_set_temp <= self.P_target - self.self.measured_active_power_lpf[-2]:
             #     self.p_set_temp = self.P_target - self.self.measured_active_power_lpf[-2]
 
-            self.active_power_error.append(self.P_target - self.measured_active_power_lpf[-1])
-            self.reactive_power_error.append(self.P_target - self.measured_reactive_power_lpf[-1])
-            self.apparent_power_error.append(self.P_target - self.measured_apparent_power_lpf[-1])
+            # self.active_power_error.append(self.P_target - self.measured_active_power_lpf[-1])
+            # self.reactive_power_error.append(self.P_target - self.measured_reactive_power_lpf[-1])
+            # self.apparent_power_error.append(self.P_target - self.measured_apparent_power_lpf[-1])
 
-            self.active_power_error_der.append(1/self.Ts*(self.active_power_error[-1] - self.active_power_error[-2]))
-            self.reactive_power_error_der.append(1/self.Ts*(self.reactive_power_error[-1] - self.reactive_power_error[-2]))
-            self.apparent_power_error_der.append(1/self.Ts*(self.apparent_power_error[-1] - self.apparent_power_error[-2]))
+            # self.active_power_error_der.append(1/self.Ts*(self.active_power_error[-1] - self.active_power_error[-2]))
+            # self.reactive_power_error_der.append(1/self.Ts*(self.reactive_power_error[-1] - self.reactive_power_error[-2]))
+            # self.apparent_power_error_der.append(1/self.Ts*(self.apparent_power_error[-1] - self.apparent_power_error[-2]))
 
-            self.active_power_error_int.append(self.active_power_error_int[-2] + self.Ts*self.active_power_error[-2])
-            self.reactive_power_error_int.append(self.reactive_power_error_int[-2] + self.Ts*self.reactive_power_error[-2])
-            self.apparent_power_error_int.append(self.apparent_power_error_int[-2] + self.Ts*self.apparent_power_error[-2])
+            # self.active_power_error_int.append(self.active_power_error_int[-2] + self.Ts*self.active_power_error[-2])
+            # self.reactive_power_error_int.append(self.reactive_power_error_int[-2] + self.Ts*self.reactive_power_error[-2])
+            # self.apparent_power_error_int.append(self.apparent_power_error_int[-2] + self.Ts*self.apparent_power_error[-2])
 
-            self.p_set_temp = self.K_P*self.active_power_error[-1] + self.K_I*self.active_power_error_int[-1] + self.K_D*self.active_power_error_der[-1]
+            # self.p_set_temp = self.K_P*self.active_power_error[-1] + self.K_I*self.active_power_error_int[-1] + self.K_D*self.active_power_error_der[-1]
 
+
+            ##################################################
+            # PID control, based on control mode
 
             if self.control_mode == 'power_target_tracking':
-                self.pid_flag = True
-            elif self.control_mode == 'peak_shaving':
-                self.active_power_error.append(min(0,self.P_target - self.measured_active_power_lpf[-1]))
-                self.reactive_power_error.append(self.P_target - self.measured_reactive_power_lpf[-1])
-                self.apparent_power_error.append(self.P_target - self.measured_apparent_power_lpf[-1])
 
-                self.active_power_error_der.append(1/self.Ts*(self.active_power_error[-1] - self.active_power_error[-2]))
-                self.reactive_power_error_der.append(1/self.Ts*(self.reactive_power_error[-1] - self.reactive_power_error[-2]))
-                self.apparent_power_error_der.append(1/self.Ts*(self.apparent_power_error[-1] - self.apparent_power_error[-2]))
+                # compute reference error
+                self.active_power_error.append(self.P_target - self.measured_active_power_lpf[-1])
+                self.reactive_power_error.append(self.Q_target - self.measured_reactive_power_lpf[-1])
+                self.apparent_power_error.append(self.S_target - self.measured_apparent_power_lpf[-1])
 
+                # compute integral of reference error
                 self.active_power_error_int.append(self.active_power_error_int[-2] + self.Ts*self.active_power_error[-2])
                 self.reactive_power_error_int.append(self.reactive_power_error_int[-2] + self.Ts*self.reactive_power_error[-2])
                 self.apparent_power_error_int.append(self.apparent_power_error_int[-2] + self.Ts*self.apparent_power_error[-2])
 
+                # compute derivative of reference error
+                self.active_power_error_der.append(1/self.Ts*(self.active_power_error[-1] - self.active_power_error[-2]))
+                self.reactive_power_error_der.append(1/self.Ts*(self.reactive_power_error[-1] - self.reactive_power_error[-2]))
+                self.apparent_power_error_der.append(1/self.Ts*(self.apparent_power_error[-1] - self.apparent_power_error[-2]))
+                
+                # PID
                 self.p_set_temp = self.K_P*self.active_power_error[-1] + self.K_I*self.active_power_error_int[-1] + self.K_D*self.active_power_error_der[-1]
+                
+            elif self.control_mode == 'peak_shaving':
+
+                # compute reference error - error is 0 if substation power below reference
+                self.active_power_error.append(min(0,self.P_target - self.measured_active_power_lpf[-1]))
+                # self.active_power_error.append(min(0,self.P_target - (self.measured_active_power_lpf[-1] - self.p_set[-1]*len(self.device_id))))
+                self.reactive_power_error.append(min(0,self.Q_target - self.measured_reactive_power_lpf[-1]))
+                self.apparent_power_error.append(min(0,self.S_target - self.measured_apparent_power_lpf[-1]))
+
+                # compute integral of reference error
+                # if substation power above reference, integrate error
+                # else, exponential decay integral of error
+                if self.active_power_error[-1] < 0:
+                    self.active_power_error_int.append(self.active_power_error_int[-2] + self.Ts*self.active_power_error[-2])
+                    self.reactive_power_error_int.append(self.reactive_power_error_int[-2] + self.Ts*self.reactive_power_error[-2])
+                    self.apparent_power_error_int.append(self.apparent_power_error_int[-2] + self.Ts*self.apparent_power_error[-2])
+                else:
+                    self.active_power_error_int.append((1 - self.K_I*self.Ts)*self.active_power_error_int[-2])
+                    self.reactive_power_error_int.append((1 - self.K_I*self.Ts)*self.reactive_power_error_int[-2])
+                    self.apparent_power_error_int.append((1 - self.K_I*self.Ts)*self.apparent_power_error_int[-2])
+
+                # compute derivative of reference error
+                self.active_power_error_der.append(1/self.Ts*(self.active_power_error[-1] - self.active_power_error[-2]))
+                self.reactive_power_error_der.append(1/self.Ts*(self.reactive_power_error[-1] - self.reactive_power_error[-2]))
+                self.apparent_power_error_der.append(1/self.Ts*(self.apparent_power_error[-1] - self.apparent_power_error[-2]))
+
+                # PID
+                self.p_set_temp = self.K_P*self.active_power_error[-1] + self.K_I*self.active_power_error_int[-1] + self.K_D*self.active_power_error_der[-1]
+
             elif self.control_mode == 'valley_filling':
-                if self.measured_active_power_lpf[-1] <= 1.05*self.P_target:
-                    self.pid_flag = True
-                else:                    
-                    self.pid_flag = False
 
-            # if self.pid_flag == True:                
-            #     self.active_power_error.append(self.P_target - self.measured_active_power_lpf[-1])
-            #     self.reactive_power_error.append(self.P_target - self.measured_reactive_power_lpf[-1])
-            #     self.apparent_power_error.append(self.P_target - self.measured_apparent_power_lpf[-1])
+                # compute reference error - error is 0 if substation power above reference
+                self.active_power_error.append(max(0,self.P_target - self.measured_active_power_lpf[-1]))
+                # self.active_power_error.append(min(0,self.P_target - (self.measured_active_power_lpf[-1] - self.p_set[-1]*len(self.device_id))))
+                self.reactive_power_error.append(max(0,self.Q_target - self.measured_reactive_power_lpf[-1]))
+                self.apparent_power_error.append(max(0,self.S_target - self.measured_apparent_power_lpf[-1]))
 
-            #     self.active_power_error_der.append(1/self.Ts*(self.active_power_error[-1] - self.active_power_error[-2]))
-            #     self.reactive_power_error_der.append(1/self.Ts*(self.reactive_power_error[-1] - self.reactive_power_error[-2]))
-            #     self.apparent_power_error_der.append(1/self.Ts*(self.apparent_power_error[-1] - self.apparent_power_error[-2]))
+                # compute integral of reference error
+                # if substation power above reference, integrate error
+                # else, exponential decay integral of error
+                if self.active_power_error[-1] > 0:
+                    self.active_power_error_int.append(self.active_power_error_int[-2] + self.Ts*self.active_power_error[-2])
+                    self.reactive_power_error_int.append(self.reactive_power_error_int[-2] + self.Ts*self.reactive_power_error[-2])
+                    self.apparent_power_error_int.append(self.apparent_power_error_int[-2] + self.Ts*self.apparent_power_error[-2])
+                else:
+                    self.active_power_error_int.append((1 - self.K_I*self.Ts)*self.active_power_error_int[-2])
+                    self.reactive_power_error_int.append((1 - self.K_I*self.Ts)*self.reactive_power_error_int[-2])
+                    self.apparent_power_error_int.append((1 - self.K_I*self.Ts)*self.apparent_power_error_int[-2])
 
-            #     self.active_power_error_int.append(self.active_power_error_int[-2] + self.Ts*self.active_power_error[-2])
-            #     self.reactive_power_error_int.append(self.reactive_power_error_int[-2] + self.Ts*self.reactive_power_error[-2])
-            #     self.apparent_power_error_int.append(self.apparent_power_error_int[-2] + self.Ts*self.apparent_power_error[-2])
+                # compute derivative of reference error
+                self.active_power_error_der.append(1/self.Ts*(self.active_power_error[-1] - self.active_power_error[-2]))
+                self.reactive_power_error_der.append(1/self.Ts*(self.reactive_power_error[-1] - self.reactive_power_error[-2]))
+                self.apparent_power_error_der.append(1/self.Ts*(self.apparent_power_error[-1] - self.apparent_power_error[-2]))
 
-            #     self.p_set_temp = self.K_P*self.active_power_error[-1] + self.K_I*self.active_power_error_int[-1] + self.K_D*self.active_power_error_der[-1]
-            # else:                
-            #     self.active_power_error.append(0)
-            #     self.reactive_power_error.append(0)
-            #     self.apparent_power_error.append(0)
+                # PID
+                self.p_set_temp = self.K_P*self.active_power_error[-1] + self.K_I*self.active_power_error_int[-1] + self.K_D*self.active_power_error_der[-1]
 
-            #     self.active_power_error_der.append(0)
-            #     self.reactive_power_error_der.append(0)
-            #     self.apparent_power_error_der.append(0)
-
-            #     self.active_power_error_int.append(0)
-            #     self.reactive_power_error_int.append(0)
-            #     self.apparent_power_error_int.append(0)
-
-            #     self.p_set_temp = 0
-
-            
-            self.p_set.append(0*self.p_set_temp)
-
-            # if self.p_set <= 0:
-            #     if self.p_set <= env.k.devices[self.device_id].SOC
-
-            # self.p_set.append((1 - self.Ts*self.eta)*self.p_set[-1] - self.Ts*self.eta*(self.P_target - self.measured_active_power_lpf[-2]))
+            # setpoint
+            self.p_set.append(1*self.p_set_temp)
 
             result = {}
 
             max_charge_power_list = []
             max_discharge_power_list = []
 
+            # Obtain list of BSD max charge and discharge powers
             for device in self.device_id:
 
                 max_charge_power_list.append(env.k.device.devices[device]['device'].max_charge_power/1e3)
                 max_discharge_power_list.append(env.k.device.devices[device]['device'].max_discharge_power/1e3)
 
+            # Iterate through BSDs
             for device in self.device_id:
 
-                # print(self.p_set[-1])
-
+                # charge
                 if self.p_set[-1] >= 0:
 
                     # if self.p_set[-1] >= np.abs(self.measured_active_power_lpf[-2] - self.P_target):
                     #     self.p_set[-1] = np.abs(self.measured_active_power_lpf[-2] - self.P_target)
 
+                    # limit setpoint to maximum charge power of all associated BSDs
                     if self.p_set[-1] >= max(max_charge_power_list):
                         self.p_set[-1] = max(max_charge_power_list)
 
+                    # limit charge power assigned to BSD to BSD max charge power
                     if self.p_set[-1] >= env.k.device.devices[device]['device'].max_charge_power/1e3:
                         # self.p_set[-1] = env.k.device.devices[device]['device'].max_charge_power/1e3
                         result[device] = ('charge',  {'p_in': env.k.device.devices[device]['device'].max_charge_power/1e3})
@@ -280,14 +318,17 @@ class BatteryPeakShavingControllerCent(BaseController):
                     # self.p_out.append(0)
                     # self.custom_control_setting = {'p_in': 1*self.p_in[-1]}
 
+                # discharge
                 elif self.p_set[-1] <= 0:
 
                     # if self.p_set[-1] <= np.abs(self.measured_active_power_lpf[-2] - self.P_target):
                     #     self.p_set[-1] = -np.abs(self.measured_active_power_lpf[-2] - self.P_target)
 
+                     # limit setpoint to maximum discharge power of all associated BSDs
                     if self.p_set[-1] <= -max(max_discharge_power_list):
                         self.p_set[-1] = -max(max_discharge_power_list)
 
+                    # limit discharge power assigned to BSD to BSD max discharge power
                     if self.p_set[-1] <= -env.k.device.devices[device]['device'].max_discharge_power/1e3:
                         # self.p_out[-1] = -env.k.device.devices[device]['device'].max_discharge_power/1e3
                         result[device] = ('discharge',  {'p_out': env.k.device.devices[device]['device'].max_discharge_power/1e3})
@@ -404,3 +445,67 @@ class BatteryPeakShavingControllerCent(BaseController):
 
         # if hasattr(self, 'node_id'):
         #     Logger.log_single(self.device_id, 'node', self.node_id)
+
+
+# if self.control_mode == 'peak_shaving':
+        
+#     # if measured substation power is above target
+#     if self.measured_active_power_lpf[-1] >= self.P_target:
+#         self.active_power_error.append(min(0,self.P_target - self.measured_active_power_lpf[-1]))
+#         # self.active_power_error.append(min(0,self.P_target - (self.measured_active_power_lpf[-1] - self.p_set[-1]*len(self.device_id))))
+#         self.reactive_power_error.append(self.P_target - self.measured_reactive_power_lpf[-1])
+#         self.apparent_power_error.append(self.P_target - self.measured_apparent_power_lpf[-1])
+
+#         self.active_power_error_der.append(1/self.Ts*(self.active_power_error[-1] - self.active_power_error[-2]))
+#         self.reactive_power_error_der.append(1/self.Ts*(self.reactive_power_error[-1] - self.reactive_power_error[-2]))
+#         self.apparent_power_error_der.append(1/self.Ts*(self.apparent_power_error[-1] - self.apparent_power_error[-2]))
+
+#         self.active_power_error_int.append(self.active_power_error_int[-2] + self.Ts*self.active_power_error[-2])
+#         self.reactive_power_error_int.append(self.reactive_power_error_int[-2] + self.Ts*self.reactive_power_error[-2])
+#         self.apparent_power_error_int.append(self.apparent_power_error_int[-2] + self.Ts*self.apparent_power_error[-2])
+#     else:
+#         self.active_power_error.append(min(0,self.P_target - self.measured_active_power_lpf[-1]))
+#         self.reactive_power_error.append(self.P_target - self.measured_reactive_power_lpf[-1])
+#         self.apparent_power_error.append(self.P_target - self.measured_apparent_power_lpf[-1])
+
+#         self.active_power_error_der.append(1/self.Ts*(self.active_power_error[-1] - self.active_power_error[-2]))
+#         self.reactive_power_error_der.append(1/self.Ts*(self.reactive_power_error[-1] - self.reactive_power_error[-2]))
+#         self.apparent_power_error_der.append(1/self.Ts*(self.apparent_power_error[-1] - self.apparent_power_error[-2]))
+
+#         # self.active_power_error_int.append(self.active_power_error_int[-2] + self.Ts*self.active_power_error[-2])
+#         self.active_power_error_int.append((1 - self.K_I*self.Ts)*self.active_power_error_int[-2])
+#         self.reactive_power_error_int.append(self.reactive_power_error_int[-2] + self.Ts*self.reactive_power_error[-2])
+#         self.apparent_power_error_int.append(self.apparent_power_error_int[-2] + self.Ts*self.apparent_power_error[-2])
+
+#     self.p_set_temp = self.K_P*self.active_power_error[-1] + self.K_I*self.active_power_error_int[-1] + self.K_D*self.active_power_error_der[-1]
+
+# if self.control_mode == 'valley_filling':
+
+#     if self.measured_active_power_lpf[-1] <= self.P_target:
+#         self.active_power_error.append(max(0,self.P_target - self.measured_active_power_lpf[-1]))
+#         # self.active_power_error.append(min(0,self.P_target - (self.measured_active_power_lpf[-1] - self.p_set[-1]*len(self.device_id))))
+#         self.reactive_power_error.append(self.P_target - self.measured_reactive_power_lpf[-1])
+#         self.apparent_power_error.append(self.P_target - self.measured_apparent_power_lpf[-1])
+
+#         self.active_power_error_der.append(1/self.Ts*(self.active_power_error[-1] - self.active_power_error[-2]))
+#         self.reactive_power_error_der.append(1/self.Ts*(self.reactive_power_error[-1] - self.reactive_power_error[-2]))
+#         self.apparent_power_error_der.append(1/self.Ts*(self.apparent_power_error[-1] - self.apparent_power_error[-2]))
+
+#         self.active_power_error_int.append(self.active_power_error_int[-2] + self.Ts*self.active_power_error[-2])
+#         self.reactive_power_error_int.append(self.reactive_power_error_int[-2] + self.Ts*self.reactive_power_error[-2])
+#         self.apparent_power_error_int.append(self.apparent_power_error_int[-2] + self.Ts*self.apparent_power_error[-2])
+#     else:
+#         self.active_power_error.append(max(0,self.P_target - self.measured_active_power_lpf[-1]))
+#         self.reactive_power_error.append(self.P_target - self.measured_reactive_power_lpf[-1])
+#         self.apparent_power_error.append(self.P_target - self.measured_apparent_power_lpf[-1])
+
+#         self.active_power_error_der.append(1/self.Ts*(self.active_power_error[-1] - self.active_power_error[-2]))
+#         self.reactive_power_error_der.append(1/self.Ts*(self.reactive_power_error[-1] - self.reactive_power_error[-2]))
+#         self.apparent_power_error_der.append(1/self.Ts*(self.apparent_power_error[-1] - self.apparent_power_error[-2]))
+
+#         # self.active_power_error_int.append(self.active_power_error_int[-2] + self.Ts*self.active_power_error[-2])
+#         self.active_power_error_int.append((1 - self.K_I*self.Ts)*self.active_power_error_int[-2])
+#         self.reactive_power_error_int.append(self.reactive_power_error_int[-2] + self.Ts*self.reactive_power_error[-2])
+#         self.apparent_power_error_int.append(self.apparent_power_error_int[-2] + self.Ts*self.apparent_power_error[-2])
+
+#     self.p_set_temp = self.K_P*self.active_power_error[-1] + self.K_I*self.active_power_error_int[-1] + self.K_D*self.active_power_error_der[-1]

@@ -40,8 +40,7 @@ class BatteryStorageDeviceAdvanced(BaseDevice):
         self.p_out = 0 # [W]
         self.total_capacity = self.additional_params.get('total_capacity', 10)*1000*3600 # [kWh --> J]
         self.current_capacity = self.additional_params.get('current_capacity', 10)*1000*3600 # [kWh --> J]
-        print(self.device_id)
-        print(self.current_capacity)
+        
 
         self.max_charge_power = self.additional_params.get('max_charge_power', 1.00)*1000 # [kW --> W]
 
@@ -49,7 +48,7 @@ class BatteryStorageDeviceAdvanced(BaseDevice):
 
         self.max_ramp_rate = self.additional_params.get('max_ramp_rate', 0.015)*1000 # [kW/s --> W/s]
 
-        print(self.max_ramp_rate)
+        
 
         self.max_SOC = self.additional_params.get('max_SOC', 1.0)
         self.min_SOC = self.additional_params.get('min_SOC', 0.2)
@@ -74,6 +73,11 @@ class BatteryStorageDeviceAdvanced(BaseDevice):
         # self.Vlp = deque([0]*self.lp1z.shape[1],maxlen=self.lp1z.shape[1])
 
         self.custom_control_setting = {}
+
+        print('Initialize: ' + str(self.device_id))
+        print('current capacity: ' + str(self.current_capacity))
+        print('SOC: ' + str(self.SOC))
+        print('')
 
     def update(self, k):
         
