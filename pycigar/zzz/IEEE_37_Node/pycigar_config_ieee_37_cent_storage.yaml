@@ -46,8 +46,8 @@ scenario_config:
           device: battery_storage_device_advanced
           custom_device_configs: {
             default_control_setting: 'standby',
-            total_capacity: 500,
-            current_capacity: 400.0,
+            total_capacity: 200,
+            current_capacity: 120.0,
             max_charge_power: 100.00,
             max_discharge_power: 150.00,
             max_ramp_rate: 1.0,
@@ -71,8 +71,8 @@ scenario_config:
           device: battery_storage_device_advanced
           custom_device_configs: {
             default_control_setting: 'standby',
-            total_capacity: 500,
-            current_capacity: 400.0,
+            total_capacity: 200,
+            current_capacity: 150.0,
             max_charge_power: 100.00,
             max_discharge_power: 150.00,
             max_ramp_rate: 1.0,
@@ -96,8 +96,8 @@ scenario_config:
           device: battery_storage_device_advanced
           custom_device_configs: {
             default_control_setting: 'standby',
-            total_capacity: 500,
-            current_capacity: 400.0,
+            total_capacity: 200,
+            current_capacity: 180.0,
             max_charge_power: 100.00,
             max_discharge_power: 150.00,
             max_ramp_rate: 1.0,
@@ -110,8 +110,8 @@ scenario_config:
           device: battery_storage_device_advanced
           custom_device_configs: {
             default_control_setting: 'standby',
-            total_capacity: 500,
-            current_capacity: 400.0,
+            total_capacity: 100,
+            current_capacity: 60.0,
             max_charge_power: 100.00,
             max_discharge_power: 150.00,
             max_ramp_rate: 1.0,
@@ -124,8 +124,8 @@ scenario_config:
           device: battery_storage_device_advanced
           custom_device_configs: {
             default_control_setting: 'standby',
-            total_capacity: 500,
-            current_capacity: 400.0,
+            total_capacity: 100,
+            current_capacity: 80.0,
             max_charge_power: 100.00,
             max_discharge_power: 150.00,
             max_ramp_rate: 1.0,
@@ -138,8 +138,8 @@ scenario_config:
           device: battery_storage_device_advanced
           custom_device_configs: {
             default_control_setting: 'standby',
-            total_capacity: 500,
-            current_capacity: 400.0,
+            total_capacity: 100,
+            current_capacity: 40.0,
             max_charge_power: 100.00,
             max_discharge_power: 150.00,
             max_ramp_rate: 1.0,
