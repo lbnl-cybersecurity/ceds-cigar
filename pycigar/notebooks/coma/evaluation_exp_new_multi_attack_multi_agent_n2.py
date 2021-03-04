@@ -167,23 +167,13 @@ if __name__ == '__main__':
     sim_params = input_parser(misc_inputs_path, dss_path, load_solar_path, breakpoints_path)
     sim_params['vectorized_mode'] = True
     sim_params['is_disable_log'] = True
-    sim_params['cluster'] = {'1': ['s1a', 's2b', 's4c', 's5c', 's6c', 's7a', 's9a', 's10a', 's11a', 's12b', 's16c', 's17c', 's34c', 's52a', 's53a', 's55a', 's56b', 's58b', 's59b', 's86b', 's87b', 's88a', 's90b', 's92c', 's94a', 's95b', 's96b',
-                                   's19a', 's20a', 's22b', 's24c', 's28a', 's29a', 's30c', 's31c', 's32c', 's33a', 's35a', 's37a', 's38b', 's39b', 's41c', 's42a', 's43b', 's45a', 's46a', 's47', 's48', 's49a', 's49b', 's49c', 's50c', 's51a'],
-                             '2': [
-                                   's102c', 's103c', 's104c', 's106b', 's107b', 's109a', 's111a', 's112a', 's113a', 's114a', 's60a', 's62c', 's63a', 's64b', 's65a', 's65b', 's65c', 's66c', 's68a', 's69a', 's70a', 's71a', 's73c', 's74c', 's75c',
-                                   's76a', 's76b', 's76c', 's77b', 's79a', 's80b', 's82a', 's83c', 's84c', 's85c', 's98a', 's99b', 's100c', 's60a', 's62c', 's63a', 's64b', 's65a', 's65b', 's65c', 's66c', 's68a', 's69a', 's70a', 's71a', 's73c',
-                                   's74c', 's75c', 's76a', 's76b', 's76c', 's77b', 's79a', 's80b', 's82a', 's83c', 's84c', 's85c', 's98a', 's99b', 's100c'],
-                            }
+    sim_params['cluster'] = {'1': ['s52a', 's53a', 's55a', 's56b', 's58b', 's59b', 's1a', 's2b', 's4c', 's5c', 's6c', 's7a', 's9a', 's10a', 's11a', 's12b', 's16c', 's17c', 's34c', 's19a', 's20a', 's22b', 's24c', 's28a', 's29a', 's30c', 's31c', 's32c', 's33a', 's35a', 's37a', 's38b', 's39b', 's41c', 's42a', 's43b', 's45a', 's46a', 's47', 's48', 's49a', 's49b', 's49c', 's50c', 's51a'],
+                             '2': ['s86b', 's87b', 's88a', 's90b', 's92c', 's94a', 's95b', 's96b', 's102c', 's103c', 's104c', 's106b', 's107b', 's109a', 's111a', 's112a', 's113a', 's114a', 's60a', 's62c', 's63a', 's64b', 's65a', 's65b', 's65c', 's66c', 's68a', 's69a', 's70a', 's71a', 's73c', 's74c', 's75c', 's76a', 's76b', 's76c', 's77b', 's79a', 's80b', 's82a', 's83c', 's84c', 's85c', 's98a', 's99b', 's100c']}
     sim_params_eval = input_parser(misc_inputs_path, dss_path, load_solar_path, breakpoints_path, benchmark=True)
     sim_params_eval['vectorized_mode'] = True
     sim_params_eval['is_disable_log'] = False
-    sim_params_eval['cluster'] = {'1': ['s1a', 's2b', 's4c', 's5c', 's6c', 's7a', 's9a', 's10a', 's11a', 's12b', 's16c', 's17c', 's34c', 's52a', 's53a', 's55a', 's56b', 's58b', 's59b', 's86b', 's87b', 's88a', 's90b', 's92c', 's94a', 's95b', 's96b',
-                                        's19a', 's20a', 's22b', 's24c', 's28a', 's29a', 's30c', 's31c', 's32c', 's33a', 's35a', 's37a', 's38b', 's39b', 's41c', 's42a', 's43b', 's45a', 's46a', 's47', 's48', 's49a', 's49b', 's49c', 's50c', 's51a',],
-                                  '2': [
-                                        's102c', 's103c', 's104c', 's106b', 's107b', 's109a', 's111a', 's112a', 's113a', 's114a', 's60a', 's62c', 's63a', 's64b', 's65a', 's65b', 's65c', 's66c', 's68a', 's69a', 's70a', 's71a', 's73c', 's74c', 's75c',
-                                        's76a', 's76b', 's76c', 's77b', 's79a', 's80b', 's82a', 's83c', 's84c', 's85c', 's98a', 's99b', 's100c', 's60a', 's62c', 's63a', 's64b', 's65a', 's65b', 's65c', 's66c', 's68a', 's69a', 's70a', 's71a', 's73c',
-                                        's74c', 's75c', 's76a', 's76b', 's76c', 's77b', 's79a', 's80b', 's82a', 's83c', 's84c', 's85c', 's98a', 's99b', 's100c'],
-                                 }
+    sim_params_eval['cluster'] = {'1': ['s52a', 's53a', 's55a', 's56b', 's58b', 's59b', 's1a', 's2b', 's4c', 's5c', 's6c', 's7a', 's9a', 's10a', 's11a', 's12b', 's16c', 's17c', 's34c', 's19a', 's20a', 's22b', 's24c', 's28a', 's29a', 's30c', 's31c', 's32c', 's33a', 's35a', 's37a', 's38b', 's39b', 's41c', 's42a', 's43b', 's45a', 's46a', 's47', 's48', 's49a', 's49b', 's49c', 's50c', 's51a'],
+                                  '2': ['s86b', 's87b', 's88a', 's90b', 's92c', 's94a', 's95b', 's96b', 's102c', 's103c', 's104c', 's106b', 's107b', 's109a', 's111a', 's112a', 's113a', 's114a', 's60a', 's62c', 's63a', 's64b', 's65a', 's65b', 's65c', 's66c', 's68a', 's69a', 's70a', 's71a', 's73c', 's74c', 's75c', 's76a', 's76b', 's76c', 's77b', 's79a', 's80b', 's82a', 's83c', 's84c', 's85c', 's98a', 's99b', 's100c']}
     test_env = create_env(sim_params)
     obs_space = test_env.observation_space
     act_space = test_env.action_space
@@ -200,7 +190,7 @@ if __name__ == '__main__':
         'env_config': deepcopy(sim_params),
         'rollout_fragment_length': 20,
         'train_batch_size': 20*args.workers, #256, #250
-        'clip_param': 0.1,
+        'clip_param': 0.05,
         'lambda': 0.95,
         'vf_clip_param': 10,
 
@@ -222,7 +212,7 @@ if __name__ == '__main__':
             'lstm_use_prev_action_reward': False,
             'framestack': False,
         },
-        #"vf_loss_coeff": 0.000001,
+        "vf_loss_coeff": 0.00001,
         'multiagent': {
             'policies': {'agent_1': (None, obs_space, act_space, {}),
                          'agent_2': (None, obs_space, act_space, {})},
@@ -269,10 +259,10 @@ if __name__ == '__main__':
     #base_config['evaluation_config']['env_config']['scenario_config']['custom_configs']['slack_bus_voltage'] = 1.04
 
     base_config['env_config']['M'] = 300
-    base_config['env_config']['N'] = 0.1   #last
+    base_config['env_config']['N'] = 0.2   #last
     base_config['env_config']['P'] = 2     #intt
     base_config['env_config']['Q'] = 1
-    base_config['env_config']['T'] = 0#15
+    base_config['env_config']['T'] = 15
 
     if args.unbalance:
         for node in base_config['env_config']['scenario_config']['nodes']:
@@ -301,7 +291,7 @@ if __name__ == '__main__':
 
     for i in range(1):
         config = deepcopy(full_config)
-        config['config']['lr'] = ray.tune.grid_search([1e-4])
+        config['config']['lr'] = ray.tune.grid_search([5e-5])
         run_hp_experiment(config, 'main')
 
     ray.shutdown()
