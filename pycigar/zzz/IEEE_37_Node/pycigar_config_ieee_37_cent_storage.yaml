@@ -23,7 +23,7 @@ scenario_config:
   multi_config: False
   start_end_time: [3601, 14400]
   custom_configs: {load_scaling_factor: 1.00,
-                   solar_scaling_factor: 1.0,
+                   solar_scaling_factor: 0.0,
                    slack_bus_voltage: 1.04,
                    load_generation_noise: False,
                    power_factor: 0.9}
@@ -31,7 +31,7 @@ scenario_config:
   nodes:
     - name: 's701a'
       devices:
-        - name: pv_inverter_S701a
+        - name: pv_inverter_s701a
           device: pv_device
           custom_device_configs: {default_control_setting: [0.98, 1.01, 1.01, 1.04, 1.06],
                                   gain: 100000,
@@ -56,7 +56,7 @@ scenario_config:
           }
     - name: 's701b'
       devices:
-        - name: pv_inverter_S701b
+        - name: pv_inverter_s701b
           device: pv_device
           custom_device_configs: {default_control_setting: [0.98, 1.01, 1.01, 1.04, 1.06],
                                   gain: 100000,
@@ -81,7 +81,7 @@ scenario_config:
           }
     - name: 's701c'
       devices:
-        - name: pv_inverter_S701c
+        - name: pv_inverter_s701c
           device: pv_device
           custom_device_configs: {default_control_setting: [0.98, 1.01, 1.01, 1.04, 1.06],
                                   gain: 100000,
@@ -104,9 +104,252 @@ scenario_config:
             max_SOC: 1.0,
             min_SOC: 0.2
           }
+    - name: 's712c'
+      devices:
+        - name: pv_inverter_s712c
+          device: pv_device
+          custom_device_configs: {default_control_setting: [0.98, 1.01, 1.01, 1.04, 1.06],
+                                  gain: 100000,
+                                  low_pass_filter_measure_mean: 1.2,
+                                  low_pass_filter_output_mean: 0.115}
+          controller: fixed_controller
+          custom_controller_configs: {default_control_setting: [0.98, 1.01, 1.01, 1.04, 1.06]}
+          # adversary_controller: fixed_controller
+          # adversary_custom_controller_configs: {default_control_setting: [1.014, 1.015, 1.015, 1.016, 1.017]}
+          # hack: [300, 0.4]
+    - name: 's713c'
+      devices:
+        - name: pv_inverter_s713c
+          device: pv_device
+          custom_device_configs: {default_control_setting: [0.98, 1.01, 1.01, 1.04, 1.06],
+                                  gain: 100000,
+                                  low_pass_filter_measure_mean: 1.2,
+                                  low_pass_filter_output_mean: 0.115}
+          controller: fixed_controller
+          custom_controller_configs: {default_control_setting: [0.98, 1.01, 1.01, 1.04, 1.06]}
+          # adversary_controller: fixed_controller
+          # adversary_custom_controller_configs: {default_control_setting: [1.014, 1.015, 1.015, 1.016, 1.017]}
+          # hack: [300, 0.4]
+    - name: 's714a'
+      devices:
+        - name: pv_inverter_s714a
+          device: pv_device
+          custom_device_configs: {default_control_setting: [0.98, 1.01, 1.01, 1.04, 1.06],
+                                  gain: 100000,
+                                  low_pass_filter_measure_mean: 1.2,
+                                  low_pass_filter_output_mean: 0.115}
+          controller: fixed_controller
+          custom_controller_configs: {default_control_setting: [0.98, 1.01, 1.01, 1.04, 1.06]}
+          # adversary_controller: fixed_controller
+          # adversary_custom_controller_configs: {default_control_setting: [1.014, 1.015, 1.015, 1.016, 1.017]}
+          # hack: [300, 0.4]
+    - name: 's714b'
+      devices:
+        - name: pv_inverter_s714b
+          device: pv_device
+          custom_device_configs: {default_control_setting: [0.98, 1.01, 1.01, 1.04, 1.06],
+                                  gain: 100000,
+                                  low_pass_filter_measure_mean: 1.2,
+                                  low_pass_filter_output_mean: 0.115}
+          controller: fixed_controller
+          custom_controller_configs: {default_control_setting: [0.98, 1.01, 1.01, 1.04, 1.06]}
+          # adversary_controller: fixed_controller
+          # adversary_custom_controller_configs: {default_control_setting: [1.014, 1.015, 1.015, 1.016, 1.017]}
+          # hack: [300, 0.4]
+    - name: 's718a'
+      devices:
+        - name: pv_inverter_s718a
+          device: pv_device
+          custom_device_configs: {default_control_setting: [0.98, 1.01, 1.01, 1.04, 1.06],
+                                  gain: 100000,
+                                  low_pass_filter_measure_mean: 1.2,
+                                  low_pass_filter_output_mean: 0.115}
+          controller: fixed_controller
+          custom_controller_configs: {default_control_setting: [0.98, 1.01, 1.01, 1.04, 1.06]}
+          # adversary_controller: fixed_controller
+          # adversary_custom_controller_configs: {default_control_setting: [1.014, 1.015, 1.015, 1.016, 1.017]}
+          # hack: [300, 0.4]
+    - name: 's720c'
+      devices:
+        - name: pv_inverter_s720c
+          device: pv_device
+          custom_device_configs: {default_control_setting: [0.98, 1.01, 1.01, 1.04, 1.06],
+                                  gain: 100000,
+                                  low_pass_filter_measure_mean: 1.2,
+                                  low_pass_filter_output_mean: 0.115}
+          controller: fixed_controller
+          custom_controller_configs: {default_control_setting: [0.98, 1.01, 1.01, 1.04, 1.06]}
+          # adversary_controller: fixed_controller
+          # adversary_custom_controller_configs: {default_control_setting: [1.014, 1.015, 1.015, 1.016, 1.017]}
+          # hack: [300, 0.4]
+    - name: 's722b'
+      devices:
+        - name: pv_inverter_s722b
+          device: pv_device
+          custom_device_configs: {default_control_setting: [0.98, 1.01, 1.01, 1.04, 1.06],
+                                  gain: 100000,
+                                  low_pass_filter_measure_mean: 1.2,
+                                  low_pass_filter_output_mean: 0.115}
+          controller: fixed_controller
+          custom_controller_configs: {default_control_setting: [0.98, 1.01, 1.01, 1.04, 1.06]}
+          # adversary_controller: fixed_controller
+          # adversary_custom_controller_configs: {default_control_setting: [1.014, 1.015, 1.015, 1.016, 1.017]}
+          # hack: [300, 0.4]
+    - name: 's722c'
+      devices:
+        - name: pv_inverter_s722c
+          device: pv_device
+          custom_device_configs: {default_control_setting: [0.98, 1.01, 1.01, 1.04, 1.06],
+                                  gain: 100000,
+                                  low_pass_filter_measure_mean: 1.2,
+                                  low_pass_filter_output_mean: 0.115}
+          controller: fixed_controller
+          custom_controller_configs: {default_control_setting: [0.98, 1.01, 1.01, 1.04, 1.06]}
+          # adversary_controller: fixed_controller
+          # adversary_custom_controller_configs: {default_control_setting: [1.014, 1.015, 1.015, 1.016, 1.017]}
+          # hack: [300, 0.4]
+    - name: 's724b'
+      devices:
+        - name: pv_inverter_s724b
+          device: pv_device
+          custom_device_configs: {default_control_setting: [0.98, 1.01, 1.01, 1.04, 1.06],
+                                  gain: 100000,
+                                  low_pass_filter_measure_mean: 1.2,
+                                  low_pass_filter_output_mean: 0.115}
+          controller: fixed_controller
+          custom_controller_configs: {default_control_setting: [0.98, 1.01, 1.01, 1.04, 1.06]}
+          # adversary_controller: fixed_controller
+          # adversary_custom_controller_configs: {default_control_setting: [1.014, 1.015, 1.015, 1.016, 1.017]}
+          # hack: [300, 0.4]
+    - name: 's725b'
+      devices:
+        - name: pv_inverter_s725b
+          device: pv_device
+          custom_device_configs: {default_control_setting: [0.98, 1.01, 1.01, 1.04, 1.06],
+                                  gain: 100000,
+                                  low_pass_filter_measure_mean: 1.2,
+                                  low_pass_filter_output_mean: 0.115}
+          controller: fixed_controller
+          custom_controller_configs: {default_control_setting: [0.98, 1.01, 1.01, 1.04, 1.06]}
+          # adversary_controller: fixed_controller
+          # adversary_custom_controller_configs: {default_control_setting: [1.014, 1.015, 1.015, 1.016, 1.017]}
+          # hack: [300, 0.4]
+    - name: 's727c'
+      devices:
+        - name: pv_inverter_s727c
+          device: pv_device
+          custom_device_configs: {default_control_setting: [0.98, 1.01, 1.01, 1.04, 1.06],
+                                  gain: 100000,
+                                  low_pass_filter_measure_mean: 1.2,
+                                  low_pass_filter_output_mean: 0.115}
+          controller: fixed_controller
+          custom_controller_configs: {default_control_setting: [0.98, 1.01, 1.01, 1.04, 1.06]}
+          # adversary_controller: fixed_controller
+          # adversary_custom_controller_configs: {default_control_setting: [1.014, 1.015, 1.015, 1.016, 1.017]}
+          # hack: [300, 0.4]
+    - name: 's728'
+      devices:
+        - name: pv_inverter_s728
+          device: pv_device
+          custom_device_configs: {default_control_setting: [0.98, 1.01, 1.01, 1.04, 1.06],
+                                  gain: 100000,
+                                  low_pass_filter_measure_mean: 1.2,
+                                  low_pass_filter_output_mean: 0.115}
+          controller: fixed_controller
+          custom_controller_configs: {default_control_setting: [0.98, 1.01, 1.01, 1.04, 1.06]}
+          # adversary_controller: fixed_controller
+          # adversary_custom_controller_configs: {default_control_setting: [1.014, 1.015, 1.015, 1.016, 1.017]}
+          # hack: [300, 0.4]
+    - name: 's729a'
+      devices:
+        - name: pv_inverter_s729a
+          device: pv_device
+          custom_device_configs: {default_control_setting: [0.98, 1.01, 1.01, 1.04, 1.06],
+                                  gain: 100000,
+                                  low_pass_filter_measure_mean: 1.2,
+                                  low_pass_filter_output_mean: 0.115}
+          controller: fixed_controller
+          custom_controller_configs: {default_control_setting: [0.98, 1.01, 1.01, 1.04, 1.06]}
+          # adversary_controller: fixed_controller
+          # adversary_custom_controller_configs: {default_control_setting: [1.014, 1.015, 1.015, 1.016, 1.017]}
+          # hack: [300, 0.4]
+    - name: 's730c'
+      devices:
+        - name: pv_inverter_s730c
+          device: pv_device
+          custom_device_configs: {default_control_setting: [0.98, 1.01, 1.01, 1.04, 1.06],
+                                  gain: 100000,
+                                  low_pass_filter_measure_mean: 1.2,
+                                  low_pass_filter_output_mean: 0.115}
+          controller: fixed_controller
+          custom_controller_configs: {default_control_setting: [0.98, 1.01, 1.01, 1.04, 1.06]}
+          # adversary_controller: fixed_controller
+          # adversary_custom_controller_configs: {default_control_setting: [1.014, 1.015, 1.015, 1.016, 1.017]}
+          # hack: [300, 0.4] 
     - name: 's731b'
       devices:
+        - name: pv_inverter_s731b
+          device: pv_device
+          custom_device_configs: {default_control_setting: [0.98, 1.01, 1.01, 1.04, 1.06],
+                                  gain: 100000,
+                                  low_pass_filter_measure_mean: 1.2,
+                                  low_pass_filter_output_mean: 0.115}
+          controller: fixed_controller
+          custom_controller_configs: {default_control_setting: [0.98, 1.01, 1.01, 1.04, 1.06]}
+          # adversary_controller: fixed_controller
+          # adversary_custom_controller_configs: {default_control_setting: [1.014, 1.015, 1.015, 1.016, 1.017]}
+          # hack: [300, 0.4] 
         - name: bsd_s731b
+          device: battery_storage_device_advanced
+          custom_device_configs: {
+            default_control_setting: 'standby',
+            total_capacity: 100,
+            current_capacity: 90.0,
+            max_charge_power: 100.00,
+            max_discharge_power: 150.00,
+            max_ramp_rate: 1.0,
+            max_SOC: 1.0,
+            min_SOC: 0.2
+          }
+    - name: 's732c'
+      devices:
+        - name: pv_inverter_s732c
+          device: pv_device
+          custom_device_configs: {default_control_setting: [0.98, 1.01, 1.01, 1.04, 1.06],
+                                  gain: 100000,
+                                  low_pass_filter_measure_mean: 1.2,
+                                  low_pass_filter_output_mean: 0.115}
+          controller: fixed_controller
+          custom_controller_configs: {default_control_setting: [0.98, 1.01, 1.01, 1.04, 1.06]}
+          # adversary_controller: fixed_controller
+          # adversary_custom_controller_configs: {default_control_setting: [1.014, 1.015, 1.015, 1.016, 1.017]}
+          # hack: [300, 0.4]
+        - name: bsd_s732c
+          device: battery_storage_device_advanced
+          custom_device_configs: {
+            default_control_setting: 'standby',
+            total_capacity: 100,
+            current_capacity: 75.0,
+            max_charge_power: 100.00,
+            max_discharge_power: 150.00,
+            max_ramp_rate: 1.0,
+            max_SOC: 1.0,
+            min_SOC: 0.2
+          }
+    - name: 's733a'
+      devices:
+        - name: pv_inverter_s733a
+          device: pv_device
+          custom_device_configs: {default_control_setting: [0.98, 1.01, 1.01, 1.04, 1.06],
+                                  gain: 100000,
+                                  low_pass_filter_measure_mean: 1.2,
+                                  low_pass_filter_output_mean: 0.115}
+          controller: fixed_controller
+          custom_controller_configs: {default_control_setting: [0.98, 1.01, 1.01, 1.04, 1.06]}
+          # adversary_controller: fixed_controller
+          # adversary_custom_controller_configs: {default_control_setting: [1.014, 1.015, 1.015, 1.016, 1.017]}
+          # hack: [300, 0.4]
+        - name: bsd_s733a
           device: battery_storage_device_advanced
           custom_device_configs: {
             default_control_setting: 'standby',
@@ -118,34 +361,137 @@ scenario_config:
             max_SOC: 1.0,
             min_SOC: 0.2
           }
-    - name: 's732c'
+    - name: 's734c'
       devices:
-        - name: bsd_s732c
-          device: battery_storage_device_advanced
-          custom_device_configs: {
-            default_control_setting: 'standby',
-            total_capacity: 100,
-            current_capacity: 80.0,
-            max_charge_power: 100.00,
-            max_discharge_power: 150.00,
-            max_ramp_rate: 1.0,
-            max_SOC: 1.0,
-            min_SOC: 0.2
-          }
-    - name: 's733a'
+        - name: pv_inverter_s734c
+          device: pv_device
+          custom_device_configs: {default_control_setting: [0.98, 1.01, 1.01, 1.04, 1.06],
+                                  gain: 100000,
+                                  low_pass_filter_measure_mean: 1.2,
+                                  low_pass_filter_output_mean: 0.115}
+          controller: fixed_controller
+          custom_controller_configs: {default_control_setting: [0.98, 1.01, 1.01, 1.04, 1.06]}
+          # adversary_controller: fixed_controller
+          # adversary_custom_controller_configs: {default_control_setting: [1.014, 1.015, 1.015, 1.016, 1.017]}
+          # hack: [300, 0.4]
+    - name: 's735c'
       devices:
-        - name: bsd_s733a
-          device: battery_storage_device_advanced
-          custom_device_configs: {
-            default_control_setting: 'standby',
-            total_capacity: 100,
-            current_capacity: 40.0,
-            max_charge_power: 100.00,
-            max_discharge_power: 150.00,
-            max_ramp_rate: 1.0,
-            max_SOC: 1.0,
-            min_SOC: 0.2
-          }
+        - name: pv_inverter_s735c
+          device: pv_device
+          custom_device_configs: {default_control_setting: [0.98, 1.01, 1.01, 1.04, 1.06],
+                                  gain: 100000,
+                                  low_pass_filter_measure_mean: 1.2,
+                                  low_pass_filter_output_mean: 0.115}
+          controller: fixed_controller
+          custom_controller_configs: {default_control_setting: [0.98, 1.01, 1.01, 1.04, 1.06]}
+          # adversary_controller: fixed_controller
+          # adversary_custom_controller_configs: {default_control_setting: [1.014, 1.015, 1.015, 1.016, 1.017]}
+          # hack: [300, 0.4]
+    - name: 's736b'
+      devices:
+        - name: pv_inverter_s736b
+          device: pv_device
+          custom_device_configs: {default_control_setting: [0.98, 1.01, 1.01, 1.04, 1.06],
+                                  gain: 100000,
+                                  low_pass_filter_measure_mean: 1.2,
+                                  low_pass_filter_output_mean: 0.115}
+          controller: fixed_controller
+          custom_controller_configs: {default_control_setting: [0.98, 1.01, 1.01, 1.04, 1.06]}
+          # adversary_controller: fixed_controller
+          # adversary_custom_controller_configs: {default_control_setting: [1.014, 1.015, 1.015, 1.016, 1.017]}
+          # hack: [300, 0.4]
+    - name: 's737a'
+      devices:
+        - name: pv_inverter_s737a
+          device: pv_device
+          custom_device_configs: {default_control_setting: [0.98, 1.01, 1.01, 1.04, 1.06],
+                                  gain: 100000,
+                                  low_pass_filter_measure_mean: 1.2,
+                                  low_pass_filter_output_mean: 0.115}
+          controller: fixed_controller
+          custom_controller_configs: {default_control_setting: [0.98, 1.01, 1.01, 1.04, 1.06]}
+          # adversary_controller: fixed_controller
+          # adversary_custom_controller_configs: {default_control_setting: [1.014, 1.015, 1.015, 1.016, 1.017]}
+          # hack: [300, 0.4]
+    - name: 's738a'
+      devices:
+        - name: pv_inverter_s738a
+          device: pv_device
+          custom_device_configs: {default_control_setting: [0.98, 1.01, 1.01, 1.04, 1.06],
+                                  gain: 100000,
+                                  low_pass_filter_measure_mean: 1.2,
+                                  low_pass_filter_output_mean: 0.115}
+          controller: fixed_controller
+          custom_controller_configs: {default_control_setting: [0.98, 1.01, 1.01, 1.04, 1.06]}
+          # adversary_controller: fixed_controller
+          # adversary_custom_controller_configs: {default_control_setting: [1.014, 1.015, 1.015, 1.016, 1.017]}
+          # hack: [300, 0.4]
+    - name: 's740c'
+      devices:
+        - name: pv_inverter_s740c
+          device: pv_device
+          custom_device_configs: {default_control_setting: [0.98, 1.01, 1.01, 1.04, 1.06],
+                                  gain: 100000,
+                                  low_pass_filter_measure_mean: 1.2,
+                                  low_pass_filter_output_mean: 0.115}
+          controller: fixed_controller
+          custom_controller_configs: {default_control_setting: [0.98, 1.01, 1.01, 1.04, 1.06]}
+          # adversary_controller: fixed_controller
+          # adversary_custom_controller_configs: {default_control_setting: [1.014, 1.015, 1.015, 1.016, 1.017]}
+          # hack: [300, 0.4]
+    - name: 's741c'
+      devices:
+        - name: pv_inverter_s741c
+          device: pv_device
+          custom_device_configs: {default_control_setting: [0.98, 1.01, 1.01, 1.04, 1.06],
+                                  gain: 100000,
+                                  low_pass_filter_measure_mean: 1.2,
+                                  low_pass_filter_output_mean: 0.115}
+          controller: fixed_controller
+          custom_controller_configs: {default_control_setting: [0.98, 1.01, 1.01, 1.04, 1.06]}
+          # adversary_controller: fixed_controller
+          # adversary_custom_controller_configs: {default_control_setting: [1.014, 1.015, 1.015, 1.016, 1.017]}
+          # hack: [300, 0.4]
+    - name: 's742a'
+      devices:
+        - name: pv_inverter_s742a
+          device: pv_device
+          custom_device_configs: {default_control_setting: [0.98, 1.01, 1.01, 1.04, 1.06],
+                                  gain: 100000,
+                                  low_pass_filter_measure_mean: 1.2,
+                                  low_pass_filter_output_mean: 0.115}
+          controller: fixed_controller
+          custom_controller_configs: {default_control_setting: [0.98, 1.01, 1.01, 1.04, 1.06]}
+          # adversary_controller: fixed_controller
+          # adversary_custom_controller_configs: {default_control_setting: [1.014, 1.015, 1.015, 1.016, 1.017]}
+          # hack: [300, 0.4]
+    - name: 's742b'
+      devices:
+        - name: pv_inverter_s742b
+          device: pv_device
+          custom_device_configs: {default_control_setting: [0.98, 1.01, 1.01, 1.04, 1.06],
+                                  gain: 100000,
+                                  low_pass_filter_measure_mean: 1.2,
+                                  low_pass_filter_output_mean: 0.115}
+          controller: fixed_controller
+          custom_controller_configs: {default_control_setting: [0.98, 1.01, 1.01, 1.04, 1.06]}
+          # adversary_controller: fixed_controller
+          # adversary_custom_controller_configs: {default_control_setting: [1.014, 1.015, 1.015, 1.016, 1.017]}
+          # hack: [300, 0.4]
+    - name: 's744a'
+      devices:
+        - name: pv_inverter_s744a
+          device: pv_device
+          custom_device_configs: {default_control_setting: [0.98, 1.01, 1.01, 1.04, 1.06],
+                                  gain: 100000,
+                                  low_pass_filter_measure_mean: 1.2,
+                                  low_pass_filter_output_mean: 0.115}
+          controller: fixed_controller
+          custom_controller_configs: {default_control_setting: [0.98, 1.01, 1.01, 1.04, 1.06]}
+          # adversary_controller: fixed_controller
+          # adversary_custom_controller_configs: {default_control_setting: [1.014, 1.015, 1.015, 1.016, 1.017]}
+          # hack: [300, 0.4]
+    
 
   controllers:
     - name: psc_cent_701
@@ -161,8 +507,8 @@ scenario_config:
         # K_P: 0.5,
         # K_I: 0.01,
         # K_D: 0.02
-        K_P: 0.5,
-        K_I: 0.01,
+        K_P: 0.75,
+        K_I: 0.02,
         K_D: 0.02
       }
       list_devices: ['bsd_s701a', 'bsd_s701b', 'bsd_s701c']
