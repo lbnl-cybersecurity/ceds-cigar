@@ -5,6 +5,7 @@ Q: 50.0
 T: 1000
 attack_randomization:
   generator: AttackDefinitionGenerator
+custom_device_configs: {}
 env_config:
   clip_actions: true
   sims_per_step: 20
@@ -18,12 +19,41 @@ hack_setting:
 is_disable_log: false
 is_disable_y: false
 scenario_config:
+  controllers:
+  - controller: battery_peak_shaving_controller_cent
+    custom_controller_configs:
+      active_power_target: 2600.0
+      default_control_setting: standby
+      eta: 0.01
+      k_d: 0.02
+      k_i: 0.02
+      k_p: 0.75
+      lowpass_filter_frequency: 0.05
+    list_devices:
+    - bsd_701a
+    - bsd_701b
+    - bsd_701c
+    name: psc_cent_701
+  - controller: battery_peak_shaving_controller_cent
+    custom_controller_configs:
+      active_power_target: 2600.0
+      default_control_setting: standby
+      eta: 0.01
+      k_d: 0.02
+      k_i: 0.01
+      k_p: 0.55
+      lowpass_filter_frequency: 0.05
+    list_devices:
+    - bsd_s731b
+    - bsd_s732c
+    - bsd_s733a
+    name: psc_cent_730
   custom_configs:
     load_generation_noise: false
-    load_scaling_factor: 1.0
+    load_scaling_factor: 2.0
     power_factor: 0.9
     slack_bus_voltage: 1.02
-    solar_scaling_factor: 0.0
+    solar_scaling_factor: 2.0
   multi_config: true
   network_data_directory: /home/michael/Desktop/git/ceds-cigar/pycigar/data/../zzz/IEEE_37_Node/load_solar_data.csv
   nodes:
@@ -60,6 +90,17 @@ scenario_config:
       - 0.0
       - 500
       name: inverter_s701a
+    - custom_device_configs:
+        current_capacity: 180.0
+        default_control_setting: standby
+        max_charge_power: 100.0
+        max_discharge_power: 150.0
+        max_ramp_rate: 1.0
+        max_soc: 1.0
+        min_soc: 0.2
+        total_capacity: 200.0
+      device: battery_storage_device_advanced
+      name: bsd_s701a
     load_profile: null
     name: s701a
   - devices:
@@ -95,6 +136,17 @@ scenario_config:
       - 0.0
       - 500
       name: inverter_s701b
+    - custom_device_configs:
+        current_capacity: 150.0
+        default_control_setting: standby
+        max_charge_power: 100.0
+        max_discharge_power: 150.0
+        max_ramp_rate: 1.0
+        max_soc: 1.0
+        min_soc: 0.2
+        total_capacity: 200.0
+      device: battery_storage_device_advanced
+      name: bsd_s701b
     load_profile: null
     name: s701b
   - devices:
@@ -130,6 +182,17 @@ scenario_config:
       - 0.0
       - 500
       name: inverter_s701c
+    - custom_device_configs:
+        current_capacity: 120.0
+        default_control_setting: standby
+        max_charge_power: 100.0
+        max_discharge_power: 150.0
+        max_ramp_rate: 1.0
+        max_soc: 1.0
+        min_soc: 0.2
+        total_capacity: 200.0
+      device: battery_storage_device_advanced
+      name: bsd_s701c
     load_profile: null
     name: s701c
   - devices:
@@ -650,6 +713,17 @@ scenario_config:
       - 0.0
       - 500
       name: inverter_s731b
+    - custom_device_configs:
+        current_capacity: 90.0
+        default_control_setting: standby
+        max_charge_power: 100.0
+        max_discharge_power: 150.0
+        max_ramp_rate: 1.0
+        max_soc: 1.0
+        min_soc: 0.2
+        total_capacity: 100.0
+      device: battery_storage_device_advanced
+      name: bsd_s731b
     load_profile: null
     name: s731b
   - devices:
@@ -685,6 +759,17 @@ scenario_config:
       - 0.0
       - 500
       name: inverter_s732c
+    - custom_device_configs:
+        current_capacity: 75.0
+        default_control_setting: standby
+        max_charge_power: 100.0
+        max_discharge_power: 150.0
+        max_ramp_rate: 1.0
+        max_soc: 1.0
+        min_soc: 0.2
+        total_capacity: 100.0
+      device: battery_storage_device_advanced
+      name: bsd_s732c
     load_profile: null
     name: s732c
   - devices:
@@ -720,6 +805,17 @@ scenario_config:
       - 0.0
       - 500
       name: inverter_s733a
+    - custom_device_configs:
+        current_capacity: 60.0
+        default_control_setting: standby
+        max_charge_power: 100.0
+        max_discharge_power: 150.0
+        max_ramp_rate: 1.0
+        max_soc: 1.0
+        min_soc: 0.2
+        total_capacity: 100.0
+      device: battery_storage_device_advanced
+      name: bsd_s733a
     load_profile: null
     name: s733a
   - devices:
@@ -1089,4 +1185,4 @@ simulation_config:
     solution_number: 1
     solution_step_size: 1
   network_model_directory: /home/michael/Desktop/git/ceds-cigar/pycigar/data/../zzz/IEEE_37_Node/ieee37.dss
-vectorized_mode: true
+vectorized_mode: false

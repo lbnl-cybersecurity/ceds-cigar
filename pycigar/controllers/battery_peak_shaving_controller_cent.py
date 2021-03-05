@@ -115,11 +115,11 @@ class BatteryPeakShavingControllerCent(BaseController):
 
         if env.k.time == 4000:
             self.control_mode = 'peak_shaving'
-            self.P_target = 2800
+            self.P_target = 3200
 
         if env.k.time == 8000:
             self.control_mode = 'valley_filling'
-            self.P_target = 2600
+            self.P_target = 2800
 
         # Initialization period for pycigar
         if env.k.time == 0 or env.k.time == 51:
@@ -278,7 +278,7 @@ class BatteryPeakShavingControllerCent(BaseController):
                 self.p_set_temp = self.K_P*self.active_power_error[-1] + self.K_I*self.active_power_error_int[-1] + self.K_D*self.active_power_error_der[-1]
 
             # setpoint
-            self.p_set.append(0*self.p_set_temp)
+            self.p_set.append(1*self.p_set_temp)
 
             result = {}
 
