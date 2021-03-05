@@ -19,6 +19,9 @@ from pycigar.envs.attack_definition import AttackDefinitionGeneratorEvaluationRa
 from pycigar.envs.attack_definition import UnbalancedAttackDefinitionGeneratorEvaluation
 from pycigar.envs.attack_definition import UnbalancedAttackDefinitionGeneratorEvaluationRandom
 
+from pycigar.envs.attack_definition import HeterogeneousAttackDefinitionGeneratorEvaluation
+from pycigar.envs.attack_definition import HeterogeneousAttackDefinitionGeneratorEvaluationRandom
+
 from pycigar.utils.logging import logger
 import random
 
@@ -73,6 +76,16 @@ class OpenDSSScenario(KernelScenario):
                 and sim_params['attack_randomization']['generator'] == 'UnbalancedAttackDefinitionGeneratorEvaluationRandom'
             ):
                 self.attack_def_gen = UnbalancedAttackDefinitionGeneratorEvaluationRandom(start_time, end_time)
+            elif (
+                self.attack_def_gen is None
+                and sim_params['attack_randomization']['generator'] == 'HeterogeneousAttackDefinitionGeneratorEvaluation'
+            ):
+                self.attack_def_gen = HeterogeneousAttackDefinitionGeneratorEvaluation(start_time, end_time)
+            elif (
+                self.attack_def_gen is None
+                and sim_params['attack_randomization']['generator'] == 'HeterogeneousAttackDefinitionGeneratorEvaluationRandom'
+            ):
+                self.attack_def_gen = HeterogeneousAttackDefinitionGeneratorEvaluationRandom(start_time, end_time)
         else:
             self.attack_def_gen = None
 
@@ -80,7 +93,9 @@ class OpenDSSScenario(KernelScenario):
         if isinstance(self.attack_def_gen, AttackDefinitionGeneratorEvaluation) or \
             isinstance(self.attack_def_gen, AttackDefinitionGeneratorEvaluationRandom) or \
             isinstance(self.attack_def_gen, UnbalancedAttackDefinitionGeneratorEvaluation) or \
-            isinstance(self.attack_def_gen, UnbalancedAttackDefinitionGeneratorEvaluationRandom):
+            isinstance(self.attack_def_gen, UnbalancedAttackDefinitionGeneratorEvaluationRandom) or \
+            isinstance(self.attack_def_gen, HeterogeneousAttackDefinitionGeneratorEvaluation) or \
+            isinstance(self.attack_def_gen, HeterogeneousAttackDefinitionGeneratorEvaluationRandom):
             start_time, end_time = self.attack_def_gen.change_mode()
             self.master_kernel.sim_params['scenario_config']['start_time'] = start_time
             self.master_kernel.sim_params['scenario_config']['end_time'] = end_time
@@ -172,7 +187,9 @@ class OpenDSSScenario(KernelScenario):
                                 self.hack_end_times[dev_hack_info[2]].append(adversary_id)
                             else:
                                 self.hack_end_times[dev_hack_info[2]] = [adversary_id]
-
+                    if dev_hack_info is not None and not self.master_kernel.sim_params['is_disable_log']:
+                        Logger = logger()
+                        Logger.custom_metrics[device['name']] = dev_hack_info
         # adding regulator, hotfix
         regulator_names = self.kernel_api.get_all_regulator_names()
         if regulator_names and 'regulators' in sim_params['scenario_config']:

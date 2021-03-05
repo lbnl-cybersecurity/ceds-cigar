@@ -895,7 +895,7 @@ def plot_new(log_dict, custom_metrics, epoch='', unbalance=False, multiagent=Fal
         #title = '[epoch {}][time {}][hack {}] total reward: {:.2f} || total unbalance: {:.4f}'.format(
         #    epoch, custom_metrics['start_time'], custom_metrics['hack'], sum(log_dict[inv_ks[0]]['reward']), sum(log_dict['u_metrics']['u_worst'])
         #)
-        title = '[epoch {}][time {}][hack {}] total reward: {:.2f} || total unbalance: {:.4f}'.format(0, custom_metrics['start_time'], custom_metrics['hack'], 0, sum(log_dict['u_metrics']['u_worst']))
+        title = '[epoch {}][time {}][hack {:.3f}][hack cap {:.3f}] total reward: {:.2f} || total unbalance: {:.4f}'.format(epoch, custom_metrics['start_time'], custom_metrics['hack'], custom_metrics['hack_cap'], 0, sum(log_dict['u_metrics']['u_worst']))
         f.suptitle(title)
         for i, k in enumerate(inv_ks):
             #ax[0, 0].plot(log_dict[log_dict[k]['node']]['voltage'], label='voltage ({})'.format(k))
@@ -933,8 +933,8 @@ def plot_new(log_dict, custom_metrics, epoch='', unbalance=False, multiagent=Fal
             #ax[4, 0].plot(slope, label='RL slope (a2-a1) ({})'.format(k))
 
         ax[1, 0].plot(log_dict['u_metrics']['u_worst'], label='unbalance observer')
-        #ax[1, 0].plot(log_dict['u_metrics']['u_mean'], label='unbalance mean')
-        ax[1, 0].plot(log_dict['inverter_s701a']['u'], label='unbalance mean')
+        ax[1, 0].plot(log_dict['u_metrics']['u_mean'], label='unbalance mean')
+        #ax[1, 0].plot(log_dict['inverter_s701a']['u'], label='unbalance mean')
         ax[1, 0].fill_between(np.array(log_dict['u_metrics']['u_mean'])+np.array(log_dict['u_metrics']['u_std']), np.array(log_dict['u_metrics']['u_mean'])-np.array(log_dict['u_metrics']['u_std']), facecolor='orange', alpha=0.5)
         if multiagent:
             phases = ['a', 'b', 'c']
