@@ -297,12 +297,9 @@ class BatteryPeakShavingControllerCent(BaseController):
                 # charge
                 if self.p_set[-1] >= 0:
 
-                    # if self.p_set[-1] >= np.abs(self.measured_active_power_lpf[-2] - self.P_target):
-                    #     self.p_set[-1] = np.abs(self.measured_active_power_lpf[-2] - self.P_target)
-
-                    # limit setpoint to maximum charge power of all associated BSDs
-                    if self.p_set[-1] >= max(max_charge_power_list):
-                        self.p_set[-1] = max(max_charge_power_list)
+                    # # limit setpoint to maximum charge power of all associated BSDs
+                    # if self.p_set[-1] >= max(max_charge_power_list):
+                    #     self.p_set[-1] = max(max_charge_power_list)
 
                     # limit charge power assigned to BSD to BSD max charge power
                     if self.p_set[-1] >= env.k.device.devices[device]['device'].max_charge_power/1e3:
@@ -310,8 +307,8 @@ class BatteryPeakShavingControllerCent(BaseController):
                         result[device] = ('charge',  {'p_in': env.k.device.devices[device]['device'].max_charge_power/1e3})
                     else:
                         result[device] = ('charge',  {'p_in': 1*self.p_set[-1]})
-                    # if self.p_set[-1] >= (self.P_target - self.measured_active_power_lpf[-2]):
-                    #     self.p_set[-1] = (self.P_target - self.measured_active_power_lpf[-2])
+                    # same thing
+                    # result[device] = ('charge',  {'p_in': min(1*self.p_set[-1],env.k.device.devices[device]['device'].max_charge_power/1e3)})
 
                     # self.control_setting.append('charge')
                     # self.p_in.append(self.p_set[-1])
@@ -321,12 +318,9 @@ class BatteryPeakShavingControllerCent(BaseController):
                 # discharge
                 elif self.p_set[-1] <= 0:
 
-                    # if self.p_set[-1] <= np.abs(self.measured_active_power_lpf[-2] - self.P_target):
-                    #     self.p_set[-1] = -np.abs(self.measured_active_power_lpf[-2] - self.P_target)
-
-                     # limit setpoint to maximum discharge power of all associated BSDs
-                    if self.p_set[-1] <= -max(max_discharge_power_list):
-                        self.p_set[-1] = -max(max_discharge_power_list)
+                    #  # limit setpoint to maximum discharge power of all associated BSDs
+                    # if self.p_set[-1] <= -max(max_discharge_power_list):
+                    #     self.p_set[-1] = -max(max_discharge_power_list)
 
                     # limit discharge power assigned to BSD to BSD max discharge power
                     if self.p_set[-1] <= -env.k.device.devices[device]['device'].max_discharge_power/1e3:
@@ -335,9 +329,8 @@ class BatteryPeakShavingControllerCent(BaseController):
                     else:
                         # self.p_out.append(self.p_set[-1])
                         result[device] = ('discharge',  {'p_out': -1*self.p_set[-1]})
-
-                    # if self.p_set[-1] <= (self.P_target - self.measured_active_power_lpf[-2]):
-                    #     self.p_set[-1] = (self.P_target - self.measured_active_power_lpf[-2])
+                    # same thing
+                    # result[device] = ('discharge',  {'p_out': min(-1*self.p_set[-1],env.k.device.devices[device]['device'].max_discharge_power/1e3)})
                 
                     # self.control_setting.append('discharge')
                     # self.p_in.append(0)

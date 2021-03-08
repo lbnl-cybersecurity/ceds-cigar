@@ -23,7 +23,7 @@ scenario_config:
   multi_config: False
   start_end_time: [3601, 14400]
   custom_configs: {load_scaling_factor: 1.00,
-                   solar_scaling_factor: 0.0,
+                   solar_scaling_factor: 0.00,
                    slack_bus_voltage: 1.04,
                    load_generation_noise: False,
                    power_factor: 0.9}
@@ -48,8 +48,8 @@ scenario_config:
             default_control_setting: 'standby',
             total_capacity: 200,
             current_capacity: 120.0,
-            max_charge_power: 100.00,
-            max_discharge_power: 150.00,
+            max_charge_power: 50.00,
+            max_discharge_power: 75.00,
             max_ramp_rate: 1.0,
             max_SOC: 1.0,
             min_SOC: 0.2
@@ -73,8 +73,8 @@ scenario_config:
             default_control_setting: 'standby',
             total_capacity: 200,
             current_capacity: 150.0,
-            max_charge_power: 100.00,
-            max_discharge_power: 150.00,
+            max_charge_power: 75.00,
+            max_discharge_power: 100.00,
             max_ramp_rate: 1.0,
             max_SOC: 1.0,
             min_SOC: 0.2
