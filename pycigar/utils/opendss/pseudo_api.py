@@ -228,23 +228,27 @@ class PyCIGAROpenDSSAPI(object):
         v_worst = [1.0, 1.0, 1.0]
         u_worst = 0
         for bus in self.all_bus_name:
+            phase = True
             try:
                 va = self.puvoltage[self.offsets['{}.{}'.format(bus, 1)]]
             except:
-                va = 0
+                va = 1
+                phase = False
             try:
                 vb = self.puvoltage[self.offsets['{}.{}'.format(bus, 2)]]
             except:
-                vb = 0
+                vb = 1
+                phase = False
             try:
                 vc = self.puvoltage[self.offsets['{}.{}'.format(bus, 3)]]
             except:
-                vc = 0
+                vc = 1
+                phase = False
 
             v_all[bus] = [va, vb, vc]
 
             u = 0
-            if va != 0 and vb != 0 and vc != 0:
+            if phase:
                 mean = (va + vb + vc) / 3
                 max_diff = max(abs(va - mean), abs(vb - mean), abs(vc - mean))
                 u = max_diff / mean

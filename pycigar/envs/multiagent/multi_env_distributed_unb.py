@@ -170,11 +170,24 @@ class UnbMultiEnv(MultiAgentEnv, Env):
     def get_state(self):
         obs = {}
         Logger = logger()
-        u_worst, v_worst, u_mean, u_std, v_all, u_all = self.k.kernel_api.get_worst_u_node_real()
+        u_worst, v_worst, u_mean, u_std, v_all, u_all, self.load_to_bus = self.k.kernel_api.get_worst_u_node()
         Logger.log('u_metrics', 'u_worst', u_worst)
         Logger.log('u_metrics', 'u_mean', u_mean)
         Logger.log('u_metrics', 'u_std', u_std)
         Logger.log('v_metrics', str(self.k.time), v_all)
+        y = self.k.device.get_vectorized_y()
+        y_worst_node_idx = y.argmax()
+        y_worst_node = self.k.device.vectorized_pv_inverter_device.list_device[y_worst_node_idx].split('_')[1]
+        y_worst = np.max(y)
+        y_mean = np.mean(y)
+        #y_worst = 0
+        #for rl_id in self.k.device.get_rl_device_ids():
+        #    if y_worst < self.k.device.get_device_y(rl_id):
+        #        y_worst = self.k.device.get_device_y(rl_id)
+        Logger.log('v_worst_metrics', 'v_worst', v_worst)
+        Logger.log('y_metrics', 'y_worst', y_worst)
+        #Logger.log('y_metrics', 'y_worst_node', y_worst_node)
+        Logger.log('y_metrics', 'y_mean', 0)
 
         for rl_id in self.k.device.get_rl_device_ids():
             connected_node = self.k.device.get_node_connected_to(rl_id)
@@ -183,6 +196,8 @@ class UnbMultiEnv(MultiAgentEnv, Env):
             obs.update(
                 {
                     rl_id: {
+                        'y': y[self.k.device.vectorized_pv_inverter_device.list_device.index(rl_id)]/0.1,
+                        #'y': self.k.device.get_device_y(rl_id)/0.1,
                         'voltage': (np.array(v_all[bus])-1)*10*2,
                         'u': u_all[bus]/0.1,
                         'p_set_p_max': self.k.device.get_device_p_set_p_max(rl_id),
