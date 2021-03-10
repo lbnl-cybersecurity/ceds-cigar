@@ -892,10 +892,10 @@ def plot_new(log_dict, custom_metrics, epoch='', unbalance=False, multiagent=Fal
         f, ax = plt.subplots(
             3 + len(inv_ks) + (reg is not None), 2, figsize=(25, 8 + 4 * len(inv_ks) + 4 * (reg is not None))
         )
-        #title = '[epoch {}][time {}][hack {}] total reward: {:.2f} || total unbalance: {:.4f}'.format(
-        #    epoch, custom_metrics['start_time'], custom_metrics['hack'], sum(log_dict[inv_ks[0]]['reward']), sum(log_dict['u_metrics']['u_worst'])
-        #)
-        title = '[epoch {}][time {}][hack {:.3f}][hack cap {:.3f}] total reward: {:.2f} || total unbalance: {:.4f}'.format(epoch, custom_metrics['start_time'], custom_metrics['hack'], custom_metrics['hack_cap'], 0, sum(log_dict['u_metrics']['u_worst']))
+        title = '[epoch {}][time {}][hack {}] total reward: {:.2f} || total unbalance: {:.4f}'.format(
+            epoch, custom_metrics['start_time'], custom_metrics['hack'], sum(log_dict[inv_ks[0]]['reward']), sum(log_dict['u_metrics']['u_worst'])
+        )
+        #title = '[epoch {}][time {}][hack {:.3f}][hack cap {:.3f}] total reward: {:.2f} || total unbalance: {:.4f}'.format(epoch, custom_metrics['start_time'], custom_metrics['hack'], custom_metrics['hack_cap'], 0, sum(log_dict['u_metrics']['u_worst']))
         f.suptitle(title)
         for i, k in enumerate(inv_ks):
             #ax[0, 0].plot(log_dict[log_dict[k]['node']]['voltage'], label='voltage ({})'.format(k))

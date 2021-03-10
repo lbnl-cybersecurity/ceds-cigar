@@ -82,8 +82,8 @@ def custom_eval_function(trainer, eval_workers):
                 bbox_inches='tight')
         plt.close(f) #OK
 
-    for metric in EvalMetric:
-        save_best_policy(trainer, episodes, metric)
+    #for metric in EvalMetric:
+    #    save_best_policy(trainer, episodes, metric)
 
     save_eval_policy(trainer, episodes)
     metrics = summarize_episodes(episodes)
@@ -303,14 +303,15 @@ def get_base_config(env_name: str, cli_args: argparse.Namespace, sim_params: dic
     test_env = create_env(sim_params)
     obs_space = test_env.observation_space
     act_space = test_env.action_space
-
+    train_sim_params = deepcopy(sim_params)
+    train_sim_params['is_disable_log'] = True
     base_config = {
         "env": env_name,
         "gamma": 0.5,
         'lr': 2e-3,
-        'env_config': deepcopy(sim_params),
-        'rollout_fragment_length': 35,
-        'train_batch_size': max(500, 35 * cli_args.workers),
+        'env_config': train_sim_params,
+        'rollout_fragment_length': 20,
+        'train_batch_size': 140, #max(500, 35 * cli_args.workers),
         'clip_param': 0.15,
         'lambda': 0.95,
         'vf_clip_param': 10000,
