@@ -7,7 +7,7 @@ from copy import deepcopy
 from enum import Enum
 from pathlib import Path
 from typing import List
-
+import os
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -92,7 +92,7 @@ def custom_eval_function(trainer, eval_workers):
 def save_eval_policy(trainer: Trainer, episodes: List[RolloutMetrics]):
     best_dir = Path(trainer.global_vars['reporter_dir']) / 'eval' / str(trainer.iteration)
     best_dir.mkdir(exist_ok=True, parents=True)
-
+    trainer.save(os.path.join(trainer.global_vars['reporter_dir'], 'checkpoint'))
     # save policy
     def save_policy_to_path(path):
         if path.exists():
