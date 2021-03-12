@@ -175,10 +175,10 @@ if __name__ == '__main__':
 
         #config['config']['env_config']['scenario_config']['custom_configs']['slack_bus_voltage'] = 1.04
         #config['config']['evaluation_config']['env_config']['scenario_config']['custom_configs']['slack_bus_voltage'] = 1.04
-        config['config']['env_config']['M'] = 50000
-        config['config']['env_config']['N'] = 25 #tune.grid_search([30, 40])  #roa
-        config['config']['env_config']['P'] = 70 #tune.grid_search([60, 70, 80, 100]) #100
-        config['config']['env_config']['T'] = tune.grid_search([2])
+        config['config']['env_config']['M'] = 500
+        config['config']['env_config']['N'] = 0 #tune.grid_search([30, 40])  #roa
+        config['config']['env_config']['P'] = 0 #tune.grid_search([60, 70, 80, 100]) #100
+        config['config']['env_config']['T'] = tune.grid_search([0, 2])
         config['config']['lr'] = tune.grid_search([5e-4])
         config['config']['clip_param'] = 0.1
         config['config']['model']['fcnet_hiddens'] = [64, 64, 32]

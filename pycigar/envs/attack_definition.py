@@ -127,7 +127,7 @@ class UnbalancedAttackDefinitionGeneratorEvaluation:
         self.mode = 0
 
         duration = end_time - start_time
-        percentage = np.linspace(10, 40, 4) / 100
+        percentage = np.array([20, 30, 40, 45])/100
         start_time = np.linspace(100, 11000, 2)
         self.scenarios = []
         for p in percentage:
@@ -169,7 +169,7 @@ class UnbalancedAttackDefinitionGeneratorEvaluationRandom:
         self.mode = 0
 
         duration = end_time - start_time
-        percentage = np.linspace(10, 40, 9) / 100
+        percentage = np.linspace(10, 50, 9) / 100
         start_time = np.linspace(100, 11000, 10).astype(int)
         self.scenarios = []
         for p in percentage:

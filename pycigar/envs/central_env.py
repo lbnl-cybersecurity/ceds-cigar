@@ -191,8 +191,8 @@ class CentralEnv(Env):
                 y_worst_node = self.k.device.vectorized_pv_inverter_device.list_device[y_worst_node_idx].split('_')[1]
                 y_worst = np.max(y)
                 y = np.mean(y)
-                p_set_p_max = np.mean(self.k.device.get_vectorized_device_p_set_p_max())
-                sbar_solar_irr = np.mean(self.k.device.get_vectorized_device_sbar_solar_irr())
+                p_set_p_max = np.mean(self.k.device.get_vectorized_device_p_set_p_max()[0::2])
+                sbar_solar_irr = np.mean(self.k.device.get_vectorized_device_sbar_solar_irr()[0::2])
                 result = {'y': y,
                           'p_set_p_max': p_set_p_max,
                           'sbar_solar_irr': sbar_solar_irr,
