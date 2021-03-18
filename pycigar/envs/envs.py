@@ -375,11 +375,12 @@ class Env8500(gym.Env):
             Logger.log('a_metrics', 'a', self.devices.VBP[262, 0] - self.devices.VBP_init[262, 0])
             Logger.log('a_metrics', 'b', self.devices.VBP[264, 0] - self.devices.VBP_init[264, 0])
             Logger.log('a_metrics', 'c', self.devices.VBP[266, 0] - self.devices.VBP_init[266, 0])
-
+            Logger.log('network', 'substation_power', self.api.get_total_power())
             Logger.log('u_metrics', 'u_worst', u_worst)
             Logger.log('u_metrics', 'u_mean', u_mean)
             Logger.log('u_metrics', 'l3011293', u_all_bus['l3011293'])
-            Logger.log('v_metrics', 'l3011293', v_all['l3011293'])
+            for key in v_all:
+                Logger.log('v_metrics', key, v_all[key])
             Logger.log('q_out', 'a', self.devices.q_out[:int(len(self.devices.q_out)/2)][self.devices.phases == 0])
             Logger.log('q_out', 'b', self.devices.q_out[:int(len(self.devices.q_out)/2)][self.devices.phases == 1])
             Logger.log('q_out', 'c', self.devices.q_out[:int(len(self.devices.q_out)/2)][self.devices.phases == 2])
