@@ -109,8 +109,6 @@ New Load.S744a      Bus1=744.1.2 Phases=1 Conn=Delta Model=1 kV=  4.800 kW=  42.
 Set VoltageBases = "230,4.8,0.48"
 CalcVoltageBases
 
-ControlMode=Time
-
 ! solve mode=direct
 set maxiterations=100
 solve

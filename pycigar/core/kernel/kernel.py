@@ -170,7 +170,6 @@ class Kernel(object):
         self.scenario.update(reset=False)
 
     def warm_up_k_step(self, k):
-
         for _ in range(k):
             self.time += 1
             self.device.update(reset=False)

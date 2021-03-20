@@ -87,6 +87,9 @@ class Env(gym.Env):
         raise NotImplementedError
 
     def reset(self):
+        self.accumulate_current = {}
+        self.average_current = {}
+        self.average_current_done = False
         self.env_time = 0
         self.k.update(reset=True)
         self.sim_params = self.k.sim_params

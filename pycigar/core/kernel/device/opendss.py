@@ -186,7 +186,12 @@ class OpenDSSDevice(KernelDevice):
                 else:
                     self.device_ids[device[0]].append(adversary_device_id)
 
-            adversary_controller_obj = pycigar_make(adversary_controller[0], device_id=adversary_device_id, additional_params=adversary_controller[1])
+            if isinstance(adversary_controller[0], list):
+                adversary_controller_obj = []
+                for k, v in enumerate(adversary_controller[0]):
+                    adversary_controller_obj.append(pycigar_make(v, device_id=adversary_device_id, additional_params=adversary_controller[1]))
+            else:
+                adversary_controller_obj = pycigar_make(adversary_controller[0], device_id=adversary_device_id, additional_params=adversary_controller[1])
 
             if controller[0] == 'rl_controller':
                 self.devcon_ids['rl_devcon'].append(adversary_device_id)
@@ -212,9 +217,17 @@ class OpenDSSDevice(KernelDevice):
             for device_id in self.devices.keys():
                 self.devices[device_id]['device'].reset()
                 if 'controller' in self.devices[device_id]:
-                    self.devices[device_id]['controller'].reset()
+                    if isinstance(self.devices[device_id]['controller'], list):
+                        for controller in self.devices[device_id]['controller']:
+                            controller.reset()
+                    else:
+                        self.devices[device_id]['controller'].reset()
                 if 'hack_controller' in self.devices[device_id]:
-                    self.devices[device_id]['hack_controller'].reset()
+                    if isinstance(self.devices[device_id]['hack_controller'], list):
+                        for controller in self.devices[device_id]['hack_controller']:
+                            controller.reset()
+                    else:
+                        self.devices[device_id]['hack_controller'].reset()
                     temp = self.devices[device_id]['controller']
                     self.devices[device_id]['controller'] = self.devices[device_id]['hack_controller']
                     self.devices[device_id]['hack_controller'] = temp
@@ -378,6 +391,15 @@ class OpenDSSDevice(KernelDevice):
             abs(self.devices[device_id]['device'].Sbar ** 2 - max(10, self.devices[device_id]['device'].solar_irr) ** 2)
         ) ** (1 / 2)
 
+    def get_vectorized_device_p_set_p_max(self):
+        return self.vectorized_pv_inverter_device.p_set / np.maximum(10, self.vectorized_pv_inverter_device.solar_irr)
+
+    def get_vectorized_device_sbar_solar_irr(self):
+        return (abs(self.vectorized_pv_inverter_device.Sbar ** 2 - np.maximum(10, self.vectorized_pv_inverter_device.solar_irr) ** 2)) ** (1 / 2)
+
+    def get_vectorized_y(self):
+        return self.vectorized_pv_inverter_device.y
+
     def get_device_p_injection(self, device_id):
         """Return the device's power injection at the current timestep.
 
@@ -509,7 +531,7 @@ class OpenDSSDevice(KernelDevice):
         control_setting : list
             The control setting of the device (e.g. VBP for PVDevice...)
         """
-        if type(device_id) == str:
+        if isinstance(device_id, str):
             device_id = [device_id]
             control_setting = [control_setting]
 

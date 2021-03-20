@@ -37,14 +37,15 @@ def input_parser(misc_inputs_path, dss_path, load_solar_path, breakpoints_path=N
         'N': 10,  # weight for taking different action from the initial action
         'P': 10,  # weight for taking different action from last timestep action
         'Q': 0.5,
-        'T': 1000,
+        'T': 100,
+        'Z': 100,
 
         'is_disable_log': False,
         'is_disable_y': False,
         'vectorized_mode': False,
 
         'hack_setting': {'default_control_setting': [1.039, 1.04, 1.04, 1.041, 1.042]},
-        'env_config': {'clip_actions': True, 'sims_per_step': 20},
+        'env_config': {'clip_actions': True, 'sims_per_step': 30},
         'attack_randomization': {'generator': 'AttackDefinitionGenerator'},
         'simulation_config': {
             'network_model_directory': file_dss_path,
@@ -81,15 +82,24 @@ def input_parser(misc_inputs_path, dss_path, load_solar_path, breakpoints_path=N
     misc_inputs_data.columns = new_header  # set the header row as the df header
     misc_inputs_data = misc_inputs_data.to_dict()
 
-    M = misc_inputs_data['Oscillation Penalty'][1]
-    N = misc_inputs_data['Action Penalty'][1]
-    P = misc_inputs_data['Deviation from Optimal Penalty'][1]
-    Q = misc_inputs_data['PsetPmax Penalty'][1]
-    power_factor = misc_inputs_data['power factor'][1]
-    load_scaling_factor = misc_inputs_data['load scaling factor'][1]
-    solar_scaling_factor = misc_inputs_data['solar scaling factor'][1]
-    p_ramp_rate = misc_inputs_data['p ramp rate'][1]
-    q_ramp_rate = misc_inputs_data['q ramp rate'][1]
+    M = float(misc_inputs_data['Oscillation Penalty'][1])
+    N = float(misc_inputs_data['Action Penalty'][1])
+    P = float(misc_inputs_data['Deviation from Optimal Penalty'][1])
+    Q = float(misc_inputs_data['PsetPmax Penalty'][1])
+    power_factor = float(misc_inputs_data['power factor'][1])
+    load_scaling_factor = float(misc_inputs_data['load scaling factor'][1])
+    solar_scaling_factor = float(misc_inputs_data['solar scaling factor'][1])
+    p_ramp_rate = float(misc_inputs_data['p ramp rate'][1])
+    q_ramp_rate = float(misc_inputs_data['q ramp rate'][1])
+
+    protection_line = misc_inputs_data.get('protection line', None)
+    protection_threshold = misc_inputs_data.get('protection threshold', None)
+    if protection_line and protection_threshold:
+        json_query['protection'] = {}
+        protection_line = protection_line[1].split()
+        protection_threshold = protection_threshold[1].split()
+        json_query['protection']['line'] = protection_line
+        json_query['protection']['threshold'] = np.array(protection_threshold, dtype=float)
 
     json_query['M'] = M
     json_query['N'] = N
@@ -100,10 +110,10 @@ def input_parser(misc_inputs_path, dss_path, load_solar_path, breakpoints_path=N
     json_query['scenario_config']['custom_configs']['solar_scaling_factor'] = solar_scaling_factor
     json_query['scenario_config']['custom_configs']['power_factor'] = power_factor
 
-    low_pass_filter_measure_mean = misc_inputs_data['measurement filter time constant mean'][1]
-    low_pass_filter_measure_std = misc_inputs_data['measurement filter time constant std'][1]
-    low_pass_filter_output_mean = misc_inputs_data['output filter time constant mean'][1]
-    low_pass_filter_output_std = misc_inputs_data['output filter time constant std'][1]
+    low_pass_filter_measure_mean = float(misc_inputs_data['measurement filter time constant mean'][1])
+    low_pass_filter_measure_std = float(misc_inputs_data['measurement filter time constant std'][1])
+    low_pass_filter_output_mean = float(misc_inputs_data['output filter time constant mean'][1])
+    low_pass_filter_output_std = float(misc_inputs_data['output filter time constant std'][1])
     default_control_setting = [
         misc_inputs_data['bp1 default'][1],
         misc_inputs_data['bp2 default'][1],
@@ -150,7 +160,7 @@ def input_parser(misc_inputs_path, dss_path, load_solar_path, breakpoints_path=N
             device['custom_controller_configs']['threshold'] = 0.05
             device['custom_controller_configs']['adaptive_gain'] = 20
 
-        device['adversary_controller'] = 'adaptive_fixed_controller'
+        device['adversary_controller'] = ['adaptive_fixed_controller', 'adaptive_unbalanced_fixed_controller']
         if adv:
             device['adversary_controller'] = 'rl_controller'
         device['adversary_custom_controller_configs'] = {}
@@ -160,11 +170,26 @@ def input_parser(misc_inputs_path, dss_path, load_solar_path, breakpoints_path=N
         node_description['devices'].append(device)
         json_query['scenario_config']['nodes'].append(node_description)
 
-    max_tap_change = misc_inputs_data['max tap change default'][1]
-    forward_band = misc_inputs_data['forward band default'][1]
-    tap_number = misc_inputs_data['tap number default'][1]
-    tap_delay = misc_inputs_data['tap delay default'][1]
-    delay = misc_inputs_data['delay default'][1]
+    if 'max tap change default' in misc_inputs_data:
+        max_tap_change = misc_inputs_data['max tap change default'][1]
+    else:
+        max_tap_change = None
+    if 'forward band default' in misc_inputs_data:
+        forward_band = misc_inputs_data['forward band default'][1]
+    else:
+        forward_band = None
+    if 'tap number default' in misc_inputs_data:
+        tap_number = misc_inputs_data['tap number default'][1]
+    else:
+        tap_number = None
+    if 'tap delay default' in misc_inputs_data:
+        tap_delay = misc_inputs_data['tap delay default'][1]
+    else:
+        tap_delay = None
+    if 'delay default' in misc_inputs_data:
+        delay = misc_inputs_data['delay default'][1]
+    else:
+        delay = None
 
     json_query['scenario_config']['regulators']['max_tap_change'] = max_tap_change
     json_query['scenario_config']['regulators']['forward_band'] = forward_band

@@ -74,25 +74,31 @@ if __name__ == '__main__':
     create_env, env_name = make_create_env(pycigar_params, version=0)
     register_env(env_name, create_env)
 
-    misc_inputs_path = pycigar.DATA_DIR + "/ieee37busdata/misc_inputs.csv"
-    dss_path = pycigar.DATA_DIR + "/ieee37busdata/ieee37.dss"
-    load_solar_path = pycigar.DATA_DIR + "/ieee37busdata/load_solar_data.csv"
-    breakpoints_path = pycigar.DATA_DIR + "/ieee37busdata/breakpoints.csv"
+    misc_inputs_path = pycigar.DATA_DIR + "/ieee240busdata/misc_inputs.csv"
+    dss_path = pycigar.DATA_DIR + "/ieee240busdata/Master.dss"
+    load_solar_path = pycigar.DATA_DIR + "/ieee240busdata/load_solar_data.csv"
+    breakpoints_path = pycigar.DATA_DIR + "/ieee240busdata/breakpoints.csv"
 
     sim_params = input_parser(misc_inputs_path, dss_path, load_solar_path, breakpoints_path)
+    sim_params['vectorized_mode'] = True
+    sim_params['is_disable_log'] = True
+    sim_params_eval = input_parser(misc_inputs_path, dss_path, load_solar_path, breakpoints_path)
+    sim_params_eval['vectorized_mode'] = True
+    sim_params_eval['is_disable_log'] = False
+
     base_config = {
         "env": env_name,
         "gamma": 0.5,
         'lr': 2e-4,
         'env_config': deepcopy(sim_params),
         'rollout_fragment_length': 20,
-        'train_batch_size': min(500, 20*args.workers),
+        'train_batch_size': 128, #min(500, 20*args.workers),
         'sgd_minibatch_size': 20,
         'clip_param': 0.1,
         'lambda': 0.95,
         'vf_clip_param': 100,
 
-        'num_workers': args.workers,
+        'num_workers': 1, #args.workers,
         'num_cpus_per_worker': 1,
         'num_cpus_for_driver': 1,
         'num_envs_per_worker': 1,
@@ -125,7 +131,7 @@ if __name__ == '__main__':
             "seed": 42,
             # IMPORTANT NOTE: For policy gradients, this might not be the optimal policy
             'explore': False,
-            'env_config': deepcopy(sim_params),
+            'env_config': deepcopy(sim_params_eval),
         },
 
         # ==== CUSTOM METRICS ====
@@ -135,7 +141,7 @@ if __name__ == '__main__':
     base_config['env_config']['attack_randomization']['generator'] = 'AttackDefinitionGeneratorEvaluationRandom'
     base_config['evaluation_config']['env_config']['attack_randomization']['generator'] = 'AttackDefinitionGeneratorEvaluation'
 
-    ray.init(local_mode=False)
+    ray.init(local_mode=True)
 
     full_config = {
         'config': base_config,

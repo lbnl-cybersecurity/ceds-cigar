@@ -28,6 +28,7 @@ class AdaptiveUnbalancedFixedController(BaseController):
         """See parent class."""
         # nothing to do here, the setting in the device is as default
         self.action = np.array(env.k.device.devices[self.device_id]['device'].control_setting)
+
         if self.trigger is False:
             if self.device_id[-1].isdigit():
                 self.action += self.hack_curve_all_translation

@@ -5,6 +5,8 @@ import warnings
 from pycigar.utils.logging import logger
 import time
 
+SBASE = 1000000.0
+
 class PyCIGAROpenDSSAPI(object):
     """An API used to interact with OpenDSS via a TCP connection."""
 
@@ -19,8 +21,10 @@ class PyCIGAROpenDSSAPI(object):
         self.port = port
 
     def simulation_step(self):
+        #start_time = time.time()
         """Advance the simulator by one step."""
         dss.Solution.Solve()
+        #print(time.time() - start_time)
 
     def simulation_command(self, command):
         """Run an custom command on simulator."""
@@ -39,6 +43,49 @@ class PyCIGAROpenDSSAPI(object):
                 bus_phase.extend(['1','2','3'])
             self.loads[load] = [['.'.join([bus_phase[0], i]) for i in bus_phase[1:] if i != '0'], dss.CktElement.NumPhases()]
             self.load_to_bus[load] = bus_phase[0]
+
+        #  current
+        self.current_offsets = {}
+        pos = 0
+        for pd in dss.PDElements.AllNames():
+            dss.Circuit.SetActiveElement(pd)
+            pd_type, pd_name = pd.split('.')
+            if pd_type == 'Line':
+                self.current_offsets[pd_name] = [pos, dss.CktElement.NumPhases()]
+            pos += len(dss.CktElement.CurrentsMagAng())
+
+        self.ibase = {}
+        for line in self.current_offsets.keys():
+            dss.Lines.Name(line)
+            bus = dss.Lines.Bus1()
+            dss.Circuit.SetActiveBus(bus)
+            IBase = SBASE/(dss.Bus.kVBase()*1000)
+            self.ibase[line] = IBase
+
+        """# ieee8500
+        bus_to_bus = {}
+        for t in dss.Transformers.AllNames():
+            dss.Transformers.Name(t)
+            bus_list = dss.CktElement.BusNames()
+            bus_to_bus[bus_list[1].split('.')[0]] = bus_list[0].split('.')[0]
+        new_load_to_bus = {}
+        for load in self.load_to_bus:
+            new_load_to_bus[load] = bus_to_bus[self.load_to_bus[load][1:]]
+        self.load_to_bus = new_load_to_bus
+
+        for load in self.loads:
+            bus = self.load_to_bus[load]
+            dss.Circuit.SetActiveBus(bus)
+            phase = dss.Bus.Nodes()
+            self.loads[load] = [['.'.join([bus, str(i)]) for i in phase if str(i) != '0'], len(phase)]
+
+        self.all_bus_name = list(bus_to_bus.values())"""
+
+        self.load_to_phase = {}
+        for load in self.get_node_ids():
+            dss.Loads.Name(load)
+            bus_phase = dss.CktElement.BusNames()[0].split('.')[0][-1]
+            self.load_to_phase[load] = bus_phase
 
     def set_solution_mode(self, value):
         """Set solution mode on simulator."""
@@ -66,7 +113,9 @@ class PyCIGAROpenDSSAPI(object):
 
     def check_simulation_converged(self):
         """Check if the solver has converged."""
-        output = dss.Solution.Converged()
+        output = dss.Solution.Converged
+        if not dss.Solution.Converged():
+            print('check it out')
         if output is False:
             warnings.warn('OpenDSS does not converge.')
         return output
@@ -77,7 +126,20 @@ class PyCIGAROpenDSSAPI(object):
         return nodes
 
     def update_all_bus_voltages(self):
-        self.puvoltage = dss.Circuit.AllBusMagPu() #work around this
+        if not np.isinf(dss.Circuit.AllBusMagPu()).any():
+            self.puvoltage = dss.Circuit.AllBusMagPu()
+        else:
+            print('check it out')
+
+    def get_all_currents(self):
+        self.currents = dss.PDElements.AllCurrentsMagAng()
+        if not np.isinf(self.currents).any():
+            self.current_result = {}
+            for line in self.current_offsets:
+            #result[line] = np.array(self.currents[self.current_offsets[line][0]:self.current_offsets[line][0] + self.current_offsets[line][1]*2:2])/self.ibase[line]
+                self.current_result[line] = self.currents[self.current_offsets[line][0]:self.current_offsets[line][0] + self.current_offsets[line][1]*2:2]
+
+        return self.current_result
 
     def get_node_voltage(self, node_id):
         puvoltage = 0 # get rid of this
@@ -163,28 +225,33 @@ class PyCIGAROpenDSSAPI(object):
         u_all = []
         v_all = {}
         u_all_real = {}
+        v_worst = [1.0, 1.0, 1.0]
         u_worst = 0
         for bus in self.all_bus_name:
+            phase = True
             try:
                 va = self.puvoltage[self.offsets['{}.{}'.format(bus, 1)]]
             except:
-                va = 0
+                va = 1
+                phase = False
             try:
                 vb = self.puvoltage[self.offsets['{}.{}'.format(bus, 2)]]
             except:
-                vb = 0
+                vb = 1
+                phase = False
             try:
                 vc = self.puvoltage[self.offsets['{}.{}'.format(bus, 3)]]
             except:
-                vc = 0
+                vc = 1
+                phase = False
 
             v_all[bus] = [va, vb, vc]
-            mean = (va + vb + vc) / 3
-            max_diff = max(abs(va - mean), abs(vb - mean), abs(vc - mean))
-            try:
+
+            u = 0
+            if phase:
+                mean = (va + vb + vc) / 3
+                max_diff = max(abs(va - mean), abs(vb - mean), abs(vc - mean))
                 u = max_diff / mean
-            except:
-                u = 0
             if u > u_worst:
                 u_worst = u
                 v_worst = [va, vb, vc]

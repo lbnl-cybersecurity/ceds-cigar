@@ -39,8 +39,9 @@ def run_train(config, reporter):
 
     for _ in tqdm(range(config['epochs'])):
         results = trainer.train()
-        del results['hist_stats']['logger']  # don't send to tensorboard
-        if 'evaluation' in results:
+        if 'logger' in results['hist_stats']:
+            del results['hist_stats']['logger']  # don't send to tensorboard
+        if 'evaluation' in results and 'logger' in results['evaluation']['hist_stats']:
             del results['evaluation']['hist_stats']['logger']
         reporter(**results)
 
@@ -66,10 +67,10 @@ def run_hp_experiment(full_config, name):
 def set_unbalance_attack(base_config):
     for node in base_config['env_config']['scenario_config']['nodes']:
         for d in node['devices']:
-            d['adversary_controller'] = 'unbalanced_fixed_controller'
+            d['adversary_controller'] = 'adaptive_unbalanced_fixed_controller'
     for node in base_config['evaluation_config']['env_config']['scenario_config']['nodes']:
         for d in node['devices']:
-            d['adversary_controller'] = 'unbalanced_fixed_controller'
+            d['adversary_controller'] = 'adaptive_unbalanced_fixed_controller'
 
 
 def adjust_default_curves(base_config):
@@ -98,7 +99,7 @@ if __name__ == '__main__':
                               dss_path=str(feeder_path / 'ieee37.dss'),
                               load_solar_path=str(feeder_path / 'load_solar_data.csv'),
                               breakpoints_path=str(feeder_path / 'breakpoints.csv'),
-                              percentage_hack=0.3)
+                              percentage_hack=0.3, vectorized_mode=True)
     base_config, create_env = \
         get_base_config(env_name=f'CentralControlPhaseSpecific{"Continuous" if args.continuous else ""}PVInverterEnv',
                         cli_args=args,
@@ -171,14 +172,14 @@ if __name__ == '__main__':
         config['config']['evaluation_config']['env_config']['env_config']['sims_per_step'] = 30
         config['config']['env_config']['is_disable_y'] = True
         config['config']['evaluation_config']['env_config']['is_disable_y'] = True
-        
+
         #config['config']['env_config']['scenario_config']['custom_configs']['slack_bus_voltage'] = 1.04
         #config['config']['evaluation_config']['env_config']['scenario_config']['custom_configs']['slack_bus_voltage'] = 1.04
-        config['config']['env_config']['M'] = 50000
-        config['config']['env_config']['N'] = 50 #tune.grid_search([30, 40])
-        config['config']['env_config']['P'] = 75 #tune.grid_search([60, 70, 80, 100]) #100
-        config['config']['env_config']['T'] = tune.grid_search([2])
-        config['config']['lr'] = tune.grid_search([1e-4, 1e-4, 1e-4])
+        config['config']['env_config']['M'] = 500
+        config['config']['env_config']['N'] = 10 #tune.grid_search([30, 40])  #roa
+        config['config']['env_config']['P'] = tune.grid_search([50, 70]) #tune.grid_search([60, 70, 80, 100]) #100
+        config['config']['env_config']['T'] = tune.grid_search([0])
+        config['config']['lr'] = tune.grid_search([1e-4, 5e-4, 1e-3])
         config['config']['clip_param'] = 0.1
         config['config']['model']['fcnet_hiddens'] = [64, 64, 32]
         run_hp_experiment(config, 'main')

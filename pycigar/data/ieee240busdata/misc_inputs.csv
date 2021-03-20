@@ -4,7 +4,7 @@ Deviation from Optimal Penalty,10
 PsetPmax Penalty,50
 load file timestep,1
 power factor,0.9
-load scaling factor,1.5
+load scaling factor,2
 solar scaling factor,3
 measurement filter time constant mean,1.2
 measurement filter time constant std,0.2

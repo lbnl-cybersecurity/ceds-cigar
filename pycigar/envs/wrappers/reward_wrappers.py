@@ -114,44 +114,6 @@ class GlobalRewardWrapper(RewardWrapper):
         return rewards
 
 
-class SearchGlobalRewardWrapper(RewardWrapper):
-    def reward(self, reward, info):
-        M = self.sim_params['M']
-        N = self.sim_params['N']
-        P = self.sim_params['P']
-        rewards = {}
-        global_reward = 0
-        # we accumulate agents reward into global_reward and divide it with the number of agents.
-        for key in info.keys():
-            action = info[key]['current_action']
-            if action is None:
-                action = self.INIT_ACTION[key]
-            old_action = info[key]['old_action']
-            if old_action is None:
-                old_action = self.INIT_ACTION[key]
-            y = info[key]['y']
-
-            r = 0
-            # if y > 0.025:
-            #    r = -500
-            r += (
-                -(
-                    (
-                        M * y ** 2
-                        + N * np.sum((action - old_action) ** 2)
-                        + P * np.sum((action - self.INIT_ACTION[key]) ** 2)
-                    )
-                )
-                / 100
-            )
-            global_reward += r
-        global_reward = global_reward / len(list(info.keys()))
-        for key in info.keys():
-            rewards.update({key: global_reward})
-
-        return rewards
-
-
 class CentralGlobalRewardWrapper(RewardWrapper):
     """Redefine the reward of the last wrapper.
     Global reward: reward of each agent is the average of reward from all agents.
@@ -170,9 +132,10 @@ class CentralGlobalRewardWrapper(RewardWrapper):
         A dictionary of new rewards.
     """
 
-    def __init__(self, env, unbalance=False):
+    def __init__(self, env, unbalance=False, multi_attack=False):
         super().__init__(env)
         self.unbalance = unbalance
+        self.multi_attack = multi_attack
 
     def reward(self, reward, info):
         Logger = logger()
@@ -182,9 +145,11 @@ class CentralGlobalRewardWrapper(RewardWrapper):
         P = self.k.sim_params['P']
         Q = self.k.sim_params['Q']
         T = self.k.sim_params['T']
+        Z = self.k.sim_params['Z']
+
         global_reward = 0
         # we accumulate agents reward into global_reward and divide it with the number of agents.
-        y_or_u = 'u_mean' if self.unbalance else 'y'
+        y_or_u = 'u_worst' if self.unbalance else 'y'
 
         component_y = 0
         component_oa = 0
@@ -208,13 +173,26 @@ class CentralGlobalRewardWrapper(RewardWrapper):
                 roa = 0
             else:
                 roa = 1
+            """if info[key]['no_action_penalty']:
+                roa = 1
+            else:
+                roa = 0"""
 
-            r += -(
-                M * info[key][y_or_u]
-                + N * roa
-                + P * np.linalg.norm(action - self.INIT_ACTION[key])
-                + Q * (1 - abs(info[key]['p_set_p_max'])) ** 2
-            )
+            if not self.multi_attack:
+                r += -(
+                    M * info[key][y_or_u]
+                    + N * roa
+                    + P * np.linalg.norm(action - self.INIT_ACTION[key])
+                    + Q * (1 - abs(info[key]['p_set_p_max'])) ** 2
+                )
+            else:
+                r += -(
+                      T * info[key]['u_mean']
+                    + M * info[key]['y_mean']
+                    + N * roa
+                    + P * np.linalg.norm(action - self.INIT_ACTION[key])
+                    + Q * (1 - abs(info[key]['p_set_p_max'])) ** 2
+                )
 
             component_y += -M * info[key][y_or_u]
             component_oa += -N * roa
@@ -224,24 +202,13 @@ class CentralGlobalRewardWrapper(RewardWrapper):
             global_reward += r
         global_reward = global_reward / len(list(info.keys()))
 
-        # voltage threshold on s701
-        #latest_va = self.k.node.nodes['s701a']['voltage'][self.k.time-self.k.sim_params['env_config']['sims_per_step']:self.k.time]
-        #latest_vb = self.k.node.nodes['s701b']['voltage'][self.k.time-self.k.sim_params['env_config']['sims_per_step']:self.k.time]
-        #latest_vc = self.k.node.nodes['s701c']['voltage'][self.k.time-self.k.sim_params['env_config']['sims_per_step']:self.k.time]
-        #latest_va = info['inverter_s701a']['v_worst_all'][:, 0]
-        #latest_vb = info['inverter_s701a']['v_worst_all'][:, 1]
-        #latest_vc = info['inverter_s701a']['v_worst_all'][:, 2]
-        #global_reward -= T*(np.sqrt(np.sum((latest_va - 1)**2)) + np.sqrt(np.sum((latest_vb - 1)**2)) + np.sqrt(np.sum((latest_vc - 1)**2)))
-        #v_pena = v_penb = v_penc = 0
-        #if latest_va[latest_va < VOLTAGE_THRESHOLD_LB].size != 0:
-        #    v_pena = np.mean((latest_va[latest_va < VOLTAGE_THRESHOLD_LB] - VOLTAGE_THRESHOLD_LB)**2)
-        #if latest_vb[latest_vb < VOLTAGE_THRESHOLD_LB].size != 0:
-        #    v_penb = np.mean((latest_vb[latest_vb < VOLTAGE_THRESHOLD_LB] - VOLTAGE_THRESHOLD_LB)**2)
-        #if latest_vc[latest_vc < VOLTAGE_THRESHOLD_LB].size != 0:
-        #    v_penc = np.mean((latest_vc[latest_vc < VOLTAGE_THRESHOLD_LB] - VOLTAGE_THRESHOLD_LB)**2)
+        if 'protection' in info[key]:
+            protection_penalty = max(max(info[key]['protection']), 0)
+            global_reward -= protection_penalty * Z
 
-        #global_reward -= T*np.mean([v_pena, v_penb, v_penc])
-
+        if global_reward == float('inf') or global_reward == float('-inf') or global_reward == float('nan') or np.isnan(global_reward):
+            print('check this out')
+        #print(global_reward, type(global_reward), global_reward == 'nan', np.isnan(global_reward))
 
         n = len(list(info.keys()))
         for _ in range(self.env.k.sim_params['env_config']['sims_per_step']):
@@ -395,3 +362,77 @@ class PhaseSpecificRewardWrapper(RewardWrapper):
             )
 
         return r
+
+
+###############################################################################
+###############################################################################
+class ClusterRewardWrapper(RewardWrapper):
+    def __init__(self, env):
+        super().__init__(env)
+        self.cluster = env.k.sim_params['cluster']
+        self.env = env
+        self.env.unwrapped.total_reward = {'1': np.zeros(5),'2': np.zeros(5),'3': np.zeros(5),'4': np.zeros(5), '5': np.zeros(5)}
+
+    def reward(self, reward, info):
+        M = self.k.sim_params['M']
+        N = self.k.sim_params['N']
+        P = self.k.sim_params['P']
+        Q = self.k.sim_params['Q']
+        T = self.k.sim_params['T']
+
+        cluster_reward = {}
+        for agent in self.cluster.keys():
+            reward = 0
+            r_T = 0
+            r_M = 0
+            r_N = 0
+            r_P = 0
+            r_Q = 0
+
+            worst_y = 0
+            for key in self.cluster[agent]:
+                key = 'inverter_' + key
+                action = info[key]['current_action']
+                if action is None:
+                    action = self.INIT_ACTION[key]
+                old_action = info[key]['old_action']
+                if old_action is None:
+                    old_action = self.INIT_ACTION[key]
+
+                action = np.array(action)
+                old_action = np.array(old_action)
+                if isinstance(self.action_space, Box):
+                    roa = np.abs(action - old_action).sum()
+                elif (action == old_action).all():
+                    roa = 0
+                else:
+                    roa = 1
+
+                r = -(
+                    T * info[key]['u']
+                    #+ M * info[key]['y']
+                    + N * roa
+                    + P * np.linalg.norm(action - self.INIT_ACTION[key])
+                    + Q * (1 - abs(info[key]['p_set_p_max'])) ** 2
+                )
+                r_T += - T * info[key]['u']
+                r_M += - M * info[key]['y']
+                r_N += - N * roa
+                r_P += - P * np.linalg.norm(action - self.INIT_ACTION[key])
+                r_Q += - Q * (1 - abs(info[key]['p_set_p_max'])) ** 2
+
+                reward += r
+                if worst_y < info[key]['y']:
+                    worst_y = info[key]['y']
+            reward = reward / len(self.cluster[agent])
+            r_T = r_T / len(self.cluster[agent])
+            r_M = - M * worst_y
+            r_N = r_N / len(self.cluster[agent])
+            r_P = r_P / len(self.cluster[agent])
+            r_Q = r_Q / len(self.cluster[agent])
+            #print('a: {}, r_M: {}, r_N: {}, r_P: {}, r_Q: {}, r_T: {}'.format(agent, r_M, r_N, r_P, r_Q, r_T))
+            self.env.unwrapped.total_reward[agent] += np.array([r_M, r_N, r_P, r_Q, r_T])
+            reward += - M * worst_y
+            cluster_reward[agent] = reward
+
+        return cluster_reward

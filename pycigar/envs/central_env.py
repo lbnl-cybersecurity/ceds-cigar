@@ -6,6 +6,7 @@ from pycigar.utils.logging import logger
 from copy import deepcopy
 import time
 import re
+import opendssdirect as dss
 
 class CentralEnv(Env):
     def __init__(self, *args, **kwargs):
@@ -84,27 +85,49 @@ class CentralEnv(Env):
             obs = {k: np.mean([d[k] for d in observations]) for k in observations[0]}
             obs['v_worst'] = observations[-1]['v_worst']
             obs['u_worst'] = observations[-1]['u_worst']
+            obs['y_worst'] = observations[-1]['y_worst']
+            obs['u_mean'] = obs['u_mean']
+            obs['y_mean'] = obs['y']
         except IndexError:
             obs = {'p_set_p_max': 0.0, 'sbar_solar_irr': 0.0, 'y': 0.0}
             obs['v_worst'] = [0, 0, 0]
             obs['u_worst'] = 0
             obs['u_mean'] = 0
+            obs['y_worst'] = 0
+            obs['y_mean'] = 0
 
         # the episode will be finished if it is not converged.
         done = not converged or (self.k.time == self.k.t)
-
-        infos = {
-            key: {
-                'u_worst': obs['u_worst'],
-                'v_worst': obs['v_worst'],
-                'u_mean': obs['u_mean'],
-                'y': obs['y'],
-                'p_set_p_max': obs['p_set_p_max'],
-                'sbar_solar_irr': obs['sbar_solar_irr'],
+        if 'protection' in self.sim_params:
+            protection = (np.array(list(self.relative_line_current.values())).T/self.sim_params['protection']['threshold']-1).T
+            infos = {
+                key: {
+                    'protection': protection.flatten(),
+                    'y_worst': obs['y_worst'],
+                    'u_worst': obs['u_worst'],
+                    'v_worst': obs['v_worst'],
+                    'u_mean': obs['u_mean'],
+                    'y_mean': obs['y_mean'],
+                    'y': obs['y'],
+                    'p_set_p_max': obs['p_set_p_max'],
+                    'sbar_solar_irr': obs['sbar_solar_irr'],
+                }
+                for key in self.k.device.get_rl_device_ids()
             }
-            for key in self.k.device.get_rl_device_ids()
-        }
-
+        else:
+            infos = {
+                key: {
+                    'y_worst': obs['y_worst'],
+                    'u_worst': obs['u_worst'],
+                    'v_worst': obs['v_worst'],
+                    'u_mean': obs['u_mean'],
+                    'y_mean': obs['y_mean'],
+                    'y': obs['y'],
+                    'p_set_p_max': obs['p_set_p_max'],
+                    'sbar_solar_irr': obs['sbar_solar_irr'],
+                }
+                for key in self.k.device.get_rl_device_ids()
+            }
 
         for key in self.k.device.get_rl_device_ids():
             if self.old_actions is not None:
@@ -128,30 +151,104 @@ class CentralEnv(Env):
     def get_state(self):
         obs = []
         Logger = logger()
-        u_worst, v_worst, u_mean, u_std, v_all, u_all_bus, load_to_bus = self.k.kernel_api.get_worst_u_node()
+        u_worst, v_worst, u_mean, u_std, v_all, u_all_bus, self.load_to_bus = self.k.kernel_api.get_worst_u_node()
 
         Logger.log('u_metrics', 'u_worst', u_worst)
         Logger.log('u_metrics', 'u_mean', u_mean)
         Logger.log('u_metrics', 'u_std', u_std)
         Logger.log('v_metrics', str(self.k.time), v_all)
 
-        for rl_id in self.k.device.get_rl_device_ids():
-            obs.append(
-                {
-                    'y': self.k.device.get_device_y(rl_id),
-                    'p_set_p_max': self.k.device.get_device_p_set_p_max(rl_id),
-                    'sbar_solar_irr': self.k.device.get_device_sbar_solar_irr(rl_id)
-                }
-            )
-        if obs:
-            result = {k: np.mean([d[k] for d in obs]) for k in obs[0]}
-            result['v_worst'] = v_worst
-            result['u_worst'] = u_worst
-            result['u_mean'] = u_mean
-            result['u_std'] = u_std
-            return result
+        y_worst = 0
+        
+        if not self.sim_params['vectorized_mode']:
+            for rl_id in self.k.device.get_rl_device_ids():
+                y = self.k.device.get_device_y(rl_id)
+                obs.append(
+                    {
+                        'y': y,
+                        'p_set_p_max': self.k.device.get_device_p_set_p_max(rl_id),
+                        'sbar_solar_irr': self.k.device.get_device_sbar_solar_irr(rl_id)
+                    }
+                )
+                if y_worst < y:
+                    y_worst = y
+
+            if obs:
+                result = {k: np.mean([d[k] for d in obs]) for k in obs[0]}
+                result['y_worst'] = y_worst
+                result['v_worst'] = v_worst
+                result['u_worst'] = u_worst
+                result['u_mean'] = u_mean
+                result['u_std'] = u_std
+                return result
+            else:
+                return {}
         else:
-            return {}
+            result = {}
+            try:
+                y = self.k.device.get_vectorized_y()
+                y_worst_node_idx = y.argmax()
+                y_worst_node = self.k.device.vectorized_pv_inverter_device.list_device[y_worst_node_idx].split('_')[1]
+                y_worst = np.max(y)
+                y = np.mean(y)
+                p_set_p_max = np.mean(self.k.device.get_vectorized_device_p_set_p_max()[0::2])
+                sbar_solar_irr = np.mean(self.k.device.get_vectorized_device_sbar_solar_irr()[0::2])
+                result = {'y': y,
+                          'p_set_p_max': p_set_p_max,
+                          'sbar_solar_irr': sbar_solar_irr,
+                         }
+                result['y_worst'] = y_worst
+                result['v_worst'] = v_worst
+                Logger.log('v_worst_metrics', 'v_worst', v_worst)
+                Logger.log('y_metrics', 'y_worst', y_worst)
+                Logger.log('y_metrics', 'y_worst_node', y_worst_node)
+                Logger.log('y_metrics', 'y_mean', y)
+                result['u_worst'] = u_worst
+                result['u_mean'] = u_mean
+                result['u_std'] = u_std
+                return result
+            except:
+                return result
 
     def compute_reward(self, rl_actions, **kwargs):
         return 0
+
+    def additional_command(self):
+        current = self.k.kernel_api.get_all_currents()
+
+        if 'protection' in self.sim_params:
+            self.line_current = {}
+            self.relative_line_current = {}
+            for line in self.sim_params['protection']['line']:
+                self.line_current[line] = np.array(current[line])
+                if line not in self.accumulate_current:
+                    self.accumulate_current[line] = [current[line]]
+                elif line in self.accumulate_current and line not in self.average_current:
+                    self.accumulate_current[line].append(current[line])
+                if len(self.accumulate_current[line]) == self.sim_params['env_config']['sims_per_step'] and line not in self.average_current:
+                    self.average_current[line] = np.mean(self.accumulate_current[line], axis=0)
+                    self.average_current_done = True
+
+            if self.average_current_done:
+                for line in self.sim_params['protection']['line']:
+                    self.relative_line_current[line] = self.line_current[line] #/self.average_current[line]
+
+        if not self.sim_params['is_disable_log']:
+            Logger = logger()
+            for line in current:
+                Logger.log('current', line, current[line])
+
+            if 'protection' in self.sim_params:
+                if self.average_current_done:
+                    for line in self.relative_line_current:
+                        Logger.log('relative_current', line, self.relative_line_current[line])
+                else:
+                    for line in self.sim_params['protection']['line']:
+                        Logger.log('relative_current', line, np.ones(3))
+
+
+            capacitors = dss.Capacitors.AllNames()
+            for cap in capacitors:
+                dss.Capacitors.Name(cap)
+                Logger.log('capbank', cap, dss.Capacitors.States()[0])
+

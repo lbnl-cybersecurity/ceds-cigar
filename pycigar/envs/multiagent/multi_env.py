@@ -3,7 +3,7 @@ from gym.spaces import Box
 from ray.rllib.env import MultiAgentEnv
 from pycigar.envs.base import Env
 from pycigar.controllers import AdaptiveFixedController
-
+from pycigar.utils.logging import logger
 
 class MultiEnv(MultiAgentEnv, Env):
     def __init__(self, *args, **kwargs):
@@ -45,13 +45,14 @@ class MultiEnv(MultiAgentEnv, Env):
         """
         observations = {}
         self.old_actions = {}
-        randomize_rl_update = {}
+        for rl_id in self.k.device.get_rl_device_ids():
+            self.old_actions[rl_id] = self.k.device.get_control_setting(rl_id)
         if rl_actions is None:
             rl_actions = self.old_actions
 
-        for rl_id in rl_actions.keys():
-            self.old_actions[rl_id] = self.k.device.get_control_setting(rl_id)
-            randomize_rl_update[rl_id] = np.random.randint(low=0, high=3)
+        if randomize_rl_update is None:
+            randomize_rl_update = np.random.randint(5, size=len(self.k.device.get_rl_device_ids()))
+
 
         # TODOs: disable defense action here
         # if rl_actions != {}:
@@ -61,57 +62,19 @@ class MultiEnv(MultiAgentEnv, Env):
 
         for _ in range(self.sim_params['env_config']['sims_per_step']):
             self.env_time += 1
-            # perform action update for PV inverter device controlled by RL control
-            if rl_actions != {}:
-                temp_rl_actions = {}
-                for rl_id in self.k.device.get_rl_device_ids():
-                    if rl_id in rl_actions:
-                        temp_rl_actions[rl_id] = rl_actions[rl_id]
-
-                rl_dict = {}
-                for rl_id in temp_rl_actions.keys():
-                    if randomize_rl_update[rl_id] == 0:
-                        rl_dict[rl_id] = temp_rl_actions[rl_id]
-                    else:
-                        randomize_rl_update[rl_id] -= 1
-
-                for rl_id in rl_dict.keys():
-                    del temp_rl_actions[rl_id]
-
-                self.apply_rl_actions(rl_dict)
+            rl_ids_key = np.array(self.k.device.get_rl_device_ids())[randomize_rl_update == 0]
+            randomize_rl_update -= 1
+            rl_dict = {k: rl_actions[k] for k in rl_ids_key}
+            self.apply_rl_actions(rl_dict)
 
             # perform action update for PV inverter device controlled by adaptive control
-            if len(self.k.device.get_adaptive_device_ids()) > 0:
-                adaptive_id = []
+            # perform action update for PV inverter device
+            if len(self.k.device.get_norl_device_ids()) > 0:
                 control_setting = []
-                for device_id in self.k.device.get_adaptive_device_ids():
-                    adaptive_id.append(device_id)
+                for device_id in self.k.device.get_norl_device_ids():
                     action = self.k.device.get_controller(device_id).get_action(self)
                     control_setting.append(action)
-                self.k.device.apply_control(adaptive_id, control_setting)
-
-            # perform action update for PV inverter device controlled by fixed control
-            if len(self.k.device.get_fixed_device_ids()) > 0:
-                control_setting = []
-                for device_id in self.k.device.get_fixed_device_ids():
-                    action = self.k.device.get_controller(device_id).get_action(self)
-                    control_setting.append(action)
-                self.k.device.apply_control(self.k.device.get_fixed_device_ids(), control_setting)
-
-            """
-            # TODOs: clean this code
-            control_setting = []
-            adv_ids = []
-            for rl_id in self.k.device.get_rl_device_ids():
-                if 'adversary_' in rl_id:
-                    if rl_id not in self.tempo_controllers:
-                        self.tempo_controllers[rl_id] = AdaptiveFixedController(rl_id, None)
-                    action = self.tempo_controllers[rl_id].get_action(self)
-                    control_setting.append(action)
-                    adv_ids.append(rl_id)
-                    self.k.device.apply_control(adv_ids, control_setting)
-            ########################
-            """
+                self.k.device.apply_control(self.k.device.get_norl_device_ids(), control_setting)
 
             self.additional_command()
 
@@ -124,17 +87,19 @@ class MultiEnv(MultiAgentEnv, Env):
                     break
 
                 if observations == {}:
-                    observations = self.get_state()
+                    new_state = self.get_state()
+                    for device_name in new_state:
+                        if device_name not in observations:
+                            observations[device_name] = {}
+                        for prop in new_state[device_name]:
+                            observations[device_name][prop] = [new_state[device_name][prop]]
                 else:
                     new_state = self.get_state()
                     for device_name in new_state:
                         if device_name not in observations:
                             observations[device_name] = new_state[device_name]
                         for prop in new_state[device_name]:
-                            if not isinstance(observations[device_name][prop], list):
-                                observations[device_name][prop] = [observations[device_name][prop]]
-                            else:
-                                observations[device_name][prop].append(new_state[device_name][prop])
+                            observations[device_name][prop].append(new_state[device_name][prop])
 
             if self.k.time >= self.k.t:
                 break
@@ -149,15 +114,13 @@ class MultiEnv(MultiAgentEnv, Env):
             for device in observations
         }
 
+        for device in obs:
+            obs[device]['v'] = observations[device]['v'][-1]
+            obs[device]['u'] = observations[device]['u'][-1]
+            
         # the episode will be finished if it is not converged.
         finish = not converged or (self.k.time == self.k.t)
         done = {}
-        if (
-            abs(max(self.k.scenario.hack_end_times.keys()) - self.k.time)
-            < self.sim_params['env_config']['sims_per_step']
-        ):
-            done['attack_agent'] = True
-
         if finish:
             done['__all__'] = True
         else:
@@ -165,14 +128,11 @@ class MultiEnv(MultiAgentEnv, Env):
 
         infos = {
             key: {
-                'voltage': self.k.node.get_node_voltage(self.k.device.get_node_connected_to(key)),
+                'v': obs[key]['v'],
                 'y': obs[key]['y'],
                 'u': obs[key]['u'],
-                'p_inject': self.k.device.get_device_p_injection(key),
-                'p_max': self.k.device.get_device_p_injection(key),
-                'env_time': self.env_time,
-                'p_set': obs[key]['p_set'],
                 'p_set_p_max': obs[key]['p_set_p_max'],
+                'sbar_solar_irr': obs[key]['sbar_solar_irr'],
             }
             for key in self.k.device.get_rl_device_ids()
         }
@@ -206,7 +166,9 @@ class MultiEnv(MultiAgentEnv, Env):
     def reset(self):
         # TODOs: delete here
         # self.tempo_controllers = {}
-
+        self.accumulate_current = {}
+        self.average_current = {}
+        self.average_current_done = False
         self.env_time = 0
         self.k.update(reset=True)  # hotfix: return new sim_params sample in kernel?
         self.sim_params = self.k.sim_params
@@ -220,19 +182,78 @@ class MultiEnv(MultiAgentEnv, Env):
 
     def get_state(self):
         obs = {}
-        for rl_id in self.k.device.get_rl_device_ids():
-            connected_node = self.k.device.get_node_connected_to(rl_id)
-            obs.update(
-                {
-                    rl_id: {
-                        'voltage': self.k.node.get_node_voltage(connected_node),
-                        'solar_generation': self.k.device.get_solar_generation(rl_id),
-                        'y': self.k.device.get_device_y(rl_id),
-                        'u': self.k.device.get_device_u(rl_id),
-                        'p_set_p_max': self.k.device.get_device_p_set_p_max(rl_id),
-                        'p_set': self.k.device.get_device_p_set_relative(rl_id),
-                    }
-                }
-            )
+        u_worst, _, _, _, v_all, u_all, load_to_bus = self.k.kernel_api.get_worst_u_node()
+        Logger = logger()
 
+        if not self.sim_params['vectorized_mode']:
+            for rl_id in self.k.device.get_rl_device_ids():
+                connected_node = self.k.device.get_node_connected_to(rl_id)
+                obs.update(
+                    {
+                        rl_id: {
+                            'v': v_all[load_to_bus[connected_node]],
+                            'u': u_all[load_to_bus[connected_node]],
+                            'y': self.k.device.get_device_y(rl_id),
+                            'p_set_p_max': self.k.device.get_device_p_set_p_max(rl_id),
+                            'sbar_solar_irr': self.k.device.get_device_sbar_solar_irr(rl_id)
+                        }
+                    }
+                )
+                Logger.log(rl_id, 'u', u_all[load_to_bus[connected_node]])
+                Logger.log(rl_id, 'v', v_all[load_to_bus[connected_node]])
+        else:
+            y = self.k.device.get_vectorized_y()
+            p_set_p_max = self.k.device.get_vectorized_device_p_set_p_max()
+            sbar_solar_irr = self.k.device.get_vectorized_device_sbar_solar_irr()
+            for i, rl_id in enumerate(self.k.device.get_rl_device_ids()):
+                connected_node = self.k.device.get_node_connected_to(rl_id)
+                idx = self.k.device.vectorized_pv_inverter_device.list_device.index(rl_id)
+                obs.update(
+                    {
+                        rl_id: {
+                            'v': v_all[load_to_bus[connected_node]],
+                            'u': u_all[load_to_bus[connected_node]],
+                            'y': y[idx],
+                            'p_set_p_max': p_set_p_max[idx],
+                            'sbar_solar_irr': sbar_solar_irr[idx],
+                         }
+                    }
+                )
+                Logger.log(rl_id, 'u', u_all[load_to_bus[connected_node]])
+                Logger.log(rl_id, 'v', v_all[load_to_bus[connected_node]])
+            Logger.log('u_metrics', 'u_worst', u_worst)
+            Logger.log('y_metrics', 'y_worst', max(y))
         return obs
+
+    def additional_command(self):
+        current = self.k.kernel_api.get_all_currents()
+
+        if 'protection' in self.sim_params:
+            self.line_current = {}
+            self.relative_line_current = {}
+            for line in self.sim_params['protection']['line']:
+                self.line_current[line] = np.array(current[line])
+                if line not in self.accumulate_current:
+                    self.accumulate_current[line] = [current[line]]
+                elif line in self.accumulate_current and line not in self.average_current:
+                    self.accumulate_current[line].append(current[line])
+                if len(self.accumulate_current[line]) == self.sim_params['env_config']['sims_per_step'] and line not in self.average_current:
+                    self.average_current[line] = np.mean(self.accumulate_current[line], axis=0)
+                    self.average_current_done = True
+
+            if self.average_current_done:
+                for line in self.sim_params['protection']['line']:
+                    self.relative_line_current[line] = self.line_current[line] #/self.average_current[line]
+
+        if not self.sim_params['is_disable_log']:
+            Logger = logger()
+            for line in current:
+                Logger.log('current', line, current[line])
+
+            if 'protection' in self.sim_params:
+                if self.average_current_done:
+                    for line in self.relative_line_current:
+                        Logger.log('relative_current', line, self.relative_line_current[line])
+                else:
+                    for line in self.sim_params['protection']['line']:
+                        Logger.log('relative_current', line, np.ones(3))
