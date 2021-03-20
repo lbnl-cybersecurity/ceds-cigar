@@ -74,14 +74,14 @@ def centralized_critic_postprocessing(policy,
         coop_obs_acts = []
         for i in range(num_other_agents):
             coop_obs_acts.append(sample_batch[COOP_OBS + str(i)])
-            coop_obs_acts.append(sample_batch[COOP_ACTION + str(i)])
+            #coop_obs_acts.append(sample_batch[COOP_ACTION + str(i)])
         sample_batch[SampleBatch.VF_PREDS] = policy.compute_central_vf(sample_batch[SampleBatch.CUR_OBS], *coop_obs_acts)
     else:
         # Policy hasn't been initialized yet, use zeros.
         num_other_agents = len(policy.config['multiagent']['policies'])-1
         for idx in range(num_other_agents):
             sample_batch[COOP_OBS + str(idx)] = np.zeros_like(sample_batch[SampleBatch.CUR_OBS])
-            sample_batch[COOP_ACTION + str(idx)] = np.zeros_like(sample_batch[SampleBatch.ACTIONS])
+            #sample_batch[COOP_ACTION + str(idx)] = np.zeros_like(sample_batch[SampleBatch.ACTIONS])
         sample_batch[SampleBatch.VF_PREDS] = np.zeros_like(sample_batch[SampleBatch.REWARDS], dtype=np.float32)
 
     completed = sample_batch["dones"][-1]
@@ -109,7 +109,7 @@ def loss_with_central_critic(policy, model, dist_class, train_batch):
     coop_obs_acts = []
     for i in range(num_other_agents):
         coop_obs_acts.append(train_batch[COOP_OBS + str(i)])
-        coop_obs_acts.append(train_batch[COOP_ACTION + str(i)])
+        #coop_obs_acts.append(train_batch[COOP_ACTION + str(i)])
     model.value_function = lambda: policy.model.central_value_function(train_batch[SampleBatch.CUR_OBS], *coop_obs_acts)
 
     policy._central_value_out = model.value_function()

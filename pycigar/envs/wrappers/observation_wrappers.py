@@ -414,7 +414,7 @@ class ClusterObservationWrapper(ObservationWrapper):
             va = (worst_v[0]-1)*10*2
             vb = (worst_v[1]-1)*10*2
             vc = (worst_v[2]-1)*10*2
-            obs[k] = np.array([worst_y, worst_u / 0.1, p_set, *old_a_encoded, va, vb, vc])
+            obs[k] = np.array([worst_y / 0.1, worst_u / 0.1, p_set, *old_a_encoded, va, vb, vc])
 
         return obs
 

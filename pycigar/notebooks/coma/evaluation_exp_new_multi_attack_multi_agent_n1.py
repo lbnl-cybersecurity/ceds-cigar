@@ -21,7 +21,7 @@ from ray.rllib.models import ModelCatalog
 import pycigar
 from pycigar.utils.input_parser import input_parser
 from pycigar.utils.logging import logger
-from pycigar.utils.output import plot_new, plot_cluster, save_cluster_csv, save_cluster_csv_lite
+#from pycigar.utils.output import plot_new, plot_cluster, save_cluster_csv_2, save_cluster_csv_lite_2
 from pycigar.utils.registry import make_create_env
 import matplotlib.pyplot as plt
 import json
@@ -64,11 +64,11 @@ def custom_eval_function(trainer, eval_workers):
         #f.savefig(trainer.global_vars['reporter_dir'] + 'eval-epoch-' + str(trainer.iteration) + '_' + str(i+1) + '.png',
         #        bbox_inches='tight')
         #plt.close(f)
-        result = save_cluster_csv(episodes[i].hist_data['logger']['log_dict'], episodes[i].hist_data['logger']['custom_metrics'], trainer.iteration, trainer.global_vars['unbalance'])
-        with open(trainer.global_vars['reporter_dir'] + 'eval-epoch-' + str(trainer.iteration) + '_' + str(i+1) + '.json', 'w') as f:  # You will need 'wb' mode in Python 2.x
+        result = save_cluster_csv_2(episodes[i].hist_data['logger']['log_dict'], episodes[i].hist_data['logger']['custom_metrics'], trainer.iteration, trainer.config['unbalance'])
+        with open(trainer.config['reporter_dir'] + 'eval-epoch-' + str(trainer.iteration) + '_' + str(i+1) + '.json', 'w') as f:  # You will need 'wb' mode in Python 2.x
             json.dump(result, f)
-        result = save_cluster_csv_lite(episodes[i].hist_data['logger']['log_dict'], episodes[i].hist_data['logger']['custom_metrics'], trainer.iteration, trainer.global_vars['unbalance'])
-        with open(trainer.global_vars['reporter_dir'] + 'lite_eval-epoch-' + str(trainer.iteration) + '_' + str(i+1) + '.json', 'w') as f:  # You will need 'wb' mode in Python 2.x
+        result = save_cluster_csv_lite_2(episodes[i].hist_data['logger']['log_dict'], episodes[i].hist_data['logger']['custom_metrics'], trainer.iteration, trainer.config['unbalance'])
+        with open(trainer.config['reporter_dir'] + 'lite_eval-epoch-' + str(trainer.iteration) + '_' + str(i+1) + '.json', 'w') as f:  # You will need 'wb' mode in Python 2.x
             json.dump(result, f)
     save_best_policy(trainer, episodes)
     return metrics
@@ -99,27 +99,25 @@ def get_translation_and_slope(a_val):
 
 def save_best_policy(trainer, episodes):
     mean_r = np.array([ep.episode_reward for ep in episodes]).mean()
-    if 'best_eval_reward' not in trainer.global_vars or trainer.global_vars['best_eval_reward'] < mean_r:
-        os.makedirs(os.path.join(trainer.global_vars['reporter_dir'], 'best'), exist_ok=True)
-        trainer.global_vars['best_eval_reward'] = mean_r
+    if 'best_eval_reward' not in trainer.config or trainer.config['best_eval_reward'] < mean_r:
+        os.makedirs(os.path.join(trainer.config['reporter_dir'], 'best'), exist_ok=True)
+        trainer.config['best_eval_reward'] = mean_r
         # save policy
-        if not trainer.global_vars['unbalance']:
-            shutil.rmtree(os.path.join(trainer.global_vars['reporter_dir'], 'best', 'policy'), ignore_errors=True)
-            trainer.get_policy('agent_1').export_model(os.path.join(trainer.global_vars['reporter_dir'], 'best', 'policy' + '_' + str(trainer.iteration), 'agent_1'))
-            trainer.get_policy('agent_2').export_model(os.path.join(trainer.global_vars['reporter_dir'], 'best', 'policy' + '_' + str(trainer.iteration), 'agent_2'))
+        if not trainer.config['unbalance']:
+            shutil.rmtree(os.path.join(trainer.config['reporter_dir'], 'best', 'policy'), ignore_errors=True)
+            trainer.get_policy('agent_1').export_model(os.path.join(trainer.config['reporter_dir'], 'best', 'policy' + '_' + str(trainer.iteration), 'agent_1'))
     # save policy
-    if not trainer.global_vars['unbalance']:
-        shutil.rmtree(os.path.join(trainer.global_vars['reporter_dir'], 'latest', 'policy'), ignore_errors=True)
-        trainer.get_policy('agent_1').export_model(os.path.join(trainer.global_vars['reporter_dir'], 'latest', 'policy' + '_' + str(trainer.iteration), 'agent_1'))
-        trainer.get_policy('agent_2').export_model(os.path.join(trainer.global_vars['reporter_dir'], 'latest', 'policy' + '_' + str(trainer.iteration), 'agent_2'))
+    if not trainer.config['unbalance']:
+        shutil.rmtree(os.path.join(trainer.config['reporter_dir'], 'latest', 'policy'), ignore_errors=True)
+        trainer.get_policy('agent_1').export_model(os.path.join(trainer.config['reporter_dir'], 'latest', 'policy' + '_' + str(trainer.iteration), 'agent_1'))
 
-    trainer.save(os.path.join(trainer.global_vars['reporter_dir'], 'checkpoint'))
+    trainer.save(os.path.join(trainer.config['reporter_dir'], 'checkpoint'))
 
 def run_train(config, reporter):
     trainer_cls = CCTrainer
     trainer = trainer_cls(config=config['config'])
-    trainer.global_vars['reporter_dir'] = reporter.logdir
-    trainer.global_vars['unbalance'] = config['unbalance']
+    trainer.config['reporter_dir'] = reporter.logdir
+    trainer.config['unbalance'] = config['unbalance']
     #trainer.restore('/home/toanngo/ieee123_multi_agent_multi_attack_vf_coeff/main/run_train/run_train_90d65_00000_0_lr=0.0001_2021-02-26_01-39-48/checkpoint/checkpoint_1000/checkpoint-1000')
 
     for _ in tqdm(range(config['epochs'])):
@@ -167,13 +165,21 @@ if __name__ == '__main__':
     sim_params = input_parser(misc_inputs_path, dss_path, load_solar_path, breakpoints_path)
     sim_params['vectorized_mode'] = True
     sim_params['is_disable_log'] = True
-    sim_params['cluster'] = {'1': ['s52a', 's53a', 's55a', 's56b', 's58b', 's59b', 's1a', 's2b', 's4c', 's5c', 's6c', 's7a', 's9a', 's10a', 's11a', 's12b', 's16c', 's17c', 's34c', 's19a', 's20a', 's22b', 's24c', 's28a', 's29a', 's30c', 's31c', 's32c', 's33a', 's35a', 's37a', 's38b', 's39b', 's41c', 's42a', 's43b', 's45a', 's46a', 's47', 's48', 's49a', 's49b', 's49c', 's50c', 's51a'],
-                             '2': ['s86b', 's87b', 's88a', 's90b', 's92c', 's94a', 's95b', 's96b', 's102c', 's103c', 's104c', 's106b', 's107b', 's109a', 's111a', 's112a', 's113a', 's114a', 's60a', 's62c', 's63a', 's64b', 's65a', 's65b', 's65c', 's66c', 's68a', 's69a', 's70a', 's71a', 's73c', 's74c', 's75c', 's76a', 's76b', 's76c', 's77b', 's79a', 's80b', 's82a', 's83c', 's84c', 's85c', 's98a', 's99b', 's100c']}
+    sim_params['cluster'] = {'1': ['s1a', 's2b', 's4c', 's5c', 's6c', 's7a', 's9a', 's10a', 's11a', 's12b', 's16c', 's17c', 's34c', 's52a', 's53a', 's55a', 's56b', 's58b', 's59b', 's86b', 's87b', 's88a', 's90b', 's92c', 's94a', 's95b', 's96b', 
+                                   's19a', 's20a', 's22b', 's24c', 's28a', 's29a', 's30c', 's31c', 's32c', 's33a', 's35a', 's37a', 's38b', 's39b', 's41c', 's42a', 's43b', 's45a', 's46a', 's47', 's48', 's49a', 's49b', 's49c', 's50c', 's51a',
+                                   's102c', 's103c', 's104c', 's106b', 's107b', 's109a', 's111a', 's112a', 's113a', 's114a', 's60a', 's62c', 's63a', 's64b', 's65a', 's65b', 's65c', 's66c', 's68a', 's69a', 's70a', 's71a', 's73c', 's74c', 's75c',
+                                   's76a', 's76b', 's76c', 's77b', 's79a', 's80b', 's82a', 's83c', 's84c', 's85c', 's98a', 's99b', 's100c', 's60a', 's62c', 's63a', 's64b', 's65a', 's65b', 's65c', 's66c', 's68a', 's69a', 's70a', 's71a', 's73c',
+                                   's74c', 's75c', 's76a', 's76b', 's76c', 's77b', 's79a', 's80b', 's82a', 's83c', 's84c', 's85c', 's98a', 's99b', 's100c'],
+                            }
     sim_params_eval = input_parser(misc_inputs_path, dss_path, load_solar_path, breakpoints_path, benchmark=True)
     sim_params_eval['vectorized_mode'] = True
     sim_params_eval['is_disable_log'] = False
-    sim_params_eval['cluster'] = {'1': ['s52a', 's53a', 's55a', 's56b', 's58b', 's59b', 's1a', 's2b', 's4c', 's5c', 's6c', 's7a', 's9a', 's10a', 's11a', 's12b', 's16c', 's17c', 's34c', 's19a', 's20a', 's22b', 's24c', 's28a', 's29a', 's30c', 's31c', 's32c', 's33a', 's35a', 's37a', 's38b', 's39b', 's41c', 's42a', 's43b', 's45a', 's46a', 's47', 's48', 's49a', 's49b', 's49c', 's50c', 's51a'],
-                                  '2': ['s86b', 's87b', 's88a', 's90b', 's92c', 's94a', 's95b', 's96b', 's102c', 's103c', 's104c', 's106b', 's107b', 's109a', 's111a', 's112a', 's113a', 's114a', 's60a', 's62c', 's63a', 's64b', 's65a', 's65b', 's65c', 's66c', 's68a', 's69a', 's70a', 's71a', 's73c', 's74c', 's75c', 's76a', 's76b', 's76c', 's77b', 's79a', 's80b', 's82a', 's83c', 's84c', 's85c', 's98a', 's99b', 's100c']}
+    sim_params_eval['cluster'] = {'1': ['s1a', 's2b', 's4c', 's5c', 's6c', 's7a', 's9a', 's10a', 's11a', 's12b', 's16c', 's17c', 's34c', 's52a', 's53a', 's55a', 's56b', 's58b', 's59b', 's86b', 's87b', 's88a', 's90b', 's92c', 's94a', 's95b', 's96b', 
+                                        's19a', 's20a', 's22b', 's24c', 's28a', 's29a', 's30c', 's31c', 's32c', 's33a', 's35a', 's37a', 's38b', 's39b', 's41c', 's42a', 's43b', 's45a', 's46a', 's47', 's48', 's49a', 's49b', 's49c', 's50c', 's51a',
+                                        's102c', 's103c', 's104c', 's106b', 's107b', 's109a', 's111a', 's112a', 's113a', 's114a', 's60a', 's62c', 's63a', 's64b', 's65a', 's65b', 's65c', 's66c', 's68a', 's69a', 's70a', 's71a', 's73c', 's74c', 's75c',
+                                        's76a', 's76b', 's76c', 's77b', 's79a', 's80b', 's82a', 's83c', 's84c', 's85c', 's98a', 's99b', 's100c', 's60a', 's62c', 's63a', 's64b', 's65a', 's65b', 's65c', 's66c', 's68a', 's69a', 's70a', 's71a', 's73c',
+                                        's74c', 's75c', 's76a', 's76b', 's76c', 's77b', 's79a', 's80b', 's82a', 's83c', 's84c', 's85c', 's98a', 's99b', 's100c'],
+                                 }
     test_env = create_env(sim_params)
     obs_space = test_env.observation_space
     act_space = test_env.action_space
@@ -190,7 +196,7 @@ if __name__ == '__main__':
         'env_config': deepcopy(sim_params),
         'rollout_fragment_length': 20,
         'train_batch_size': 20*args.workers, #256, #250
-        'clip_param': 0.05,
+        'clip_param': 0.1,
         'lambda': 0.95,
         'vf_clip_param': 10,
 
@@ -206,22 +212,21 @@ if __name__ == '__main__':
             'fcnet_hiddens': [32, 32], #[16, 16],
             'free_log_std': False,
             'vf_share_layers': False,
-            'use_lstm': False
+            'use_lstm': False,
             #'use_lstm': True,
             #'lstm_cell_size': 32,
             #'max_seq_len': 7,
-            #'lstm_use_prev_action_reward': False,
-            #'framestack': False,
+            #'lstm_use_prev_action_reward': True,
+            'framestack': False,
         },
-        #"vf_loss_coeff": 0.00001,
+        #"vf_loss_coeff": 0.000001,
         'multiagent': {
-            'policies': {'agent_1': (None, obs_space, act_space, {}),
-                         'agent_2': (None, obs_space, act_space, {})},
+            'policies': {'agent_1': (None, obs_space, act_space, {})},
             'policy_mapping_fn': policy_mapping_fn,
         },
         "model": {
             "custom_model": "cc_model",
-            "custom_model_config": {"num_agents": 2}
+            "custom_model_config": {"num_agents": 1}
         },
         # ==== EXPLORATION ====
         'explore': True,
@@ -259,11 +264,11 @@ if __name__ == '__main__':
     #base_config['env_config']['scenario_config']['custom_configs']['slack_bus_voltage'] = 1.04
     #base_config['evaluation_config']['env_config']['scenario_config']['custom_configs']['slack_bus_voltage'] = 1.04
 
-    base_config['env_config']['M'] = 300
-    base_config['env_config']['N'] = 0.2   #last
+    base_config['env_config']['M'] = 150
+    base_config['env_config']['N'] = 0.1   #last
     base_config['env_config']['P'] = 2     #intt
     base_config['env_config']['Q'] = 1
-    base_config['env_config']['T'] = 150
+    base_config['env_config']['T'] = 5
 
     if args.unbalance:
         for node in base_config['env_config']['scenario_config']['nodes']:
@@ -280,7 +285,7 @@ if __name__ == '__main__':
             for d in node['devices']:
                 d['adversary_controller'] = 'adaptive_fixed_controller'
 
-    ray.init(local_mode=False)
+    ray.init(local_mode=True)
 
     full_config = {
         'config': base_config,

@@ -30,7 +30,7 @@ class CentralizedCriticModel(TFModelV2):
         other_agent_obs_acts = []
         for i in range(model_config['custom_model_config']['num_agents'] - 1):
             other_agent_obs_acts.append(tf.keras.layers.Input(shape=obs_space.shape, name="coop_obs_{}".format(i)))
-            other_agent_obs_acts.append(tf.keras.layers.Input(shape=21*3, name="coop_act_{}".format(i)))
+            #other_agent_obs_acts.append(tf.keras.layers.Input(shape=21*3, name="coop_act_{}".format(i)))
 
         concat_obs = obs
         if other_agent_obs_acts != []:
@@ -52,13 +52,14 @@ class CentralizedCriticModel(TFModelV2):
         return self.model.forward(input_dict, state, seq_lens)
 
     def central_value_function(self, obs, *args):
-        coop = []
-        for coop_value in args:
-            if coop_value.shape[1] != 3:
-                coop.append(coop_value)
-            else:
-                coop.append(tf.reshape(tf.one_hot(coop_value, 21), [-1, 21*3]))
-        return tf.reshape(self.central_vf([obs, *coop]), [-1])
+        #coop = []
+        #for coop_value in args:
+        #    if coop_value.shape[1] != 3:
+        #        coop.append(coop_value)
+        #    else:
+        #        coop.append(tf.reshape(tf.one_hot(coop_value, 21), [-1, 21*3]))
+        #return tf.reshape(self.central_vf([obs, *coop]), [-1])
+        return tf.reshape(self.central_vf([obs, *args]), [-1])
 
     @override(ModelV2)
     def value_function(self):
