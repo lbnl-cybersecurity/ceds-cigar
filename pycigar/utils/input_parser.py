@@ -3,7 +3,7 @@ import pandas as pd
 import numpy as np
 
 
-def input_parser(misc_inputs_path, dss_path, load_solar_path, breakpoints_path=None, benchmark=False, percentage_hack=0.45, adv=False, norl_mode=False, vectorized_mode=False):
+def input_parser(misc_inputs_path, dss_path, load_solar_path, breakpoints_path=None, benchmark=False, percentage_hack=0.45, adv=False, norl_mode=False, vectorized_mode=False, battery_path=None):
     """Take multiple .csv files and parse them into the .yml file that required by pycigar.
     Parameters
     ----------
