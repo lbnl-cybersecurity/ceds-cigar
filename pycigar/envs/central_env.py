@@ -159,7 +159,7 @@ class CentralEnv(Env):
         Logger.log('v_metrics', str(self.k.time), v_all)
 
         y_worst = 0
-        
+
         if not self.sim_params['vectorized_mode']:
             for rl_id in self.k.device.get_rl_device_ids():
                 y = self.k.device.get_device_y(rl_id)
@@ -231,7 +231,7 @@ class CentralEnv(Env):
 
             if self.average_current_done:
                 for line in self.sim_params['protection']['line']:
-                    self.relative_line_current[line] = self.line_current[line] #/self.average_current[line]
+                    self.relative_line_current[line] = self.line_current[line]
 
         if not self.sim_params['is_disable_log']:
             Logger = logger()
