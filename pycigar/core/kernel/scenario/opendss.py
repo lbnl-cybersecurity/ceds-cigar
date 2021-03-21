@@ -12,16 +12,8 @@ from pycigar.controllers import RLController
 import os
 import numpy as np
 import pandas as pd
-from pycigar.envs.attack_definition import AttackDefinitionGenerator
-from pycigar.envs.attack_definition import AttackDefinitionGeneratorEvaluation
-from pycigar.envs.attack_definition import AttackDefinitionGeneratorEvaluationRandom
 
-from pycigar.envs.attack_definition import UnbalancedAttackDefinitionGeneratorEvaluation
-from pycigar.envs.attack_definition import UnbalancedAttackDefinitionGeneratorEvaluationRandom
-
-from pycigar.envs.attack_definition import HeterogeneousAttackDefinitionGeneratorEvaluation
-from pycigar.envs.attack_definition import HeterogeneousAttackDefinitionGeneratorEvaluationRandom
-
+from pycigar.utils.pycigar_registration import pycigar_make
 from pycigar.utils.logging import logger
 import random
 
@@ -49,53 +41,13 @@ class OpenDSSScenario(KernelScenario):
 
         sim_params = self.master_kernel.sim_params
 
-        # loading attack def generator
         if 'attack_randomization' in sim_params:
-            if (
-                self.attack_def_gen is None
-                and sim_params['attack_randomization']['generator'] == 'AttackDefinitionGenerator'
-            ):
-                self.attack_def_gen = AttackDefinitionGenerator(start_time, end_time)
-            elif (
-                self.attack_def_gen is None
-                and sim_params['attack_randomization']['generator'] == 'AttackDefinitionGeneratorEvaluation'
-            ):
-                self.attack_def_gen = AttackDefinitionGeneratorEvaluation(start_time, end_time)
-            elif (
-                self.attack_def_gen is None
-                and sim_params['attack_randomization']['generator'] == 'AttackDefinitionGeneratorEvaluationRandom'
-            ):
-                self.attack_def_gen = AttackDefinitionGeneratorEvaluationRandom(start_time, end_time)
-            elif (
-                self.attack_def_gen is None
-                and sim_params['attack_randomization']['generator'] == 'UnbalancedAttackDefinitionGeneratorEvaluation'
-            ):
-                self.attack_def_gen = UnbalancedAttackDefinitionGeneratorEvaluation(start_time, end_time)
-            elif (
-                self.attack_def_gen is None
-                and sim_params['attack_randomization']['generator'] == 'UnbalancedAttackDefinitionGeneratorEvaluationRandom'
-            ):
-                self.attack_def_gen = UnbalancedAttackDefinitionGeneratorEvaluationRandom(start_time, end_time)
-            elif (
-                self.attack_def_gen is None
-                and sim_params['attack_randomization']['generator'] == 'HeterogeneousAttackDefinitionGeneratorEvaluation'
-            ):
-                self.attack_def_gen = HeterogeneousAttackDefinitionGeneratorEvaluation(start_time, end_time)
-            elif (
-                self.attack_def_gen is None
-                and sim_params['attack_randomization']['generator'] == 'HeterogeneousAttackDefinitionGeneratorEvaluationRandom'
-            ):
-                self.attack_def_gen = HeterogeneousAttackDefinitionGeneratorEvaluationRandom(start_time, end_time)
+            self.attack_def_gen = pycigar_make(sim_params['attack_randomization']['generator'], start_time=start_time, end_time=end_time)
         else:
             self.attack_def_gen = None
 
         # overwrite multi_config to have a new start_time and end_time
-        if isinstance(self.attack_def_gen, AttackDefinitionGeneratorEvaluation) or \
-            isinstance(self.attack_def_gen, AttackDefinitionGeneratorEvaluationRandom) or \
-            isinstance(self.attack_def_gen, UnbalancedAttackDefinitionGeneratorEvaluation) or \
-            isinstance(self.attack_def_gen, UnbalancedAttackDefinitionGeneratorEvaluationRandom) or \
-            isinstance(self.attack_def_gen, HeterogeneousAttackDefinitionGeneratorEvaluation) or \
-            isinstance(self.attack_def_gen, HeterogeneousAttackDefinitionGeneratorEvaluationRandom):
+        if self.attack_def_gen:
             start_time, end_time = self.attack_def_gen.change_mode()
             self.master_kernel.sim_params['scenario_config']['start_time'] = start_time
             self.master_kernel.sim_params['scenario_config']['end_time'] = end_time
