@@ -140,30 +140,40 @@ def input_parser(misc_inputs_path, dss_path, load_solar_path, breakpoints_path=N
     }
 
     # read misc_input
-    misc_inputs_data = pd.read_csv(file_misc_inputs_path, header=None)
-    misc_inputs_data = misc_inputs_data.T
-    new_header = misc_inputs_data.iloc[0]  # grab the first row for the header
-    misc_inputs_data = misc_inputs_data[1:]  # take the data less the header row
-    misc_inputs_data.columns = new_header  # set the header row as the df header
-    misc_inputs_data = misc_inputs_data.to_dict()
+    misc_inputs_data = pd.read_csv(file_misc_inputs_path, header=None, index_col=0)
 
-    M = float(misc_inputs_data['Oscillation Penalty'][1])
-    N = float(misc_inputs_data['Action Penalty'][1])
-    P = float(misc_inputs_data['Deviation from Optimal Penalty'][1])
-    Q = float(misc_inputs_data['PsetPmax Penalty'][1])
-    power_factor = float(misc_inputs_data['power factor'][1])
-    load_scaling_factor = float(misc_inputs_data['load scaling factor'][1])
-    solar_scaling_factor = float(misc_inputs_data['solar scaling factor'][1])
+    M = float(misc_inputs_data.loc['Oscillation Penalty'])
+    N = float(misc_inputs_data.loc['Action Penalty'])
+    P = float(misc_inputs_data.loc['Deviation from Optimal Penalty'])
+    Q = float(misc_inputs_data.loc['PsetPmax Penalty'])
+    power_factor = float(misc_inputs_data.loc['power factor'])
+    load_scaling_factor = float(misc_inputs_data.loc['load scaling factor'])
+    solar_scaling_factor = float(misc_inputs_data.loc['solar scaling factor'])
 
-    protection_line = misc_inputs_data.get('protection line', None)
-    protection_threshold = misc_inputs_data.get('protection threshold', None)
+    # check protection line
+    if 'protection line' in misc_inputs_data.index and 'protection threshold' in misc_inputs_data.index:
+        protection_line = str(misc_inputs_data.loc['protection line'])
+        protection_threshold = str(misc_inputs_data.loc['protection threshold'])
+    else:
+        protection_line = None
+        protection_threshold = None
+
     if protection_line and protection_threshold:
         json_query['protection'] = {}
-        protection_line = protection_line[1].split()
-        protection_threshold = protection_threshold[1].split()
+        protection_line = protection_line.split()
+        protection_threshold = protection_threshold.split()
         json_query['protection']['line'] = protection_line
         json_query['protection']['threshold'] = np.array(protection_threshold, dtype=float)
 
+    # check split phase
+    if 'split phase' in misc_inputs_data.index:
+        split_phase = int(misc_inputs_data.loc['split phase'])
+    else:
+        split_phase = 0
+    if split_phase != 0:
+        json_query['split_phase'] = True
+    else:
+        json_query['split_phase'] = False
     json_query['M'] = M
     json_query['N'] = N
     json_query['P'] = P
@@ -173,16 +183,16 @@ def input_parser(misc_inputs_path, dss_path, load_solar_path, breakpoints_path=N
     json_query['scenario_config']['custom_configs']['solar_scaling_factor'] = solar_scaling_factor
     json_query['scenario_config']['custom_configs']['power_factor'] = power_factor
 
-    low_pass_filter_measure_mean = float(misc_inputs_data['measurement filter time constant mean'][1])
-    low_pass_filter_measure_std = float(misc_inputs_data['measurement filter time constant std'][1])
-    low_pass_filter_output_mean = float(misc_inputs_data['output filter time constant mean'][1])
-    low_pass_filter_output_std = float(misc_inputs_data['output filter time constant std'][1])
+    low_pass_filter_measure_mean = float(misc_inputs_data.loc['measurement filter time constant mean'])
+    low_pass_filter_measure_std = float(misc_inputs_data.loc['measurement filter time constant std'])
+    low_pass_filter_output_mean = float(misc_inputs_data.loc['output filter time constant mean'])
+    low_pass_filter_output_std = float(misc_inputs_data.loc['output filter time constant std'])
     default_control_setting = [
-        misc_inputs_data['bp1 default'][1],
-        misc_inputs_data['bp2 default'][1],
-        misc_inputs_data['bp3 default'][1],
-        misc_inputs_data['bp4 default'][1],
-        misc_inputs_data['bp5 default'][1],
+        misc_inputs_data.loc['bp1 default'],
+        misc_inputs_data.loc['bp2 default'],
+        misc_inputs_data.loc['bp3 default'],
+        misc_inputs_data.loc['bp4 default'],
+        misc_inputs_data.loc['bp5 default'],
     ]
 
     # read load_solar_data & read
@@ -206,8 +216,6 @@ def input_parser(misc_inputs_path, dss_path, load_solar_path, breakpoints_path=N
         device['custom_device_configs']['default_control_setting'] = node_default_control_setting
         device['custom_device_configs']['gain'] = 1e5
         device['custom_device_configs']['is_butterworth_filter'] = False
-        device['custom_device_configs']['p_ramp_rate'] = p_ramp_rate
-        device['custom_device_configs']['q_ramp_rate'] = q_ramp_rate
         device['custom_device_configs']['low_pass_filter_measure_mean'] = low_pass_filter_measure_mean
         device['custom_device_configs']['low_pass_filter_output_mean'] = low_pass_filter_output_mean
         if not benchmark:
@@ -233,24 +241,24 @@ def input_parser(misc_inputs_path, dss_path, load_solar_path, breakpoints_path=N
         node_description['devices'].append(device)
         json_query['scenario_config']['nodes'].append(node_description)
 
-    if 'max tap change default' in misc_inputs_data:
-        max_tap_change = misc_inputs_data['max tap change default'][1]
+    if 'max tap change default' in misc_inputs_data.index:
+        max_tap_change = misc_inputs_data.loc['max tap change default']
     else:
         max_tap_change = None
-    if 'forward band default' in misc_inputs_data:
-        forward_band = misc_inputs_data['forward band default'][1]
+    if 'forward band default' in misc_inputs_data.index:
+        forward_band = misc_inputs_data.loc['forward band default']
     else:
         forward_band = None
-    if 'tap number default' in misc_inputs_data:
-        tap_number = misc_inputs_data['tap number default'][1]
+    if 'tap number default' in misc_inputs_data.index:
+        tap_number = misc_inputs_data.loc['tap number default']
     else:
         tap_number = None
-    if 'tap delay default' in misc_inputs_data:
-        tap_delay = misc_inputs_data['tap delay default'][1]
+    if 'tap delay default' in misc_inputs_data.index:
+        tap_delay = misc_inputs_data.loc['tap delay default']
     else:
         tap_delay = None
-    if 'delay default' in misc_inputs_data:
-        delay = misc_inputs_data['delay default'][1]
+    if 'delay default' in misc_inputs_data.index:
+        delay = misc_inputs_data.loc['delay default']
     else:
         delay = None
 

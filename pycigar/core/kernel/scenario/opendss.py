@@ -104,13 +104,13 @@ class OpenDSSScenario(KernelScenario):
         # network_model_directory_path = os.path.join(config.DATA_DIR, sim_params['simulation_config']['network_model_directory'])
         network_model_directory_path = sim_params['simulation_config']['network_model_directory']
         if isinstance(network_model_directory_path, str):
-            self.kernel_api.simulation_command('Redirect "{}"'.format(network_model_directory_path))
+            network_path = network_model_directory_path
         else:
             network_path = random.sample(network_model_directory_path, 1)[0]
-            self.kernel_api.simulation_command('Redirect "{}"'.format(network_path))
-            self.phase = network_path[-5]
-            if self.phase.isnumeric():
-                self.phase = 'a'
+        self.kernel_api.simulation_command('Redirect "{}"'.format(network_path))
+        additional_api_info = {}
+        additional_api_info['split_phase'] = sim_params.get('split_phase', False)
+        self.kernel_api.start_api(**additional_api_info)
 
         solution_mode = sim_params['simulation_config']['custom_configs'].get('solution_mode', 1)
         solution_number = sim_params['simulation_config']['custom_configs'].get('solution_number', 1)

@@ -22,4 +22,4 @@ tap delay default,2
 delay default,30
 p ramp rate,1
 q ramp rate,0.03
-
+split phase,1

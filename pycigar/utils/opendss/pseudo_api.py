@@ -10,7 +10,7 @@ SBASE = 1000000.0
 class PyCIGAROpenDSSAPI(object):
     """An API used to interact with OpenDSS via a TCP connection."""
 
-    def __init__(self, port):
+    def __init__(self, *args):
         """Instantiate the API.
 
         Parameters
@@ -18,7 +18,7 @@ class PyCIGAROpenDSSAPI(object):
         port : int
             the port number of the socket connection
         """
-        self.port = port
+        pass
 
     def simulation_step(self):
         #start_time = time.time()
@@ -62,30 +62,71 @@ class PyCIGAROpenDSSAPI(object):
             IBase = SBASE/(dss.Bus.kVBase()*1000)
             self.ibase[line] = IBase
 
-        """# ieee8500
-        bus_to_bus = {}
-        for t in dss.Transformers.AllNames():
-            dss.Transformers.Name(t)
-            bus_list = dss.CktElement.BusNames()
-            bus_to_bus[bus_list[1].split('.')[0]] = bus_list[0].split('.')[0]
-        new_load_to_bus = {}
-        for load in self.load_to_bus:
-            new_load_to_bus[load] = bus_to_bus[self.load_to_bus[load][1:]]
-        self.load_to_bus = new_load_to_bus
+        self.load_to_phase = {}
+        for load in self.get_node_ids():
+            dss.Loads.Name(load)
+            bus_phase = dss.CktElement.BusNames()[0].split('.')[0][-1]
+            self.load_to_phase[load] = bus_phase
 
-        for load in self.loads:
-            bus = self.load_to_bus[load]
+    def start_api(self, **kwargs):
+        self.all_bus_name = dss.Circuit.AllBusNames()
+
+        self.offsets = {}
+        for k, v in enumerate(dss.Circuit.AllNodeNames()):
+            self.offsets[v] = k
+        self.loads = {}
+        self.load_to_bus = {}
+        for load in self.get_node_ids():
+            dss.Loads.Name(load)
+            bus_phase = dss.CktElement.BusNames()[0].split('.')
+            if len(bus_phase) == 1:
+                bus_phase.extend(['1','2','3'])
+            self.loads[load] = [['.'.join([bus_phase[0], i]) for i in bus_phase[1:] if i != '0'], dss.CktElement.NumPhases()]
+            self.load_to_bus[load] = bus_phase[0]
+
+        #  current
+        self.current_offsets = {}
+        pos = 0
+        for pd in dss.PDElements.AllNames():
+            dss.Circuit.SetActiveElement(pd)
+            pd_type, pd_name = pd.split('.')
+            if pd_type == 'Line':
+                self.current_offsets[pd_name] = [pos, dss.CktElement.NumPhases()]
+            pos += len(dss.CktElement.CurrentsMagAng())
+
+        self.ibase = {}
+        for line in self.current_offsets.keys():
+            dss.Lines.Name(line)
+            bus = dss.Lines.Bus1()
             dss.Circuit.SetActiveBus(bus)
-            phase = dss.Bus.Nodes()
-            self.loads[load] = [['.'.join([bus, str(i)]) for i in phase if str(i) != '0'], len(phase)]
-
-        self.all_bus_name = list(bus_to_bus.values())"""
+            IBase = SBASE/(dss.Bus.kVBase()*1000)
+            self.ibase[line] = IBase
 
         self.load_to_phase = {}
         for load in self.get_node_ids():
             dss.Loads.Name(load)
             bus_phase = dss.CktElement.BusNames()[0].split('.')[0][-1]
             self.load_to_phase[load] = bus_phase
+
+        split_phase = kwargs.get('split_phase', False)
+        if split_phase:
+            bus_to_bus = {}
+            for t in dss.Transformers.AllNames():
+                dss.Transformers.Name(t)
+                bus_list = dss.CktElement.BusNames()
+                bus_to_bus[bus_list[1].split('.')[0]] = bus_list[0].split('.')[0]
+            new_load_to_bus = {}
+            for load in self.load_to_bus:
+                new_load_to_bus[load] = bus_to_bus[self.load_to_bus[load][1:]]
+            self.load_to_bus = new_load_to_bus
+
+            for load in self.loads:
+                bus = self.load_to_bus[load]
+                dss.Circuit.SetActiveBus(bus)
+                phase = dss.Bus.Nodes()
+                self.loads[load] = [['.'.join([bus, str(i)]) for i in phase if str(i) != '0'], len(phase)]
+
+            self.all_bus_name = list(bus_to_bus.values())
 
     def set_solution_mode(self, value):
         """Set solution mode on simulator."""
