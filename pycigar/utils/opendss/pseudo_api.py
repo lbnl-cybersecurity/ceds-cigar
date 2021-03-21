@@ -136,7 +136,6 @@ class PyCIGAROpenDSSAPI(object):
         if not np.isinf(self.currents).any():
             self.current_result = {}
             for line in self.current_offsets:
-            #result[line] = np.array(self.currents[self.current_offsets[line][0]:self.current_offsets[line][0] + self.current_offsets[line][1]*2:2])/self.ibase[line]
                 self.current_result[line] = self.currents[self.current_offsets[line][0]:self.current_offsets[line][0] + self.current_offsets[line][1]*2:2]
 
         return self.current_result
@@ -214,12 +213,19 @@ class PyCIGAROpenDSSAPI(object):
         return voltage
 
     def get_substation_bottom_voltage(self):
-        #voltage_a = self.get_node_voltage('s701a')
-        #voltage_b = self.get_node_voltage('s701b')
-        #voltage_c = self.get_node_voltage('s701c')
-        #voltage = (voltage_a + voltage_b + voltage_c) / 3
-        #return voltage
-        return 0
+        bus = self.all_bus_name[2]
+        count = 0
+        sum_v = 0
+        if '{}.{}'.format(bus, 1) in self.offsets:
+            sum_v += self.puvoltage[self.offsets['{}.{}'.format(bus, 1)]]
+            count += 1
+        if '{}.{}'.format(bus, 2) in self.offsets:
+            sum_v += self.puvoltage[self.offsets['{}.{}'.format(bus, 2)]]
+            count += 1
+        if '{}.{}'.format(bus, 3) in self.offsets:
+            sum_v += self.puvoltage[self.offsets['{}.{}'.format(bus, 3)]]
+            count += 1
+        return sum_v/count
 
     def get_worst_u_node(self):
         u_all = []
