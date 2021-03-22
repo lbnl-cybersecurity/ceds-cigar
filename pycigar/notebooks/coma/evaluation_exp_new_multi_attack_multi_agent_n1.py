@@ -272,7 +272,7 @@ if __name__ == '__main__':
             for d in node['devices']:
                 d['adversary_controller'] = 'adaptive_fixed_controller'
 
-    ray.init(local_mode=True)
+    ray.init(local_mode=False)
 
     full_config = {
         'config': base_config,
