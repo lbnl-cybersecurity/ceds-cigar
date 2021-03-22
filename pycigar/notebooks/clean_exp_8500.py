@@ -174,7 +174,7 @@ def run_train(config, reporter):
     trainer_cls = APPOTrainer if config['algo'] == 'appo' else PPOTrainer
     trainer = trainer_cls(config=config['config'])
     trainer.global_vars['reporter_dir'] = reporter.logdir
-
+    trainer.restore('/global/scratch/sytoanngo/checkpoint_u_worst/checkpoint-1300')
 
     for _ in tqdm(range(config['epochs'])):
         results = trainer.train()
@@ -309,6 +309,12 @@ if __name__ == '__main__':
 
     for i in range(1):
         config = deepcopy(full_config)
+        config['config']['env_config']['M'] = ray.tune.grid_search([300, 350, 400, 500])
+        config['config']['env_config']['N'] = ray.tune.grid_search([1])
+        config['config']['env_config']['P'] = ray.tune.grid_search([1])
+        config['config']['env_config']['Q'] = ray.tune.grid_search([1])
+        config['config']['lr'] = ray.tune.grid_search([1e-4, 5e-4]) 
+
         run_hp_experiment(config, 'main')
 
     ray.shutdown()
