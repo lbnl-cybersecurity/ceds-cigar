@@ -1007,7 +1007,7 @@ def plot_new(log_dict, custom_metrics, epoch='', unbalance=False, multiagent=Fal
     plt.subplots_adjust(top=0.95)
     return f
 
-"""
+
 def plot_cluster(log_dict, custom_metrics, epoch='', unbalance=False, multiagent=False):
     def get_translation_and_slope(a_val, init_a):
         points = np.array(a_val)
@@ -1025,11 +1025,14 @@ def plot_cluster(log_dict, custom_metrics, epoch='', unbalance=False, multiagent
                5: ['s60a', 's62c', 's63a', 's64b', 's65a', 's65b', 's65c', 's66c', 's68a', 's69a', 's70a', 's71a', 's73c', 's74c', 's75c', 's76a', 's76b', 's76c', 's77b', 's79a', 's80b', 's82a', 's83c', 's84c', 's85c', 's98a', 's99b', 's100c']}
 
     f, ax = plt.subplots(5, 5, figsize=(30, 15))
-    title = '[epoch {}][time {}][hack {}] reward: a_1: {:.2f}, a_2: {:.2f}, a_3: {:.2f}, a_4: {:.2f}, a_5: {:.2f}'.format(
-            epoch, custom_metrics['start_time'], custom_metrics['hack'],
-            sum(log_dict['1']['reward']), sum(log_dict['2']['reward']),
-            sum(log_dict['3']['reward']), sum(log_dict['4']['reward']),
-            sum(log_dict['5']['reward'])
+    # title = '[epoch {}][time {}][hack {}] reward: a_1: {:.2f}, a_2: {:.2f}, a_3: {:.2f}, a_4: {:.2f}, a_5: {:.2f}'.format(
+    #         epoch, custom_metrics['start_time'], custom_metrics['hack'],
+    #         sum(log_dict['1']['reward']), sum(log_dict['2']['reward']),
+    #         sum(log_dict['3']['reward']), sum(log_dict['4']['reward']),
+    #         sum(log_dict['5']['reward'])
+    #     )
+    title = '[epoch {}][time {}][hack {}]'.format(
+            epoch, custom_metrics['start_time'], custom_metrics['hack']
         )
     f.suptitle(title)
 
@@ -1153,7 +1156,7 @@ def plot_cluster(log_dict, custom_metrics, epoch='', unbalance=False, multiagent
     plt.tight_layout()
     plt.subplots_adjust(top=0.95)
     return f
-"""
+
 
 def save_cluster_csv(log_dict, custom_metrics, epoch='', unbalance=False, multiagent=False):
     def get_translation_and_slope(a_val, init_a):

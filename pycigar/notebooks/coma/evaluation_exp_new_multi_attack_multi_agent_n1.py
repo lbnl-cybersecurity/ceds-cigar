@@ -21,10 +21,13 @@ from ray.rllib.models import ModelCatalog
 import pycigar
 from pycigar.utils.input_parser import input_parser
 from pycigar.utils.logging import logger
-#from pycigar.utils.output import plot_new, plot_cluster, save_cluster_csv_2, save_cluster_csv_lite_2
+from pycigar.utils.output import plot_new, plot_cluster
 from pycigar.utils.registry import make_create_env
+import matplotlib
+matplotlib.use('agg', force=True, warn=False)
 import matplotlib.pyplot as plt
 import json
+from ray.rllib.agents.callbacks import DefaultCallbacks
 
 ActionTuple = namedtuple('Action', ['action', 'timestep'])
 
@@ -44,6 +47,20 @@ def parse_cli_args():
 
     return parser.parse_args()
 
+class CustomCallbacks(DefaultCallbacks):
+    def __init__(self, legacy_callbacks_dict=None):
+        super().__init__(legacy_callbacks_dict=legacy_callbacks_dict)
+        self.ActionTuple = namedtuple('Action', ['action', 'timestep'])
+
+    def on_episode_start(self, worker, base_env, policies, episode, **kwargs):
+        pass
+
+    def on_episode_step(self, worker, base_env, episode, **kwargs):
+        pass
+
+    def on_episode_end(self, worker, base_env, policies, episode, **kwargs):
+        tracking = logger()
+        episode.hist_data['logger'] = {'log_dict': tracking.log_dict, 'custom_metrics': tracking.custom_metrics}
 
 def custom_eval_function(trainer, eval_workers):
     if trainer.config["evaluation_num_workers"] == 0:
@@ -60,35 +77,21 @@ def custom_eval_function(trainer, eval_workers):
     metrics = summarize_episodes(episodes)
 
     for i in range(len(episodes)):
-        #f = plot_cluster(episodes[i].hist_data['logger']['log_dict'], episodes[i].hist_data['logger']['custom_metrics'], trainer.iteration, trainer.global_vars['unbalance'])
-        #f.savefig(trainer.global_vars['reporter_dir'] + 'eval-epoch-' + str(trainer.iteration) + '_' + str(i+1) + '.png',
-        #        bbox_inches='tight')
-        #plt.close(f)
-        result = save_cluster_csv_2(episodes[i].hist_data['logger']['log_dict'], episodes[i].hist_data['logger']['custom_metrics'], trainer.iteration, trainer.config['unbalance'])
+        f = plot_cluster(episodes[i].hist_data['logger']['log_dict'], episodes[i].hist_data['logger']['custom_metrics'], trainer.iteration, trainer.config['unbalance'])
+        f.savefig(trainer.config['reporter_dir'] + 'eval-epoch-' + str(trainer.iteration) + '_' + str(i+1) + '.png',
+                bbox_inches='tight')
+        plt.close()
+        """result = save_cluster_csv_2(episodes[i].hist_data['logger']['log_dict'], episodes[i].hist_data['logger']['custom_metrics'], trainer.iteration, trainer.config['unbalance'])
         with open(trainer.config['reporter_dir'] + 'eval-epoch-' + str(trainer.iteration) + '_' + str(i+1) + '.json', 'w') as f:  # You will need 'wb' mode in Python 2.x
             json.dump(result, f)
         result = save_cluster_csv_lite_2(episodes[i].hist_data['logger']['log_dict'], episodes[i].hist_data['logger']['custom_metrics'], trainer.iteration, trainer.config['unbalance'])
         with open(trainer.config['reporter_dir'] + 'lite_eval-epoch-' + str(trainer.iteration) + '_' + str(i+1) + '.json', 'w') as f:  # You will need 'wb' mode in Python 2.x
-            json.dump(result, f)
+            json.dump(result, f)"""
     save_best_policy(trainer, episodes)
     return metrics
 
 
 # ==== CUSTOM METRICS (eval and training) ====
-def on_episode_start(info):
-    pass
-
-
-def on_episode_step(info):
-    pass
-
-
-def on_episode_end(info):
-    episode = info["episode"]
-    tracking = logger()
-    info['episode'].hist_data['logger'] = {'log_dict': tracking.log_dict, 'custom_metrics': tracking.custom_metrics}
-
-
 def get_translation_and_slope(a_val):
     points = np.array(a_val)
     slope = points[:, 1] - points[:, 0]
@@ -103,13 +106,10 @@ def save_best_policy(trainer, episodes):
         os.makedirs(os.path.join(trainer.config['reporter_dir'], 'best'), exist_ok=True)
         trainer.config['best_eval_reward'] = mean_r
         # save policy
-        if not trainer.config['unbalance']:
-            shutil.rmtree(os.path.join(trainer.config['reporter_dir'], 'best', 'policy'), ignore_errors=True)
-            trainer.get_policy('agent_1').export_model(os.path.join(trainer.config['reporter_dir'], 'best', 'policy' + '_' + str(trainer.iteration), 'agent_1'))
-    # save policy
-    if not trainer.config['unbalance']:
-        shutil.rmtree(os.path.join(trainer.config['reporter_dir'], 'latest', 'policy'), ignore_errors=True)
-        trainer.get_policy('agent_1').export_model(os.path.join(trainer.config['reporter_dir'], 'latest', 'policy' + '_' + str(trainer.iteration), 'agent_1'))
+        shutil.rmtree(os.path.join(trainer.config['reporter_dir'], 'best', 'policy'), ignore_errors=True)
+        trainer.get_policy('agent_1').export_model(os.path.join(trainer.config['reporter_dir'], 'best', 'policy' + '_' + str(trainer.iteration), 'agent_1'))
+    shutil.rmtree(os.path.join(trainer.config['reporter_dir'], 'latest', 'policy'), ignore_errors=True)
+    trainer.get_policy('agent_1').export_model(os.path.join(trainer.config['reporter_dir'], 'latest', 'policy' + '_' + str(trainer.iteration), 'agent_1'))
 
     trainer.save(os.path.join(trainer.config['reporter_dir'], 'checkpoint'))
 
@@ -118,7 +118,7 @@ def run_train(config, reporter):
     trainer = trainer_cls(config=config['config'])
     trainer.config['reporter_dir'] = reporter.logdir
     trainer.config['unbalance'] = config['unbalance']
-    #trainer.restore('/home/toanngo/ieee123_multi_agent_multi_attack_vf_coeff/main/run_train/run_train_90d65_00000_0_lr=0.0001_2021-02-26_01-39-48/checkpoint/checkpoint_1000/checkpoint-1000')
+    #trainer.restore('checkpoint')
 
     for _ in tqdm(range(config['epochs'])):
         results = trainer.train()
@@ -198,7 +198,7 @@ if __name__ == '__main__':
         'train_batch_size': 20*args.workers, #256, #250
         'clip_param': 0.1,
         'lambda': 0.95,
-        'vf_clip_param': 10,
+        'vf_clip_param': 100,
 
         'num_workers': args.workers,
         'num_cpus_per_worker': 1,
@@ -217,7 +217,6 @@ if __name__ == '__main__':
             #'lstm_cell_size': 32,
             #'max_seq_len': 7,
             #'lstm_use_prev_action_reward': True,
-            'framestack': False,
         },
         #"vf_loss_coeff": 0.000001,
         'multiagent': {
@@ -247,28 +246,16 @@ if __name__ == '__main__':
         },
 
         # ==== CUSTOM METRICS ====
-        "callbacks": {
-            "on_episode_start": on_episode_start,
-            "on_episode_step": on_episode_step,
-            "on_episode_end": on_episode_end,
-        },
+        "callbacks": CustomCallbacks,
     }
     # eval environment should not be random across workers
-    base_config['env_config']['attack_randomization']['generator'] = 'UnbalancedAttackDefinitionGeneratorEvaluationRandom'
-    base_config['evaluation_config']['env_config']['attack_randomization']['generator'] = 'UnbalancedAttackDefinitionGeneratorEvaluation'
-    #base_config['env_config']['scenario_config']['custom_configs']['load_scaling_factor'] = 1.5
-    #base_config['evaluation_config']['env_config']['scenario_config']['custom_configs']['load_scaling_factor'] = 1.5
-
-    #base_config['env_config']['scenario_config']['custom_configs']['solar_scaling_factor'] = 3
-    #base_config['evaluation_config']['env_config']['scenario_config']['custom_configs']['solar_scaling_factor'] = 3
-    #base_config['env_config']['scenario_config']['custom_configs']['slack_bus_voltage'] = 1.04
-    #base_config['evaluation_config']['env_config']['scenario_config']['custom_configs']['slack_bus_voltage'] = 1.04
-
+    base_config['env_config']['attack_randomization']['generator'] = 'AttackGenerator'
+    base_config['evaluation_config']['env_config']['attack_randomization']['generator'] = 'AttackGeneratorEvaluation'
     base_config['env_config']['M'] = 150
-    base_config['env_config']['N'] = 0.1   #last
-    base_config['env_config']['P'] = 2     #intt
+    base_config['env_config']['N'] = 0.2   #last
+    base_config['env_config']['P'] = 3     #intt
     base_config['env_config']['Q'] = 1
-    base_config['env_config']['T'] = 5
+    base_config['env_config']['T'] = 150
 
     if args.unbalance:
         for node in base_config['env_config']['scenario_config']['nodes']:

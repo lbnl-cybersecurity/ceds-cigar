@@ -24,9 +24,7 @@ from pycigar.utils.registry import make_create_env
 import matplotlib
 matplotlib.use('agg', force=True, warn=False)
 import matplotlib.pyplot as plt
-#plt.switch_backend('agg')
 from ray.rllib.agents.callbacks import DefaultCallbacks
-from ray.rllib.env.base_env import _MultiAgentEnvToBaseEnv
 
 ActionTuple = namedtuple('Action', ['action', 'timestep'])
 
