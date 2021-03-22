@@ -312,7 +312,7 @@ class Env8500(gym.Env):
         va = (state['v_worst'][0]-1)*10*2
         vb = (state['v_worst'][1]-1)*10*2
         vc = (state['v_worst'][2]-1)*10*2
-        u_worst = state['u_worst'] * 10
+        u_worst = state['u_worst'] * 10 #state['u_mean'] * 50 #
         old_actions = self.old_action
         old_a_encoded = np.zeros(self.a_size)
         offsets = np.cumsum([0, *[a.n for a in self.action_space][:-1]])
@@ -375,11 +375,16 @@ class Env8500(gym.Env):
             Logger.log('a_metrics', 'a', self.devices.VBP[262, 0] - self.devices.VBP_init[262, 0])
             Logger.log('a_metrics', 'b', self.devices.VBP[264, 0] - self.devices.VBP_init[264, 0])
             Logger.log('a_metrics', 'c', self.devices.VBP[266, 0] - self.devices.VBP_init[266, 0])
-
+            Logger.log('network', 'substation_power', self.api.get_total_power())
             Logger.log('u_metrics', 'u_worst', u_worst)
             Logger.log('u_metrics', 'u_mean', u_mean)
             Logger.log('u_metrics', 'l3011293', u_all_bus['l3011293'])
-            Logger.log('v_metrics', 'l3011293', v_all['l3011293'])
+            for key in v_all:
+                Logger.log('v_metrics', key, v_all[key])
+            Logger.log('q_out', 'a', self.devices.q_out[:int(len(self.devices.q_out)/2)][self.devices.phases == 0])
+            Logger.log('q_out', 'b', self.devices.q_out[:int(len(self.devices.q_out)/2)][self.devices.phases == 1])
+            Logger.log('q_out', 'c', self.devices.q_out[:int(len(self.devices.q_out)/2)][self.devices.phases == 2])
+
             for reg in self.api.get_all_regulator_names():
                 Logger.log('reg_metrics', reg, self.api.get_regulator_tap(reg))
 
@@ -392,7 +397,7 @@ class Device:
         ##################################################################
         VBP_init = self.env.default_setting.T   # (2354, 5)
         self.num_devices = num_devices = VBP_init.shape[0]   # 2354
-        phases = np.zeros(num_devices)
+        phases = self.phases = np.zeros(num_devices)
         for i, device in enumerate(self.env.device_list):
             if self.env.api.load_to_phase[device[:-3]] == 'a':
                 phases[i] = 0
