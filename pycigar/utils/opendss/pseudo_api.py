@@ -155,8 +155,6 @@ class PyCIGAROpenDSSAPI(object):
     def check_simulation_converged(self):
         """Check if the solver has converged."""
         output = dss.Solution.Converged
-        if not dss.Solution.Converged():
-            print('check it out')
         if output is False:
             warnings.warn('OpenDSS does not converge.')
         return output

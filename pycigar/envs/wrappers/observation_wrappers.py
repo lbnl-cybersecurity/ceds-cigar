@@ -78,11 +78,11 @@ class CentralLocalObservationWrapper(ObservationWrapper):
     @property
     def observation_space(self):
         if self.unbalance:
-            return Box(low=-float('inf'), high=float('inf'), shape=(5 + self.a_size + self.protection_size,), dtype=np.float64)
+            return Box(low=-np.float32('inf'), high=np.float32('inf'), shape=(5 + self.a_size + self.protection_size,), dtype=np.float32)
         elif self.multi_attack:
-            return Box(low=-float('inf'), high=float('inf'), shape=(6 + self.a_size + self.protection_size,), dtype=np.float64)
+            return Box(low=-np.float32('inf'), high=np.float32('inf'), shape=(6 + self.a_size + self.protection_size,), dtype=np.float32)
         else:
-            return Box(low=-float('inf'), high=float('inf'), shape=(2 + self.a_size + self.protection_size,), dtype=np.float64)
+            return Box(low=-np.float32('inf'), high=np.float32('inf'), shape=(2 + self.a_size + self.protection_size,), dtype=np.float32)
 
     def observation(self, observation, info):
         if info:
@@ -148,7 +148,7 @@ class CentralLocalPhaseSpecificObservationWrapper(CentralLocalObservationWrapper
     @property
     def observation_space(self):
         prev_shape = self.env.observation_space.shape[0]
-        return Box(low=-float('inf'), high=float('inf'), shape=(prev_shape,), dtype=np.float64)
+        return Box(low=-np.float32('inf'), high=np.float32('inf'), shape=(prev_shape,), dtype=np.float32)
 
     def observation(self, observation, info):
 
@@ -171,7 +171,7 @@ class CentralFramestackObservationWrapper(ObservationWrapper):
         if type(obss) is Box:
             self.frames = deque([], maxlen=NUM_FRAMES)
             shp = obss.shape
-            obss = Box(low=-float('inf'), high=float('inf'), shape=(shp[0] + 1,), dtype=np.float64)
+            obss = Box(low=-np.float32('inf'), high=np.float32('inf'), shape=(shp[0] + 1,), dtype=np.float32)
         return obss
 
     def reset(self):
@@ -225,7 +225,7 @@ class AdvObservationWrapper(ObservationWrapper):
         else:
             raise NotImplementedError()
 
-        return Box(low=-float('inf'), high=float('inf'), shape=(3 + self.a_size,), dtype=np.float64)
+        return Box(low=-np.float32('inf'), high=np.float32('inf'), shape=(3 + self.a_size,), dtype=np.float32)
 
     def observation(self, observation, info):
 
@@ -324,7 +324,7 @@ class AdvFramestackObservationWrapper(ObservationWrapper):
         if type(obss) is Box:
             self.frames = deque([], maxlen=NUM_FRAMES)
             shp = obss.shape
-            obss = Box(low=-float('inf'), high=float('inf'), shape=(shp[0] + 1,), dtype=np.float64)
+            obss = Box(low=-np.float32('inf'), high=np.float32('inf'), shape=(shp[0] + 1,), dtype=np.float32)
         return obss
 
     def reset(self):
@@ -375,7 +375,7 @@ class ClusterObservationWrapper(ObservationWrapper):
 
     @property
     def observation_space(self):
-        return Box(low=-float('inf'), high=float('inf'), shape=(6 + self.a_size,), dtype=np.float64)
+        return Box(low=-np.float32('inf'), high=np.float32('inf'), shape=(6 + self.a_size,), dtype=np.float32)
 
     def observation(self, observation, info):
         obs = {}
@@ -434,7 +434,7 @@ class ClusterFramestackObservationWrapper(ObservationWrapper):
         if type(obss) is Box:
             self.frames = deque([], maxlen=NUM_FRAMES)
             shp = obss.shape
-            obss = Box(low=-float('inf'), high=float('inf'), shape=(shp[0] + 1,), dtype=np.float64)
+            obss = Box(low=-np.float32('inf'), high=np.float32('inf'), shape=(shp[0] + 1,), dtype=np.float32)
         return obss
 
     def reset(self):

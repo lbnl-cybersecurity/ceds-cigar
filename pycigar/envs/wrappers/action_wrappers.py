@@ -138,7 +138,7 @@ class SingleRelativeInitContinuousActionWrapper(ActionWrapper):
 
     @property
     def action_space(self):
-        return Box(-1.0, 1.0, (1,), dtype=np.float64)
+        return Box(np.float32(-1.0), np.float32(1.0), (1,), dtype=np.float32)
 
     def action(self, action, rl_id, *_):
         return self.INIT_ACTION[rl_id] + action
@@ -186,7 +186,7 @@ class SingleRelativeInitPhaseSpecificContinuousActionWrapper(ActionWrapper):
 
     @property
     def action_space(self):
-        return Box(-10.0, 10.0, (3,), dtype=np.float64)
+        return Box(np.float32(-10.0), np.float32(10.0), (3,), dtype=np.float32)
 
     def action(self, action, rl_id, *_):
         action = np.array(action) * ACTION_RANGE / 10.0
@@ -276,7 +276,7 @@ class GroupActionWrapper(Wrapper):
 class RelativeInitContinuousActionWrapper(ActionWrapper):
     @property
     def action_space(self):
-        return Box(-10.0, 10.0, (1,), dtype=np.float64)
+        return Box(np.float32(-10.0), np.float32(10.0), (1,), dtype=np.float32)
 
     def action(self, action, rl_id, *_):
         return self.INIT_ACTION[rl_id] + action[0] * ACTION_RANGE / 10.0

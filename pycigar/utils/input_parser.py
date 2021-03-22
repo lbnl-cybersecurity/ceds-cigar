@@ -152,8 +152,8 @@ def input_parser(misc_inputs_path, dss_path, load_solar_path, breakpoints_path=N
 
     # check protection line
     if 'protection line' in misc_inputs_data.index and 'protection threshold' in misc_inputs_data.index:
-        protection_line = str(misc_inputs_data.loc['protection line'])
-        protection_threshold = str(misc_inputs_data.loc['protection threshold'])
+        protection_line = str(misc_inputs_data.loc['protection line'].values[0])
+        protection_threshold = str(misc_inputs_data.loc['protection threshold'].values[0])
     else:
         protection_line = None
         protection_threshold = None

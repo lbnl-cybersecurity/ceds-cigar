@@ -41,10 +41,8 @@ class OpenDSSScenario(KernelScenario):
 
         sim_params = self.master_kernel.sim_params
 
-        if 'attack_randomization' in sim_params:
+        if 'attack_randomization' in sim_params and not self.attack_def_gen:
             self.attack_def_gen = pycigar_make(sim_params['attack_randomization']['generator'], start_time=start_time, end_time=end_time)
-        else:
-            self.attack_def_gen = None
 
         # overwrite multi_config to have a new start_time and end_time
         if self.attack_def_gen:
