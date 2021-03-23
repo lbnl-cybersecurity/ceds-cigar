@@ -68,7 +68,7 @@ def centralized_critic_postprocessing(policy,
 
             # also record the opponent obs and actions in the trajectory
             sample_batch[COOP_OBS + str(idx)] = other_batch[SampleBatch.CUR_OBS]
-            sample_batch[COOP_ACTION + str(idx)] = other_batch[SampleBatch.ACTIONS]
+            #sample_batch[COOP_ACTION + str(idx)] = other_batch[SampleBatch.ACTIONS]
 
         # overwrite default VF prediction with the central VF
         coop_obs_acts = []

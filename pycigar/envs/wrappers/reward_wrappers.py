@@ -390,6 +390,7 @@ class ClusterRewardWrapper(RewardWrapper):
             r_Q = 0
 
             worst_y = 0
+            worst_u = 0
             for key in self.cluster[agent]:
                 key = 'inverter_' + key
                 action = info[key]['current_action']
@@ -409,7 +410,7 @@ class ClusterRewardWrapper(RewardWrapper):
                     roa = 1
 
                 r = -(
-                    T * info[key]['u']
+                    #T * info[key]['u']
                     #+ M * info[key]['y']
                     + N * roa
                     + P * np.linalg.norm(action - self.INIT_ACTION[key])
@@ -424,6 +425,8 @@ class ClusterRewardWrapper(RewardWrapper):
                 reward += r
                 if worst_y < info[key]['y']:
                     worst_y = info[key]['y']
+                if worst_u < info[key]['u']:
+                    worst_u = info[key]['u']
             reward = reward / len(self.cluster[agent])
             r_T = r_T / len(self.cluster[agent])
             r_M = - M * worst_y
@@ -432,6 +435,7 @@ class ClusterRewardWrapper(RewardWrapper):
             r_Q = r_Q / len(self.cluster[agent])
             #print('a: {}, r_M: {}, r_N: {}, r_P: {}, r_Q: {}, r_T: {}'.format(agent, r_M, r_N, r_P, r_Q, r_T))
             self.env.unwrapped.total_reward[agent] += np.array([r_M, r_N, r_P, r_Q, r_T])
+            reward += - T * worst_u
             reward += - M * worst_y
             cluster_reward[agent] = reward
 
