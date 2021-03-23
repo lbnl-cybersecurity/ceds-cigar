@@ -87,6 +87,18 @@ class OpenDSSScenario(KernelScenario):
         self.hack_start_times = {}
         self.hack_end_times = {}
 
+
+        if 'controllers' in sim_params['scenario_config']:
+            for controller in sim_params['scenario_config']['controllers']:
+                controller_name = controller.get('name', None)
+                controller_type = controller.get('controller', None)
+                controller_configs = controller.get('custom_controller_configs', None)
+                list_devices = controller.get('list_devices', None)
+                self.master_kernel.device.add_controller(
+                    name=controller_name,
+                    controller=(controller_type, controller_configs, list_devices)
+                )
+
         # load device, load node and internal value for device
         for node in sim_params['scenario_config']['nodes']:
             if 'devices' in node:

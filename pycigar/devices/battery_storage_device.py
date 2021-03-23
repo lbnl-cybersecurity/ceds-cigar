@@ -13,15 +13,16 @@ step_buffer = 4
 
 class BatteryStorageDevice(BaseDevice):
 
-    def __init__(self, device_id, additional_params):
+    def __init__(self, device_id, additional_params, is_disable_log=False):
         """Instantiate a Storage device."""
         BaseDevice.__init__(
             self,
             device_id,
             additional_params
         )
+        self.additional_params = additional_params
 
-        self.control_setting = additional_params.get('default_control_setting', DEFAULT_CONTROL_SETTING)
+        self.control_setting = self.additional_params.get('default_control_setting', DEFAULT_CONTROL_SETTING)
 
         Logger = logger()
 
@@ -34,25 +35,52 @@ class BatteryStorageDevice(BaseDevice):
         self.p_in = deque([0, 0],maxlen=2)
         self.p_out = deque([0, 0],maxlen=2)
 
-        self.p_con = 0
-        self.p_in = 0
-        self.p_out = 0
-        self.total_capacity = 10*1000*3600
-        self.current_capacity = 0*1000*3600
-        self.current_capacity = 8.5*1000*3600
+        self.p_con = 0 # [W]
+        self.p_in = 0 # [W]
+        self.p_out = 0 # [W]
+        self.total_capacity = self.additional_params.get('total_capacity', 10)*1000*3600 # [kWh --> J]
+        self.current_capacity = self.additional_params.get('current_capacity', 10)*1000*3600 # [kWh --> J]
+        
+
+        self.max_charge_power = self.additional_params.get('max_charge_power', 1.00)*1000 # [kW --> W]
+
+        self.max_discharge_power = self.additional_params.get('max_discharge_power', 1.25)*1000 # [kW --> W]
+
+        self.max_ramp_rate = self.additional_params.get('max_ramp_rate', 0.015)*1000 # [kW/s --> W/s]
+
+        
+
+        self.max_SOC = self.additional_params.get('max_SOC', 1.0)
+        self.min_SOC = self.additional_params.get('min_SOC', 0.2)
+
+
 
         self.SOC = self.current_capacity/self.total_capacity
 
         # Lowpass filter for voltage
-        self.Ts = 1
-        self.fl = 0.25
-        lp1s, temp = signal_processing.butterworth_lowpass(1, 2 * np.pi * 1 * self.fl)
-        self.lp1s = lp1s
+        self.Ts = 1 # [s]
+        self.fl = 0.25 # [Hz]
+        self.lp1s, temp = signal_processing.butterworth_lowpass(1, 2 * np.pi * 1 * self.fl)
         self.lp1z = signal_processing.c2dbilinear(self.lp1s, self.Ts)
         self.Vlp = deque([0]*self.lp1z.shape[1],maxlen=self.lp1z.shape[1])
 
+        # Lowpass filter for power
+        # self.Ts = 1
+        # self.fl = 0.25
+        # lp1s, temp = signal_processing.butterworth_lowpass(1, 2 * np.pi * 1 * self.fl)
+        # self.lp1s = lp1s
+        # self.lp1z = signal_processing.c2dbilinear(self.lp1s, self.Ts)
+        # self.Vlp = deque([0]*self.lp1z.shape[1],maxlen=self.lp1z.shape[1])
+
+        self.custom_control_setting = {}
+
+        #print('Initialize: ' + str(self.device_id))
+        #print('current capacity: ' + str(self.current_capacity))
+        #print('SOC: ' + str(self.SOC))
+        #print('')
 
     def update(self, k):
+        
         node_id = k.device.get_node_connected_to(self.device_id)
         self.node_id = node_id
 
@@ -90,29 +118,78 @@ class BatteryStorageDevice(BaseDevice):
             if self.current_capacity <= 0:
                 self.current_capacity = self.current_capacity
 
-        if self.control_setting == 'charge':
-            self.p_in = 100000
-            self.p_in = 150000
+        ##### Make p_in, p_out deque size 2?
+
+        if self.control_setting == 'standby':
+            self.p_in = 0
             self.p_out = 0
+
+        if self.control_setting == 'charge':
+            # self.p_in = 0
+            # self.p_in = 150000
+            # self.p_in = self.max_charge_power
+            self.p_out = 0 # [W]
+
+            if 'p_in' in self.custom_control_setting:
+
+                if self.custom_control_setting['p_in']*1000 >= self.p_in + self.Ts*self.max_ramp_rate: #[W]
+                    self.p_in = self.p_in + self.Ts*self.max_ramp_rate # [W]
+                else:
+                    self.p_in = self.custom_control_setting['p_in']*1000 # [kW --> W]
+
+            if self.current_capacity >= self.max_SOC*self.total_capacity: # [J]
+
+                self.p_in = 0 #[W]
+                self.current_capacity = self.max_SOC*self.total_capacity # [J]
+
+            elif self.current_capacity + self.Ts*self.p_in >= self.max_SOC*self.total_capacity: # [J]
+
+                self.p_in = 1/self.Ts*(self.max_SOC*self.total_capacity - self.current_capacity) # [W]
+                self.current_capacity = self.max_SOC*self.total_capacity # [J]
+
+            else:
+
+                self.current_capacity = self.current_capacity + self.Ts*self.p_in # [J]
+
             self.current_capacity = self.current_capacity + self.Ts*self.p_in
             if self.current_capacity <= 0:
                 self.current_capacity = 0
             if self.current_capacity >= self.total_capacity:
                 self.current_capacity = self.total_capacity
             self.SOC = self.current_capacity/self.total_capacity
-            k.node.nodes[node_id]['PQ_injection']['P'] += self.p_in/1000
+            k.node.nodes[node_id]['PQ_injection']['P'] += 1*self.p_in/1000 # [W --> kW]
 
         if self.control_setting == 'discharge':
             self.p_in = 0
-            self.p_out = 150000
-            self.p_out = 200000
-            self.current_capacity = self.current_capacity - self.Ts*self.p_out
-            if self.current_capacity <= 0:
-                self.current_capacity = 0
-            if self.current_capacity >= self.total_capacity:
-                self.current_capacity = self.total_capacity
+            # self.p_out = 150000
+            # self.p_out = 200000
+            # self.p_out = self.max_discharge_power
+
+            if 'p_out' in self.custom_control_setting:                
+                
+                if self.custom_control_setting['p_out']*1000 >= self.p_out + self.Ts*self.max_ramp_rate: # [W]
+                    self.p_out = self.p_out + self.Ts*self.max_ramp_rate # [W]
+                else:
+                    self.p_out = self.custom_control_setting['p_out']*1000 # [kW --> W]
+
+                
+
+            if self.current_capacity <= self.min_SOC*self.total_capacity:
+
+                self.p_out = 0 # [W]
+                self.current_capacity = self.min_SOC*self.total_capacity # [J]
+
+            elif self.current_capacity - self.Ts*self.p_out < self.min_SOC*self.total_capacity:
+
+                self.p_out = 1/self.Ts*(self.current_capacity - self.min_SOC*self.total_capacity) # [W]
+                self.current_capacity = self.min_SOC*self.total_capacity # [J]
+
+            else:
+
+                self.current_capacity = self.current_capacity - self.Ts*self.p_out # [J]
+
             self.SOC = self.current_capacity/self.total_capacity
-            k.node.nodes[node_id]['PQ_injection']['P'] += -self.p_out/1000
+            k.node.nodes[node_id]['PQ_injection']['P'] += -1*self.p_out/1e3 # [W --> kW]
 
         if self.control_setting == 'voltwatt':
             if self.current_capacity >= self.total_capacity:
@@ -120,7 +197,15 @@ class BatteryStorageDevice(BaseDevice):
             if self.current_capacity <= 0:
                 self.current_capacity = self.current_capacity
 
+        # if self.control_setting == 'peak_shaving':
+        #     self.p_in = 0
+        #     self.p_out = 0
+
+
         self.SOC = self.current_capacity/self.total_capacity
+
+        # if 'pout' in self.custom_control_setting:
+        #     print(self.custom_control_setting['pout'])
 
         self.log()
 
@@ -130,9 +215,12 @@ class BatteryStorageDevice(BaseDevice):
         self.__init__(self.device_id, self.init_params)
         self.log()
 
-    def set_control_setting(self, control_setting):
+    def set_control_setting(self, control_setting, custom_control_setting=None):
         """See parent class."""
-        self.control_setting = control_setting
+        if control_setting is not None:
+            self.control_setting = control_setting
+        if custom_control_setting:
+            self.custom_control_setting = custom_control_setting
 
     def log(self):
 
@@ -143,7 +231,7 @@ class BatteryStorageDevice(BaseDevice):
         Logger.log(self.device_id, 'SOC', self.SOC)
         Logger.log(self.device_id, 'p_con', self.p_con)
         Logger.log(self.device_id, 'p_in', self.p_in)
-        Logger.log(self.device_id, 'p_out', self.p_out)
+        Logger.log(self.device_id, 'p_out', -self.p_out)
 
         if hasattr(self, 'node_id'):
             Logger.log_single(self.device_id, 'node', self.node_id)

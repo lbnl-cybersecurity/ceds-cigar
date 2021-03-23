@@ -17,7 +17,7 @@ class BaseDevice:
         of this device.
     """
 
-    def __init__(self, device_id, additional_params):
+    def __init__(self, device_id, additional_params, is_disable_log=False):
         """Instantiate the base device.
 
         Parameters
@@ -36,6 +36,7 @@ class BaseDevice:
             additional_params["percentage_control"] = self.percentage_control
 
         self.init_params = copy.deepcopy(additional_params)
+        self.is_disable_log = is_disable_log
 
     def set_control_setting(self, control_setting):
         """Set the control setting of the device to a new value.

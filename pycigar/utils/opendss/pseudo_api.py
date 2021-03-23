@@ -187,7 +187,7 @@ class PyCIGAROpenDSSAPI(object):
         return puvoltage
 
     def get_total_power(self):
-        return np.array(dss.Circuit.TotalPower())
+        return -np.array(dss.Circuit.TotalPower())
 
     def get_losses(self):
         return np.array(dss.Circuit.Losses())
