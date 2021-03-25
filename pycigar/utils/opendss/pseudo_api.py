@@ -29,44 +29,6 @@ class PyCIGAROpenDSSAPI(object):
     def simulation_command(self, command):
         """Run an custom command on simulator."""
         dss.run_command(command)
-        self.all_bus_name = dss.Circuit.AllBusNames()
-
-        self.offsets = {}
-        for k, v in enumerate(dss.Circuit.AllNodeNames()):
-            self.offsets[v] = k
-        self.loads = {}
-        self.load_to_bus = {}
-        for load in self.get_node_ids():
-            dss.Loads.Name(load)
-            bus_phase = dss.CktElement.BusNames()[0].split('.')
-            if len(bus_phase) == 1:
-                bus_phase.extend(['1','2','3'])
-            self.loads[load] = [['.'.join([bus_phase[0], i]) for i in bus_phase[1:] if i != '0'], dss.CktElement.NumPhases()]
-            self.load_to_bus[load] = bus_phase[0]
-
-        #  current
-        self.current_offsets = {}
-        pos = 0
-        for pd in dss.PDElements.AllNames():
-            dss.Circuit.SetActiveElement(pd)
-            pd_type, pd_name = pd.split('.')
-            if pd_type == 'Line':
-                self.current_offsets[pd_name] = [pos, dss.CktElement.NumPhases()]
-            pos += len(dss.CktElement.CurrentsMagAng())
-
-        self.ibase = {}
-        for line in self.current_offsets.keys():
-            dss.Lines.Name(line)
-            bus = dss.Lines.Bus1()
-            dss.Circuit.SetActiveBus(bus)
-            IBase = SBASE/(dss.Bus.kVBase()*1000)
-            self.ibase[line] = IBase
-
-        self.load_to_phase = {}
-        for load in self.get_node_ids():
-            dss.Loads.Name(load)
-            bus_phase = dss.CktElement.BusNames()[0].split('.')[0][-1]
-            self.load_to_phase[load] = bus_phase
 
     def start_api(self, **kwargs):
         self.all_bus_name = dss.Circuit.AllBusNames()
@@ -102,11 +64,13 @@ class PyCIGAROpenDSSAPI(object):
             IBase = SBASE/(dss.Bus.kVBase()*1000)
             self.ibase[line] = IBase
 
-        self.load_to_phase = {}
+        self.load_to_bus1 = {}
+        self.load_to_numphases = {}
         for load in self.get_node_ids():
             dss.Loads.Name(load)
-            bus_phase = dss.CktElement.BusNames()[0].split('.')[0][-1]
-            self.load_to_phase[load] = bus_phase
+            bus_phase = dss.CktElement.BusNames()[0]
+            self.load_to_bus1[load] = bus_phase
+            self.load_to_numphases[load] = dss.CktElement.NumPhases()
 
         split_phase = kwargs.get('split_phase', False)
         if split_phase:
@@ -125,6 +89,12 @@ class PyCIGAROpenDSSAPI(object):
                 dss.Circuit.SetActiveBus(bus)
                 phase = dss.Bus.Nodes()
                 self.loads[load] = [['.'.join([bus, str(i)]) for i in phase if str(i) != '0'], len(phase)]
+
+            self.load_to_phase = {}
+            for load in self.get_node_ids():
+                dss.Loads.Name(load)
+                bus_phase = dss.CktElement.BusNames()[0].split('.')[0][-1]
+                self.load_to_phase[load] = bus_phase
 
             self.all_bus_name = list(bus_to_bus.values())
 
