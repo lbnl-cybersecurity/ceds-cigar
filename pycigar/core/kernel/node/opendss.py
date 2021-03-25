@@ -45,9 +45,9 @@ class OpenDSSNode(KernelNode):
         else:
             for node in self.nodes:
                 self.kernel_api.set_node_kw(node, self.nodes[node]["load"][self.master_kernel.time])
-                self.kernel_api.set_node_kw('{}_pv'.format(node), self.nodes[node]["PQ_injection"]['P'])
+                self.kernel_api.set_node_kw('{}_dummy'.format(node), self.nodes[node]["PQ_injection"]['P'])
                 self.kernel_api.set_node_kvar(node, self.nodes[node]["load"][self.master_kernel.time] * PF_CONVERTED)
-                self.kernel_api.set_node_kvar('{}_pv'.format(node), self.nodes[node]["PQ_injection"]['Q'])
+                self.kernel_api.set_node_kvar('{}_dummy'.format(node), self.nodes[node]["PQ_injection"]['Q'])
 
                 self.log(
                     node,
