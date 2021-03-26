@@ -111,7 +111,7 @@ def input_parser(misc_inputs_path, dss_path, load_solar_path, breakpoints_path=N
 
         'hack_setting': {'default_control_setting': [1.039, 1.04, 1.04, 1.041, 1.042]},
         'env_config': {'clip_actions': True, 'sims_per_step': 30},
-        'attack_randomization': {'generator': 'AttackDefinitionGenerator'},
+        'attack_randomization': {'generator': 'AttackGenerator'},
         'simulation_config': {
             'network_model_directory': file_dss_path,
             'custom_configs': {
