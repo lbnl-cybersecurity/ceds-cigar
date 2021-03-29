@@ -171,6 +171,8 @@ class CentralEnv(Env):
         Logger = logger()
         u_worst, v_worst, u_mean, u_std, v_all, u_all_bus, self.load_to_bus = self.k.kernel_api.get_worst_u_node()
 
+        for bus in u_all_bus:
+            Logger.log('u_metrics', bus, u_all_bus[bus])
         Logger.log('u_metrics', 'u_worst', u_worst)
         Logger.log('u_metrics', 'u_mean', u_mean)
         Logger.log('u_metrics', 'u_std', u_std)
