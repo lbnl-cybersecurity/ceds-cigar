@@ -1141,6 +1141,21 @@ def plot_cluster(log_dict, custom_metrics, epoch='', unbalance=False, multiagent
     ax[2, 4].set_ylim([0, 0.5])
     ax[3, 4].set_ylim([-0.1, 0.1])
 
+    reward_agents = [ra for ra in log_dict.keys() if 'reward_' in ra]
+    for i, ra in enumerate(reward_agents):
+        component_y = np.array(log_dict[ra]['M'])
+        component_u = np.array(log_dict[ra]['T'])
+        component_a = np.array(log_dict[ra]['N'])
+        component_i = np.array(log_dict[ra]['P'])
+        component_p = np.array(log_dict[ra]['Q'])
+
+        ax[4, i+1].plot(-component_y, label='y')
+        ax[4, i+1].plot(-component_u, label='u')
+        ax[4, i+1].plot(-component_a, label='a')
+        ax[4, i+1].plot(-component_i, label='i')
+        ax[4, i+1].plot(-component_p, label='p')
+        #ax[4, i+1].plot(-(component_y+component_u+component_a+component_i+component_p), label='abs_total')
+
     regs = [k for k in log_dict if 'reg' in k]
     for reg in regs:
         ax[4, 0].plot(log_dict[reg]['tap_number'])
@@ -1151,7 +1166,7 @@ def plot_cluster(log_dict, custom_metrics, epoch='', unbalance=False, multiagent
     for row in ax:
         for a in row:
             a.grid(b=True, which='both')
-            a.legend(loc=1, ncol=2)
+            a.legend(loc=1, ncol=1)
 
     plt.tight_layout()
     plt.subplots_adjust(top=0.95)

@@ -428,15 +428,24 @@ class ClusterRewardWrapper(RewardWrapper):
                 if worst_u < info[key]['u']:
                     worst_u = info[key]['u']
             reward = reward / len(self.cluster[agent])
-            r_T = r_T / len(self.cluster[agent])
-            r_M = - M * worst_y
+
             r_N = r_N / len(self.cluster[agent])
             r_P = r_P / len(self.cluster[agent])
             r_Q = r_Q / len(self.cluster[agent])
             #print('a: {}, r_M: {}, r_N: {}, r_P: {}, r_Q: {}, r_T: {}'.format(agent, r_M, r_N, r_P, r_Q, r_T))
+            r_T = - T * worst_u
+            r_M = - M * worst_y
+            reward += r_T
+            reward += r_M
             self.env.unwrapped.total_reward[agent] += np.array([r_M, r_N, r_P, r_Q, r_T])
-            reward += - T * worst_u
-            reward += - M * worst_y
             cluster_reward[agent] = reward
+            if not self.k.sim_params['is_disable_log']:
+                Logger = logger()
+                for _ in range(self.env.k.sim_params['env_config']['sims_per_step']):
+                    Logger.log('reward_{}'.format(agent), 'M', r_M)
+                    Logger.log('reward_{}'.format(agent), 'N', r_N)
+                    Logger.log('reward_{}'.format(agent), 'P', r_P)
+                    Logger.log('reward_{}'.format(agent), 'Q', r_Q)
+                    Logger.log('reward_{}'.format(agent), 'T', r_T)
 
         return cluster_reward
