@@ -66,11 +66,21 @@ class PyCIGAROpenDSSAPI(object):
 
         self.load_to_bus1 = {}
         self.load_to_numphases = {}
+        self.load_to_phase = {}
         for load in self.get_node_ids():
             dss.Loads.Name(load)
             bus_phase = dss.CktElement.BusNames()[0]
             self.load_to_bus1[load] = bus_phase
             self.load_to_numphases[load] = dss.CktElement.NumPhases()
+            if self.load_to_numphases[load] == 1:
+                if bus_phase.split('.')[1] == '1':
+                    self.load_to_phase[load] = 'a'
+                elif bus_phase.split('.')[1] == '2':
+                    self.load_to_phase[load] = 'b'
+                elif bus_phase.split('.')[1] == '3':
+                    self.load_to_phase[load] = 'c'
+            else:
+                self.load_to_phase[load] = '0'
 
         split_phase = kwargs.get('split_phase', False)
         if split_phase:

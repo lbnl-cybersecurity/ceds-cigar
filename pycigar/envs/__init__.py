@@ -15,5 +15,6 @@ __all__ = [
     'CentralControlPhaseSpecificContinuousPVInverterEnv',
     'MultiAttackCentralControlPhaseSpecificPVInverterEnv',
     'ExpCentralControlPhaseSpecificPVInverterEnv',
-    'NewExpCentralControlPhaseSpecificPVInverterEnv'
+    'NewExpCentralControlPhaseSpecificPVInverterEnv',
+    'SimpleEnv'
 ]
