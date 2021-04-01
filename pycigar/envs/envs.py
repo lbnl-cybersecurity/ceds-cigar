@@ -89,9 +89,9 @@ class SimpleEnv(gym.Env):
 
         self.sim_params = sim_params
         df = pd.read_csv(sim_params['load_solar_path'], delimiter=',')
-        load = df.iloc[:,:int(len(df.columns)/2)]*self.LOAD_FACTOR
+        load = df.iloc[:,:int(len(df.columns)/2)]
         self.load = load.reindex(sorted(load.columns), axis=1).to_numpy()
-        solar = df.iloc[:,-int(len(df.columns)/2):]*self.SOLAR_FACTOR
+        solar = df.iloc[:,-int(len(df.columns)/2):]
         self.solar = solar.reindex(sorted(solar.columns), axis=1).to_numpy()
 
         df = pd.read_csv(sim_params['breakpoints_path'], delimiter=',')
