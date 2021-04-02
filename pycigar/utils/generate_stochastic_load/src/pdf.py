@@ -18,53 +18,17 @@ def best_fit_distribution(data, bins=200, ax=None):
     y, x = np.histogram(data, bins=bins, density=True)
     x = (x + np.roll(x, -1))[:-1] / 2.0
 
-    # Distributions to check
-    DISTRIBUTIONS = [st.norm]
+    params = st.norm.fit(data)
 
-    # Best holders
-    best_distribution = st.norm
-    best_params = (0.0, 1.0)
-    best_sse = np.inf
+    # # Separate parts of parameters
+    # arg = params[:-2]
+    # loc = params[-2]
+    # scale = params[-1]
 
-    # Estimate distribution parameters from data
-    for distribution in DISTRIBUTIONS:
+    # # Calculate fitted PDF and error with fit in distribution
+    # pdf = st.norm.pdf(x, loc=loc, scale=scale, *arg)
 
-        # Try to fit the distribution
-        try:
-            # Ignore warnings from data that can't be fit
-            with warnings.catch_warnings():
-                warnings.filterwarnings('ignore')
-
-                # fit dist to data
-                params = distribution.fit(data)
-
-                # Separate parts of parameters
-                arg = params[:-2]
-                loc = params[-2]
-                scale = params[-1]
-
-                # Calculate fitted PDF and error with fit in distribution
-                pdf = distribution.pdf(x, loc=loc, scale=scale, *arg)
-                sse = np.sum(np.power(y - pdf, 2.0))
-
-                # if axis pass in add to plot
-                try:
-                    if ax:
-                        pd.Series(pdf, x).plot(ax=ax)
-
-                except Exception:
-                    pass
-
-                # identify if this distribution is better
-                if best_sse > sse > 0:
-                    best_distribution = distribution
-                    best_params = params
-                    best_sse = sse
-
-        except Exception:
-            pass
-
-    return (best_distribution.name, best_params)
+    return (st.norm.name, params)
 
 
 def make_pdf(dist, params, size=10000):
@@ -126,4 +90,5 @@ def normalize_data(time_series, order):
         ax.set_ylabel('Frequency')
 
         i += 1
+
     return pdfs, std_of_nonnormal_pdfs

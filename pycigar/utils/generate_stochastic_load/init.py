@@ -1,18 +1,21 @@
+import pandas as pd
+import numpy as np 
+
 from src.pdf import normalize_data
 from src.cdf import make_cdf, compare_cdfs
 from src.stochastic_computations import generate_mean_reversion_rate, generate_polynomial, euler_maruyama_method
 from src.autocorrelation import autocorrelation, summed_autocorrelation
 
 
-def generate_stochastic_load(f, ts, input_time, output_time, order):
+def generate_stochastic_load(f, ts, input_time, output_time, order, fn):
     # Called by user
     for j in range(len(output_time)):
         mrr, em_mu, em_x, cdfs_data = resample_meaned_data(
-            f, ts, input_time, output_time[j], order)
+            f, ts, input_time, output_time[j], order, fn)
     return mrr, em_mu, em_x, cdfs_data
 
 
-def resample_meaned_data(file, time_series, input_time, output_time, order):
+def resample_meaned_data(file, time_series, input_time, output_time, order, fn):
     # User never calls
     """
     
@@ -58,4 +61,9 @@ def resample_meaned_data(file, time_series, input_time, output_time, order):
     print('compare cdfs')
     compare_cdfs(cdfs_real, cdfs_data, order)
 
-    return mrr, em_mu, em_x, cdfs_data
+    em_mu_df = pd.DataFrame(np.array(em_mu)[:, :, 0]).transpose()
+    em_x_df = pd.DataFrame(np.array(em_x)[:, :, 0]).transpose()
+    em_mu_df.columns = fn
+    em_x_df.columns = fn
+
+    return mrr, em_mu_df, em_x_df, cdfs_data
