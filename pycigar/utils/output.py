@@ -933,10 +933,11 @@ def plot_new(log_dict, custom_metrics, epoch='', unbalance=False, multiagent=Fal
             ax[2, 0].plot(translation, label='trans. {}'.format(k))
             #ax[4, 0].plot(slope, label='RL slope (a2-a1) ({})'.format(k))
 
-        ax[1, 0].plot(log_dict['u_metrics']['u_worst'], label='unbalance observer')
-        ax[1, 0].plot(log_dict['u_metrics']['u_mean'], label='unbalance mean')
+        ax[1, 0].plot(np.array(log_dict['u_metrics']['u_worst'])*100, label='unbalance observer')
+        ax[1, 0].plot(np.array(log_dict['u_metrics']['u_mean'])*100, label='unbalance mean')
         #ax[1, 0].plot(log_dict['inverter_s701a']['u'], label='unbalance mean')
         ax[1, 0].fill_between(np.array(log_dict['u_metrics']['u_mean'])+np.array(log_dict['u_metrics']['u_std']), np.array(log_dict['u_metrics']['u_mean'])-np.array(log_dict['u_metrics']['u_std']), facecolor='orange', alpha=0.5)
+        ax[1, 0].set_ylim([0, 8])
         if multiagent:
             phases = ['a', 'b', 'c']
             for k in log_dict:

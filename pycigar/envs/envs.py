@@ -334,7 +334,8 @@ class SimpleEnv(gym.Env):
         r = 0
         r += - self.sim_params['M'] * state['u_worst']
         r += - self.sim_params['N'] * roa
-        r += - self.sim_params['P'] * np.mean(np.linalg.norm(self.devices.VBP[:2354, :] - self.devices.VBP_init[:2354, :], axis = 1))
+        num_dev = int(self.devices.VBP.shape[0]/2)
+        r += - self.sim_params['P'] * np.mean(np.linalg.norm(self.devices.VBP[:num_dev, :] - self.devices.VBP_init[:num_dev, :], axis = 1))
         r += - self.sim_params['Q'] * (1 - abs(state['p_set_p_max'])) ** 2
 
         self.old_action = action
@@ -383,7 +384,8 @@ class SimpleEnv(gym.Env):
             Logger.log('network', 'substation_power', self.api.get_total_power())
             Logger.log('u_metrics', 'u_worst', u_worst)
             Logger.log('u_metrics', 'u_mean', u_mean)
-            Logger.log('u_metrics', '701', u_all_bus['701'])
+            for bus in u_all_bus:
+                Logger.log('u_metrics', bus, u_all_bus[bus])
             for key in v_all:
                 Logger.log('v_metrics', key, v_all[key])
             Logger.log('q_out', 'a', self.devices.q_out[:int(len(self.devices.q_out)/2)][self.devices.phases == 0])
