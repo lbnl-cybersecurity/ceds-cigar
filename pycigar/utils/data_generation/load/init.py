@@ -44,7 +44,7 @@ def resample_meaned_data(file, time_series, input_time, output_time, order, fn):
         meaned_data.append(file[k].resample(output_time, label='right').mean())
 
     #############
-    print('math junk \n \n')
+    print('math\n \n')
     mrr, em_mu, em_x, index_vals, meaned_data = generate_mean_reversion_rate(
         file, output_time, input_time, order, spl)
     cdfs_real, all_autocor = euler_maruyama_method_old(
@@ -68,7 +68,7 @@ def resample_meaned_data(file, time_series, input_time, output_time, order, fn):
 
 
 class LoadGenerator:
-    def __init__(self, data, input_time='15T', output_time='1S'):
+    def __init__(self, data, IEEE_load, input_time='15T', output_time='1S'):
         order = self.order_file = [int(d.split('/')[-1].split('_')[0]) for d in data]
         self.input_time = input_time
         self.output_time = output_time
@@ -76,19 +76,48 @@ class LoadGenerator:
         file_diff = [] # resampled data
         time_series = [] # resampled data as a series
 
+        max_IEEE_load = max(IEEE_load) * 10**3 
+        self.scale_factor = max_IEEE_load / (19 * 10**6) 
+
+        self.adjusted_load = np.zeros((len(IEEE_load)))
+
+        for load in range(len(IEEE_load)):
+            # take the IEEE loads and convert them to be of similar scale to the 7, 10, 12, and 19 MW 
+            # produces a new "order" array
+            self.adjusted_load[load] = IEEE_load[load] / self.scale_factor 
+
         for i, f in enumerate(data):
             file.append(pd.read_csv(f, index_col = 0, header = None,names=['P'], parse_dates=True, infer_datetime_format=True))
             file_diff.append(file[i].resample(output_time).mean().diff(1).dropna())
             time_series.append(file_diff[i].iloc[:,0])
 
-        # calculate em_mu...
-        pdfs, std_of_nonnormal_pdfs = normalize_data(time_series, order)
-        self.spl = generate_polynomial(pdfs, order, std_of_nonnormal_pdfs)
+        def closest(lst, K):
+            return lst.index(lst[min(range(len(lst)), key = lambda i: abs(lst[i]-K))])
+
+        self.file_idx = np.zeros((len(self.adjusted_load)))
+        adjusted_time_series = []
+        adjusted_file = []
+        for load in range(len(self.adjusted_load)):
+            self.file_idx[load] = closest(order, self.adjusted_load[load]) #pick the file that is closest to the scaled dss load
+            adjusted_time_series.append(time_series[self.file_idx[load]] / self.scale_factor) #scale the nearest time series data 
+            adjusted_file.append(file[self.file_idx[load]] / self.scale_factor) #scale the nearest file
+
+        
+        #calculate em_mu
+        pdfs, std_of_nonnormal_pdfs = normalize_data(adjusted_time_series, self.adjusted_load)#time_series, order)
+        self.spl = generate_polynomial(pdfs, self.adjusted_load, std_of_nonnormal_pdfs)
         meaned_data = []
-        for i, f in enumerate(file):
+        for i, f in enumerate(adjusted_file):
             meaned_data.append(f.resample(output_time, label='right').mean())
-        self.mrr, self.em_mu, self.em_x, self.index_vals, _ = generate_mean_reversion_rate(file, output_time, input_time, order, self.spl)
+        #self.mrr, self.em_mu, self.em_x, self.index_vals, _ = generate_mean_reversion_rate(file, output_time, input_time, order, self.spl)
+        self.mrr, self.em_mu, self.em_x, self.index_vals, _ = \
+                generate_mean_reversion_rate(adjusted_file, output_time, input_time, self.adjusted_load, self.spl)
 
     def generate_load(self, order):
-        all_autocor = euler_maruyama_method(self.em_mu, self.em_x, order, self.mrr, self.output_time, self.index_vals, self.spl, self.order_file)
+        all_autocor = euler_maruyama_method(self.em_mu, self.em_x, self.adjusted_load, self.mrr, self.output_time, self.index_vals, self.spl, self.order_file)
+         
+        for i in range(len(all_autocor)):
+            all_autocor[i] = all_autocor[i] * self.scale_factor
+
+
         return all_autocor
