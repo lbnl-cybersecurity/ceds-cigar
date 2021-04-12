@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.interpolate import splev, splrep
-from src.cdf import make_cdf
+from pycigar.utils.data_generation.load.src.cdf import make_cdf
 
 # Stochastic Load Computations
 
@@ -85,7 +85,7 @@ def generate_mean_reversion_rate(files, output_time, input_time, order, spl):
 
 # Source: https://en.wikipedia.org/wiki/Euler%E2%80%93Maruyama_method
 
-def euler_maruyama_method(em_mu, em_x, order, mrr, output_time, index_values,  spl):
+def euler_maruyama_method(em_mu, em_x, order, mrr, output_time, index_values, spl, order_file):
     """
     Runs the Euler Maruyama method on different loading levels
 
@@ -100,15 +100,38 @@ def euler_maruyama_method(em_mu, em_x, order, mrr, output_time, index_values,  s
     """
     all_autoc = []
 
+    def calculate_mrr(em_mu, em_x, order):
+        # Forming the Y's (contingent on std_dev)
+        Y = np.array([])
+        x = em_x
+        mu = em_mu
+
+        std_dev = splev(order, spl)
+
+        for i in range(len(x)):
+            Y = np.append(Y, (mu[i][0] - x[i][0]) / (std_dev**2))
+
+        # Mean reversion rate
+        num = 0
+        denom = 0
+        for j in range(len(x)-1):
+            num += Y[j] * (x[j+1][0] - mu[j+1][0])
+            denom += Y[j] * (x[j][0] - mu[j][0])
+        mean_rev_rate = -np.log(num/denom)
+        return mean_rev_rate
+
     for i in range(len(order)):
         k = np.random.randint(0, len(em_mu))
+        scale = order_file[k]/order[i]
+        mu = np.array(em_mu[k])/scale
+        x = np.array(em_x[k])/scale
         t_init = 0
         t_end = len(em_x[k]) - 1
         N = len(em_x[k]) - 1
         dt = 1
-        x_init = em_x[k][0]
+        x_init = x[0]
 
-        c_theta = float(mrr[k])
+        c_theta = float(calculate_mrr(mu, x, order[i]))
         c_sigma = splev(order[i], spl)
 
         def mu_funct(y, t, c_mu):
@@ -133,11 +156,11 @@ def euler_maruyama_method(em_mu, em_x, order, mrr, output_time, index_values,  s
         # plt.title("Performing " + str(num_sims) + " simulations using the Euler Maruyama Method on the "
         #           + str(order[k])+" MW data ")
 
-        for i in range(1, ts.size):
-            t = (i-1) * dt
-            x = xs[i-1]
-            xs[i] = x + mu_funct(x, t, em_mu[k][i]) * \
-                dt + sigma(x, t) * dW(dt)
+        for j in range(1, ts.size):
+            t = (j-1) * dt
+            xj = xs[j-1]
+            xs[j] = xj + mu_funct(xj, t, mu[j]) * \
+                dt + sigma(xj, t) * dW(dt)
 
             # plt.plot(ts, xs/1e3, linewidth=1)
 
@@ -158,6 +181,81 @@ def euler_maruyama_method(em_mu, em_x, order, mrr, output_time, index_values,  s
     #cdfs_real = make_cdf(all_xs_diff, order, "Realized")
     return all_autoc
 
+def euler_maruyama_method_old(em_mu, em_x, order, mrr, output_time, index_values,  spl):
+    """
+    Runs the Euler Maruyama method on different loading levels
+    Args: 
+    em_mu (list of arrays) - array of the mean, zero-order hold , each index is at a different loading level
+    em_x (list of arrays) - array of the demand data, condensed based on upsampling, each index is at a different loading level
+    p (function) - polynomial function representing standard deviation
+    mrr (array of integers) - contains the mean reversion rate for the different loading levels
+    output_time (string) - represents the output time series, ex. '1S'
+    index_values (list of arrays) - represents the time related to each data point, each index is at a different loading level
+    order (list) - loading levels
+    """
+    all_xs_diff = []
+    all_autoc = []
+    for k in range(len(em_mu)):
+        num_sims = 3  # Display five runs
+
+        t_init = 0
+        t_end = len(em_x[k]) - 1
+        N = len(em_x[k]) - 1
+        dt = 1
+        x_init = em_x[k][0]
+
+        c_theta = float(mrr[k])
+        #c_mu    = 0
+        c_sigma = splev(order[k], spl)
+
+        def mu_funct(y, t, c_mu):
+            """Implement the Ornstein–Uhlenbeck mu."""  # = \theta (\mu-Y_t)
+
+            return c_theta * (c_mu - y)
+
+        def sigma(y, t):
+            """Implement the Ornstein–Uhlenbeck sigma."""  # = \sigma
+            return c_sigma
+
+        def dW(delta_t):
+            """Sample a random number at each call."""
+            return np.random.normal(loc=0.0, scale=np.sqrt(delta_t))
+
+        ts = np.arange(t_init, t_end, dt)
+        xs = np.zeros(N)
+
+        xs[0] = x_init
+        plt.figure(figsize=(10, 7))
+        plt.xlabel("Time step (seconds)")
+        plt.ylabel("Active Power [kW]")
+        plt.title("Performing " + str(num_sims) + " simulations using the Euler Maruyama Method on the "
+                  + str(order[k])+" MW data ")
+
+        for _ in range(1, num_sims+1):
+            for i in range(1, ts.size):
+                t = (i-1) * dt
+                x = xs[i-1]
+                xs[i] = x + mu_funct(x, t, em_mu[k][i]) * \
+                    dt + sigma(x, t) * dW(dt)
+
+            plt.plot(ts, xs/1e3, linewidth=1)
+
+        plt.plot(em_mu[k] / 1e3, lw=3, color='y')
+        plt.legend(('Stochastic Load Profile 1', 'Stochastic Load Profile 2',
+                    'Stochastic Load Profile 3', 'Expected 15 minute demand'))
+        plt.show()
+
+        all_xs_diff.append(pd.Series(xs).diff(1).dropna())
+
+        write_EM2_csv(pd.Series(xs).dropna(),
+                      index_values[k], output_time, order[k], N)
+        #write_EM2_csv(pd.Series(xs).dropna(), output_time, order[k], N)
+        eM_autocor = pd.Series(xs)
+        eM_autocor.index = index_values[k][:N]
+        all_autoc.append(eM_autocor)
+
+    cdfs_real = make_cdf(all_xs_diff, order, "Realized")
+    return cdfs_real, all_autoc
 
 def write_EM2_csv(xs, iv, output_time, loading_level, N):
     """

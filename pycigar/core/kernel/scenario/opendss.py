@@ -1,7 +1,8 @@
 from pycigar.core.kernel.scenario import KernelScenario
 from pycigar.devices import PVDevice
 from pycigar.devices import RegulatorDevice
-
+import opendssdirect as dss
+from pycigar.utils.data_generation.load import LoadGenerator
 from pycigar.controllers import AdaptiveInverterController
 from pycigar.controllers import FixedController
 from pycigar.controllers import AdaptiveFixedController
@@ -29,6 +30,7 @@ class OpenDSSScenario(KernelScenario):
         self.snapshot_randomization = {}
         # capture the attack generator to make sure it is only init once
         self.attack_def_gen = None
+        self.load_generator = None
 
     def pass_api(self, kernel_api):
         """See parent class."""
@@ -224,13 +226,27 @@ class OpenDSSScenario(KernelScenario):
             load_scaling_factor = sim_params['scenario_config']['custom_configs']['load_scaling_factor']
 
             network_data_directory_path = sim_params['scenario_config']['network_data_directory']
+            use_load_generator = sim_params['scenario_config']['use_load_generator']
 
             profile = pd.read_csv(network_data_directory_path)
             profile.columns = map(str.lower, profile.columns)
+            load_df = profile
+
+            if use_load_generator:
+                if self.load_generator is None:
+                    data = '/home/toanngo/Documents/GitHub/ceds-cigar/pycigar/utils/data_generation/load/data'
+                    data = [data + '/7_MWp_P.csv', data + '/10_MWp_P.csv', data + '/12_MWp_P.csv', data + '/19_MWp_P.csv']
+                    self.load_generator = LoadGenerator(data)
+                df = dss.utils.loads_to_dataframe()
+                load_levels = (df['kW']/1000).tolist()
+                load_names = df.index.tolist()
+                load_profiles = self.load_generator.generate_load(load_levels)
+                profile_gen = pd.DataFrame(np.array([i.values for i in load_profiles]).T, columns=load_names)/1000 #pd.DataFrame(load_profiles, columns=load_names)/1000
+                load_df = profile_gen
 
             for node in sim_params['scenario_config']['nodes']:
                 node_id = node['name']
-                load = np.array(profile[node_id])[start_time:end_time] * load_scaling_factor
+                load = np.array(load_df[node_id])[start_time:end_time] * load_scaling_factor
                 self.master_kernel.node.set_node_load(node_id, load)
             solar_scaling_factor = sim_params['scenario_config']['custom_configs']['solar_scaling_factor']
             list_pv_device_ids = self.master_kernel.device.get_pv_device_ids()

@@ -16,6 +16,7 @@ data = [data + '/7_MWp_P.csv', data + '/10_MWp_P.csv', data + '/12_MWp_P.csv', d
 # load_gen = LoadGenerator(data, [7, 10, 12, 19])
 
 #data = [data + '/7_MWp_P.csv', data + '/10_MWp_P.csv', data + '/12_MWp_P.csv']
-load_gen = LoadGenerator(data, [7, 10, 12, 19])
+load_gen = LoadGenerator(data)
 
-load_gen.generate_load(['7', '10', '12', '19'], [7, 10, 12, 19])
+a = load_gen.generate_load([7, 0.14])
+print('ahihi')
