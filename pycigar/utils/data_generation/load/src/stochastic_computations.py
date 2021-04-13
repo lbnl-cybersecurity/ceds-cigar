@@ -279,23 +279,12 @@ def generate_polynomial(pdfs, order, std_of_nonnormal_pdfs):
     Saves this curve to a pickle file
     Plots curve
     """
+    # must be ordered on x-coordinates to use splrep 
+    zipped_lists = zip(order, std_of_nonnormal_pdfs)
+    sorted_pairs = sorted(zipped_lists)
+    tuples = zip(*sorted_pairs)
+    list1, list2 = [ list(tuple) for tuple in  tuples]
 
-    spl = splrep(order, std_of_nonnormal_pdfs)
-
-
-    # pdfs_std = []
-    # for i in range(len(pdfs)):
-    #     pdfs_std.append(np.std(pdfs[i].index.tolist()))
-
-    # plt.figure()
-    # x2 = np.linspace(order[0], order[len(order)-1], 200)
-    # y2 = splev(x2, spl)
-    # y2 = np.true_divide(y2, 1000)
-    # pdfs_std = np.true_divide(std_of_nonnormal_pdfs, 1000)
-    # plt.plot(order, pdfs_std, 'o', x2, y2)
-    # plt.title('σ curve given different loading levels')
-    # plt.xlabel('Loading Level [MWp]')
-    # plt.ylabel('σ [kW]')
-    # plt.show()
+    spl = splrep(list1, list2)
 
     return spl
