@@ -53,8 +53,7 @@ class BatteryStorageDevice(BaseDevice):
         self.max_SOC = self.additional_params.get('max_SOC', 1.0)
         self.min_SOC = self.additional_params.get('min_SOC', 0.2)
 
-
-
+        self.bat_cycle = 0
         self.SOC = self.current_capacity/self.total_capacity
 
         # Lowpass filter for voltage
@@ -109,6 +108,8 @@ class BatteryStorageDevice(BaseDevice):
                 self.current_capacity = 0
             if self.current_capacity >= self.total_capacity:
                 self.current_capacity = self.total_capacity
+            
+            self.bat_cycle += abs(self.SOC - self.current_capacity/self.total_capacity)
             self.SOC = self.current_capacity/self.total_capacity
 
         if self.control_setting == 'external':
@@ -156,6 +157,8 @@ class BatteryStorageDevice(BaseDevice):
                 self.current_capacity = 0
             if self.current_capacity >= self.total_capacity:
                 self.current_capacity = self.total_capacity
+            
+            self.bat_cycle += abs(self.SOC - self.current_capacity/self.total_capacity)
             self.SOC = self.current_capacity/self.total_capacity
             k.node.nodes[node_id]['PQ_injection']['P'] += 1*self.p_in/1000 # [W --> kW]
 
@@ -188,6 +191,7 @@ class BatteryStorageDevice(BaseDevice):
 
                 self.current_capacity = self.current_capacity - self.Ts*self.p_out # [J]
 
+            self.bat_cycle += abs(self.SOC - self.current_capacity/self.total_capacity)
             self.SOC = self.current_capacity/self.total_capacity
             k.node.nodes[node_id]['PQ_injection']['P'] += -1*self.p_out/1e3 # [W --> kW]
 
@@ -201,7 +205,7 @@ class BatteryStorageDevice(BaseDevice):
         #     self.p_in = 0
         #     self.p_out = 0
 
-
+        self.bat_cycle += abs(self.SOC - self.current_capacity/self.total_capacity)
         self.SOC = self.current_capacity/self.total_capacity
 
         # if 'pout' in self.custom_control_setting:
@@ -229,6 +233,7 @@ class BatteryStorageDevice(BaseDevice):
         Logger.log(self.device_id, 'control_setting', self.control_setting)
         Logger.log(self.device_id, 'current_capacity', self.current_capacity)
         Logger.log(self.device_id, 'SOC', self.SOC)
+        Logger.log(self.device_id, 'bat_cycle', self.bat_cycle/2)
         Logger.log(self.device_id, 'p_con', self.p_con)
         Logger.log(self.device_id, 'p_in', self.p_in)
         Logger.log(self.device_id, 'p_out', -self.p_out)
