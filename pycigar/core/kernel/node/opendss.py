@@ -23,6 +23,8 @@ class OpenDSSNode(KernelNode):
         node_ids = self.kernel_api.get_node_ids()
         for node in node_ids:
             self.nodes[node] = {"voltage": None, "load": None, "PQ_injection": {"P": 0, "Q": 0}}
+            # add dummy node for PV
+            self.kernel_api.simulation_command('New Load.{}_dummy like={} Bus1={} phase={} vminpu=0.8 vmaxpu=1.2 mode=1'.format(node, node, self.kernel_api.load_to_bus1[node], self.kernel_api.load_to_numphases[node]))
 
     def update(self, reset):
         """See parent class."""
@@ -33,8 +35,6 @@ class OpenDSSNode(KernelNode):
                 self.nodes[node]['PQ_injection'] = {"P": 0, "Q": 0}
                 self.kernel_api.set_node_kw(node, self.nodes[node]["load"][0])
                 self.kernel_api.set_node_kvar(node, self.nodes[node]["load"][0] * PF_CONVERTED)
-                # add dummy node for PV
-                self.kernel_api.simulation_command('New Load.{}_dummy like={} Bus1={} phase={} vminpu=0.8 vmaxpu=1.2 mode=1'.format(node, node, self.kernel_api.load_to_bus1[node], self.kernel_api.load_to_numphases[node]))
                 self.log(
                     node,
                     self.nodes[node]['PQ_injection']['P'],
