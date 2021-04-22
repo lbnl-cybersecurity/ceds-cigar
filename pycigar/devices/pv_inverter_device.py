@@ -213,25 +213,26 @@ class PVDevice(BaseDevice):
             #self.q_out.append(
             #    (T * lpf_o * (self.q_set[1] + self.q_set[0]) - (T * lpf_o - 2) * (self.q_out[1])) / (2 + T * lpf_o)
             #)
-            if self.percentage_control[0] != 0:
-                scaling = self.percentage_control[1]/self.percentage_control[0]
+            # if self.percentage_control[0] != 0 and self.percentage_control[1] != 1:
+            #     scaling = self.percentage_control[1]/self.percentage_control[0]
                 
-            else:
-                scaling = self.percentage_control[1]
+            # else:
+            #     scaling = self.percentage_control[1]
 
+            # if self.device_id == 'inverter_s701a' or self.device_id == 'adversary_inverter_s701a':
+            #     print(self.device_id, self.percentage_control, scaling)
             self.p_out.append(
-               (T * lpf_o * scaling * (self.p_set[1] + self.p_set[0]) - (T * lpf_o - 2) *  scaling * (self.p_out[1])) / (2 + T * lpf_o)
+               (T * lpf_o * (self.p_set[1] + self.p_set[0]) - (T * lpf_o - 2) * (self.p_out[1])) / (2 + T * lpf_o)
             )
             self.q_out.append(
-               (T * lpf_o * scaling * (self.q_set[1] + self.q_set[0]) - (T * lpf_o - 2) * scaling * (self.q_out[1])) / (2 + T * lpf_o)
+               (T * lpf_o * (self.q_set[1] + self.q_set[0]) - (T * lpf_o - 2) * (self.q_out[1])) / (2 + T * lpf_o)
             )
             self.low_pass_filter_v.append(low_pass_filter_v)
 
         # import old V to x
         # inject to node
-        k.node.nodes[self.node_id]['PQ_injection']['P'] += self.p_out[1]
-        k.node.nodes[self.node_id]['PQ_injection']['Q'] += self.q_out[1]
-
+        k.node.nodes[self.node_id]['PQ_injection']['P'] += self.p_out[1]*self.percentage_control[1]
+        k.node.nodes[self.node_id]['PQ_injection']['Q'] += self.q_out[1]*self.percentage_control[1]
         # log necessary info
         self.log()
 
