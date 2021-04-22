@@ -193,8 +193,12 @@ class OpenDSSScenario(KernelScenario):
         if self.hack_start_times and self.master_kernel.time in self.hack_start_times:
             adversary_ids = self.hack_start_times[self.master_kernel.time]
             for adversary_id in adversary_ids:
+                print(adversary_id, end = ' ')
                 device = self.master_kernel.device.devices[adversary_id]
-
+                device['device'].set_percentage_control(0.4)
+                other_device = self.master_kernel.device.devices[adversary_id[10:]]
+                other_device['device'].set_percentage_control(0.6)
+                
                 if isinstance(device['hack_controller'], list):
                     temp = device['controller']
                     device['controller'] = device['hack_controller'][self.choose_attack]
@@ -210,6 +214,12 @@ class OpenDSSScenario(KernelScenario):
         if self.hack_end_times and self.master_kernel.time in self.hack_end_times:
             adversary_ids = self.hack_end_times[self.master_kernel.time]
             for adversary_id in adversary_ids:
+                print(adversary_id, end = ' ')
+                device = self.master_kernel.device.devices[adversary_id]
+                device['device'].set_percentage_control(0)
+                other_device = self.master_kernel.device.devices[adversary_id[10:]]
+                other_device['device'].set_percentage_control(1)
+
                 device = self.master_kernel.device.devices[adversary_id]
                 # swapping it back
                 temp = device['controller']
@@ -254,17 +264,23 @@ class OpenDSSScenario(KernelScenario):
             for device_id in list_pv_device_ids:
                 if 'adversary' not in device_id:
                     node_id = self.master_kernel.device.get_node_connected_to(device_id)
-                    percentage_control = self.master_kernel.device.get_device(device_id).percentage_control
-                    solar = np.array(profile[node_id + '_pv'])[start_time:end_time] * solar_scaling_factor * percentage_control
-                    sbar = np.max(np.array(profile[node_id + '_pv']) * solar_scaling_factor * percentage_control)
+                    device = self.master_kernel.device.get_device(device_id)
+                    device.set_percentage_control(1)
+                    device.set_percentage_control(1)
+                    #percentage_control = self.master_kernel.device.get_device(device_id).percentage_control
+                    solar = np.array(profile[node_id + '_pv'])[start_time:end_time] * solar_scaling_factor
+                    sbar = np.max(np.array(profile[node_id + '_pv']) * solar_scaling_factor)
                     self.master_kernel.device.set_device_internal_scenario(device_id, solar)
                     self.master_kernel.device.set_device_sbar(device_id, sbar)
 
                     device_id = 'adversary_' + device_id
                     if device_id in list_pv_device_ids:
                         node_id = self.master_kernel.device.get_node_connected_to(device_id)
-                        percentage_control = self.master_kernel.device.get_device(device_id).percentage_control
-                        solar = np.array(profile[node_id + '_pv'])[start_time:end_time] * solar_scaling_factor * percentage_control
-                        sbar = np.max(np.array(profile[node_id + '_pv']) * solar_scaling_factor * percentage_control)
+                        device = self.master_kernel.device.get_device(device_id)
+                        device.set_percentage_control(0)
+                        device.set_percentage_control(0)
+                        #percentage_control = self.master_kernel.device.get_device(device_id).percentage_control
+                        solar = np.array(profile[node_id + '_pv'])[start_time:end_time] * solar_scaling_factor
+                        sbar = np.max(np.array(profile[node_id + '_pv']) * solar_scaling_factor)
                         self.master_kernel.device.set_device_internal_scenario(device_id, solar)
                         self.master_kernel.device.set_device_sbar(device_id, sbar)

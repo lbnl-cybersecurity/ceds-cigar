@@ -87,6 +87,8 @@ class PVDevice(BaseDevice):
             self.lpf_y = 0
             self.x = deque([0] * 15, maxlen=15)
 
+        self.percentage_control = deque([0] * 2, maxlen=2)
+
     def update(self, k):
         """See parent class."""
         VBP = self.control_setting
@@ -205,13 +207,24 @@ class PVDevice(BaseDevice):
             self.q_set.append(qk)
 
             # compute p_out and q_out
+            #self.p_out.append(
+            #    (T * lpf_o * (self.p_set[1] + self.p_set[0]) - (T * lpf_o - 2) * (self.p_out[1])) / (2 + T * lpf_o)
+            #)
+            #self.q_out.append(
+            #    (T * lpf_o * (self.q_set[1] + self.q_set[0]) - (T * lpf_o - 2) * (self.q_out[1])) / (2 + T * lpf_o)
+            #)
+            if self.percentage_control[0] != 0:
+                scaling = self.percentage_control[1]/self.percentage_control[0]
+                
+            else:
+                scaling = self.percentage_control[1]
+
             self.p_out.append(
-                (T * lpf_o * (self.p_set[1] + self.p_set[0]) - (T * lpf_o - 2) * (self.p_out[1])) / (2 + T * lpf_o)
+               (T * lpf_o * scaling * (self.p_set[1] + self.p_set[0]) - (T * lpf_o - 2) *  scaling * (self.p_out[1])) / (2 + T * lpf_o)
             )
             self.q_out.append(
-                (T * lpf_o * (self.q_set[1] + self.q_set[0]) - (T * lpf_o - 2) * (self.q_out[1])) / (2 + T * lpf_o)
+               (T * lpf_o * scaling * (self.q_set[1] + self.q_set[0]) - (T * lpf_o - 2) * scaling * (self.q_out[1])) / (2 + T * lpf_o)
             )
-
             self.low_pass_filter_v.append(low_pass_filter_v)
 
         # import old V to x
@@ -233,6 +246,9 @@ class PVDevice(BaseDevice):
             self.control_setting = control_setting
         if custom_control_setting:
             self.custom_control_setting = custom_control_setting
+
+    def set_percentage_control(self, percentage_control):
+        self.percentage_control.append(percentage_control)
 
     def log(self):
         # log history
