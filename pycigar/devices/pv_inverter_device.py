@@ -87,7 +87,9 @@ class PVDevice(BaseDevice):
             self.lpf_y = 0
             self.x = deque([0] * 15, maxlen=15)
 
+        self.scaling = 1
         self.percentage_control = deque([0] * 2, maxlen=2)
+        self.decay_percentage_control = deque([0] * 3, maxlen=2)
 
     def update(self, k):
         """See parent class."""
@@ -231,8 +233,12 @@ class PVDevice(BaseDevice):
 
         # import old V to x
         # inject to node
-        k.node.nodes[self.node_id]['PQ_injection']['P'] += self.p_out[1]*self.percentage_control[1]
-        k.node.nodes[self.node_id]['PQ_injection']['Q'] += self.q_out[1]*self.percentage_control[1]
+        #if len(self.decay_percentage_control) != 0:
+        #    self.scaling = self.decay_percentage_control.popleft()
+        self.scaling = self.percentage_control[1]
+
+        k.node.nodes[self.node_id]['PQ_injection']['P'] += self.p_out[1]*self.scaling
+        k.node.nodes[self.node_id]['PQ_injection']['Q'] += self.q_out[1]*self.scaling
         # log necessary info
         self.log()
 
@@ -250,6 +256,7 @@ class PVDevice(BaseDevice):
 
     def set_percentage_control(self, percentage_control):
         self.percentage_control.append(percentage_control)
+        self.decay_percentage_control = deque(list(np.linspace(self.percentage_control[0], self.percentage_control[1], 20)), maxlen=20)
 
     def log(self):
         # log history
@@ -257,10 +264,10 @@ class PVDevice(BaseDevice):
             Logger = logger()
             Logger.log(self.device_id, 'y', self.y)
             Logger.log(self.device_id, 'u', self.u)
-            Logger.log(self.device_id, 'p_set', self.p_set[1])
-            Logger.log(self.device_id, 'q_set', self.q_set[1])
-            Logger.log(self.device_id, 'p_out', self.p_out[1])
-            Logger.log(self.device_id, 'q_out', self.q_out[1])
+            Logger.log(self.device_id, 'p_set', self.p_set[1]*self.scaling)
+            Logger.log(self.device_id, 'q_set', self.q_set[1]*self.scaling)
+            Logger.log(self.device_id, 'p_out', self.p_out[1]*self.scaling)
+            Logger.log(self.device_id, 'q_out', self.q_out[1]*self.scaling)
             Logger.log(self.device_id, 'control_setting', self.control_setting)
             if self.Sbar:
                 Logger.log(self.device_id, 'sbar_solarirr', 1.5e-3*(abs(self.Sbar ** 2 - max(10, self.solar_irr) ** 2)) ** (1 / 2))
