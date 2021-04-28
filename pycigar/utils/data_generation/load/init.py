@@ -137,9 +137,9 @@ class LoadGenerator:
 
     
     def generate_load(self, order):
-        all_autocor = euler_maruyama_method(self.em_mu, self.em_x, self.adjusted_order, self.mrr, self.output_time, self.index_vals, self.spl, self.adjusted_order)
+        all_autocor = euler_maruyama_method(self.em_mu, self.em_x, order, self.mrr, self.output_time, self.index_vals, self.spl, 1)#self.adjusted_order)
          
         for i in range(len(all_autocor)):
-            all_autocor[i] = all_autocor[i] / self.scale_factor
+            all_autocor[i] = all_autocor[i] / 1#self.scale_factor
 
         return all_autocor

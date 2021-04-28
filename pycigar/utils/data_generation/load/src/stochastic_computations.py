@@ -123,7 +123,7 @@ def euler_maruyama_method(em_mu, em_x, order, mrr, output_time, index_values, sp
 
     for i in range(len(order)):
         k = np.random.randint(0, len(em_mu))
-        scale = order_file[k]/order[i]
+        scale = 1#order_file[k]/order[i]
         mu = np.array(em_mu[k])/scale
         x = np.array(em_x[k])/scale
         t_init = 0
