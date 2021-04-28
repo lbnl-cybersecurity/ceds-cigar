@@ -28,40 +28,41 @@ def generate_mean_reversion_rate(files, output_time, input_time, order, spl):
     pd_read_data = []
 
     for k in range(len(files)):
-        file1_mean = files[k].resample(output_time, label='right').mean()
+        file1_mean = files[k].resample(output_time, label='right').mean().pad() #new
         meaned_data.append(file1_mean)
         pd_read_data.append(files[k])
+        
 
     for n in range(len(meaned_data)):
         # mu(t) profile
-        mu10 = pd_read_data[n].resample(input_time).mean()
-        mu10 = mu10.resample(output_time).pad()
-        em_mu.append(mu10)
+        mu = pd_read_data[n].resample(input_time).mean().resample(output_time).pad()
+        em_mu.append(mu)
 
         # x profile
-        index_difference = len(file1_mean) - len(mu10)
-        x_10 = meaned_data[n].iloc[:len(meaned_data[n])-index_difference, :]
-        index_vals.append(x_10.index.array)
-        em_x.append(x_10)
+        offset = len(file1_mean) - len(mu)
+        x = meaned_data[n].pad().iloc[:len(meaned_data[n])-offset, :]
+   
+        index_vals.append(x.index.array)
+        em_x.append(x)
 
         # Forming the Y's (contingent on std_dev)
         Y = np.array([])
-        np_x_10 = x_10.to_numpy()
-        np_mu_10 = mu10.to_numpy()
+        np_x = x.to_numpy()
+        np_mu_10 = mu.to_numpy()
 
         std_dev = splev(order[n], spl)
 
-        for i in range(len(x_10)):
-            Y = np.append(Y, (np_mu_10[i][0] - np_x_10[i][0]) / (std_dev**2))
+        for i in range(len(x)):
+            Y = np.append(Y, (np_mu_10[i][0] - np_x[i][0]) / (std_dev**2))
 
         em_Y.append(Y)
 
         # Mean reversion rate
         num = 0
         denom = 0
-        for j in range(len(x_10)-1):
-            num += Y[j] * (np_x_10[j+1][0] - np_mu_10[j+1][0])
-            denom += Y[j] * (np_x_10[j][0] - np_mu_10[j][0])
+        for j in range(len(x)-1):
+            num += Y[j] * (np_x[j+1][0] - np_mu_10[j+1][0])
+            denom += Y[j] * (np_x[j][0] - np_mu_10[j][0])
         mean_rev_rate = -np.log(num/denom)
         mrr.append(mean_rev_rate)
 
@@ -270,7 +271,7 @@ def write_EM2_csv(xs, iv, output_time, loading_level, N):
 
     """
     xs.index = iv[:N]
-    xs.to_csv("data/"+str(loading_level) + "_MWp_" + output_time + ".csv")
+    xs.to_csv("data/" + str(loading_level) + "_MWp_" + output_time + ".csv")
 
 
 def generate_polynomial(pdfs, order, std_of_nonnormal_pdfs):
@@ -284,7 +285,7 @@ def generate_polynomial(pdfs, order, std_of_nonnormal_pdfs):
     sorted_pairs = sorted(zipped_lists)
     tuples = zip(*sorted_pairs)
     list1, list2 = [ list(tuple) for tuple in  tuples]
-
+    
     spl = splrep(list1, list2)
 
     return spl

@@ -32,13 +32,13 @@ def make_pdf(dist, params, size=10000):
 
 def normalize_data(time_series, order):
     pdfs = []
-    std_of_nonnormal_pdfs = []
+    pdf_std = []
 
     for file in time_series:
         # Make PDF with best params
         params = st.norm.fit(file)
         pdf = make_pdf(st.norm, params)  # mean and standard deviation
-        std_of_nonnormal_pdfs.append(params[1])
+        pdf_std.append(params[1])
         pdfs.append(pdf)
         
-    return pdfs, std_of_nonnormal_pdfs
+    return pdfs, pdf_std
