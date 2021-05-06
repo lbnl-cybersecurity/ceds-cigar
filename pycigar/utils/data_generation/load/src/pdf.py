@@ -10,7 +10,9 @@ import warnings
 # Create models from data
 
 def make_pdf(dist, params, size=10000):
-    """Generate distributions's Probability Distribution Function """
+    """
+    Generate distributions's Probability Distribution Function 
+    """
     # Separate parts of parameters
     arg = params[:-2]
     loc = params[-2]
@@ -31,13 +33,19 @@ def make_pdf(dist, params, size=10000):
 
 
 def normalize_data(time_series, order):
+    """
+    For all time series load profiles, generate the corresponding means and standard deviations.
+    """
     pdfs = []
     pdf_std = []
 
     for file in time_series:
-        # Make PDF with best params
+
+        # mean and standard deviation
         params = st.norm.fit(file)
-        pdf = make_pdf(st.norm, params)  # mean and standard deviation
+      
+        pdf = make_pdf(st.norm, params)  
+        
         pdf_std.append(params[1])
         pdfs.append(pdf)
         

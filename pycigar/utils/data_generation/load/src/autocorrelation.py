@@ -3,10 +3,10 @@ import matplotlib.pyplot as plt
 from pandas.plotting import autocorrelation_plot
 
 def autocorrelation(meaned_data, all_autocor, output_time):
-    '''
+    """
     Shows autocorrelation of measured data matches
     the autocorrelation of a stochastically generated load profile
-    '''
+    """
 
     order = [7, 10, 12, 19]
 
@@ -21,10 +21,10 @@ def autocorrelation(meaned_data, all_autocor, output_time):
         plt.show()   
 
 def summed_autocorrelation(meaned_data, all_autocor, output_time):
-    '''
+    """
     Shows autocorrelation of 7 stochastically generated 1 MW load profiles matches
     the autocorrelation of a stochastically generated 7 MW load profile
-    '''
+    """
     order = [7, 10, 12, 19]
 
     for i in range(len(meaned_data)):
