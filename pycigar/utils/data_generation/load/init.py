@@ -68,10 +68,10 @@ def resample_meaned_data(file, time_series, input_time, output_time, order, fn):
 
 
 class LoadGenerator:
-    def __init__(self, data, IEEE_load, input_time='15T', output_time='1S'):
+    def __init__(self, data, IEEE_load, order, input_time='15T', output_time='1S'):
         #order = self.order_file = [int(d.split('/')[-1].split('_')[0]) for d in data]
         #order = [7, 10, 12, 19]
-        order = [4.67, 4.71, 4.76, 4.96]
+        self.order = order
         self.input_time = input_time
         self.output_time = output_time
         file = [] # series from csv file
@@ -83,18 +83,18 @@ class LoadGenerator:
             file_diff.append(file[i].resample(output_time).mean().pad().diff(1).dropna())
             time_series.append(file_diff[i].iloc[:,0])
         
-        self.file_idx = np.zeros(len(order))
+        self.file_idx = np.zeros(len(self.order))
        
-        pdfs, pdf_std = normalize_data(time_series, order)
-        self.spl = generate_polynomial(pdfs, order, pdf_std)
+        pdfs, pdf_std = normalize_data(time_series, self.order)
+        self.spl = generate_polynomial(pdfs, self.order, pdf_std)
 
         meaned_data = []
         for i, f in enumerate(file):
             meaned_data.append(f.resample(output_time, label='right').mean())
-
+      
         self.mrr, self.em_mu, self.em_x, self.index_vals, _ = \
-                generate_mean_reversion_rate(file, output_time, input_time, order, self.spl)
-
+                generate_mean_reversion_rate(file, output_time, input_time, self.order, self.spl)
+       
     # def generate_IEEE():
          
     #     max_IEEE_load = max(IEEE_load) * 10**3  
@@ -136,8 +136,8 @@ class LoadGenerator:
 
 
     
-    def generate_load(self, order):
-        all_autocor = euler_maruyama_method(self.em_mu, self.em_x, order, self.mrr, self.output_time, self.index_vals, self.spl, 1)#self.adjusted_order)
+    def generate_load(self):
+        all_autocor = euler_maruyama_method(self.em_mu, self.em_x, self.order, self.mrr, self.output_time, self.index_vals, self.spl, 1)#self.adjusted_order)
          
         for i in range(len(all_autocor)):
             all_autocor[i] = all_autocor[i] / 1#self.scale_factor
