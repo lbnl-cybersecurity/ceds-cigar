@@ -48,8 +48,8 @@ class MultiAttackCentralControlPhaseSpecificPVInverterEnv(Wrapper):
         env = SingleRelativeInitPhaseSpecificDiscreteActionWrapper(env)
         env = CentralGlobalRewardWrapper(env, multi_attack=True)
         env = CentralLocalObservationWrapper(env, multi_attack=True)
-        env = CentralFramestackObservationWrapper(env)
-        #env = CentralLocalPhaseSpecificObservationWrapper(env, unbalance=True)
+        #env = CentralFramestackObservationWrapper(env)
+        env = CentralLocalPhaseSpecificObservationWrapper(env, unbalance=True)
         self.env = env
 
 class CentralControlPhaseSpecificContinuousPVInverterEnv(Wrapper):

@@ -3,7 +3,7 @@ import numpy as np
 
 from pycigar.utils.data_generation.load.src.pdf import normalize_data
 from pycigar.utils.data_generation.load.src.cdf import make_cdf, compare_cdfs
-from pycigar.utils.data_generation.load.src.stochastic_computations import generate_mean_reversion_rate, generate_polynomial, euler_maruyama_method, euler_maruyama_method_old
+from pycigar.utils.data_generation.load.src.stochastic_computations import generate_mean_reversion_rate, generate_polynomial, euler_maruyama_method
 from pycigar.utils.data_generation.load.src.autocorrelation import autocorrelation, summed_autocorrelation
 
 
