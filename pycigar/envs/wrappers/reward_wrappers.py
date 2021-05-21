@@ -187,8 +187,8 @@ class CentralGlobalRewardWrapper(RewardWrapper):
                 )
             else:
                 r += -(
-                      T * info[key]['u_mean']
-                    + M * info[key]['y_mean']
+                      T * info[key]['u_worst']
+                    + M * info[key]['y_worst']
                     + N * roa
                     + P * np.linalg.norm(action - self.INIT_ACTION[key])
                     + Q * (1 - abs(info[key]['p_set_p_max'])) ** 2
@@ -208,6 +208,7 @@ class CentralGlobalRewardWrapper(RewardWrapper):
 
         if global_reward == float('inf') or global_reward == float('-inf') or global_reward == float('nan') or np.isnan(global_reward):
             print('check this out')
+            global_reward = -100
         #print(global_reward, type(global_reward), global_reward == 'nan', np.isnan(global_reward))
 
         n = len(list(info.keys()))

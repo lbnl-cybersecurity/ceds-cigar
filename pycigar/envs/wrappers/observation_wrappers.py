@@ -109,7 +109,7 @@ class CentralLocalObservationWrapper(ObservationWrapper):
 
         Logger = logger()
         for _ in range(self.env.k.sim_params['env_config']['sims_per_step']):
-            Logger.log('component_observation', 'component_y', observation['y'])
+            Logger.log('component_observation', 'component_y', observation['y']*10)
             Logger.log('component_observation', 'component_pset', p_set)
 
         if self.unbalance:
@@ -122,7 +122,7 @@ class CentralLocalObservationWrapper(ObservationWrapper):
             va = (observation['v_worst'][0]-1)*10*2
             vb = (observation['v_worst'][1]-1)*10*2
             vc = (observation['v_worst'][2]-1)*10*2
-            observation = np.array([observation['y']*10, observation['u_worst']*10, p_set, *old_a_encoded, va, vb, vc])
+            observation = np.array([observation['y_worst']*10, observation['u_worst']*10, p_set, *old_a_encoded, va, vb, vc])
             #observation = np.array([observation['y']*10, p_set, *old_a_encoded])
         else:
             observation = np.array([observation['y'], p_set, *old_a_encoded])
