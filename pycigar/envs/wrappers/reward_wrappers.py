@@ -188,7 +188,7 @@ class CentralGlobalRewardWrapper(RewardWrapper):
             else:
                 r += -(
                       T * info[key]['u_worst']
-                    + M * info[key]['y_worst']
+                    + M * info[key]['y']
                     + N * roa
                     + P * np.linalg.norm(action - self.INIT_ACTION[key])
                     + Q * (1 - abs(info[key]['p_set_p_max'])) ** 2

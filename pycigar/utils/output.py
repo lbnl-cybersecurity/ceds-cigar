@@ -335,22 +335,38 @@ def plot_new(log_dict, custom_metrics, epoch='', unbalance=False, multiagent=Fal
         ax[0, 0].set_ylim([0.93, 1.07])
         ax[1, 0].set_ylim([0, 0.8])
         ax[2, 0].set_ylim([0, 6])
-        ax[0, 1].set_ylim([-0.06, 0.06])
+        ax[0, 1].set_ylim([-0.1, 0.1])
         ax[1, 1].set_ylim([-0.06, 0.06])
 
         for inv in log_dict:
             if 'adversary_' not in inv and 'inverter_' in inv:
                 translation, slope = get_translation_and_slope(
-                    log_dict[inv_k]['control_setting'], custom_metrics['init_control_settings'][inv_k]
+                    log_dict[inv]['control_setting'], custom_metrics['init_control_settings'][inv]
                 )
-                ax[0, 1].plot(translation, color='tab:blue')
+                if inv[-1] == 'a':
+                    color = 'tab:blue'
+                elif inv[-1] == 'b':
+                    color = 'tab:orange'
+                elif inv[-1] == 'c':
+                    color = 'tab:green'
+                else:
+                    color = 'tab:red'
+                ax[0, 1].plot(translation, color=color)    
                 ax[0, 1].plot(slope, color='tab:purple')
             elif 'adversary_' in inv:
                 translation, slope = get_translation_and_slope(
-                    log_dict['adversary_' + inv_k]['control_setting'],
-                    custom_metrics['init_control_settings']['adversary_' + inv_k],
+                    log_dict[inv]['control_setting'],
+                    custom_metrics['init_control_settings'][inv],
                 )
-                ax[1, 1].plot(translation, color='tab:orange')
+                if inv[-1] == 'a':
+                    color = 'tab:blue'
+                elif inv[-1] == 'b':
+                    color = 'tab:orange'
+                elif inv[-1] == 'c':
+                    color = 'tab:green'
+                else:
+                    color = 'tab:red'
+                ax[1, 1].plot(translation, color=color)
                 ax[1, 1].plot(slope, color='tab:red')
 
         #ax[4, 1].plot(log_dict['component_observation']['component_ymax'], label='obs_component_ymax')
