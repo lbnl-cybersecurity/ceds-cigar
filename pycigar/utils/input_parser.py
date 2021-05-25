@@ -104,7 +104,7 @@ def input_parser(misc_inputs_path, dss_path, load_solar_path, breakpoints_path=N
         'Q': 0.5,
         'T': 100,
         'Z': 100,
-
+        'Y': 0,
         'is_disable_log': False,
         'is_disable_y': False,
         'vectorized_mode': False,
