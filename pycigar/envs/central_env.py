@@ -101,6 +101,7 @@ class CentralEnv(Env):
 
         try:
             obs = {k: np.mean([d[k] for d in observations]) for k in observations[0]}
+            obs['sum_v'] = np.sum([i['sum_v'] for i in observations])
             obs['v_worst'] = observations[-1]['v_worst']
             obs['u_worst'] = observations[-1]['u_worst']
             obs['y_worst'] = observations[-1]['y_worst']
@@ -215,6 +216,7 @@ class CentralEnv(Env):
                           'p_set_p_max': p_set_p_max,
                           'sbar_solar_irr': sbar_solar_irr,
                          }
+                result['sum_v'] = np.sum(np.array(list(v_all.values())) - 1)
                 result['y_worst'] = y_worst
                 result['v_worst'] = v_worst
                 Logger.log('v_worst_metrics', 'v_worst', v_worst)
