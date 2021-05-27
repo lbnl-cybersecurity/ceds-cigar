@@ -109,6 +109,7 @@ class CentralEnv(Env):
             obs['y_mean'] = obs['y']
         except IndexError:
             obs = {'p_set_p_max': 0.0, 'sbar_solar_irr': 0.0, 'y': 0.0}
+            obs['sum_v'] = 0
             obs['v_worst'] = [0, 0, 0]
             obs['u_worst'] = 0
             obs['u_mean'] = 0
@@ -121,6 +122,7 @@ class CentralEnv(Env):
             protection = (np.array(list(self.relative_line_current.values())).T/self.sim_params['protection']['threshold']-1).T
             infos = {
                 key: {
+                    'sum_v': obs['sum_v'],
                     'protection': protection.flatten(),
                     'y_worst': obs['y_worst'],
                     'u_worst': obs['u_worst'],
@@ -136,6 +138,7 @@ class CentralEnv(Env):
         else:
             infos = {
                 key: {
+                    'sum_v': obs['sum_v'],
                     'y_worst': obs['y_worst'],
                     'u_worst': obs['u_worst'],
                     'v_worst': obs['v_worst'],

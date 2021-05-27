@@ -23,7 +23,7 @@ class AdaptiveAutoFixedController(BaseController):
 
         self.action = None
         self.countdown_timer = 0
-        self.countdown = 15
+        self.countdown = 40
 
     def get_action(self, env):
         """See parent class."""

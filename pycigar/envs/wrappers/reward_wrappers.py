@@ -146,6 +146,7 @@ class CentralGlobalRewardWrapper(RewardWrapper):
         Q = self.k.sim_params['Q']
         T = self.k.sim_params['T']
         Z = self.k.sim_params['Z']
+        Y = self.k.sim_params['Y'] # sum_v
 
         global_reward = 0
         # we accumulate agents reward into global_reward and divide it with the number of agents.
@@ -192,6 +193,7 @@ class CentralGlobalRewardWrapper(RewardWrapper):
                     + N * roa
                     + P * np.linalg.norm(action - self.INIT_ACTION[key])
                     + Q * (1 - abs(info[key]['p_set_p_max'])) ** 2
+                    + Y * info[key]['sum_v']
                 )
 
             component_y += -M * info[key][y_or_u]
