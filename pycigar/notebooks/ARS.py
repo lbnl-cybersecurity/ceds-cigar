@@ -1,5 +1,5 @@
 import matplotlib.pyplot as plt
-plt.switch_backend('tkagg')
+#plt.switch_backend('tkagg')
 from pycigar.utils.input_parser import input_parser
 import numpy as np
 from pycigar.utils.registry import register_devcon
@@ -24,7 +24,7 @@ import pycigar
 
 def parse_cli_args():
     parser = argparse.ArgumentParser(description='Run distributed runs to better understand PyCIGAR hyperparameters')
-    parser.add_argument('--save-path', type=str, default='~/hp_experiment3', help='where to save the results')
+    parser.add_argument('--save-path', type=str, default='~/hp_experiment3_unb', help='where to save the results')
 
     return parser.parse_args()
 
@@ -41,7 +41,7 @@ class Normalizer():
 
     def update_statistics(self, x):
         self.n += 1
-        #update mean 
+        #update mean
         last_mean = self.mean.copy()
         self.mean += (x - self.mean)/self.n
         #update sum of squares differences
@@ -57,7 +57,7 @@ class Normalizer():
 #class for ARS agent
 class ARSAgent():
     def __init__(self):
-        self.alpha = 0.002 #learning rate
+        self.alpha = 0.02 #learning rate
         self.mu = 0.03 #exploration noise
         self.num_directions = 4 #number of random directions to consider
         self.num_best_directions = 4 #number of best directions to consider
@@ -84,7 +84,6 @@ class ARSAgent():
         #rollout for episode:
         done = False
         sum_rewards = 0
-        k = 0
         while not done:
             #normalize state
             state = self.normalizer.normalize(state)
@@ -93,7 +92,6 @@ class ARSAgent():
             state, reward, done, _ = self.env.step(u)
             #reward = max(min(reward, 1), -1)
             sum_rewards += reward
-            k+=1
         return sum_rewards
 
     def random_directions(self):
@@ -128,7 +126,7 @@ class ARSAgent():
         self.theta += _theta
         #rollout with the new policy for evaluation
         r_eval = self.rollout(self.theta)
-        return _theta, r_eval
+        return self.theta, r_eval
 
     def evaluation(self, theta, iteration):
         self.rollout(theta)
@@ -152,6 +150,7 @@ class ARSAgent():
             print("Iteration: ", k, " ---------- reward: ", _r)
             k+=1
             self.evaluation(_theta, k)
+
         return thetas, rewards
 
 if __name__ == '__main__':
@@ -160,7 +159,6 @@ if __name__ == '__main__':
     load_solar_path = pycigar.DATA_DIR + "/ieee37busdata_regulator_attack/load_solar_data.csv"
     breakpoints_path = pycigar.DATA_DIR + "/ieee37busdata_regulator_attack/breakpoints.csv"
 
-
     start = 100
     hack = 0.3
     sim_params = input_parser(misc_inputs_path, dss_path, load_solar_path, breakpoints_path, benchmark=True, vectorized_mode=True, percentage_hack=hack)
@@ -168,11 +166,12 @@ if __name__ == '__main__':
     del sim_params['attack_randomization']
     for node in sim_params['scenario_config']['nodes']:
         node['devices'][0]['adversary_controller'] =  'adaptive_fixed_controller'
+
     sim_params['M'] = 300  # oscillation penalty
     sim_params['N'] = 0.5  # initial action penalty
     sim_params['P'] = 1    # last action penalty
     sim_params['Q'] = 1    # power curtailment penalty
-    sim_params['T'] = 150  # imbalance penalty
+    sim_params['T'] = 300  # imbalance penalty
 
     args = parse_cli_args()
     #create ARS agent
