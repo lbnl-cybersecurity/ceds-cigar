@@ -16,32 +16,17 @@ import gym
 from gym import wrappers
 import pandas as pd
 from pycigar.envs import CentralControlPhaseSpecificContinuousPVInverterEnv
+import argparse
+import os
+from pycigar.utils.output import plot_new
+from pycigar.utils.logging import logger
+import pycigar
 
+def parse_cli_args():
+    parser = argparse.ArgumentParser(description='Run distributed runs to better understand PyCIGAR hyperparameters')
+    parser.add_argument('--save-path', type=str, default='~/hp_experiment3', help='where to save the results')
 
-misc_inputs = '/home/toanngo/Documents/GitHub/ceds-cigar/pycigar/data/ieee37busdata_regulator_attack/misc_inputs.csv'
-dss = '/home/toanngo/Documents/GitHub/ceds-cigar/pycigar/data/ieee37busdata_regulator_attack/ieee37.dss'
-load_solar = '/home/toanngo/Documents/GitHub/ceds-cigar/pycigar/data/ieee37busdata_regulator_attack/load_solar_data.csv'
-breakpoints = '/home/toanngo/Documents/GitHub/ceds-cigar/pycigar/data/ieee37busdata_regulator_attack/breakpoints.csv'
-
-
-start = 100
-hack = 0.3
-sim_params = input_parser(misc_inputs, dss, load_solar, breakpoints, benchmark=True, vectorized_mode=True, percentage_hack=hack)
-sim_params['scenario_config']['start_end_time'] = [start, start + 750]
-del sim_params['attack_randomization']
-for node in sim_params['scenario_config']['nodes']:
-    node['devices'][0]['adversary_controller'] =  'adaptive_fixed_controller'
-sim_params['M'] = 300  # oscillation penalty
-sim_params['N'] = 0.5  # initial action penalty
-sim_params['P'] = 1    # last action penalty
-sim_params['Q'] = 1    # power curtailment penalty
-sim_params['T'] = 150  # imbalance penalty
-# pycigar_params = {'exp_tag': 'cooperative_multiagent_ppo',
-#                   'env_name': 'CentralControlPhaseSpecificContinuousPVInverterEnv',
-#                   'simulator': 'opendss'}
-
-# create_env, env_name = make_create_env(pycigar_params, version=0)
-# register_env(env_name, create_env)
+    return parser.parse_args()
 
 
 #class for normalizing the observations
@@ -106,7 +91,7 @@ class ARSAgent():
             #get next action
             u = self.get_action(state, theta)
             state, reward, done, _ = self.env.step(u)
-            reward = max(min(reward, 1), -1)
+            #reward = max(min(reward, 1), -1)
             sum_rewards += reward
             k+=1
         return sum_rewards
@@ -145,6 +130,16 @@ class ARSAgent():
         r_eval = self.rollout(self.theta)
         return _theta, r_eval
 
+    def evaluation(self, theta, iteration):
+        self.rollout(theta)
+        Logger = logger()
+        save_path = os.path.expanduser(args.save_path)
+        if not os.path.exists(save_path):
+            os.makedirs(save_path)
+        f = plot_new(Logger.log_dict, Logger.custom_metrics, iteration, False)
+        f.savefig(os.path.join(save_path, 'eval-epoch-' + str(iteration) + '.png'), bbox_inches='tight')
+        plt.close(f)
+
     def train(self):
         k=0
         thetas = []
@@ -156,19 +151,41 @@ class ARSAgent():
             rewards.append(_r)
             print("Iteration: ", k, " ---------- reward: ", _r)
             k+=1
+            self.evaluation(_theta, k)
         return thetas, rewards
 
-#create ARS agent
-ars = ARSAgent()
-#train the agent
-thetas,rewards = ars.train()
+if __name__ == '__main__':
+    misc_inputs_path = pycigar.DATA_DIR + "/ieee37busdata_regulator_attack/misc_inputs.csv"
+    dss_path = pycigar.DATA_DIR + "/ieee37busdata_regulator_attack/ieee37.dss"
+    load_solar_path = pycigar.DATA_DIR + "/ieee37busdata_regulator_attack/load_solar_data.csv"
+    breakpoints_path = pycigar.DATA_DIR + "/ieee37busdata_regulator_attack/breakpoints.csv"
 
-#store results in dataframe and save to csv
-iteration = [i for i in range(1,len(rewards)+1)]
-rewards_dict = {'rewards':rewards}
-rewards_df = pd.DataFrame(rewards_dict)
-rewards_df.to_csv('ARS_cartpole_rewards.csv')
 
-#save best weights to csv
-np.savetxt('ARS_cartpole_theta.csv', thetas[-1], delimiter=',')
-#to load use: np.loadtxt('ARS_theta.csv',delimiter=',')
+    start = 100
+    hack = 0.3
+    sim_params = input_parser(misc_inputs_path, dss_path, load_solar_path, breakpoints_path, benchmark=True, vectorized_mode=True, percentage_hack=hack)
+    sim_params['scenario_config']['start_end_time'] = [start, start + 750]
+    del sim_params['attack_randomization']
+    for node in sim_params['scenario_config']['nodes']:
+        node['devices'][0]['adversary_controller'] =  'adaptive_fixed_controller'
+    sim_params['M'] = 300  # oscillation penalty
+    sim_params['N'] = 0.5  # initial action penalty
+    sim_params['P'] = 1    # last action penalty
+    sim_params['Q'] = 1    # power curtailment penalty
+    sim_params['T'] = 150  # imbalance penalty
+
+    args = parse_cli_args()
+    #create ARS agent
+    ars = ARSAgent()
+    #train the agent
+    thetas,rewards = ars.train()
+
+    #store results in dataframe and save to csv
+    iteration = [i for i in range(1,len(rewards)+1)]
+    rewards_dict = {'rewards':rewards}
+    rewards_df = pd.DataFrame(rewards_dict)
+    rewards_df.to_csv('ARS_cartpole_rewards.csv')
+
+    #save best weights to csv
+    np.savetxt('ARS_cartpole_theta.csv', thetas[-1], delimiter=',')
+    #to load use: np.loadtxt('ARS_theta.csv',delimiter=',')
