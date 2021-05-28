@@ -6,6 +6,7 @@ from pycigar.controllers.adaptive_inverter_controller import AdaptiveInverterCon
 from pycigar.controllers.adaptive_fixed_controller import AdaptiveFixedController
 from pycigar.controllers.adaptive_auto_fixed_controller import AdaptiveAutoFixedController
 from pycigar.controllers.unbalanced_fixed_controller import UnbalancedFixedController
+from pycigar.controllers.unbalanced_auto_fixed_controller import UnbalancedAutoFixedController
 from pycigar.controllers.adaptive_unbalanced_fixed_controller import AdaptiveUnbalancedFixedController
 
 from pycigar.controllers.battery_peak_shaving_controller_cent import BatteryPeakShavingControllerCent
@@ -22,6 +23,7 @@ __all__ = [
     "AdaptiveAutoFixedController",
     "AdaptiveInverterController",
     "UnbalancedFixedController",
+    "UnbalancedAutoFixedController",
     "BatteryPeakShavingControllerCent",
     "BatteryPeakShavingControllerDist"
 ]
@@ -49,6 +51,11 @@ pycigar_register(
 pycigar_register(
     id='unbalanced_fixed_controller',
     entry_point='pycigar.controllers:UnbalancedFixedController'
+)
+
+pycigar_register(
+    id='unbalanced_auto_fixed_controller',
+    entry_point='pycigar.controllers:UnbalancedAutoFixedController'
 )
 
 pycigar_register(

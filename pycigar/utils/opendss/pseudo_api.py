@@ -282,5 +282,5 @@ class PyCIGAROpenDSSAPI(object):
                 v_worst = [va, vb, vc]
             u_all.append(u)
             u_all_real[bus] = u
-
+        self.u_bus = u_all_real
         return u_worst, v_worst, np.mean(u_all), np.std(u_all), v_all, u_all_real, self.load_to_bus
