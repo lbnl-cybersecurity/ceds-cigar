@@ -139,7 +139,7 @@ class ARSAgent():
             if not os.path.exists(save_path):
                 os.makedirs(save_path)
             f = plot_new(Logger.log_dict, Logger.custom_metrics, iteration, False)
-            f.savefig(os.path.join(save_path, 'scenario-' + str(i) + '-eval-epoch-' + str(iteration) + '.png'), bbox_inches='tight')
+            f.savefig(os.path.join(save_path, 'eval-epoch-' + str(iteration) + '-scenario-' + str(i) + '.png'), bbox_inches='tight')
             plt.close(f)
             avg_r += r
         return avg_r/8
