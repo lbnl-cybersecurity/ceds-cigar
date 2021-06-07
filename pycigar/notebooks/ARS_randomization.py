@@ -187,7 +187,7 @@ if __name__ == '__main__':
     iteration = [i for i in range(1,len(rewards)+1)]
     rewards_dict = {'rewards':rewards}
     rewards_df = pd.DataFrame(rewards_dict)
-    rewards_df.to_csv('ARS_cartpole_rewards.csv')
+    rewards_df.to_csv('ARS_rewards.csv')
 
     #save best weights to csv
     np.savetxt('ARS_cartpole_theta.csv', thetas[-1], delimiter=',')

@@ -165,7 +165,7 @@ if __name__ == '__main__':
     sim_params['scenario_config']['start_end_time'] = [start, start + 750]
     del sim_params['attack_randomization']
     for node in sim_params['scenario_config']['nodes']:
-        node['devices'][0]['adversary_controller'] =  'adaptive_fixed_controller'
+        node['devices'][0]['adversary_controller'] =  'unbalanced_fixed_controller'
 
     sim_params['M'] = 300  # oscillation penalty
     sim_params['N'] = 0.5  # initial action penalty
