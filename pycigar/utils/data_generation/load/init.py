@@ -47,7 +47,7 @@ def resample_meaned_data(file, time_series, input_time, output_time, order, fn):
     print('math \n \n')
     mrr, em_mu, em_x, index_vals, meaned_data = generate_mean_reversion_rate(
         file, output_time, input_time, order, spl)
-    cdfs_real, all_autocor = euler_maruyama_method_old(
+    cdfs_real, all_autocor = euler_maruyama_method(
         em_mu, em_x, order, mrr, output_time, index_vals, spl)
 
     #############
