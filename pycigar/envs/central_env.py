@@ -197,6 +197,7 @@ class CentralEnv(Env):
 
             if obs:
                 result = {k: np.mean([d[k] for d in obs]) for k in obs[0]}
+                result['sum_v'] = np.sum(np.array(list(v_all.values())) - 1)
                 result['y_worst'] = y_worst
                 result['v_worst'] = v_worst
                 result['u_worst'] = u_worst
