@@ -1,3 +1,4 @@
+
 tune_search: False
 hack_setting: {'default_control_setting': [1.039, 1.04, 1.04, 1.041, 1.042]}
 is_disable_log: False
@@ -32,7 +33,7 @@ scenario_config:
       - name: s701a
         devices:
             - name: pv_1
-              device: pv_device
+              device: sample_pv_device
               custom_device_configs: {
                 default_control_setting: [0.98, 1.01, 1.01, 1.04, 1.06],
                 low_pass_filter_measure: 1.2,
@@ -46,7 +47,7 @@ scenario_config:
               adversary_custom_controller_configs: {
                 default_control_setting: [1.014, 1.015, 1.015, 1.016, 1.017]
                 }
-              hack: [300, 0.4, 500]
+              hack: [300, 0.4]
       - name: s702a
 
       - name: s703a
