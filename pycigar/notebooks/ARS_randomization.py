@@ -167,7 +167,7 @@ if __name__ == '__main__':
 
     sim_params = input_parser(misc_inputs_path, dss_path, load_solar_path, breakpoints_path, benchmark=True, vectorized_mode=True)
     for node in sim_params['scenario_config']['nodes']:
-        node['devices'][0]['adversary_controller'] =  'adaptive_fixed_controller'
+        node['devices'][0]['adversary_controller'] =  'oscillation_fixed_controller'
     sim_params['M'] = 300  # oscillation penalty
     sim_params['N'] = 0.5  # initial action penalty
     sim_params['P'] = 1    # last action penalty

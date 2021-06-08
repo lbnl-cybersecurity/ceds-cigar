@@ -278,10 +278,10 @@ if __name__ == '__main__':
     else:
         for node in base_config['env_config']['scenario_config']['nodes']:
             for d in node['devices']:
-                d['adversary_controller'] = 'adaptive_fixed_controller'
+                d['adversary_controller'] = 'oscillation_fixed_controller'
         for node in base_config['evaluation_config']['env_config']['scenario_config']['nodes']:
             for d in node['devices']:
-                d['adversary_controller'] = 'adaptive_fixed_controller'
+                d['adversary_controller'] = 'oscillation_fixed_controller'
 
     ray.init(local_mode=False)
 
