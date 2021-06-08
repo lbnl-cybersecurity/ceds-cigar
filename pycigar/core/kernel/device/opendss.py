@@ -5,13 +5,6 @@ from pycigar.devices.vectorized_pv_inverter_device import VectorizedPVDevice
 from pycigar.utils.pycigar_registration import pycigar_make
 from pycigar.devices import PVDevice
 
-from pycigar.controllers import AdaptiveInverterController
-from pycigar.controllers import FixedController
-
-# from pycigar.controllers import MimicController
-from pycigar.controllers import AdaptiveFixedController
-from pycigar.controllers import UnbalancedFixedController
-
 from pycigar.controllers import RLController
 import numpy as np
 

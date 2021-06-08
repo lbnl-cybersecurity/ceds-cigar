@@ -3,12 +3,6 @@ from pycigar.devices import PVDevice
 from pycigar.devices import RegulatorDevice
 import opendssdirect as dss
 from pycigar.utils.data_generation.load import LoadGenerator
-from pycigar.controllers import AdaptiveInverterController
-from pycigar.controllers import FixedController
-from pycigar.controllers import AdaptiveFixedController
-from pycigar.controllers import UnbalancedFixedController
-
-from pycigar.controllers import RLController
 
 import os
 import numpy as np
