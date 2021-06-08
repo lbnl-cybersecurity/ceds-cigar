@@ -244,7 +244,7 @@ start = 100
 hack = 0.3
 sim_params = input_parser(misc_inputs, dss, load_solar, breakpoints, benchmark=True, vectorized_mode=True, percentage_hack=hack)
 sim_params['scenario_config']['start_end_time'] = [start, start + 750]
-sim_params['attack_randomization']['generator'] = 'AttackGeneratorEvaluation''
+sim_params['attack_randomization']['generator'] = 'AttackGeneratorEvaluation'
 for node in sim_params['scenario_config']['nodes']:
     node['devices'][0]['adversary_controller'] =  'unbalanced_fixed_controller' #'unbalanced_auto_fixed_controller' #'adaptive_auto_fixed_controller'
 
