@@ -63,7 +63,7 @@ class ARSAgent():
         self.num_directions = 4 #number of random directions to consider
         self.num_best_directions = 4 #number of best directions to consider
         assert self.num_best_directions <= self.num_directions
-        self.max_iterations = 20 #number of iterations
+        self.max_iterations = 500 #number of iterations
         self.env = CentralControlPhaseSpecificContinuousPVInverterEnv(sim_params=sim_params)
         self.env_eval = CentralControlPhaseSpecificContinuousPVInverterEnv(sim_params=sim_params_eval)
         self.n_inputs = self.env.observation_space.shape[0]
@@ -134,13 +134,14 @@ class ARSAgent():
         avg_r = 0
         for i in range(8):
             r = self.rollout(self.env_eval, theta)
-            Logger = logger()
-            save_path = os.path.expanduser(args.save_path)
-            if not os.path.exists(save_path):
-                os.makedirs(save_path)
-            f = plot_new(Logger.log_dict, Logger.custom_metrics, iteration, False)
-            f.savefig(os.path.join(save_path, 'eval-epoch-' + str(iteration) + '-scenario-' + str(i) + '.png'), bbox_inches='tight')
-            plt.close(f)
+            if iteration % 20 == 0:
+                Logger = logger()
+                save_path = os.path.expanduser(args.save_path)
+                if not os.path.exists(save_path):
+                    os.makedirs(save_path)
+                f = plot_new(Logger.log_dict, Logger.custom_metrics, iteration, False)
+                f.savefig(os.path.join(save_path, 'eval-epoch-' + str(iteration) + '-scenario-' + str(i) + '.png'), bbox_inches='tight')
+                plt.close(f)
             avg_r += r
         return avg_r/8
 
@@ -167,7 +168,7 @@ if __name__ == '__main__':
 
     sim_params = input_parser(misc_inputs_path, dss_path, load_solar_path, breakpoints_path, benchmark=True, vectorized_mode=True)
     for node in sim_params['scenario_config']['nodes']:
-        node['devices'][0]['adversary_controller'] =  'oscillation_fixed_controller'
+        node['devices'][0]['adversary_controller'] =  'unbalanced_fixed_controller'
     sim_params['M'] = 300  # oscillation penalty
     sim_params['N'] = 0.5  # initial action penalty
     sim_params['P'] = 1    # last action penalty
@@ -187,8 +188,18 @@ if __name__ == '__main__':
     iteration = [i for i in range(1,len(rewards)+1)]
     rewards_dict = {'rewards':rewards}
     rewards_df = pd.DataFrame(rewards_dict)
-    rewards_df.to_csv('ARS_rewards.csv')
 
+    save_path = os.path.expanduser(args.save_path)
+    rewards_df.to_csv(os.path.join(save_path, 'ARS_rewards.csv'))
     #save best weights to csv
-    np.savetxt('ARS_cartpole_theta.csv', thetas[-1], delimiter=',')
+    np.savetxt(os.path.join(save_path, 'ARS_cartpole_theta.csv'), thetas[-1], delimiter=',')
+
+    fig1 = plt.figure(figsize = [16, 4])
+    plt.plot(rewards,label="rewards")
+    plt.grid()
+    plt.title('Reward')
+    plt.xlabel('Time [s]')
+    plt.ylabel('Reward')
+    plt.legend()
+    fig1.savefig(os.path.join(save_path, 'reward.png'))
     #to load use: np.loadtxt('ARS_theta.csv',delimiter=',')
