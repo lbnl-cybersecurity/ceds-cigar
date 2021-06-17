@@ -96,8 +96,11 @@ class Env(gym.Env):
         states = self.get_state()
 
         self.INIT_ACTION = {}
-        pv_device_ids = self.k.device.get_pv_device_ids()
-        for device_id in pv_device_ids:
+        if self.k.device.get_rl_device_ids():
+            device_ids = self.k.device.get_rl_device_ids()
+        else:
+            device_ids = self.k.device.get_pv_device_ids()
+        for device_id in device_ids:
             self.INIT_ACTION[device_id] = np.array(self.k.device.get_control_setting(device_id))
         return states
 

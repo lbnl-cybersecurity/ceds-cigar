@@ -45,7 +45,7 @@ class CentralControlPhaseSpecificPVInverterEnv(Wrapper):
 class MultiAttackCentralControlPhaseSpecificPVInverterEnv(Wrapper):
     def __init__(self, **kwargs):
         env = CentralEnv(**kwargs)
-        env = SingleRelativeInitPhaseSpecificDiscreteActionWrapper(env)
+        env = BatterySingleRelativeInitPhaseSpecificDiscreteActionWrapper(env)
         env = CentralGlobalRewardWrapper(env, multi_attack=True)
         env = CentralLocalObservationWrapper(env, multi_attack=True)
         #env = CentralFramestackObservationWrapper(env)

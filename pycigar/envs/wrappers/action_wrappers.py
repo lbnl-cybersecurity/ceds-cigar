@@ -173,7 +173,40 @@ class SingleRelativeInitPhaseSpecificDiscreteActionWrapper(ActionWrapper):
             translation = int(DISCRETIZE_RELATIVE / 2)
 
         return self.INIT_ACTION[rl_id] - ACTION_RANGE + ACTION_STEP * translation
+class BatterySingleRelativeInitPhaseSpecificDiscreteActionWrapper(ActionWrapper):
+    """
+    Action head is 4 values:
+        - one for VBP translation for inverters on phase a
+        - one for VBP translation for inverters on phase b
+        - one for VBP translation for inverters on phase b
+        - one for VBP translation for inverters on three phases
+    """
 
+    @property
+    def action_space(self):
+        return Tuple([Discrete(DISCRETIZE_RELATIVE)] * 6)
+
+    def action(self, action, rl_id, *_):
+        if not rl_id.startswith('bsd'):
+            if rl_id.endswith('a'):
+                translation = action[0]
+            elif rl_id.endswith('b'):
+                translation = action[1]
+            elif rl_id.endswith('c'):
+                translation = action[2]
+            else:
+                translation = int(DISCRETIZE_RELATIVE / 2)
+        else:
+            if rl_id.endswith('a'):
+                translation = action[3]
+            elif rl_id.endswith('b'):
+                translation = action[4]
+            elif rl_id.endswith('c'):
+                translation = action[5]
+            else:
+                translation = int(DISCRETIZE_RELATIVE / 2)
+
+        return self.INIT_ACTION[rl_id] - ACTION_RANGE + ACTION_STEP * translation
 
 class SingleRelativeInitPhaseSpecificContinuousActionWrapper(ActionWrapper):
     """

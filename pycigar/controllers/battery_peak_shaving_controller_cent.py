@@ -1,5 +1,5 @@
 from pycigar.controllers.base_controller import BaseController
-
+from pycigar.controllers.rl_controller import RLController
 from collections import deque
 import numpy as np
 import pycigar.utils.signal_processing as signal_processing
@@ -7,7 +7,7 @@ import pycigar.utils.signal_processing as signal_processing
 from pycigar.utils.logging import logger
 
 
-class BatteryPeakShavingControllerCent(BaseController):
+class BatteryPeakShavingControllerCent(RLController):
     """Fixed controller is the controller that do nothing.
     It only returns the 'default_control_setting' value when being called.
     Attributes
@@ -18,10 +18,10 @@ class BatteryPeakShavingControllerCent(BaseController):
 
     def __init__(self, device_id, additional_params, controller_id):
         """Instantiate an fixed Controller."""
-        BaseController.__init__(
-            self,            
-            device_id, # devices controlled
-            controller_id # this controller
+        RLController.__init__(
+            self,
+            device_id=device_id, # devices controlled
+            controller_id=controller_id, # this controller
         )
         self.additional_params = additional_params
 
@@ -110,8 +110,8 @@ class BatteryPeakShavingControllerCent(BaseController):
         result = {}
 
         if env.k.time == 0 or env.k.time == 51:
-            self.control_mode = 'valley_filling'
-            self.P_target = 2600
+            self.control_mode = 'peak_shaving'
+            self.P_target = 3000
 
         if env.k.time == 2500:
             self.control_mode = 'peak_shaving'
@@ -277,9 +277,9 @@ class BatteryPeakShavingControllerCent(BaseController):
                     # limit charge power assigned to BSD to BSD max charge power
                     if self.p_set[-1] >= env.k.device.devices[device]['device'].max_charge_power/1e3:
                         # self.p_set[-1] = env.k.device.devices[device]['device'].max_charge_power/1e3
-                        result[device] = ('charge',  {'p_in': env.k.device.devices[device]['device'].max_charge_power/1e3})
+                        result[device] = (None, {'control_mode': 'charge', 'p_in': env.k.device.devices[device]['device'].max_charge_power/1e3})
                     else:
-                        result[device] = ('charge',  {'p_in': 1*self.p_set[-1]})
+                        result[device] = (None, {'control_mode': 'charge', 'p_in': 1*self.p_set[-1]})
                     # if self.p_set[-1] >= (self.P_target - self.measured_active_power_lpf[-2]):
                     #     self.p_set[-1] = (self.P_target - self.measured_active_power_lpf[-2])
 
@@ -300,14 +300,13 @@ class BatteryPeakShavingControllerCent(BaseController):
                     # limit discharge power assigned to BSD to BSD max discharge power
                     if self.p_set[-1] <= -env.k.device.devices[device]['device'].max_discharge_power/1e3:
                         # self.p_out[-1] = -env.k.device.devices[device]['device'].max_discharge_power/1e3
-                        result[device] = ('discharge',  {'p_out': env.k.device.devices[device]['device'].max_discharge_power/1e3})
+                        result[device] = (None, {'control_mode': 'discharge', 'p_out': env.k.device.devices[device]['device'].max_discharge_power/1e3})
                     else:
                         # self.p_out.append(self.p_set[-1])
-                        result[device] = ('discharge',  {'p_out': -1*self.p_set[-1]})
+                        result[device] = (None, {'control_mode': 'discharge', 'p_out': -1*self.p_set[-1]})
 
                     # if self.p_set[-1] <= (self.P_target - self.measured_active_power_lpf[-2]):
                     #     self.p_set[-1] = (self.P_target - self.measured_active_power_lpf[-2])
-                
                     # self.control_setting.append('discharge')
                     # self.p_in.append(0)
                     # # self.p_out.append(-self.p_set[-1])

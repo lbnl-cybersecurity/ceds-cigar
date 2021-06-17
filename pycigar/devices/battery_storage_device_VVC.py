@@ -4,7 +4,6 @@ import numpy as np
 
 import pycigar.utils.signal_processing as signal_processing
 from pycigar.devices.base_device import BaseDevice
-
 from pycigar.utils.logging import logger
 
 DEFAULT_CONTROL_SETTING = 'auto_minmax_cycle'
@@ -22,8 +21,8 @@ class BatteryStorageDeviceVVC(BaseDevice):
         )
         self.additional_params = additional_params
 
-        self.control_setting = self.additional_params.get('default_control_setting', DEFAULT_CONTROL_SETTING)
-
+        self.control_mode = self.additional_params.get('default_control_setting', DEFAULT_CONTROL_SETTING)
+        self.control_setting = np.array([0.98, 1.01, 1.02, 1.05, 1.07])
         Logger = logger()
 
         if 'init_control_settings' in Logger.custom_metrics:
@@ -80,7 +79,7 @@ class BatteryStorageDeviceVVC(BaseDevice):
         #print('')
         ##################################################
         ##################################################
-        self.VVC = np.array([0.98, 1.01, 1.02, 1.05, 1.07]) - 0.03
+        self.control_setting = np.array([0.98, 1.01, 1.02, 1.05, 1.07])
         self.lpf_high_pass_filter = 1
         self.lpf_low_pass_filter = 0.1
         self.low_pass_filter_v = deque([0] * 2, maxlen=2)
@@ -108,111 +107,110 @@ class BatteryStorageDeviceVVC(BaseDevice):
                 self.Vlp[-1] = 1/self.lp1z[1,-1]*(np.sum(self.lp1z[1,0:-1]*self.Vlp[0:-1]) + \
                                               np.sum(self.lp1z[0,:]*[self.v_meas_km1, self.v_meas_k]))
 
-        if self.control_setting == 'auto_minmax_cycle':
-            if self.SOC <= 0.2:
-                self.auto_minmax_cycle_mode = 'charge'
-                self.current_capacity = self.current_capacity + self.Ts*self.p_in
-            if self.SOC >= 0.8:
-                self.auto_minmax_cycle_mode = 'discharge'
-                self.current_capacity = self.current_capacity - self.Ts*self.p_out
-            if self.current_capacity <= 0:
-                self.current_capacity = 0
-            if self.current_capacity >= self.total_capacity:
-                self.current_capacity = self.total_capacity
-            self.SOC = self.current_capacity/self.total_capacity
+        if self.custom_control_setting:
+            if self.control_mode == 'auto_minmax_cycle':
+                if self.SOC <= 0.2:
+                    self.auto_minmax_cycle_mode = 'charge'
+                    self.current_capacity = self.current_capacity + self.Ts*self.p_in
+                if self.SOC >= 0.8:
+                    self.auto_minmax_cycle_mode = 'discharge'
+                    self.current_capacity = self.current_capacity - self.Ts*self.p_out
+                if self.current_capacity <= 0:
+                    self.current_capacity = 0
+                if self.current_capacity >= self.total_capacity:
+                    self.current_capacity = self.total_capacity
+                self.SOC = self.current_capacity/self.total_capacity
 
-        if self.control_setting == 'external':
-            self.current_capacity = self.current_capacity + self.Ts*self.p_con
-            if self.current_capacity >= self.total_capacity:
-                self.current_capacity = self.total_capacity
-            if self.current_capacity <= 0:
-                self.current_capacity = 0
+            if self.control_mode == 'external':
+                self.current_capacity = self.current_capacity + self.Ts*self.p_con
+                if self.current_capacity >= self.total_capacity:
+                    self.current_capacity = self.total_capacity
+                if self.current_capacity <= 0:
+                    self.current_capacity = 0
 
-        ##### Make p_in, p_out deque size 2?
+            ##### Make p_in, p_out deque size 2?
 
-        if self.control_setting == 'standby':
-            self.p_in = 0
-            self.p_out = 0
+            if self.control_mode == 'standby':
+                self.p_in = 0
+                self.p_out = 0
 
-        if self.control_setting == 'charge':
-            # self.p_in = 0
-            # self.p_in = 150000
-            # self.p_in = self.max_charge_power
-            self.p_out = 0 # [W]
-
-            if 'p_in' in self.custom_control_setting:
-
-                if self.custom_control_setting['p_in']*1000 >= self.p_in + self.Ts*self.max_ramp_rate: #[W]
-                    self.p_in = self.p_in + self.Ts*self.max_ramp_rate # [W]
-                else:
-                    self.p_in = self.custom_control_setting['p_in']*1000 # [kW --> W]
-
-            if self.current_capacity >= self.max_SOC*self.total_capacity: # [J]
-
-                self.p_in = 0 #[W]
-                self.current_capacity = self.max_SOC*self.total_capacity # [J]
-
-            elif self.current_capacity + self.Ts*self.p_in >= self.max_SOC*self.total_capacity: # [J]
-
-                self.p_in = 1/self.Ts*(self.max_SOC*self.total_capacity - self.current_capacity) # [W]
-                self.current_capacity = self.max_SOC*self.total_capacity # [J]
-
-            else:
-
-                self.current_capacity = self.current_capacity + self.Ts*self.p_in # [J]
-
-            self.current_capacity = self.current_capacity + self.Ts*self.p_in
-            if self.current_capacity <= 0:
-                self.current_capacity = 0
-            if self.current_capacity >= self.total_capacity:
-                self.current_capacity = self.total_capacity
-            self.SOC = self.current_capacity/self.total_capacity
-            k.node.nodes[node_id]['PQ_injection']['P'] += 1*self.p_in/1000 # [W --> kW]
-
-        if self.control_setting == 'discharge':
-            self.p_in = 0
-            # self.p_out = 150000
-            # self.p_out = 200000
-            # self.p_out = self.max_discharge_power
-
-            if 'p_out' in self.custom_control_setting:                
-                
-                if self.custom_control_setting['p_out']*1000 >= self.p_out + self.Ts*self.max_ramp_rate: # [W]
-                    self.p_out = self.p_out + self.Ts*self.max_ramp_rate # [W]
-                else:
-                    self.p_out = self.custom_control_setting['p_out']*1000 # [kW --> W]
-
-                
-
-            if self.current_capacity <= self.min_SOC*self.total_capacity:
-
+            if self.control_mode == 'charge':
+                # self.p_in = 0
+                # self.p_in = 150000
+                # self.p_in = self.max_charge_power
                 self.p_out = 0 # [W]
-                self.current_capacity = self.min_SOC*self.total_capacity # [J]
 
-            elif self.current_capacity - self.Ts*self.p_out < self.min_SOC*self.total_capacity:
+                if 'p_in' in self.custom_control_setting:
 
-                self.p_out = 1/self.Ts*(self.current_capacity - self.min_SOC*self.total_capacity) # [W]
-                self.current_capacity = self.min_SOC*self.total_capacity # [J]
+                    if self.custom_control_setting['p_in']*1000 >= self.p_in + self.Ts*self.max_ramp_rate: #[W]
+                        self.p_in = self.p_in + self.Ts*self.max_ramp_rate # [W]
+                    else:
+                        self.p_in = self.custom_control_setting['p_in']*1000 # [kW --> W]
 
-            else:
+                if self.current_capacity >= self.max_SOC*self.total_capacity: # [J]
 
-                self.current_capacity = self.current_capacity - self.Ts*self.p_out # [J]
+                    self.p_in = 0 #[W]
+                    self.current_capacity = self.max_SOC*self.total_capacity # [J]
+
+                elif self.current_capacity + self.Ts*self.p_in >= self.max_SOC*self.total_capacity: # [J]
+
+                    self.p_in = 1/self.Ts*(self.max_SOC*self.total_capacity - self.current_capacity) # [W]
+                    self.current_capacity = self.max_SOC*self.total_capacity # [J]
+
+                else:
+
+                    self.current_capacity = self.current_capacity + self.Ts*self.p_in # [J]
+
+                self.current_capacity = self.current_capacity + self.Ts*self.p_in
+                if self.current_capacity <= 0:
+                    self.current_capacity = 0
+                if self.current_capacity >= self.total_capacity:
+                    self.current_capacity = self.total_capacity
+                self.SOC = self.current_capacity/self.total_capacity
+                k.node.nodes[node_id]['PQ_injection']['P'] += 1*self.p_in/1000 # [W --> kW]
+
+            if self.control_mode == 'discharge':
+                self.p_in = 0
+                # self.p_out = 150000
+                # self.p_out = 200000
+                # self.p_out = self.max_discharge_power
+
+                if 'p_out' in self.custom_control_setting:
+                    if self.custom_control_setting['p_out']*1000 >= self.p_out + self.Ts*self.max_ramp_rate: # [W]
+                        self.p_out = self.p_out + self.Ts*self.max_ramp_rate # [W]
+                    else:
+                        self.p_out = self.custom_control_setting['p_out']*1000 # [kW --> W]
+
+
+                if self.current_capacity <= self.min_SOC*self.total_capacity:
+
+                    self.p_out = 0 # [W]
+                    self.current_capacity = self.min_SOC*self.total_capacity # [J]
+
+                elif self.current_capacity - self.Ts*self.p_out < self.min_SOC*self.total_capacity:
+
+                    self.p_out = 1/self.Ts*(self.current_capacity - self.min_SOC*self.total_capacity) # [W]
+                    self.current_capacity = self.min_SOC*self.total_capacity # [J]
+
+                else:
+
+                    self.current_capacity = self.current_capacity - self.Ts*self.p_out # [J]
+
+                self.SOC = self.current_capacity/self.total_capacity
+                k.node.nodes[node_id]['PQ_injection']['P'] += -1*self.p_out/1e3 # [W --> kW]
+
+            if self.control_mode == 'voltwatt':
+                if self.current_capacity >= self.total_capacity:
+                    self.current_capacity = self.total_capacity
+                if self.current_capacity <= 0:
+                    self.current_capacity = 0
+
+            # if self.control_setting == 'peak_shaving':
+            #     self.p_in = 0
+            #     self.p_out = 0
+
 
             self.SOC = self.current_capacity/self.total_capacity
-            k.node.nodes[node_id]['PQ_injection']['P'] += -1*self.p_out/1e3 # [W --> kW]
-
-        if self.control_setting == 'voltwatt':
-            if self.current_capacity >= self.total_capacity:
-                self.current_capacity = self.total_capacity
-            if self.current_capacity <= 0:
-                self.current_capacity = 0
-
-        # if self.control_setting == 'peak_shaving':
-        #     self.p_in = 0
-        #     self.p_out = 0
-
-
-        self.SOC = self.current_capacity/self.total_capacity
 
         # if 'pout' in self.custom_control_setting:
         #     print(self.custom_control_setting['pout'])
@@ -222,7 +220,7 @@ class BatteryStorageDeviceVVC(BaseDevice):
         T = 1
         lpf_m = self.low_pass_filter_measure
         lpf_o = self.low_pass_filter_output
-        VBP = self.VVC
+        VBP = self.control_setting
         qk = 0
 
         if k.time > 1:
@@ -231,41 +229,41 @@ class BatteryStorageDeviceVVC(BaseDevice):
             low_pass_filter_v = (T * lpf_m * (vk + vkm1) - (T * lpf_m - 2) * (self.low_pass_filter_v[1])) / (2 + T * lpf_m)
 
             # compute p_set and q_set
-            print(self.current_capacity, end = " ")
-            print(self.control_setting, end = " ")
-            print(self.control_setting, end = " ")
+            # print(self.current_capacity, end = " ")
+            # print(self.control_setting, end = " ")
+            # print(self.control_setting, end = " ")
             if self.current_capacity >= 0:
                 q_avail = (self.s_max ** 2 - self.p_in ** 2  - self.p_out ** 2) ** (1 / 2)
                 if low_pass_filter_v <= VBP[4]:
                     # no curtailment
-                    print('all:{},t:{},p_in:{},p_out:{},v:{},VBP0: {}'.format(self.total_capacity/1000, self.current_capacity/1000, self.p_in/1000, self.p_out/1000, low_pass_filter_v, VBP[0]), end="/")
+                    #print('all:{},t:{},p_in:{},p_out:{},v:{},VBP0: {}'.format(self.total_capacity/1000, self.current_capacity/1000, self.p_in/1000, self.p_out/1000, low_pass_filter_v, VBP[0]), end="/")
                     # determine VAR support
                     if low_pass_filter_v <= VBP[0]:
                         # inject all available var
                         qk = -q_avail
-                        print('case 1', end=" ")
+                        #print('case 1', end=" ")
                     elif VBP[0] < low_pass_filter_v <= VBP[1]:
                         # partial VAR injection
                         c = q_avail / (VBP[1] - VBP[0])
                         qk = c * (low_pass_filter_v - VBP[1])
-                        print('case 2', end=" ")
+                        #print('case 2', end=" ")
                     elif VBP[1] < low_pass_filter_v <= VBP[2]:
                         # No var support
                         qk = 0
-                        print('case 3', end=" ")
+                        #print('case 3', end=" ")
                     elif VBP[2] < low_pass_filter_v < VBP[3]:
                         # partial Var consumption
                         c = q_avail / (VBP[3] - VBP[2])
                         qk = c * (low_pass_filter_v - VBP[2])
-                        print('case 4', end=" ")
+                        #print('case 4', end=" ")
                     elif VBP[3] < low_pass_filter_v < VBP[4]:
                         # partial real power curtailment
                         qk = (self.s_max ** 2 - self.p_in ** 2  - self.p_out ** 2) ** (1 / 2)
-                        print('case 5', end=" ")
+                        #print('case 5', end=" ")
                 elif low_pass_filter_v >= VBP[4]:
                     # full real power curtailment for VAR support
                     qk = q_avail
-                    print('case 6', end=" ")
+                    #print('case 6', end=" ")
             self.q_set.append(qk/1000) # [W --> kW]
             self.q_out.append(
                 (T * lpf_o * (self.q_set[1] + self.q_set[0]) - (T * lpf_o - 2) * (self.q_out[1])) / (2 + T * lpf_o)
@@ -275,8 +273,8 @@ class BatteryStorageDeviceVVC(BaseDevice):
 
         # import old V to x
         # inject to node
-        #k.node.nodes[self.node_id]['PQ_injection']['Q'] += self.q_out[1]
-        print(k.time, self.node_id, self.q_out[1])
+        k.node.nodes[self.node_id]['PQ_injection']['Q'] += self.q_out[1]
+        #print(k.time, self.node_id, self.q_out[1])
         self.log()
 
 

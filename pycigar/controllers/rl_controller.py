@@ -8,9 +8,9 @@ class RLController(BaseController):
     RLlib when running the experiment.
     """
 
-    def __init__(self, device_id, additional_params):
+    def __init__(self, device_id, controller_id=None, additional_params=None):
         """Instantiate an RL Controller."""
-        BaseController.__init__(self, device_id)
+        BaseController.__init__(self, device_id, controller_id)
 
     def get_action(self, env):
         """See parent class."""

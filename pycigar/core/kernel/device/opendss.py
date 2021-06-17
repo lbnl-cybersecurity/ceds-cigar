@@ -173,7 +173,7 @@ class OpenDSSDevice(KernelDevice):
         else:
             controller_obj = self.group_controllers[self.device_to_controller[device_id]]
 
-        if controller[0] == 'rl_controller':
+        if isinstance(controller_obj, RLController):
             self.devcon_ids['rl_devcon'].append(device_id)
         else:
             self.devcon_ids['norl_devcon'].append(device_id)
