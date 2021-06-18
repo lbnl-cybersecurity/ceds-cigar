@@ -77,11 +77,11 @@ class CentralLocalObservationWrapper(ObservationWrapper):
     @property
     def observation_space(self):
         if self.unbalance:
-            return Box(low=-np.float32('inf'), high=np.float32('inf'), shape=(5 + self.a_size + self.protection_size,), dtype=np.float32)
-        elif self.multi_attack:
             return Box(low=-np.float32('inf'), high=np.float32('inf'), shape=(6 + self.a_size + self.protection_size,), dtype=np.float32)
+        elif self.multi_attack:
+            return Box(low=-np.float32('inf'), high=np.float32('inf'), shape=(7 + self.a_size + self.protection_size,), dtype=np.float32)
         else:
-            return Box(low=-np.float32('inf'), high=np.float32('inf'), shape=(2 + self.a_size + self.protection_size,), dtype=np.float32)
+            return Box(low=-np.float32('inf'), high=np.float32('inf'), shape=(3 + self.a_size + self.protection_size,), dtype=np.float32)
 
     def observation(self, observation, info):
         if info:
@@ -115,13 +115,15 @@ class CentralLocalObservationWrapper(ObservationWrapper):
             va = (observation['v_worst'][0]-1)*10*2
             vb = (observation['v_worst'][1]-1)*10*2
             vc = (observation['v_worst'][2]-1)*10*2
-            observation = np.array([observation['u_worst'] / 0.1, p_set, *old_a_encoded, va, vb, vc])
+            q_avail_bat = observation['q_avail_bat']
+            observation = np.array([observation['u_worst'] / 0.1, p_set, *old_a_encoded, va, vb, vc, q_avail_bat])
 
         elif self.multi_attack:
             va = (observation['v_worst'][0]-1)*10*2
             vb = (observation['v_worst'][1]-1)*10*2
             vc = (observation['v_worst'][2]-1)*10*2
-            observation = np.array([observation['y']*10, observation['u_worst']*10, p_set, *old_a_encoded, va, vb, vc])
+            q_avail_bat = observation['q_avail_bat']
+            observation = np.array([observation['y']*10, observation['u_worst']*10, p_set, *old_a_encoded, va, vb, vc, q_avail_bat])
             #observation = np.array([observation['y']*10, p_set, *old_a_encoded])
         else:
             observation = np.array([observation['y'], p_set, *old_a_encoded])

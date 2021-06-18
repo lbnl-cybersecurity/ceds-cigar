@@ -108,7 +108,7 @@ class CentralEnv(Env):
             obs['u_mean'] = obs['u_mean']
             obs['y_mean'] = obs['y']
         except IndexError:
-            obs = {'p_set_p_max': 0.0, 'sbar_solar_irr': 0.0, 'y': 0.0}
+            obs = {'p_set_p_max': 0.0, 'sbar_solar_irr': 0.0, 'y': 0.0, 'q_avail_bat': 0.0}
             obs['sum_v'] = 0
             obs['v_worst'] = [0, 0, 0]
             obs['u_worst'] = 0
@@ -216,9 +216,15 @@ class CentralEnv(Env):
                 y = np.mean(y)
                 p_set_p_max = np.mean(self.k.device.get_vectorized_device_p_set_p_max()[0::2])
                 sbar_solar_irr = np.mean(self.k.device.get_vectorized_device_sbar_solar_irr()[0::2])
+                
+                # battery
+                batteries = [battery for battery in self.k.device.devcon_ids['rl_devcon'] if 'bsd' in battery]
+                q_battery_avail = np.mean([self.k.device.get_device(bat).q_avail for bat in batteries])/165
+
                 result = {'y': y,
                           'p_set_p_max': p_set_p_max,
                           'sbar_solar_irr': sbar_solar_irr,
+                          'q_avail_bat': q_battery_avail
                          }
                 result['sum_v'] = np.sum(np.array(list(v_all.values())) - 1)
                 result['y_worst'] = y_worst

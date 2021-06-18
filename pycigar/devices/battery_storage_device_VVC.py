@@ -87,7 +87,7 @@ class BatteryStorageDeviceVVC(BaseDevice):
         self.q_out = deque([0] * 2, maxlen=2)
         self.low_pass_filter_measure = 1.2#self.low_pass_filter_measure_std * np.random.randn() + self.low_pass_filter_measure_mean
         self.low_pass_filter_output = 0.1#self.low_pass_filter_output_std * np.random.randn() + self.low_pass_filter_output_mean
-
+        self.q_avail = 0
 
     def update(self, k):
         node_id = k.device.get_node_connected_to(self.device_id)
@@ -108,6 +108,7 @@ class BatteryStorageDeviceVVC(BaseDevice):
                                               np.sum(self.lp1z[0,:]*[self.v_meas_km1, self.v_meas_k]))
 
         if self.custom_control_setting:
+            self.control_mode = self.custom_control_setting['control_mode']
             if self.control_mode == 'auto_minmax_cycle':
                 if self.SOC <= 0.2:
                     self.auto_minmax_cycle_mode = 'charge'
@@ -264,6 +265,7 @@ class BatteryStorageDeviceVVC(BaseDevice):
                     # full real power curtailment for VAR support
                     qk = q_avail
                     #print('case 6', end=" ")
+            self.q_avail = q_avail/1e3
             self.q_set.append(qk/1000) # [W --> kW]
             self.q_out.append(
                 (T * lpf_o * (self.q_set[1] + self.q_set[0]) - (T * lpf_o - 2) * (self.q_out[1])) / (2 + T * lpf_o)
@@ -303,6 +305,7 @@ class BatteryStorageDeviceVVC(BaseDevice):
 
         Logger.log(self.device_id, 'q_out', self.q_out[1])
         Logger.log(self.device_id, 'q_set', self.q_set[1])
+        Logger.log(self.device_id, 'q_avail', self.q_avail)
 
         if hasattr(self, 'node_id'):
             Logger.log_single(self.device_id, 'node', self.node_id)
