@@ -193,7 +193,7 @@ class CentralGlobalRewardWrapper(RewardWrapper):
                     + N * roa
                     + P * np.linalg.norm(action - self.INIT_ACTION[key])
                     + Q * (1 - abs(info[key]['p_set_p_max'])) ** 2
-                    + Y * info[key]['sum_v']
+                    + Y * abs(info[key]['sum_v'])
                 )
 
             component_y += -M * info[key][y_or_u]
