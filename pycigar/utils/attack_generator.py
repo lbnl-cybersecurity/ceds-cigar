@@ -38,7 +38,7 @@ class AttackGeneratorEvaluation:
 
     def new_dev_hack_info(self):
         hack_start = 250  # random.randint(250, 250 + 10)  # random.randint(int(duration*2/5), int(duration*2/5)+10)
-        hack_end = 500  # random.randint(500, 500 + 10)  # random.randint(int(duration*4/5), int(duration*4/5)+10)
+        hack_end = 10000  # random.randint(500, 500 + 10)  # random.randint(int(duration*4/5), int(duration*4/5)+10)
         percentage = self.scenarios[self.mode][0]
         res = [hack_start, percentage, hack_end]
 
@@ -78,7 +78,7 @@ class AttackGenerator:
 
     def new_dev_hack_info(self):
         hack_start = 250  # random.randint(250, 250 + 10)  # random.randint(int(duration*2/5), int(duration*2/5)+10)
-        hack_end = 500  # random.randint(500, 500 + 10)  # random.randint(int(duration*4/5), int(duration*4/5)+10)
+        hack_end = 10000  # random.randint(500, 500 + 10)  # random.randint(int(duration*4/5), int(duration*4/5)+10)
         percentage = self.scenarios[self.mode][0]
         res = [hack_start, percentage, hack_end]
 
