@@ -5,13 +5,6 @@ from pycigar.devices.vectorized_pv_inverter_device import VectorizedPVDevice
 from pycigar.utils.pycigar_registration import pycigar_make
 from pycigar.devices import PVDevice
 
-from pycigar.controllers import AdaptiveInverterController
-from pycigar.controllers import FixedController
-
-# from pycigar.controllers import MimicController
-from pycigar.controllers import AdaptiveFixedController
-from pycigar.controllers import UnbalancedFixedController
-
 from pycigar.controllers import RLController
 import numpy as np
 
@@ -157,7 +150,12 @@ class OpenDSSDevice(KernelDevice):
         else:
             device[1]["percentage_control"] = 1 - hack[1]
 
-        device_obj = pycigar_make(device[0], device_id=device_id, additional_params=device[1], is_disable_log=self.master_kernel.sim_params['is_disable_log'])
+        if not self.master_kernel.sim_params:
+            is_disable_log = False
+        else:
+            is_disable_log = self.master_kernel.sim_params['is_disable_log']
+
+        device_obj = pycigar_make(device[0], device_id=device_id, additional_params=device[1], is_disable_log=is_disable_log)
 
         if isinstance(device_obj, PVDevice):
             if 'pv_device' not in self.device_ids:
@@ -188,7 +186,7 @@ class OpenDSSDevice(KernelDevice):
         if adversary_controller[0] is not None:
             adversary_device_id = "adversary_%s" % name
             device[1]["percentage_control"] = hack[1]
-            adversary_device_obj = pycigar_make(device[0], device_id=adversary_device_id, additional_params=device[1], is_disable_log=self.master_kernel.sim_params['is_disable_log'])
+            adversary_device_obj = pycigar_make(device[0], device_id=adversary_device_id, additional_params=device[1], is_disable_log=is_disable_log)
 
             if isinstance(adversary_device_obj, PVDevice):
                 if 'pv_device' not in self.device_ids:
@@ -249,13 +247,13 @@ class OpenDSSDevice(KernelDevice):
 
                     self.update_kernel_device_info(device_id)
 
-            if self.master_kernel.sim_params['vectorized_mode']:
+            if self.master_kernel.sim_params is not None and self.master_kernel.sim_params['vectorized_mode']:
                 self.vectorized_pv_inverter_device = VectorizedPVDevice(self.master_kernel)
         else:
             # get the injection here
             # get the new VBP, then push PV to node
             # update pv device
-            if self.master_kernel.sim_params['vectorized_mode']:
+            if self.master_kernel.sim_params is not None and self.master_kernel.sim_params['vectorized_mode']:
                 self.vectorized_pv_inverter_device.update(self.master_kernel)
                 for device_type in self.device_ids:
                     if device_type != 'pv_device':
@@ -564,7 +562,7 @@ class OpenDSSDevice(KernelDevice):
                 device = self.devices[device_id]['device']
                 device.set_control_setting(control_setting[i]) if type(control_setting[i]) is not tuple else device.set_control_setting(*control_setting[i])
 
-                if self.master_kernel.sim_params['vectorized_mode'] and device_id in self.vectorized_pv_inverter_device.list_device:
+                if self.master_kernel.sim_params and self.master_kernel.sim_params['vectorized_mode'] and device_id in self.vectorized_pv_inverter_device.list_device:
                     self.vectorized_pv_inverter_device.set_control_setting(device_id, control_setting[i])
 
 

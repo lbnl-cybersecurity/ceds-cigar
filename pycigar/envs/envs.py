@@ -56,8 +56,8 @@ class CentralControlPhaseSpecificContinuousPVInverterEnv(Wrapper):
     def __init__(self, **kwargs):
         env = CentralEnv(**kwargs)
         env = SingleRelativeInitPhaseSpecificContinuousActionWrapper(env)
-        env = CentralGlobalRewardWrapper(env, unbalance=True)
-        env = CentralLocalObservationWrapper(env, unbalance=True)
+        env = CentralGlobalRewardWrapper(env, multi_attack=True)
+        env = CentralLocalObservationWrapper(env, multi_attack=True)
         env = CentralFramestackObservationWrapper(env)
         env = CentralLocalPhaseSpecificObservationWrapper(env, unbalance=True)
         self.env = env

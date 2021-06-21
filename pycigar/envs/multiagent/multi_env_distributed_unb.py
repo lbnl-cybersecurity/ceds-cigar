@@ -2,7 +2,6 @@ import numpy as np
 from gym.spaces import Box
 from ray.rllib.env import MultiAgentEnv
 from pycigar.envs.base import Env
-from pycigar.controllers import AdaptiveFixedController
 import re
 from pycigar.utils.logging import logger
 

@@ -62,13 +62,11 @@ class Kernel(object):
         self.kernel_api = None
         self.sim_params = sim_params
         if self.sim_params != None:
-            self.multi_config = self.sim_params['scenario_config']['multi_config']
+            self.multi_config = self.sim_params['scenario_config'].get('multi_config', False)
+            self.data_length = pd.read_csv(self.sim_params['scenario_config']['network_data_directory']).shape[0] - 1
         self.time = 0
         # initialize logger
         logger()
-
-        if self.sim_params['scenario_config']['network_data_directory'] is not None:
-            self.data_length = pd.read_csv(self.sim_params['scenario_config']['network_data_directory']).shape[0] - 1
 
         if simulator == "opendss":
             self.simulation = OpenDSSSimulation(self)
@@ -227,7 +225,7 @@ class Kernel(object):
             deltay = np.array(np.array(newy) - np.array(y))
 
     def log(self):
-        if not self.sim_params['is_disable_log']:
+        if not self.sim_params or not self.sim_params['is_disable_log']:
             Logger = logger()
             Logger.log('network', 'substation_power', self.kernel_api.get_total_power())
             Logger.log('network', 'loss', self.kernel_api.get_losses())

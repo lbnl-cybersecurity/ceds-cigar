@@ -34,7 +34,6 @@ class TestCentralEnv(unittest.TestCase):
 
         log = logger().log_dict
         self.assertTrue(all([k['voltage'][0] < 1.04 for k in log if 'voltage' in k]))
-        print(log)
 
     def test_start_stability(self):
         done = False
@@ -91,7 +90,7 @@ class TestCentralEnvNoWrapper(unittest.TestCase):
     def test_obs_after_reset(self):
         obs = self.env.reset()
         self.assertTrue(isinstance(obs, dict))
-        keys = ['voltage', 'solar_generation', 'y', 'u', 'p_set', 'p_set_p_max', 'sbar_solar_irr']
+        keys = ['y', 'p_set_p_max', 'sbar_solar_irr', 'sum_v', 'y_worst', 'v_worst', 'u_worst', 'u_mean', 'u_std']
         for k in keys:
             self.assertTrue(k in obs, f'Key {k} should be in the observation')
 
@@ -99,7 +98,7 @@ class TestCentralEnvNoWrapper(unittest.TestCase):
         self.env.reset()
         obs, r, done, _ = self.env.step(None)
         self.assertTrue(isinstance(obs, dict))
-        keys = ['voltage', 'solar_generation', 'y', 'u', 'p_set', 'p_set_p_max', 'sbar_solar_irr']
+        keys = ['y', 'p_set_p_max', 'sbar_solar_irr', 'sum_v', 'y_worst', 'v_worst', 'u_worst', 'u_mean', 'u_std']
         for k in keys:
             self.assertTrue(k in obs, f'Key {k} should be in the observation')
 

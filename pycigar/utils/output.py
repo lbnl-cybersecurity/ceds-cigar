@@ -1,6 +1,6 @@
 import os
 import matplotlib
-matplotlib.use('agg', force=True, warn=False)
+matplotlib.use('agg', force=True)
 import matplotlib.pyplot as plt
 import numpy as np
 from pycigar.envs.wrappers.wrappers_constants import ACTION_RANGE

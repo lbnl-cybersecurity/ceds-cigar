@@ -1,6 +1,7 @@
-
 tune_search: False
 hack_setting: {'default_control_setting': [1.039, 1.04, 1.04, 1.041, 1.042]}
+is_disable_log: False
+vectorized_mode: True
 
 env_config:
   clip_actions: True,
@@ -11,13 +12,14 @@ simulation_config:
   custom_configs:  {solution_mode: 1,
                     solution_number: 1,
                     solution_step_size: 1,
-                    solution_control_mode: -1,
+                    solution_control_mode: 2,
                     solution_max_control_iterations: 1000000,
                     solution_max_iterations: 30000,
                     power_factor: 0.9}
 
 scenario_config:
   network_data_directory: './data/load_solar_data.csv'
+  use_load_generator: False
   multi_config: False
   start_end_time: [100, 500]
   custom_configs: {load_scaling_factor: 1.5,
@@ -30,14 +32,21 @@ scenario_config:
       - name: s701a
         devices:
             - name: pv_1
-              type: pv_device
+              device: pv_device
+              custom_device_configs: {
+                default_control_setting: [0.98, 1.01, 1.01, 1.04, 1.06],
+                low_pass_filter_measure: 1.2,
+                low_pass_filter_output: 0.115
+              }
               controller: fixed_controller
-              custom_configs: {default_control_setting: [0.98, 1.01, 1.01, 1.04, 1.06],
-                               low_pass_filter_measure: 1.2,
-                               low_pass_filter_output: 0.115}
+              custom_controller_configs: {
+                default_control_setting: [0.98, 1.01, 1.01, 1.04, 1.06],
+                }
               adversary_controller: fixed_controller
-              adversary_custom_configs: {default_control_setting: [1.014, 1.015, 1.015, 1.016, 1.017]}
-              hack: [300, 0.4]
+              adversary_custom_controller_configs: {
+                default_control_setting: [1.014, 1.015, 1.015, 1.016, 1.017]
+                }
+              hack: [300, 0.4, 500]
       - name: s702a
 
       - name: s703a

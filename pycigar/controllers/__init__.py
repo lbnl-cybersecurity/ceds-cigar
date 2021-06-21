@@ -3,7 +3,7 @@ from pycigar.controllers.base_controller import BaseController
 from pycigar.controllers.fixed_controller import FixedController
 from pycigar.controllers.mimic_controller import MimicController
 from pycigar.controllers.adaptive_inverter_controller import AdaptiveInverterController
-from pycigar.controllers.adaptive_fixed_controller import AdaptiveFixedController
+from pycigar.controllers.oscillation_fixed_controller import OscillationFixedController
 from pycigar.controllers.adaptive_auto_fixed_controller import AdaptiveAutoFixedController
 from pycigar.controllers.unbalanced_fixed_controller import UnbalancedFixedController
 from pycigar.controllers.unbalanced_auto_fixed_controller import UnbalancedAutoFixedController
@@ -19,7 +19,7 @@ __all__ = [
     "BaseController",
     "FixedController",
     "MimicController",
-    "AdaptiveFixedController",
+    "OscillationFixedController",
     "AdaptiveAutoFixedController",
     "AdaptiveInverterController",
     "UnbalancedFixedController",
@@ -34,8 +34,8 @@ pycigar_register(
 )
 
 pycigar_register(
-    id='adaptive_fixed_controller',
-    entry_point='pycigar.controllers:AdaptiveFixedController'
+    id='oscillation_fixed_controller',
+    entry_point='pycigar.controllers:OscillationFixedController'
 )
 
 pycigar_register(

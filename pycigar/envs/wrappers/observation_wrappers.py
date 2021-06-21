@@ -5,7 +5,6 @@ from pycigar.envs.wrappers.wrapper import Wrapper
 from pycigar.envs.wrappers.wrappers_constants import *
 from pycigar.utils.logging import logger
 
-
 class ObservationWrapper(Wrapper):
     def reset(self):
         observation = self.env.reset()
