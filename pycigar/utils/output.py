@@ -317,7 +317,12 @@ def plot_new(log_dict, custom_metrics, epoch='', unbalance=False, multiagent=Fal
     if not unbalance:
         invs = [k for k in log_dict if k.startswith('inverter_s49') or k.startswith('inverter_s701')]
         inv_k = invs[0]
-        f, ax = plt.subplots(3, 2, figsize=(30, 20))
+        batteries = [bat for bat in log_dict.keys() if 'bsd' in bat]
+        if len(batteries) == 0:
+            num_row = 3
+        else:
+            num_row = 4
+        f, ax = plt.subplots(num_row, 2, figsize=(30, 20))
         title = '[epoch {}][time {}][hack {}] total reward: {:.2f}'.format(
             epoch, custom_metrics['start_time'], custom_metrics['hack'], sum(log_dict[inv_k]['reward'])
         )
@@ -336,7 +341,7 @@ def plot_new(log_dict, custom_metrics, epoch='', unbalance=False, multiagent=Fal
         ax[1, 0].set_ylim([0, 0.8])
         ax[2, 0].set_ylim([0, 6])
         ax[0, 1].set_ylim([-0.1, 0.1])
-        ax[1, 1].set_ylim([-0.06, 0.06])
+        ax[1, 1].set_ylim([-0.1, 0.1])
 
         for inv in log_dict:
             if 'adversary_' not in inv and 'inverter_' in inv:
@@ -379,8 +384,17 @@ def plot_new(log_dict, custom_metrics, epoch='', unbalance=False, multiagent=Fal
 
         regs = [i for i in log_dict.keys() if 'reg' in i]
         for reg in regs:
-            ax[-1, 1].plot(log_dict[reg]['tap_number'], label=reg)
-        for i in range(3):
+            ax[2, 1].plot(log_dict[reg]['tap_number'], label=reg)
+        if batteries:
+            bat = batteries[0]
+            ax[3, 1].plot(np.array(log_dict[bat]['SOC'])*100, label='SOC')
+            ax[3, 0].plot(np.array(log_dict[bat]['q_out']), label='q out')
+            ax[4, 0].plot(np.array(log_dict[bat]['q_avail']), label='q avail')
+            for bat in batteries[1:]:
+                ax[3, 1].plot(np.array(log_dict[bat]['SOC'])*100)
+                ax[3, 0].plot(np.array(log_dict[bat]['q_out']))
+                ax[4, 0].plot(np.array(log_dict[bat]['q_avail']))
+        for i in range(num_row):
             for j in range(2):
                 ax[i, j].grid(b=True, which='both')
                 ax[i, j].legend(loc=1, ncol=2)
