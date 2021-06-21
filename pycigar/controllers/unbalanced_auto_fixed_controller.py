@@ -30,6 +30,7 @@ class UnbalancedAutoFixedController(BaseController):
         """See parent class."""
         # nothing to do here, the setting in the device is as default
         #env.k.device.vectorized_pv_inverter_device.y[index] < 0.02 and
+        init_action = env.INIT_ACTION[self.device_id]
         bus = env.k.kernel_api.load_to_bus[self.device_id.split('_')[-1]]
         if env.k.kernel_api.u_bus[bus] < 0.012 and self.countdown_timer >= self.countdown:
             self.trigger = False
@@ -41,20 +42,20 @@ class UnbalancedAutoFixedController(BaseController):
             if self.device_id[-1].isdigit():
                 self.action = self.hack_curve_all
             elif self.device_id[-1] == 'a':
-                if (self.action == self.hack_curve_all).all() or self.action is None:
+                if (self.action == init_action).all() or self.action is None:
                     self.action = self.hack_curve_a
                 else:
-                    self.action = self.hack_curve_all
+                    self.action = init_action
             elif self.device_id[-1] == 'b':
-                if (self.action == self.hack_curve_all).all():
+                if (self.action == init_action).all() or self.action is None:
                     self.action = self.hack_curve_b
                 else:
-                    self.action = self.hack_curve_all
+                    self.action = init_action
             elif self.device_id[-1] == 'c':
-                if (self.action == self.hack_curve_all).all():
+                if (self.action == init_action).all() or self.action is None:
                     self.action = self.hack_curve_c
                 else:
-                    self.action = self.hack_curve_all
+                    self.action = init_action
 
             self.trigger = True
             return self.action
