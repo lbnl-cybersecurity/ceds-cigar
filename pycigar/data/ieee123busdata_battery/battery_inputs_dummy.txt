@@ -1,0 +1,21 @@
+device class=battery_storage_device name=bsd_s1a node=s1a default_control_setting=standby min_SOC=0.2 max_SOC=1.0 total_capacity=200 current_capacity=120 max_charge_power=150 max_discharge_power=150 max_ramp_rate=1.0
+device class=battery_storage_device name=bsd_s2b node=s2b default_control_setting=standby min_SOC=0.2 max_SOC=1.0 total_capacity=200 current_capacity=150 max_charge_power=150 max_discharge_power=150 max_ramp_rate=1.0
+device class=battery_storage_device name=bsd_s4c node=s4c default_control_setting=standby min_SOC=0.2 max_SOC=1.0 total_capacity=200 current_capacity=180 max_charge_power=150 max_discharge_power=150 max_ramp_rate=1.0
+
+device class=battery_storage_device name=bsd_s65a node=s65a default_control_setting=standby min_SOC=0.2 max_SOC=1.0 total_capacity=100 current_capacity=90 max_charge_power=150 max_discharge_power=150 max_ramp_rate=1.0
+device class=battery_storage_device name=bsd_s65b node=s65b default_control_setting=standby min_SOC=0.2 max_SOC=1.0 total_capacity=100 current_capacity=75 max_charge_power=150 max_discharge_power=150 max_ramp_rate=1.0
+device class=battery_storage_device name=bsd_s65c node=s65c default_control_setting=standby min_SOC=0.2 max_SOC=1.0 total_capacity=100 current_capacity=60 max_charge_power=150 max_discharge_power=150 max_ramp_rate=1.0
+
+device class=battery_storage_device name=bsd_s76a node=s76a default_control_setting=standby min_SOC=0.2 max_SOC=1.0 total_capacity=200 current_capacity=120 max_charge_power=150 max_discharge_power=150 max_ramp_rate=1.0
+device class=battery_storage_device name=bsd_s76b node=s76b default_control_setting=standby min_SOC=0.2 max_SOC=1.0 total_capacity=200 current_capacity=150 max_charge_power=150 max_discharge_power=150 max_ramp_rate=1.0
+device class=battery_storage_device name=bsd_s76c node=s76c default_control_setting=standby min_SOC=0.2 max_SOC=1.0 total_capacity=200 current_capacity=180 max_charge_power=150 max_discharge_power=150 max_ramp_rate=1.0
+
+device class=battery_storage_device name=bsd_s100c node=s100c default_control_setting=standby min_SOC=0.2 max_SOC=1.0 total_capacity=200 current_capacity=120 max_charge_power=150 max_discharge_power=150 max_ramp_rate=1.0
+device class=battery_storage_device name=bsd_s102c node=s102c default_control_setting=standby min_SOC=0.2 max_SOC=1.0 total_capacity=200 current_capacity=150 max_charge_power=150 max_discharge_power=150 max_ramp_rate=1.0
+device class=battery_storage_device name=bsd_s103c node=s103c default_control_setting=standby min_SOC=0.2 max_SOC=1.0 total_capacity=200 current_capacity=180 max_charge_power=150 max_discharge_power=150 max_ramp_rate=1.0
+
+
+controller class=battery_peak_shaving_controller_cent_dummy name=psc_cent_1 lowpass_filter_frequency=0.05 active_power_target=2600 K_P=0.75 K_I=0.02 K_D=0.02 default_control_setting=standby devices=[bsd_s1a,bsd_s2b,bsd_s4c]
+controller class=battery_peak_shaving_controller_cent_dummy name=psc_cent_2 lowpass_filter_frequency=0.05 active_power_target=2600 K_P=0.5 K_I=0.01 K_D=0.02 default_control_setting=standby devices=[bsd_s65a,bsd_s65b,bsd_s65c]
+controller class=battery_peak_shaving_controller_cent_dummy name=psc_cent_3 lowpass_filter_frequency=0.05 active_power_target=2600 K_P=0.5 K_I=0.01 K_D=0.02 default_control_setting=standby devices=[bsd_s76a,bsd_s76b,bsd_s76c]
+controller class=battery_peak_shaving_controller_cent_dummy name=psc_cent_4 lowpass_filter_frequency=0.05 active_power_target=2600 K_P=0.5 K_I=0.01 K_D=0.02 default_control_setting=standby devices=[bsd_s100c,bsd_s102c,bsd_s103c]
