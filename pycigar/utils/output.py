@@ -314,14 +314,14 @@ def plot_new(log_dict, custom_metrics, epoch='', unbalance=False, multiagent=Fal
     plt.rc('font', size=15)
     plt.rc('figure', titlesize=35)
 
-    if not unbalance:
+    if True:
         invs = [k for k in log_dict if k.startswith('inverter_s49') or k.startswith('inverter_s701')]
         inv_k = invs[0]
         batteries = [bat for bat in log_dict.keys() if 'bsd' in bat]
         if len(batteries) == 0:
             num_row = 3
         else:
-            num_row = 4
+            num_row = 5
         f, ax = plt.subplots(num_row, 2, figsize=(30, 20))
         title = '[epoch {}][time {}][hack {}] total reward: {:.2f}'.format(
             epoch, custom_metrics['start_time'], custom_metrics['hack'], sum(log_dict[inv_k]['reward'])
@@ -394,6 +394,22 @@ def plot_new(log_dict, custom_metrics, epoch='', unbalance=False, multiagent=Fal
                 ax[3, 1].plot(np.array(log_dict[bat]['SOC'])*100)
                 ax[3, 0].plot(np.array(log_dict[bat]['q_out']))
                 ax[4, 0].plot(np.array(log_dict[bat]['q_avail']))
+
+            for bat in batteries:
+                translation, slope = get_translation_and_slope(
+                    log_dict[bat]['control_setting'], np.array([0.98, 1.01, 1.02, 1.05, 1.07])
+                )
+                if bat[-1] == 'a':
+                    color = 'tab:blue'
+                elif bat[-1] == 'b':
+                    color = 'tab:orange'
+                elif bat[-1] == 'c':
+                    color = 'tab:green'
+                else:
+                    color = 'tab:red'
+                ax[4, 1].plot(translation, color=color)
+                ax[4, 1].plot(slope, color='tab:purple')
+
         for i in range(num_row):
             for j in range(2):
                 ax[i, j].grid(b=True, which='both')
