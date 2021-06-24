@@ -11,7 +11,7 @@ import pandas as pd
 from pycigar.utils.pycigar_registration import pycigar_make
 from pycigar.utils.logging import logger
 import random
-
+import math
 
 class OpenDSSScenario(KernelScenario):
     def __init__(self, master_kernel):
@@ -173,9 +173,12 @@ class OpenDSSScenario(KernelScenario):
         """See parent class."""
         self.kernel_api.update_all_bus_voltages()
         for node in self.master_kernel.node.nodes:
-            self.master_kernel.node.nodes[node]['voltage'][self.master_kernel.time] = self.kernel_api.get_node_voltage(
-                node
-            )
+            v_node = self.kernel_api.get_node_voltage(node)
+            if math.isinf(v_node) or math.isnan(v_node):
+                self.master_kernel.node.nodes[node]['voltage'][self.master_kernel.time] = self.master_kernel.node.nodes[node]['voltage'][self.master_kernel.time-1]
+            else:
+                self.master_kernel.node.nodes[node]['voltage'][self.master_kernel.time] = v_node
+
             if self.master_kernel.sim_params is None or not self.master_kernel.sim_params['is_disable_log']:
                 Logger = logger()
                 Logger.log(node, 'voltage', self.master_kernel.node.nodes[node]['voltage'][self.master_kernel.time])

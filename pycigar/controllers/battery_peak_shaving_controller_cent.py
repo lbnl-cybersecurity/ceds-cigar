@@ -3,7 +3,7 @@ from pycigar.controllers.rl_controller import RLController
 from collections import deque
 import numpy as np
 import pycigar.utils.signal_processing as signal_processing
-
+import math
 from pycigar.utils.logging import logger
 
 
@@ -104,8 +104,12 @@ class BatteryPeakShavingControllerCent(RLController):
     def get_action(self, env):
 
         power = env.k.kernel_api.get_total_power()
-        active_power = power[0]
-        reactive_power = power[1]
+        if math.isinf(power[0]) or math.isinf(power[1]) or math.isnan(power[0]) or math.isnan(power[1]):
+            active_power = self.measured_active_power[-1]
+            reactive_power = self.measured_reactive_power[-1]
+        else:
+            active_power = power[0]
+            reactive_power = power[1]
 
         result = {}
 
