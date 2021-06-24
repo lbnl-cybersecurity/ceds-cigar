@@ -590,3 +590,61 @@ def plot_cluster(log_dict, custom_metrics, epoch='', unbalance=False, multiagent
     return f
 
 
+def save_csv(log_dict, custom_metrics, epoch='', unbalance=False, multiagent=False):
+    def get_translation_and_slope(a_val, init_a):
+        points = np.array(a_val)
+        slope = points[:, 1] - points[:, 0]
+        translation = points[:, 2] - init_a[2]
+        return translation, slope
+
+    invs = [k for k in log_dict if k.startswith('inverter_s49') or k.startswith('inverter_s701')]
+    inv_k = invs[0]
+    batteries = [bat for bat in log_dict.keys() if 'bsd' in bat]
+    result = {}
+
+    for i, inv in enumerate(invs):
+        v = log_dict[inv[-4:]]['voltage']
+        result['v_{}'.format(inv)] = v
+
+    result['epoch'] = [epoch]*len(result['v_{}'.format(inv)])
+    result['start_time'] = [custom_metrics['start_time']]*len(result['v_{}'.format(inv)])
+    result['hack'] = [custom_metrics['hack']]*len(result['v_{}'.format(inv)])
+
+    u = np.array(log_dict['u_metrics']['u_mean'])*100
+    u_worst = np.array(log_dict['u_metrics']['u_worst'])*100
+    result['u'] = u[1:].tolist()
+    result['uw'] = u_worst[1:].tolist()
+
+    y = log_dict['y_metrics']['y_mean']
+    y_worst = log_dict['y_metrics']['y_worst']
+    result['y'] = y[1:]
+    result['yw'] = y_worst[1:]
+
+    for i, inv in enumerate(invs):
+        result['a_{}'.format(inv)] = np.round(get_translation_and_slope(log_dict[inv]['control_setting'], custom_metrics['init_control_settings'][inv])[0], 2).tolist()
+        advinv = 'adversary_' + inv
+        result['a_{}'.format(advinv)] = np.round(get_translation_and_slope(log_dict[advinv]['control_setting'], custom_metrics['init_control_settings'][advinv])[0], 2).tolist()
+
+    regs = [reg for reg in log_dict.keys() if 'reg' in reg]
+    result_reg = []
+    for reg in regs:
+        result_reg.append(log_dict[reg]['tap_number'])
+    result['reg'] = np.array(result_reg).T.tolist()
+
+    for i, bat in enumerate(batteries):
+        battery = log_dict[bat]
+        result['bat_SOC_{}'.format(bat)] = battery['SOC']
+        result['bat_qout_{}'.format(bat)] = battery['q_out']
+        result['bat_qavail_{}'.format(bat)] = battery['q_avail']
+
+        if 'a_bat_a' not in result and bat[-1] == 'a':
+            result['a_bat_a'] = np.round(get_translation_and_slope(log_dict[bat]['control_setting'], np.array([0.98, 1.01, 1.02, 1.05, 1.07]))[0], 2).tolist()
+        if 'a_bat_b' not in result and bat[-1] == 'b':
+            result['a_bat_b'] = np.round(get_translation_and_slope(log_dict[bat]['control_setting'], np.array([0.98, 1.01, 1.02, 1.05, 1.07]))[0], 2).tolist()
+        if 'a_bat_c' not in result and bat[-1] == 'c':
+            result['a_bat_c'] = np.round(get_translation_and_slope(log_dict[bat]['control_setting'], np.array([0.98, 1.01, 1.02, 1.05, 1.07]))[0], 2).tolist()
+
+    result['substation_p'] = np.array(log_dict['network']['substation_power'])[:, 0].tolist()
+    result['substation_q'] = np.array(log_dict['network']['substation_power'])[:, 1].tolist()
+    
+    return result
