@@ -104,7 +104,7 @@ class BatteryPeakShavingControllerCent(RLController):
     def get_action(self, env):
 
         power = env.k.kernel_api.get_total_power()
-        if math.isinf(power[0]) or math.isinf(power[1]) or math.isnan(power[0]) or math.isnan(power[1]):
+        if math.isinf(power[0]) or math.isinf(power[1]) or math.isnan(power[0]) or math.isnan(power[1]) or abs(power[0]) > 10000  or abs(power[1]) > 10000:
             active_power = self.measured_active_power[-1]
             reactive_power = self.measured_reactive_power[-1]
         else:
