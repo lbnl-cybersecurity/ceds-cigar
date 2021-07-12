@@ -109,48 +109,16 @@ class BatteryPeakShavingControllerCent(BaseController):
 
         result = {}
 
-#         if env.k.time == 0 or env.k.time == 51:
-#             self.control_mode = 'standby'
-#             self.P_target = 3000
-
-#         if env.k.time == 3600:
-#             self.control_mode = 'peak_shaving'
-#             self.P_target = 3300
-
-#         if env.k.time == 7200:
-#             self.control_mode = 'valley_filling'
-#             self.P_target = 2800
-            
-#         if env.k.time == 0 or env.k.time == 51:
-#             self.control_mode = 'standby'
-#             self.P_target = 3000
-
-#         if env.k.time == 51:
-#             self.control_mode = 'peak_shaving'
-#             self.P_target = 3400
-
-#         if env.k.time == 7200:
-#             self.control_mode = 'valley_filling'
-#             self.P_target = 2900
-
         if env.k.time == 0 or env.k.time == 51:
-            self.control_mode = 'standby'
+            self.control_mode = 'peak_shaving'
             self.P_target = 3000
 
-        if env.k.time == 3600:
-            self.control_mode = 'power_target_tracking'
+        if env.k.time == 4000:
+            self.control_mode = 'peak_shaving'
             self.P_target = 3200
 
-#         if env.k.time == 7200:
-#             self.control_mode = 'power_target_tracking'
-#             self.P_target = 2800
-            
-        if env.k.time >= 5400 and env.k.time <= 9000:
-            self.control_mode = 'power_target_tracking'
-            self.P_target = 2800 + -(3200 - 2800)*(env.k.time - 9000)/(3600)
-            
-        if env.k.time == 9000:
-            self.control_mode = 'power_target_tracking'
+        if env.k.time == 8000:
+            self.control_mode = 'valley_filling'
             self.P_target = 2800
 
         # Initialization period for pycigar
@@ -245,9 +213,16 @@ class BatteryPeakShavingControllerCent(BaseController):
                     self.apparent_power_error_int.append((1 - self.K_I*self.Ts)*self.apparent_power_error_int[-2])
 
                 # compute derivative of reference error
-                self.active_power_error_der.append(1/self.Ts*(self.active_power_error[-1] - self.active_power_error[-2]))
-                self.reactive_power_error_der.append(1/self.Ts*(self.reactive_power_error[-1] - self.reactive_power_error[-2]))
-                self.apparent_power_error_der.append(1/self.Ts*(self.apparent_power_error[-1] - self.apparent_power_error[-2]))
+                # if substation power above reference, differntiate error
+                # else, derivative is zero
+                if self.active_power_error[-1] < 0:
+                    self.active_power_error_der.append(1/self.Ts*(self.active_power_error[-1] - self.active_power_error[-2]))
+                    self.reactive_power_error_der.append(1/self.Ts*(self.reactive_power_error[-1] - self.reactive_power_error[-2]))
+                    self.apparent_power_error_der.append(1/self.Ts*(self.apparent_power_error[-1] - self.apparent_power_error[-2]))
+                else:
+                    self.active_power_error_der.append(0)
+                    self.reactive_power_error_der.append(0)
+                    self.apparent_power_error_der.append(0)
 
                 # PID
                 self.p_set_temp = self.K_P*self.active_power_error[-1] + self.K_I*self.active_power_error_int[-1] + self.K_D*self.active_power_error_der[-1]
@@ -261,7 +236,7 @@ class BatteryPeakShavingControllerCent(BaseController):
                 self.apparent_power_error.append(max(0,self.S_target - self.measured_apparent_power_lpf[-1]))
 
                 # compute integral of reference error
-                # if substation power above reference, integrate error
+                # if substation power below reference, integrate error
                 # else, exponential decay integral of error
                 if self.active_power_error[-1] > 0:
                     self.active_power_error_int.append(self.active_power_error_int[-2] + self.Ts*self.active_power_error[-2])
@@ -273,12 +248,43 @@ class BatteryPeakShavingControllerCent(BaseController):
                     self.apparent_power_error_int.append((1 - self.K_I*self.Ts)*self.apparent_power_error_int[-2])
 
                 # compute derivative of reference error
-                self.active_power_error_der.append(1/self.Ts*(self.active_power_error[-1] - self.active_power_error[-2]))
-                self.reactive_power_error_der.append(1/self.Ts*(self.reactive_power_error[-1] - self.reactive_power_error[-2]))
-                self.apparent_power_error_der.append(1/self.Ts*(self.apparent_power_error[-1] - self.apparent_power_error[-2]))
+                # if substation power below reference, differentiate error
+                # else, derivative is zero
+                if self.active_power_error[-1] < 0:
+                    self.active_power_error_der.append(1/self.Ts*(self.active_power_error[-1] - self.active_power_error[-2]))
+                    self.reactive_power_error_der.append(1/self.Ts*(self.reactive_power_error[-1] - self.reactive_power_error[-2]))
+                    self.apparent_power_error_der.append(1/self.Ts*(self.apparent_power_error[-1] - self.apparent_power_error[-2]))
+                else:
+                    self.active_power_error_der.append(0)
+                    self.reactive_power_error_der.append(0)
+                    self.apparent_power_error_der.append(0)
 
                 # PID
                 self.p_set_temp = self.K_P*self.active_power_error[-1] + self.K_I*self.active_power_error_int[-1] + self.K_D*self.active_power_error_der[-1]
+                
+            elif self.control_mode == 'ntps_fixed_power':
+                
+                self.p_set_temp = -1000
+                
+            elif self.control_mode == 'ntps_fixed_power':
+                
+                Tstart = 6000
+                Tend = 8000
+                min_SOC = 0.20
+                                
+                SOC_list = []
+                total_capacity_list = []
+
+                # Obtain list of BSD max charge and discharge powers
+                for device in self.device_id:
+
+                    SOC_list.append(env.k.device.devices[device]['device'].SOC)
+                    total_capacity_list.append(env.k.device.devices[device]['device'].total_capacity)
+                    
+                discharge_rate = (SOC_list - min_SOC)*total_capacity_list/(Tend - Tstart)
+                
+                
+                
 
             # setpoint
             self.p_set.append(1*self.p_set_temp)
