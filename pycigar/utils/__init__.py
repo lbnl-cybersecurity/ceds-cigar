@@ -5,8 +5,15 @@ __all__ = [
     'AttackGenerator',
     'AttackGeneratorEvaluation',
     'HeterogeneousAttackGenerator',
-    'HeterogeneousAttackGeneratorEvaluation'
+    'HeterogeneousAttackGeneratorEvaluation',
+
+    'DuplicateAttackGenerator'
 ]
+
+pycigar_register(
+    id='DuplicateAttackGenerator',
+    entry_point='pycigar.utils:DuplicateAttackGenerator'
+)
 
 pycigar_register(
     id='AttackGenerator',

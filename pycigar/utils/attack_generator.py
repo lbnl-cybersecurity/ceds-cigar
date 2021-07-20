@@ -84,6 +84,52 @@ class AttackGenerator:
 
         return res
 
+class DuplicateAttackGenerator:
+    """Generates new attack definitions for a simulation scenario
+
+    Attributes:
+    ---------
+    start_time: int
+        start time of the simulation scenario
+    end_time: int
+        end time of the simulation scenario
+
+    """
+
+    def __init__(self, start_time, end_time):
+        self.mode = 0
+
+        duration = end_time - start_time
+        percentage = np.linspace(10, 50, 9) / 100
+        start_time = np.linspace(100, 11000, 10).astype(int)
+        self.scenarios = []
+        for p in percentage:
+            for s in start_time:
+                s = int(s)
+                scenarios = [p, s, s + duration]
+                self.scenarios.append(scenarios)
+
+        self.duplicate = 0
+
+    def change_mode(self):
+        if self.duplicate == 2:
+            self.mode = random.randint(0, len(self.scenarios) - 1)
+            self.duplicate = 0
+        else:
+            self.duplicate += 1
+
+        res = self.scenarios[self.mode][1:]
+
+        return res
+
+    def new_dev_hack_info(self):
+        hack_start = 250  # random.randint(250, 250 + 10)  # random.randint(int(duration*2/5), int(duration*2/5)+10)
+        hack_end = 10000  # random.randint(500, 500 + 10)  # random.randint(int(duration*4/5), int(duration*4/5)+10)
+        percentage = self.scenarios[self.mode][0]
+        res = [hack_start, percentage, hack_end]
+
+        return res
+
 class HeterogeneousAttackGeneratorEvaluation:
     """Generates new attack definitions for a simulation scenario
 
