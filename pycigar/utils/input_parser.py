@@ -231,7 +231,7 @@ def input_parser(misc_inputs_path, dss_path, load_solar_path, breakpoints_path=N
             device['custom_controller_configs']['threshold'] = 0.05
             device['custom_controller_configs']['adaptive_gain'] = 20
 
-        device['adversary_controller'] = ['adaptive_fixed_controller', 'adaptive_unbalanced_fixed_controller']
+        device['adversary_controller'] = 'adaptive_fixed_controller'#['adaptive_fixed_controller', 'adaptive_unbalanced_fixed_controller']
         if adv:
             device['adversary_controller'] = 'rl_controller'
         device['adversary_custom_controller_configs'] = {}

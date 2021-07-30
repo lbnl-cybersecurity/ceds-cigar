@@ -30,5 +30,6 @@ PyYAML
 gputil
 tqdm
 dm-tree
+networkx
 ray[tune]
 ray[rllib]
