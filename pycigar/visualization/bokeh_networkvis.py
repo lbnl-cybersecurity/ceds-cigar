@@ -10,7 +10,7 @@ from pycigar.utils.logging import logger
 import matplotlib
 import random
 import re
-
+from waterfall import Graph
 
 # misc_inputs = '/home/toanngo/Documents/GitHub/cigar-document/ceds-cigar/pycigar/data/ieee37busdata_regulator_attack/misc_inputs.csv'
 # dss = '/home/toanngo/Documents/GitHub/ceds-cigar/pycigar/data/ieee37busdata_regulator_attack/ieee37.dss'
@@ -46,6 +46,8 @@ output_notebook(INLINE)
 
 import pandas as pd
 import networkx 
+import copy 
+
 from bokeh.io import show, output_notebook, push_notebook
 from bokeh.plotting import figure
 
@@ -82,7 +84,57 @@ def whole_plot(log_dict, inverter_list, adversary_inv, network, track_colors,cut
         node_end.append(temp)
     node_end.append('y_mean')
     node_end.append('y_worst')
-    
+
+
+    g = Graph(len(dss.Circuit.AllBusNames()), log_dict)
+
+    def line_bus_dict():
+        # dict
+        # key = line name 
+        # value = [bus1, bus2]
+        lb = {}
+        for line in dss.Lines.AllNames():
+            dss.Lines.Name(line)
+            bus1 = dss.Lines.Bus1().split(".")[0]
+            bus2 = dss.Lines.Bus2().split(".")[0]
+            lb[line] = [bus1, bus2]
+            
+        return lb
+
+    line_bus_dict = line_bus_dict()
+
+    for k in line_bus_dict.keys():
+        line_idx = dss.Lines.AllNames().index(k)
+        bus_idxs = line_bus_dict[k] 
+        bus_idx1 = dss.Circuit.AllBusNames().index(bus_idxs[0])
+        bus_idx2 = dss.Circuit.AllBusNames().index(bus_idxs[1])
+        g.addEdge(bus_idx1, bus_idx2)
+        
+    g.addEdge(0, 2) #connect sourcebus and 701
+
+    s = 0
+    d = len(dss.Circuit.AllBusNames())
+    #print("Following are all different paths from % d to % d :" %(s, d-1))
+
+    for s in range(0,1):
+        for d in range(0, d):  
+            g.printAllPaths(s, d)
+            
+            
+    g.cleanPaths()
+
+    g.convert_english()
+
+    g.get_line_lengths()
+
+    g.get_line_bus_dict()
+
+    all_english = g.english
+
+    line_lengths = g.line_lengths
+
+    # g.change_time(400)
+        
     
     ######################################
     # Y
@@ -577,6 +629,73 @@ def whole_plot(log_dict, inverter_list, adversary_inv, network, track_colors,cut
         p.add_layout(legend, 'right') # add legend
 
         return p
+
+    ######################################
+    # waterfall 
+
+    def make_waterfall_plot(waterfall_time, title='Waterfall Plot', x_axis_label='Distance from source (m)', y_axis_label='Voltage (V)'):
+        legend_labels = []
+        tag = 0
+
+    
+        select_tools = ['box_select', 'lasso_select', 'poly_select', 'tap', 'reset']
+
+
+        wfall = figure(plot_width=800, 
+                      plot_height=500, 
+                      title=title, 
+                      x_axis_label=x_axis_label, 
+                      y_axis_label=y_axis_label, 
+                      toolbar_location='right',
+                      tools=select_tools)
+        
+
+   
+        for j in range(len(g.updatedPaths)):
+            path_lengths = [0]
+            summative = 0
+            for i in range(len(g.updatedPaths[j])-1): 
+
+                key = (g.english[j][i], g.english[j][i+1])
+
+                summative += g.line_lengths[g.line_bus_dict[key]]
+                path_lengths.append(summative)
+
+            v_useful = log_dict['v_metrics'][str(waterfall_time)][0]
+            eng_list = g.english[j]
+            v_list = np.array([])
+            for i in eng_list:
+                v_list = np.append(v_list, v_useful[i])
+
+            y = copy.copy(v_list)
+
+            y = y.reshape( len(eng_list), 3).transpose()
+
+            colors = {0:'orange', 1:'blue', 2:'green'}
+
+            for ii in range(len(y)):          
+                #plt.plot(path_lengths, y[ii], colors[ii], lw=3)
+        
+                cds = ColumnDataSource(data=dict(x=path_lengths, y0=y[ii])) # format data for plotting
+
+                p = wfall.line('x', 'y0',  hover_color="firebrick", source=cds, color=colors[ii], 
+                              line_width=3)
+
+#         hover = HoverTool(renderers=[p], tooltips=[("slope", "$y"), (tags[j], i)])
+#         wfall.add_tools(hover)
+
+             
+        
+#             if tag == 1:              
+#                 legend_labels.append((i, [p])) # set up legend labels for display outside plot
+
+#         if tag == 1:
+#             legend = Legend(items=legend_labels)
+#             left.add_layout(legend, 'right') # add legend
+#         tag = 0
+
+        
+        return wfall
     
     ######################################
     # When new portion of graph selected
@@ -654,6 +773,17 @@ def whole_plot(log_dict, inverter_list, adversary_inv, network, track_colors,cut
             p = figure(plot_width=10, plot_height=10)
             layout.children[7] = p
 
+        # waterfall
+        if 6 in figs_to_show.active:
+            p = make_waterfall_plot(wfall_slider.value)
+            layout.children[8] = p
+            
+            layout.children[9] = wfall_slider
+        else:
+            p = figure(plot_width=10, plot_height=10)
+            layout.children[8] = p
+            
+            layout.children[9] = p
         
     ######################################
     # Button/Select
@@ -687,8 +817,17 @@ def whole_plot(log_dict, inverter_list, adversary_inv, network, track_colors,cut
     y_box = CheckboxButtonGroup(labels=y_labels, active=[0], width=150)
     y_box.on_change('active', update)
     
+    #waterfall slider   
+    result = list(log_dict['v_metrics'].keys())
+    results = list(map(int, result))
+    v_start = min(results)
+    v_end = max(results)
+    wfall_slider = Slider(start=v_start, end=v_end, value=v_start, step=1, title="Time step")
+    wfall_slider.on_change('value', update)
+
+    
     # toggle figures
-    figs_to_show_labels = ['V', 'VVC', 'Y', 'U', 'Tap', 'PQ']
+    figs_to_show_labels = ['V', 'VVC', 'Y', 'U', 'Tap', 'PQ', 'Waterfall']
     figs_to_show = CheckboxButtonGroup(labels=figs_to_show_labels, active=[0, 1, 2, 3, 4, 5, 6], width=800, align='center')
     figs_to_show.on_change('active', update)
     
@@ -714,6 +853,9 @@ def whole_plot(log_dict, inverter_list, adversary_inv, network, track_colors,cut
 
     src5 = make_pq_dataset( initial_nodes, inverter_type)
     p5 = make_pq_plot(src5, initial_nodes, inverter_type)
+
+    waterfall_time = v_start
+    p6 = make_waterfall_plot(waterfall_time)
    
 
     ######################################
@@ -788,8 +930,8 @@ def whole_plot(log_dict, inverter_list, adversary_inv, network, track_colors,cut
     
     div = Div(text=""" <br><br> """, width=800, height=800)
     
-    layout = Column(Column(plot, div, figs_to_show), inverter_type, Row(stats_selection, p3), Row(geometry_type, p4), Row(y_box, p),  Row(u_std, p2), p_tap,  p5)
-    
+    layout = Column(Column(plot, div, figs_to_show), inverter_type, Row(stats_selection, p3), 
+                    Row(geometry_type, p4), Row(y_box, p),  Row(u_std, p2), p_tap,  p5, p6, wfall_slider)
     return layout
 
 
