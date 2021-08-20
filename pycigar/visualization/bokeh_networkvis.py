@@ -823,7 +823,7 @@ def whole_plot(log_dict, inverter_list, adversary_inv, network, track_colors,cut
     v_start = min(results)
     v_end = max(results)
     wfall_slider = Slider(start=v_start, end=v_end, value=v_start, step=1, title="Time step")
-    wfall_slider.on_change('value', update)
+    wfall_slider.on_change('value_throttled', update)
 
     
     # toggle figures
