@@ -71,7 +71,7 @@ from bokeh.models.graphs import  NodesAndLinkedEdges, EdgesAndLinkedNodes, Nodes
 
 from bokeh.models import Range1d, Circle, MultiLine
 from bokeh.plotting import from_networkx
-from bokeh.palettes import  Oranges, RdBu
+from bokeh.palettes import Oranges, RdBu
 
 import opendssdirect as dss
 
@@ -114,7 +114,6 @@ def whole_plot(log_dict, inverter_list, adversary_inv, network, track_colors,cut
 
     s = 0
     d = len(dss.Circuit.AllBusNames())
-    #print("Following are all different paths from % d to % d :" %(s, d-1))
 
     for s in range(0,1):
         for d in range(0, d):  
@@ -281,12 +280,6 @@ def whole_plot(log_dict, inverter_list, adversary_inv, network, track_colors,cut
         p.add_layout(legend, 'right') # add legend
             
 
-        # bands of color in graph
-#         high_box = BoxAnnotation(bottom=6, fill_alpha=0.05, fill_color='red')
-#         mid_box = BoxAnnotation(bottom=3, top=6, fill_alpha=0.05, fill_color='orange')
-#         p.add_layout(high_box)
-#         p.add_layout(mid_box)
-        
         
         return p
     
@@ -509,12 +502,12 @@ def whole_plot(log_dict, inverter_list, adversary_inv, network, track_colors,cut
                     
                         # hover text based on slope or translation
                         if k == 1:
-                            #p.glyph.line_dash = 'dashed'
+
                             hover = HoverTool(renderers=[p], tooltips=[("slope", "$y"), (tags[j], i)])
                             left.add_tools(hover)
 
                         else:
-                            #p.glyph.line_dash = 'solid'
+
                             hover = HoverTool(renderers=[p], tooltips=[("translation", "$y"), (tags[j], i)])
                             left.add_tools(hover)  
                         tag = 1
@@ -615,16 +608,12 @@ def whole_plot(log_dict, inverter_list, adversary_inv, network, track_colors,cut
 
                 for g in range(len(glyphs)):
                     legend_labels.append(( 'adv_' + tag[g] + node[-4:], [glyphs[g]])) 
-            
-            
-            #pretag = {0:'adv_', 1:'inv_'}
-            
+
             for i in range(len(glyphs)):               
                 hover = HoverTool(renderers=[glyphs[i]], tooltips=[(tag[i] + "{}".format(node), '{}'.format('$y'))])
                 p.add_tools(hover)
 
- 
-            
+    
         legend = Legend(items=legend_labels)
         p.add_layout(legend, 'right') # add legend
 
@@ -648,9 +637,7 @@ def whole_plot(log_dict, inverter_list, adversary_inv, network, track_colors,cut
                       y_axis_label=y_axis_label, 
                       toolbar_location='right',
                       tools=select_tools)
-        
 
-   
         for j in range(len(g.updatedPaths)):
             path_lengths = [0]
             summative = 0
@@ -672,28 +659,24 @@ def whole_plot(log_dict, inverter_list, adversary_inv, network, track_colors,cut
             y = y.reshape( len(eng_list), 3).transpose()
 
             colors = {0:'orange', 1:'blue', 2:'green'}
+            phase = {0: 'A', 1:'B', 2:'C'}
 
             for ii in range(len(y)):          
-                #plt.plot(path_lengths, y[ii], colors[ii], lw=3)
-        
+
                 cds = ColumnDataSource(data=dict(x=path_lengths, y0=y[ii])) # format data for plotting
 
                 p = wfall.line('x', 'y0',  hover_color="firebrick", source=cds, color=colors[ii], 
                               line_width=3)
+            
+        ite = []
 
-#         hover = HoverTool(renderers=[p], tooltips=[("slope", "$y"), (tags[j], i)])
-#         wfall.add_tools(hover)
+        for c in colors.keys():
+            fake_sq = wfall.square([0], [1], fill_color=colors[c], line_color='white', size = 0)
+            ite.append(("Phase: " + phase[c], [fake_sq]))
 
-             
-        
-#             if tag == 1:              
-#                 legend_labels.append((i, [p])) # set up legend labels for display outside plot
+        legend = Legend(items=ite, location="center")
 
-#         if tag == 1:
-#             legend = Legend(items=legend_labels)
-#             left.add_layout(legend, 'right') # add legend
-#         tag = 0
-
+        wfall.add_layout(legend, 'right')
         
         return wfall
     
@@ -823,7 +806,7 @@ def whole_plot(log_dict, inverter_list, adversary_inv, network, track_colors,cut
     v_start = min(results)
     v_end = max(results)
     wfall_slider = Slider(start=v_start, end=v_end, value=v_start, step=1, title="Time step")
-    wfall_slider.on_change('value', update)
+    wfall_slider.on_change('value_throttled', update)
 
     
     # toggle figures
