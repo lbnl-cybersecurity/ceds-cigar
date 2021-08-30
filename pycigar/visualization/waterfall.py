@@ -80,18 +80,23 @@ class Graph:
         
         
     def cleanPaths(self):
+        """
+        Remove the paths from printAllPathsUtil() that are obviously not useful for waterfall diagram
+        """
+        
         
         valid_paths = []
         start_end_dict = {}  #key = (start_idx, end_idx), value = prev
+        # dictionary to track the longest path associated with a start and end bus
 
         prev = 0
 
         for path in self.paths:
 
             if type(path) == int or type(path) == float or len(path) <= 1:
-                
+                # useful path      
                 continue
-            else: 
+            else: # weed out potentially non-useful paths
 
                 key = (path[0], path[len(path) - 1])
 
@@ -113,12 +118,19 @@ class Graph:
       
 
         ls = copy.deepcopy(valid_paths)
-        no_prefix = [x for x in ls if x not in [y[:len(x)] for y in ls if y != x]] 
+        no_prefix = [x for x in ls if x not in [y[:len(x)] for y in ls if y != x]] #eliminate paths that are prefixes of the other
+        # ex. [1, 2, 3], [1, 2], [1] -> [1, 2, 3]
+
         self.updatedPaths = no_prefix
     
     def convert_english(self):
+        """
+        convert the index associated with bus name to the bus name
+        ex. 0 -> sourcebus, 2 -> 701, 3 -> 702
+        convert_english([0, 2, 3]) -> ['sourcebus', '701', '702']
+        """
         all_english = []
-        # convert to index to bus name, ex. 0 = sourcebus, 2 = 701, 3 = 702
+        
         for lst in self.updatedPaths:
             english = []
             for elem in lst:
@@ -128,9 +140,13 @@ class Graph:
         self.english = all_english
     
     def get_line_bus_dict(self):
+        """
+        dictionary where
+        key = (bus start, bus end)
+        value = line index
+        """
         line_bus_dict = {}
-        # key = (bus start, bus end)
-        # value = line index
+        
         for line in range(len(dss.Lines.AllNames())):
 
             dss.Lines.Name(dss.Lines.AllNames()[line])
@@ -143,6 +159,9 @@ class Graph:
         self.line_bus_dict = line_bus_dict
     
     def get_line_lengths(self):
+        """
+        Establish the x-axis (length along the feeder)
+        """
         
         line_lengths = []
         # all line lengths
@@ -155,8 +174,10 @@ class Graph:
         self.line_lengths.append(0)
         
     def change_time(self, time):
+        """
+        Plot a different time step in the waterfall plot
+        """
   
-
         plt.figure(figsize=(20, 10))
         plt.xlabel('Length from sourcebus (meters)')
         plt.ylabel('|V| (Voltage)')
@@ -164,26 +185,27 @@ class Graph:
 
 
         for j in range(len(self.updatedPaths)):
-            path_lengths = [0]
-            summative = 0
+            path_lengths = [0] #list of x position
+            summative = 0 #x position
             for i in range(len(self.updatedPaths[j])-1): 
 
                 key = (self.english[j][i], self.english[j][i+1])
 
-                summative += self.line_lengths[self.line_bus_dict[key]]
+                summative += self.line_lengths[self.line_bus_dict[key]] 
+
                 path_lengths.append(summative)
 
-            v_useful = self.log_dict['v_metrics'][str(time)][0]
-            eng_list = self.english[j]
+            v_useful = self.log_dict['v_metrics'][str(time)][0] #voltage data from log_dict at specified time step
+            eng_list = self.english[j] 
             v_list = np.array([])
             for i in eng_list:
-                v_list = np.append(v_list, v_useful[i])
+                v_list = np.append(v_list, v_useful[i]) #select voltage data relevant to segment of line (based on buses)
 
-            y = copy.copy(v_list)
+            y = copy.copy(v_list) #copy to avoid assignment issues (assigning to object vs label...)
 
-            y = y.reshape( len(eng_list), 3).transpose()
+            y = y.reshape(len(eng_list), 3).transpose() #differentiate between phases
 
-            colors = {0:'orange', 1:'b', 2:'g'}
+            colors = {0:'orange', 1:'b', 2:'g'} #colors associated with phases
 
             for ii in range(len(y)):          
                 plt.plot(path_lengths, y[ii], colors[ii], lw=3)

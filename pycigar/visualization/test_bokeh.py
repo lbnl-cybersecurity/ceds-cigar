@@ -46,6 +46,7 @@ from bokeh.palettes import Category20_16 as palette
 from bokeh.application.handlers import FunctionHandler
 from bokeh.application import Application
 import itertools
+
 imbalance = pd.DataFrame(log_dict['u_metrics'])*100
 all_node_list = imbalance.columns.to_list()
 
@@ -67,14 +68,8 @@ def imbalance_plot(doc):
     def make_plot(src, title='', x_axis_label='Time (s)', y_axis_label=''):
         p = figure(plot_width=600, plot_height=600, title=title, x_axis_label=x_axis_label, y_axis_label=y_axis_label)
         p.multi_line(source=src, xs='x', ys='y', line_color='color', legend_field='legend')
-
-        #hover = HoverTool(tooltips=[('Node', '@legend'),],
-                                    #('Delay', '@f_interval'),
-                                    #('Proportion', '@f_proportion')],
-        #                  mode='vline')
-        #plot.add_tools(hover)
-        #p = style(p)
         return p
+    
     def update(attr, old, new):
         select_node = [node_list_selection.labels[i] for i in node_list_selection.active]
         new_subset = make_dataset(imbalance, select_node)

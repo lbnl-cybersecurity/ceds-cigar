@@ -89,9 +89,11 @@ def whole_plot(log_dict, inverter_list, adversary_inv, network, track_colors,cut
     g = Graph(len(dss.Circuit.AllBusNames()), log_dict)
 
     def line_bus_dict():
-        # dict
+        """ 
+        returns a dict
         # key = line name 
         # value = [bus1, bus2]
+        """
         lb = {}
         for line in dss.Lines.AllNames():
             dss.Lines.Name(line)
@@ -104,17 +106,19 @@ def whole_plot(log_dict, inverter_list, adversary_inv, network, track_colors,cut
     line_bus_dict = line_bus_dict()
 
     for k in line_bus_dict.keys():
+        # populates the graph with edges
         line_idx = dss.Lines.AllNames().index(k)
         bus_idxs = line_bus_dict[k] 
         bus_idx1 = dss.Circuit.AllBusNames().index(bus_idxs[0])
         bus_idx2 = dss.Circuit.AllBusNames().index(bus_idxs[1])
-        g.addEdge(bus_idx1, bus_idx2)
+        g.addEdge(bus_idx1, bus_idx2) #edge is the dss index of the bus 
         
-    g.addEdge(0, 2) #connect sourcebus and 701
+    g.addEdge(0, 2) # !! connect sourcebus and 701 (DSS DOES NOT DO THIS)
 
     s = 0
     d = len(dss.Circuit.AllBusNames())
 
+    # get all the paths associated with the graph
     for s in range(0,1):
         for d in range(0, d):  
             g.printAllPaths(s, d)
@@ -138,14 +142,17 @@ def whole_plot(log_dict, inverter_list, adversary_inv, network, track_colors,cut
     ######################################
     # Y
     
-    # store y data
-    
     # y for inverter
     def y_data():
+        """
+        Store y data
+        """
         df = pd.DataFrame()
+        # y for non-adversary inverter
         for inv in inverter_list:
             df = df.append(pd.Series(log_dict[inv]['y'], name=inv))
 
+        # y general data (not associated with specific inverter)
         tags = ['y_worst_node', 'y_worst', 'y_mean']
         for tag in tags:
             df = df.append(pd.Series(data=log_dict['y_metrics'][tag], name=tag)) 
@@ -162,6 +169,7 @@ def whole_plot(log_dict, inverter_list, adversary_inv, network, track_colors,cut
         # combine y data
         all_y_df = pd.concat([y_df, adv_y_df], axis=1)
 
+        # scale y data
         imbalance_df = all_y_df*100
 
         # color palette
@@ -176,8 +184,7 @@ def whole_plot(log_dict, inverter_list, adversary_inv, network, track_colors,cut
     
  
     def make_y_dataset(dataset, node_list, range_start=0, range_end=650):
-        
-             
+                  
         updated_dataset = pd.DataFrame()
         
         # select marked nodes
@@ -254,7 +261,7 @@ def whole_plot(log_dict, inverter_list, adversary_inv, network, track_colors,cut
     
     def make_u_plot(src, nodes, u_selection, title='Oscillation Imbalance', x_axis_label='Time (s)', y_axis_label='U Metric'):
        
-    
+        # format selected nodes to work with the log_dict info (src)
         clipped_node = [re.findall("\d+", i)[0] for i in nodes]
         clipped_node = list(set(clipped_node))
        
@@ -262,15 +269,17 @@ def whole_plot(log_dict, inverter_list, adversary_inv, network, track_colors,cut
                    title=title,
                    x_range=(src.data['index'][0], src.data['index'][-1]), y_range=(0, 6),
                    x_axis_label=x_axis_label, y_axis_label=y_axis_label)
+
         legend_labels = []
         
         if u_selection:  
+            # band that represents the u standard deviation (if selected)
             band = Band(source=src, base='index', lower='u_std_lower', upper='u_std_upper', 
             level='underlay', fill_alpha=0.5, line_width=0.5, fill_color='green')
             p.add_layout(band)
    
+        # u data for specific inverters
         for node in range(len(clipped_node)):
-            
             glyph = p.line(source=src, x='index', y=clipped_node[node],  color=colors[nodes[node]], line_width=2) 
             hover = HoverTool(renderers=[glyph], tooltips=[('{}'.format(clipped_node[node]), "$y")])
             p.add_tools(hover)
@@ -279,12 +288,10 @@ def whole_plot(log_dict, inverter_list, adversary_inv, network, track_colors,cut
         legend = Legend(items=legend_labels)
         p.add_layout(legend, 'right') # add legend
             
-
-        
         return p
     
     ######################################
-    # Tap
+    # Tap Number Plot
     
     def make_tap_dataset(regname=['reg1'], range_start=0, range_end=650):
         
@@ -306,7 +313,9 @@ def whole_plot(log_dict, inverter_list, adversary_inv, network, track_colors,cut
         p = figure(plot_width=800, plot_height=300, 
                    title=title,
                    x_axis_label=x_axis_label, y_axis_label=y_axis_label)   
+
         legend_labels = []
+
         for i in range(len(x)):
 
             glyph = p.line(x=x[i], y=y[i], line_width=2)
@@ -325,7 +334,10 @@ def whole_plot(log_dict, inverter_list, adversary_inv, network, track_colors,cut
     # Voltage
 
     def generate_voltage_df(phase):
-        # phase - base-0
+        # phase - base-0, so A-phase = 0, B-phase = 1, C-phase = 2
+        """
+        Retrive voltage data from log_dict based on desired phase
+        """
 
         v_df = pd.DataFrame()
 
@@ -345,6 +357,10 @@ def whole_plot(log_dict, inverter_list, adversary_inv, network, track_colors,cut
 
 
     def make_voltage_dataset(nodes, select_stats):
+        """
+        nodes        = list of desired nodes
+        select_stats = list of desired phases
+        """
         
         nodes = [re.findall("\d+", i)[0] for i in nodes]
         
@@ -357,7 +373,6 @@ def whole_plot(log_dict, inverter_list, adversary_inv, network, track_colors,cut
 
         dataset = []
         
-
         for i in range(len(select_stats)):
             dataset.append(all_voltages[int(select_stats[i])].loc[:, nodes])           
         
@@ -380,17 +395,15 @@ def whole_plot(log_dict, inverter_list, adversary_inv, network, track_colors,cut
         clipped_nodes = list(set(clipped_nodes))
         for s in range(len(phases)):
             for node in range(len(clipped_nodes)):
-                
-              
-                subset = src[s].iloc[:, node]
+                              
+                subset = src[s].iloc[:, node] # select phase/node data to plot
                 
                 # s + node name + phase =>  s 701 a
                 pos = "s" + str(clipped_nodes[node]) + color_dict[phases[s]].lower()
                 c = itertools.cycle(palette)
                 if pos not in colors.keys():
                     c_store = next(c)
-                    while c_store not in colors.values():
-                   
+                    while c_store not in colors.values(): # generate a new color from color palette if not already present
                        c_store = next(c)
                     colors[pos] = next(c)
               
@@ -398,12 +411,10 @@ def whole_plot(log_dict, inverter_list, adversary_inv, network, track_colors,cut
                 
 
                 legend_it.append((pos, [glyph]))
-              
 
                 hover = HoverTool(renderers=[glyph], tooltips=[(clipped_nodes[node], 'Phase {}'.format(color_dict[s])),("Voltage", "$y")])
                 p.add_tools(hover)
-                
-               
+                          
 
         legend = Legend(items=legend_it)
         p.add_layout(legend, 'right') # add legend
@@ -429,6 +440,7 @@ def whole_plot(log_dict, inverter_list, adversary_inv, network, track_colors,cut
         return inv_control_dict
 
     def get_translation_and_slope(a_val, init_a):
+        # From Sy-Toan
         points = np.array(a_val)
         slope = points[:, 1] - points[:, 0]
         translation = points[:, 2] - init_a[2]
@@ -445,7 +457,6 @@ def whole_plot(log_dict, inverter_list, adversary_inv, network, track_colors,cut
 
     ##### 
 
-
     inv_control_dict = get_inv_control_dict(adversary_inv)
     inv_control_dict2 = get_inv_control_dict(inverter_list)
 
@@ -455,8 +466,8 @@ def whole_plot(log_dict, inverter_list, adversary_inv, network, track_colors,cut
     
     
     def make_control_dataset(inv):
-        
         # select control settings for checked inverters
+
         src = {}
         for i in inv:
             pfix2 = 'inverter_' + str(i)
@@ -502,15 +513,14 @@ def whole_plot(log_dict, inverter_list, adversary_inv, network, track_colors,cut
                     
                         # hover text based on slope or translation
                         if k == 1:
-
                             hover = HoverTool(renderers=[p], tooltips=[("slope", "$y"), (tags[j], i)])
                             left.add_tools(hover)
 
                         else:
-
                             hover = HoverTool(renderers=[p], tooltips=[("translation", "$y"), (tags[j], i)])
                             left.add_tools(hover)  
                         tag = 1
+
             if tag == 1:              
                 legend_labels.append((i, [p])) # set up legend labels for display outside plot
 
@@ -524,6 +534,7 @@ def whole_plot(log_dict, inverter_list, adversary_inv, network, track_colors,cut
     
     ######################################
     # PQ 
+    # From Sy-Toan
         
     def make_pq_dataset( node_list, inverter_type, range_start=0, range_end=699):
         
@@ -638,7 +649,7 @@ def whole_plot(log_dict, inverter_list, adversary_inv, network, track_colors,cut
                       toolbar_location='right',
                       tools=select_tools)
 
-        for j in range(len(g.updatedPaths)):
+        for j in range(len(g.updatedPaths)): #NOTE:see waterfall.py for comments
             path_lengths = [0]
             summative = 0
             for i in range(len(g.updatedPaths[j])-1): 
@@ -656,9 +667,9 @@ def whole_plot(log_dict, inverter_list, adversary_inv, network, track_colors,cut
 
             y = copy.copy(v_list)
 
-            y = y.reshape( len(eng_list), 3).transpose()
+            y = y.reshape(len(eng_list), 3).transpose()
 
-            colors = {0:'orange', 1:'blue', 2:'green'}
+            colors = {0:'orange', 1:'blue', 2:'green'} #color to plot each phase
             phase = {0: 'A', 1:'B', 2:'C'}
 
             for ii in range(len(y)):          
@@ -712,7 +723,7 @@ def whole_plot(log_dict, inverter_list, adversary_inv, network, track_colors,cut
         # voltage
             new_subset = make_voltage_dataset(select_node, stats_selection.active)  
             layout.children[2] = Row(stats_selection,make_voltage_plot(new_subset, select_node, stats_selection.active))
-        else:
+        else: #else occurs when the specific figure is hidden
             p = figure(plot_width=10, plot_height=10)
             layout.children[2] = p
 
@@ -741,7 +752,7 @@ def whole_plot(log_dict, inverter_list, adversary_inv, network, track_colors,cut
             layout.children[5] = p
 
         if 4 in figs_to_show.active:
-            
+            #tap data
             tapx, tapy = make_tap_dataset(['reg1'])
             layout.children[6] = make_tap_plot(tapx, tapy, ['reg1'])
         else:
@@ -764,8 +775,7 @@ def whole_plot(log_dict, inverter_list, adversary_inv, network, track_colors,cut
             layout.children[9] = wfall_slider
         else:
             p = figure(plot_width=10, plot_height=10)
-            layout.children[8] = p
-            
+            layout.children[8] = p    
             layout.children[9] = p
         
     ######################################
@@ -814,7 +824,6 @@ def whole_plot(log_dict, inverter_list, adversary_inv, network, track_colors,cut
     figs_to_show = CheckboxButtonGroup(labels=figs_to_show_labels, active=[0, 1, 2, 3, 4, 5, 6], width=800, align='center')
     figs_to_show.on_change('active', update)
     
-    
    
     ######################################
     # Initial figures/datasets
@@ -842,7 +851,8 @@ def whole_plot(log_dict, inverter_list, adversary_inv, network, track_colors,cut
    
 
     ######################################
-    # Network/Graph 
+    # Network/Graph
+    # @https://melaniewalsh.github.io/Intro-Cultural-Analytics/Network-Analysis/Making-Network-Viz-with-Bokeh.html
     
     G = networkx.from_pandas_edgelist(network, 'Source', 'Target', 'Weight') 
     G_source = from_networkx(G, networkx.spring_layout, scale=2, center=(0,0))
@@ -897,7 +907,8 @@ def whole_plot(log_dict, inverter_list, adversary_inv, network, track_colors,cut
 
     ite = []
     
-    for c in range(len(cutoffs)):
+    for c in range(len(cutoffs)): #color the voltage legend on the side of the graph
+        #NOTE:  if the graph does not contain (0, 0), you would want to change the plot.square([x], [y], ...)
         r0 = plot.square([0], [0], fill_color=redblue[c], line_color='white', size = 0)
         ite.append(("V < " + str(np.round(cutoffs[c], 4)), [r0]))
         
@@ -910,9 +921,10 @@ def whole_plot(log_dict, inverter_list, adversary_inv, network, track_colors,cut
     
     ################ 
     
-    
+    # an empty box to increase padding between figures
     div = Div(text=""" <br><br> """, width=800, height=800)
     
+    # orders the position of the buttons/sliders and plots
     layout = Column(Column(plot, div, figs_to_show), inverter_type, Row(stats_selection, p3), 
                     Row(geometry_type, p4), Row(y_box, p),  Row(u_std, p2), p_tap,  p5, p6, wfall_slider)
     return layout
@@ -925,8 +937,6 @@ class NetworkVis:
         dss.run_command('Redirect ' + dss_file)
         self.dss_file = dss_file
         self.log_dict = log_dict
-    
-
         return None
       
     def get_inverter_list(self):
@@ -948,6 +958,7 @@ class NetworkVis:
             dss.Lines.Name(dss.Lines.AllNames()[line])   
             bus1.append((dss.Lines.Bus1().split('.')[0]))
             bus2.append((dss.Lines.Bus2().split('.')[0]))
+        # NOTE: dss file does not contain the line between sourcebus -- 799 -- 799r
         bus1.append('sourcebus')
         bus2.append('799')
         bus1.append('799')
@@ -958,6 +969,10 @@ class NetworkVis:
         
     
     def voltage_colors(self):
+        """
+        The legend with the voltage < [] beside the network graph's colors are dictated by the following code.
+        A histogram of voltages is constructed and coloring from a palette is assigned accordingly (based on binning)
+        """
         
         def generate_voltage_df(phase):
            
@@ -984,6 +999,7 @@ class NetworkVis:
 
         self.redblue = list(RdBu[11])
 
+        # use a histogram to dictate colors assigned to each voltage in network legend
         hist = np.histogram(v.mean())
         occur = hist[0]
         self.cutoffs = hist[1]
