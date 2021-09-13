@@ -152,12 +152,11 @@ def input_parser(misc_inputs_path, dss_path, load_solar_path, breakpoints_path=N
     solar_scaling_factor = float(misc_inputs_data.loc['solar scaling factor'])
 
     # check protection line
+    protection_line = None
+    protection_threshold = None
     if 'protection line' in misc_inputs_data.index and 'protection threshold' in misc_inputs_data.index:
         protection_line = str(misc_inputs_data.loc['protection line'].values[0])
         protection_threshold = str(misc_inputs_data.loc['protection threshold'].values[0])
-    else:
-        protection_line = None
-        protection_threshold = None
 
     if protection_line and protection_threshold:
         json_query['protection'] = {}
@@ -165,6 +164,18 @@ def input_parser(misc_inputs_path, dss_path, load_solar_path, breakpoints_path=N
         protection_threshold = protection_threshold.split()
         json_query['protection']['line'] = protection_line
         json_query['protection']['threshold'] = np.array(protection_threshold, dtype=float)
+
+    # check trip, trip threshold
+    trip_lowerbound = None
+    trip_upperbound = None
+    trip_duration = None
+    trip_attacker_bypass = 0
+
+    if 'trip threshold' in misc_inputs_data.index and 'trip duration' in misc_inputs_data.index:
+        trip_lowerbound = float(misc_inputs_data.loc['trip threshold'].values[0].split()[0])
+        trip_upperbound = float(misc_inputs_data.loc['trip threshold'].values[0].split()[1])
+        trip_duration = int(misc_inputs_data.loc['trip duration'].values[0])
+        trip_attacker_bypass = int(misc_inputs_data.loc['trip attacker bypass'].values[0])
 
     # check split phase
     if 'split phase' in misc_inputs_data.index:
@@ -219,6 +230,12 @@ def input_parser(misc_inputs_path, dss_path, load_solar_path, breakpoints_path=N
         device['custom_device_configs']['is_butterworth_filter'] = False
         device['custom_device_configs']['low_pass_filter_measure_mean'] = low_pass_filter_measure_mean
         device['custom_device_configs']['low_pass_filter_output_mean'] = low_pass_filter_output_mean
+        if trip_lowerbound and trip_upperbound and trip_duration:
+            device['custom_device_configs']['trip_lowerbound'] = trip_lowerbound
+            device['custom_device_configs']['trip_upperbound'] = trip_upperbound
+            device['custom_device_configs']['trip_duration'] = trip_duration
+            device['custom_device_configs']['trip attacker bypass'] = trip_attacker_bypass
+
         if not benchmark:
             device['custom_device_configs']['low_pass_filter_measure_std'] = low_pass_filter_measure_std
             device['custom_device_configs']['low_pass_filter_output_std'] = low_pass_filter_output_std
@@ -232,7 +249,7 @@ def input_parser(misc_inputs_path, dss_path, load_solar_path, breakpoints_path=N
             device['custom_controller_configs']['threshold'] = 0.05
             device['custom_controller_configs']['adaptive_gain'] = 20
 
-        device['adversary_controller'] = 'oscillation_fixed_controller'
+        device['adversary_controller'] = 'unbalanced_fixed_controller'
         if adv:
             device['adversary_controller'] = 'rl_controller'
         device['adversary_custom_controller_configs'] = {}

@@ -35,6 +35,13 @@ class PVDevice(BaseDevice):
         self.p_ramp_rate = additional_params.get('p_ramp_rate', 1)
         self.q_ramp_rate = additional_params.get('q_ramp_rate', 0.25)
 
+        self.trip_lowerbound =additional_params.get('trip_lowerbound', None)
+        self.trip_upperbound = additional_params.get('trip_upperbound', None)
+        self.trip_duration = additional_params.get('trip_duration', None)
+        self.trip_attacker_bypass = additional_params.get('trip_attacker_bypass', 0)
+        self.trip_count = 0
+        self.trip = False
+
         Logger = logger()
         if 'init_control_settings' in Logger.custom_metrics:
             logger().custom_metrics['init_control_settings'][device_id] = self.control_setting
@@ -102,6 +109,18 @@ class PVDevice(BaseDevice):
         if k.time > 1:
             vk = abs(k.node.nodes[self.node_id]['voltage'][k.time - 1])
             vkm1 = abs(k.node.nodes[self.node_id]['voltage'][k.time - 2])
+
+            if k.time > 50 and self.trip_lowerbound and self.trip_upperbound: #
+                if 'adversary' in self.device_id and vk < self.trip_lowerbound or vk > self.trip_upperbound:
+                    print('ahihi')
+                if 'adversary' not in self.device_id or not self.trip_attacker_bypass:
+                    if vk < self.trip_lowerbound or vk > self.trip_upperbound:
+                        self.trip_count += 1
+                    else:
+                        self.trip_count = 0
+
+                if self.trip_count == self.trip_duration:
+                    self.trip = True
 
             if k.sim_params['is_disable_y'] == True:
                 y = 0
@@ -216,8 +235,9 @@ class PVDevice(BaseDevice):
 
         # import old V to x
         # inject to node
-        k.node.nodes[self.node_id]['PQ_injection']['P'] += self.p_out[1]
-        k.node.nodes[self.node_id]['PQ_injection']['Q'] += self.q_out[1]
+        if not self.trip:
+            k.node.nodes[self.node_id]['PQ_injection']['P'] += self.p_out[1]
+            k.node.nodes[self.node_id]['PQ_injection']['Q'] += self.q_out[1]
 
         # log necessary info
         self.log()
@@ -240,10 +260,19 @@ class PVDevice(BaseDevice):
             Logger = logger()
             Logger.log(self.device_id, 'y', self.y)
             Logger.log(self.device_id, 'u', self.u)
-            Logger.log(self.device_id, 'p_set', self.p_set[1])
-            Logger.log(self.device_id, 'q_set', self.q_set[1])
-            Logger.log(self.device_id, 'p_out', self.p_out[1])
-            Logger.log(self.device_id, 'q_out', self.q_out[1])
+            Logger.log(self.device_id, 'trip', int(self.trip))
+            if not self.trip:
+                Logger.log(self.device_id, 'p_set', self.p_set[1])
+                Logger.log(self.device_id, 'q_set', self.q_set[1])
+                Logger.log(self.device_id, 'p_out', self.p_out[1])
+                Logger.log(self.device_id, 'q_out', self.q_out[1])
+            else:
+                Logger.log(self.device_id, 'p_set', 0)
+                Logger.log(self.device_id, 'q_set', 0)
+                Logger.log(self.device_id, 'p_out', 0)
+                Logger.log(self.device_id, 'q_out', 0)
+
+
             Logger.log(self.device_id, 'control_setting', self.control_setting)
             if self.Sbar:
                 Logger.log(self.device_id, 'sbar_solarirr', 1.5e-3*(abs(self.Sbar ** 2 - max(10, self.solar_irr) ** 2)) ** (1 / 2))
