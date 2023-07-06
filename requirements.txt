@@ -6,7 +6,7 @@ ray==1.0.0
 opencv-python
 gym
 numpy<1.19.0
-scipy==1.4.1
+scipy==1.10.0
 lxml
 pyprind
 nose2
